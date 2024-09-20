@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # Example usage
     species = "mouse"
     tissue_type = "larynx"
-    marker_list = ["Krt5", "Trp63", "Krt14", "Cdh1", "Epcam", "Vim", "Cdh2", "Acta2", "Msln", "Upk3b", "Krt8", "Krt18", "Foxj1", "Tubb4b", "Scgb1a1", "Scgb3a2", "Muc5ac", "Muc5b", "Ltf", "Bpifb1"]
+    marker_list = ["Krt5", "Trp63", "Krt14", "Cdh1", "Epcam", "Vim", "Cdh2", "Acta2", "Msln", "Upk3b", "Krt8", "Krt18", "Foxj1", "Tubb4b", "Scgb1a1", "Scgb3a2", "Muc5ac", "Muc5b", "Ltf"]
     additional_info = "Focus on epithelial cell types"
     
     run_analysis(species, tissue_type, marker_list, additional_info)
