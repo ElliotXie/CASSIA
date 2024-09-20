@@ -1,26 +1,23 @@
 
 
-#Update Note
+# Update Note
 
 Next Step:
 
-Marker Grouping
+1. Marker Grouping
 
-Incorporating more LLM (CLAUDE)
+2. Incorporating more LLM (CLAUDE)
 
-Incorporating RAG
+3. Incorporating RAG
 
-Build Web UI
+4. Build Web UI
 
-Build Python package, R package
+5. Build Python package, R package
 
-Incorporating subcluster and cluster funcation
+6. Incorporating subcluster and cluster funcation
 
-History
 
-2024-09-18
 
-- Updated all versions.
 # Version Overview
 
 This project has multiple versions with varying levels of complexity and automation:
