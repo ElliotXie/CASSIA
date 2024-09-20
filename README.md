@@ -1,7 +1,27 @@
 
 
+#Update Note
 
-# version overview
+Next Step:
+
+Marker Grouping
+
+Incorporating more LLM (CLAUDE)
+
+Incorporating RAG
+
+Build Web UI
+
+Build Python package, R package
+
+Incorporating subcluster and cluster funcation
+
+History
+
+2024-09-18
+
+- Updated all versions.
+# Version Overview
 
 This project has multiple versions with varying levels of complexity and automation:
 
