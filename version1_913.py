@@ -7,6 +7,7 @@ import os
 import json
 from dotenv import load_dotenv
 
+
 _ = load_dotenv()
 from openai import OpenAI
 client = OpenAI()
@@ -162,7 +163,10 @@ def generate_instruction_prompt(prompt, marker_list, functional_analysis, cellty
     """.strip()
     return instruction
 
+
+
 def integrate_and_annotate(agent, instruction):
+    print(f"Instruction: {instruction}\n")
     current_message = instruction
     print(f"Instruction: {current_message}\n")
     conversation_history = []
@@ -233,8 +237,13 @@ def onboarding_process(agent3):
         
     return conversation
 
+
 def extract_json_from_reply(reply):
-    json_match = re.search(r'```json\n(.*?)\n```', reply, re.DOTALL)
+    # Remove the extra backslashes, quotes, and backticks
+    cleaned_reply = reply.strip("'").replace("\\n", "\n").replace('\\"', '"').replace("```", "")
+    
+    # Use regex to find the JSON content
+    json_match = re.search(r'json\s*(\{.*?\})', cleaned_reply, re.DOTALL)
     
     if json_match:
         json_str = json_match.group(1)
@@ -243,9 +252,11 @@ def extract_json_from_reply(reply):
             return json_data
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
+            print(f"JSON string: {json_str}")
             return None
     else:
         print("No JSON content found in the reply")
+        print(f"Cleaned reply: {cleaned_reply}")
         return None
 
 def list_to_comma_separated_string(input_list):
@@ -281,7 +292,7 @@ For each group:
 3. Briefly explain the relevance of this group to cell type identification
 4. If there are any genes in the list that you're unsure about or that don't clearly fit into a functional group, 
     please list them separately and suggest possible groupings or areas for further investigation.
-5. Ask for human input for feedback on your analysis.
+5. say "### Feedback Request" and then Ask for human input for feedback on your analysis.
 
 Only after you see human input, and human says good. say "FUNCTIONAL ANALYSIS COMPLETED".
  
@@ -328,7 +339,7 @@ agent1_celltype = Agent(system=
         3. Briefly explain the relevance of this group to cell type identification
         4. If there are any genes in the list that you're unsure about or that don't clearly fit into a cell type group, 
            please list them separately and suggest possible groupings or areas for further investigation.
-        5. Ask for human input for feedback on your analysis. Always provide full results after feedback.
+        5. say "### Feedback Request" and then Ask for human input for feedback on your analysis.
 
         Only after you see human input, and human says good, say "CELL TYPE ANALYSIS COMPLETED".
  
@@ -398,6 +409,19 @@ def format_results(agent, final_annotations):
     return agent(final_text, "user")
 
 
+def extract_analysis_content(text):
+    start_marker = "ANALYSIS BEGIN"
+    end_marker = "### Feedback Request"
+    
+    start_index = text.find(start_marker)
+    end_index = text.find(end_marker)
+    
+    if start_index != -1 and end_index != -1:
+        extracted_content = text[start_index:end_index].strip()
+        return extracted_content
+    else:
+        return "Analysis content not found or improperly formatted."
+
 
 # Main execution
 if __name__ == "__main__":
@@ -417,14 +441,17 @@ if __name__ == "__main__":
     analysis_results_celltype = extract_agent1_analysis(conversation_history_celltype)
 
     print("Starting integrative analysis...\n")
-    instruction_prompt = generate_instruction_prompt(prompt, marker_list, analysis_results_functional[-1], analysis_results_celltype[-1])
+    functional_content = extract_analysis_content(analysis_results_functional[-1])
+    celltype_content = extract_analysis_content(analysis_results_celltype[-1])
+    instruction_prompt = generate_instruction_prompt(prompt, marker_list, functional_content, celltype_content)
+    
     final_annotation_conversation = integrate_and_annotate(integrative_agent, instruction_prompt)
 
     print("Formatting final results...")
     print(final_annotation_conversation[-1:])
 
     # Get the last two replies from the integrative agent
-    final_annotations = final_annotation_conversation[-2:]
+    final_annotations = final_annotation_conversation[-3:]
     formatted_output = format_results(formatting_agent, final_annotations)
     
     structured_output = extract_json_from_reply(formatted_output)
