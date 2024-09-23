@@ -6,7 +6,7 @@ Next Step:
 
 1. Marker Grouping
 
-2. Incorporating more LLM (CLAUDE)
+~~2. Incorporating more LLM (CLAUDE)~~
 
 3. Incorporating RAG
 
