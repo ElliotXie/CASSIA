@@ -6,7 +6,7 @@ import httpx
 import os
 import json
 from dotenv import load_dotenv
-
+import anthropic
 
 _ = load_dotenv()
 from openai import OpenAI
@@ -16,13 +16,16 @@ from openai import OpenAI
 client = OpenAI()
 
 class Agent:
-    def __init__(self, system="", human_input_mode="never", human_input_keyword="need human input", model="gpt-4o", temperature=0):
+    def __init__(self, system="", human_input_mode="never", human_input_keyword="need human input", 
+                 ai_provider="openai", model="gpt-4", temperature=0, max_tokens=1000):
         self.system = system
         self.chat_histories = {}
         self.human_input_mode = human_input_mode
         self.human_input_keyword = human_input_keyword.lower()
+        self.ai_provider = ai_provider.lower()
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens
 
     def __call__(self, message, other_agent_id):
         if other_agent_id not in self.chat_histories:
@@ -38,12 +41,37 @@ class Agent:
         return result
 
     def execute(self, other_agent_id):
-        completion = client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            messages=self.chat_histories[other_agent_id]
-        )
-        return completion.choices[0].message.content
+        if self.ai_provider == "anthropic":
+            # Use Claude AI
+            client = anthropic.Anthropic()
+            
+            # Prepare messages for Claude (excluding system message)
+            claude_messages = []
+            for msg in self.chat_histories[other_agent_id]:
+                if msg["role"] != "system":
+                    claude_messages.append({
+                        "role": msg["role"],
+                        "content": [{"type": "text", "text": msg["content"]}]
+                    })
+            
+            response = client.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                system=self.system,  # System message as a separate parameter
+                messages=claude_messages
+            )
+            return response.content[0].text
+        else:
+            # Use OpenAI
+            # For OpenAI, we keep the system message in the chat history
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                messages=self.chat_histories[other_agent_id]
+            )
+            return completion.choices[0].message.content
 
     def needs_human_input(self, message):
         if self.human_input_mode == "always":
@@ -297,7 +325,9 @@ For each group:
 Only after you see human input, and human says good. say "FUNCTIONAL ANALYSIS COMPLETED".
  
 '''.strip(),
-               human_input_mode="always")
+    human_input_mode="always",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 agent2_functional = Agent(system='''You are a very careful biologist. 
                Your task is to validate the functional gene enriched groups using the marker list.
@@ -310,8 +340,9 @@ agent2_functional = Agent(system='''You are a very careful biologist.
         4. Say "NEED MORE WORK" if any genes are not in the marker list.
            Say "VALIDATION COMPLETED" otherwise.
 
-'''.strip(), 
-                human_input_mode="never")
+'''.strip(),     human_input_mode="never",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 agent3 = Agent(system='''You are a friendly onboarding assistant helping to create an initial prompt for analyzing single-cell mouse larynx data.
 Ask the user questions to gather necessary information. Be concise and friendly in your interactions. 
@@ -322,8 +353,11 @@ Ask the user questions to gather necessary information. Be concise and friendly 
 3. Please provide the marker list for the analysis.
 4. Any other information you need to know?
 
-When you're done gathering information, say "ONBOARDING COMPLETED" followed by a JSON-formatted summary of the collected information.wrap it with ```json and ```
-'''.strip(), human_input_mode="always")
+When you're done gathering information, say "ONBOARDING COMPLETED" followed by a JSON-formatted summary of the collected information.Name each item by species, tissue_type, marker_list, additional_information
+wrap it with ```json and ```
+'''.strip(), human_input_mode="always",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 agent1_celltype = Agent(system=
 '''
@@ -344,7 +378,9 @@ agent1_celltype = Agent(system=
         Only after you see human input, and human says good, say "CELL TYPE ANALYSIS COMPLETED".
  
 ''',
-               human_input_mode="always")
+    human_input_mode="always",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 agent2_celltype = Agent(system=''' You are a very careful cell biologist specializing in cell type identification. 
         Your task is to validate all cell type-specific gene groups mentioned using the provided marker list.
@@ -360,7 +396,9 @@ agent2_celltype = Agent(system=''' You are a very careful cell biologist special
            Say "VALIDATION COMPLETED" otherwise.
                
 ''', 
-                human_input_mode="never")
+    human_input_mode="never",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 
 
@@ -372,17 +410,22 @@ and cell type analyses results from expert to provide a final cell type annotati
 99999$ bonus if you do a good job. Remember to respect the tissue type and species, only make reasonable annotation.
                           
 Please do:
-1. Determine the Most Probable General Cell Type: Based on these markers, infer the most likely general cell type of the cluster. 
-    Be sure to think step by step and show your reasoning in detailed.
-2. Decide only one celltype as the final celltype.
-3. Decide the Most Probable SubCell Types for the final celltype.
+1. Anlysis the functional gene group:include your own reasoning and analyze the provided analysis results.
+2. Anlysis the cell type group:include your own reasoning and analyze the provided analysis results.
+3. **Cross-reference Known Databases**: Use available scRNA-seq databases and relevant literature to cross-reference these markers. list your finding.
+4. **Determine the Most Probable General Cell Type**: Based on the expression of these markers, infer the most likely general cell type of the cluster.
+5. **Identify the Top 3 Most Probable Sub Cell Types**: Based on the expression of these markers, infer the top three most probable sub cell types within the general cell type. Finally, specify the most likely subtype.
+6. **Identify the Most Probable Sub-Sub Cell Type**: Determine the most specific cell type within the previously identified subtype.
+7.  **Provide a Concise Summary of Your Analysis
 
 The provided analysis results are only for reference. Always include your step by step detailed reasoning.                      
 Ask for human input.
 You can say "FINAL ANNOTATION COMPLETED" only when human say good.
                           
 
-""".strip(), model="gpt-4o", human_input_mode="always")
+""".strip(), human_input_mode="always",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 
 formatting_agent = Agent(system="""
@@ -401,7 +444,9 @@ Provide the JSON output within triple backticks, like this:
 }
 '''
 
-""", model="gpt-4o", human_input_mode="never")
+""", human_input_mode="never",
+    ai_provider="anthropic",
+    model="claude-3-5-sonnet-20240620")
 
 def format_results(agent, final_annotations):
     # Convert the final annotations to a single string
