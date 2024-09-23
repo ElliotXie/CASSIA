@@ -1,14 +1,21 @@
 import json
 from openai import OpenAI
+import anthropic  # Import the anthropic library
 
 client = OpenAI()
 
+
+
+##gpt4o is super lazy now, dont know why, use gpt-4 instead
+
 class Agent:
-    def __init__(self, system="", model="gpt-4o", temperature=0):
+    def __init__(self, system="", model="claude-3-5-sonnet-20240620", temperature=0.1, max_tokens=1000, ai_provider="anthropic"):
         self.system = system
         self.chat_histories = {}
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens  # Add max_tokens attribute
+        self.ai_provider = ai_provider.lower()  # Add ai_provider attribute
 
     def __call__(self, message, other_agent_id):
         if other_agent_id not in self.chat_histories:
@@ -24,12 +31,36 @@ class Agent:
         return result
 
     def execute(self, other_agent_id):
-        completion = client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            messages=self.chat_histories[other_agent_id]
-        )
-        return completion.choices[0].message.content
+        if self.ai_provider == "anthropic":
+            # Use Claude AI
+            client_anthropic = anthropic.Anthropic()
+            
+            # Prepare messages for Claude (excluding system message)
+            claude_messages = []
+            for msg in self.chat_histories[other_agent_id]:
+                if msg["role"] != "system":
+                    claude_messages.append({
+                        "role": msg["role"],
+                        "content": [{"type": "text", "text": msg["content"]}]
+                    })
+            
+            response = client_anthropic.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                system=self.system,  # System message as a separate parameter
+                messages=claude_messages
+            )
+            return response.content[0].text
+        else:
+            # Use OpenAI
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                messages=self.chat_histories[other_agent_id]
+            )
+            return completion.choices[0].message.content
 
 def construct_prompt(species, tissue_type, marker_list, additional_info=""):
     markers = ', '.join(marker_list)
@@ -56,7 +87,7 @@ Steps to Follow:
 5. Identify the Top 3 Most Probable Sub Cell Types: Based on the expression of these markers, infer the top three most probable sub cell types within the general cell type. Finally, specify the most likely subtype.
 6. Identify the Most Probable Sub-Sub Cell Type: Determine the most specific cell type within the previously identified subtype.
 7.  Provide a Concise Summary of Your Analysis
-""".strip())
+""".strip())  # Specify the AI provider
 
 formatting_agent = Agent(system="""
 You are a formatting assistant for single-cell analysis results. Your task is to convert the final integrated results 
@@ -74,7 +105,7 @@ Provide the JSON output within triple backticks, like this:
 "sub_sub_cell_types": ["...", "..."]
 }
 '''
-""".strip())
+""".strip())  # Specify the AI provider
 
 def run_analysis(species, tissue_type, marker_list, additional_info=""):
     print("Starting analysis process...\n")

@@ -43,7 +43,7 @@ class Agent:
     def execute(self, other_agent_id):
         if self.ai_provider == "anthropic":
             # Use Claude AI
-            client = anthropic.Anthropic()
+            client_anthropic = anthropic.Anthropic()
             
             # Prepare messages for Claude (excluding system message)
             claude_messages = []
@@ -54,7 +54,7 @@ class Agent:
                         "content": [{"type": "text", "text": msg["content"]}]
                     })
             
-            response = client.messages.create(
+            response = client_anthropic.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
