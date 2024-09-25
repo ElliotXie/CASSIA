@@ -1,0 +1,260 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+
+```{r}
+install.packages("openai")
+remotes::install_github("Winnie09/GPTCelltype")
+```
+
+
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+
+
+data=readRDS("C:/Users/ellio/OneDrive - UW-Madison/Jack/combined_seurat_object_filtered.RDS")
+Idents(data)=data$sample
+Idents(data) %>% table
+data=JoinLayers(data)
+data=NormalizeData(data)
+markers=FindAllMarkers(data)
+
+
+
+
+```
+
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(readr)
+
+# Read the CSV file
+data <- read_csv("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/test_code/top_markers_broad_cell_type.csv")
+
+
+# Function to process the data
+process_data <- function(data) {
+  data %>%
+    separate_rows(`Top 10 Markers`, sep = ", ") %>%
+    rename(cluster = `Broad cell type`, gene = `Top 10 Markers`)
+}
+
+# Apply the function to process the data
+result <- process_data(data)
+
+# Set gene as row names
+result_with_rownames <- result %>%
+  column_to_rownames(var = "gene")
+
+# Display the first few rows of the result
+print(head(result_with_rownames))
+
+# Optionally, save the result to a CSV file
+write_csv(result, "findallmarkers_style_output.csv")
+
+```
+
+```{r}
+df_expanded <- data %>%
+  slice(rep(1:n(), each = 10)) %>%
+  mutate(marker_index = rep(1:10, times = n()/10))
+
+```
+
+
+```{r}
+library(tidyr)
+library(dplyr)
+
+# Step 1: Separate the markers
+df_long <- data %>%
+  mutate(markers = strsplit(as.character(markers), ", "))
+
+
+
+
+
+
+# Step 2: Rename columns and create the cluster column
+df_reshaped <- df_long %>%
+  rename(cluster = `group`, marker = markers) %>%
+  select(cluster, marker)
+
+# Display the first few rows of the reshaped dataframe
+head(df_reshaped, 10)
+```
+
+
+```{r}
+# Split the second column by commas
+split_markers <- strsplit(data[, 2], ", ")
+
+# Create a new data frame with the split results
+result <- data.frame(
+  Broad_cell_type = data[, 1],
+  Markers = I(split_markers)
+)
+
+# Print the result
+print(result)
+```
+
+
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(readr)
+
+
+# Print column names to check
+print("Column names in the CSV:")
+print(colnames(data))
+
+# Function to process the data
+process_data <- function(data) {
+  # Identify the column names
+  cell_type_col <- grep("cell type|celltype", colnames(data), ignore.case = TRUE, value = TRUE)
+  markers_col <- grep("marker", colnames(data), ignore.case = TRUE, value = TRUE)
+  
+  if (length(cell_type_col) == 0 || length(markers_col) == 0) {
+    stop("Could not identify the correct columns. Please check your CSV file.")
+  }
+  
+  data %>%
+    select(all_of(c(cell_type_col, markers_col))) %>%
+    separate_rows(all_of(markers_col), sep = ",\\s*") %>%
+    rename(cluster = all_of(cell_type_col), gene = all_of(markers_col))
+}
+
+# Apply the function to process the data
+result <- tryCatch({
+  process_data(data)
+}, error = function(e) {
+  print(paste("Error occurred:", e$message))
+  print("Printing first few rows of the original data:")
+  print(head(data))
+  stop("Script execution halted due to error.")
+})
+
+# Display the first few rows of the result
+print("First few rows of the processed data:")
+print(head(result))
+
+# Optionally, save the result to a CSV file
+write_csv(result, "findallmarkers_style_output.csv")
+
+print("Script completed. Output saved to 'findallmarkers_style_output.csv'")
+```
+
+
+```{r}
+library(openai)
+
+
+identify_cell_types <- function(input_data, tissuename = NULL, model = "gpt-4", topgenenumber = 10) {
+ OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
+  if (OPENAI_API_KEY == "") {
+    print("Note: OpenAI API key not found: returning the prompt itself.")
+    API.flag <- 0
+  } else {
+    API.flag <- 1
+  }
+
+  # Process input data
+  if (is.data.frame(input_data)) {
+    input <- paste(input_data$`Broad cell type`, input_data$`Top 10 Markers`, sep = ": ")
+  } else if (is.list(input_data)) {
+    input <- sapply(names(input_data), function(name) {
+      paste(name, paste(input_data[[name]][1:topgenenumber], collapse = ", "), sep = ": ")
+    })
+  } else {
+    stop("Input must be a data frame or a list")
+  }
+
+  if (!API.flag) {
+    message <- paste0("Identify cell types of ", tissuename, 
+      " cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types. ", 
+      "\n", paste(input, collapse = "\n"))
+    return(message)
+  } else {
+    print("Note: OpenAI API key found: returning the cell type annotations.")
+    cutnum <- ceiling(length(input)/30)
+    cid <- if (cutnum > 1) as.numeric(cut(1:length(input), cutnum)) else rep(1, length(input))
+
+    allres <- sapply(1:cutnum, function(i) {
+      id <- which(cid == i)
+      flag <- 0
+      while (flag == 0) {
+        k <- openai::create_chat_completion(
+          model = model, 
+          messages = list(list(
+            role = "user", 
+            content = paste0("Identify cell types of ", tissuename, 
+              " cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types.\n", 
+              paste(input[id], collapse = "\n"))
+          ))
+        )
+        res <- strsplit(k$choices$message$content, "\n")[[1]]
+        if (length(res) == length(id)) flag <- 1
+      }
+      names(res) <- names(input)[id]
+      res
+    }, simplify = FALSE)
+
+    print("Note: It is always recommended to check the results returned by GPT-4 in case of\n AI hallucination, before going to down-stream analysis.")
+    return(gsub(",$", "", unlist(allres)))
+  }
+}
+```
+
+
+
+```{r}
+
+results <- identify_cell_types(data, tissuename = "lung")
+```
+
+
+
+```{r}
+
+# IMPORTANT! Assign your OpenAI API key. See Vignette for details
+Sys.setenv(OPENAI_API_KEY = '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')
+
+# Load packages
+library(GPTCelltype)
+library(openai)
+
+
+
+
+
+
+
+# Assume you have already run the Seurat pipeline https://satijalab.org/seurat/
+# "obj" is the Seurat object; "markers" is the output from FindAllMarkers(obj)
+# Cell type annotation by GPT-4
+res <- gptcelltype(markers, model = 'gpt-4')
+
+
+
+
+
+
+# Assign cell type annotation back to Seurat object
+obj@meta.data$celltype <- as.factor(res[as.character(Idents(obj))])
+
+# Visualize cell type annotation on UMAP
+DimPlot(obj,group.by='celltype')
+```
+
