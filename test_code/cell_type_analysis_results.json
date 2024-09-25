@@ -1,0 +1,19 @@
+{
+  "Endothelial cell (lymphatic)": {
+    "main_cell_type": "lymphatic endothelial cells",
+    "sub_cell_types": [
+      "goblet cells",
+      "general endothelial cells"
+    ]
+  },
+  "Endothelial cell (vascular)": {
+    "main_cell_type": "Endothelial Cells",
+    "sub_cell_types": [
+      "Vascular Endothelial Cells",
+      "Lymphatic Endothelial Cells",
+      "Endothelial Progenitor Cells"
+    ],
+    "most_probable_sub_cell_type": "Vascular Endothelial Cells",
+    "most_probable_sub_sub_cell_type": "Microvascular Endothelial Cells"
+  }
+}

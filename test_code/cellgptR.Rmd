@@ -95,17 +95,7 @@ head(df_reshaped, 10)
 
 
 ```{r}
-# Split the second column by commas
-split_markers <- strsplit(data[, 2], ", ")
 
-# Create a new data frame with the split results
-result <- data.frame(
-  Broad_cell_type = data[, 1],
-  Markers = I(split_markers)
-)
-
-# Print the result
-print(result)
 ```
 
 
@@ -132,7 +122,7 @@ process_data <- function(data) {
   
   data %>%
     select(all_of(c(cell_type_col, markers_col))) %>%
-    separate_rows(all_of(markers_col), sep = ",\\s*") %>%
+    separate_rows(all_of(markers_col), sep = ",//s*") %>%
     rename(cluster = all_of(cell_type_col), gene = all_of(markers_col))
 }
 
@@ -183,8 +173,8 @@ identify_cell_types <- function(input_data, tissuename = NULL, model = "gpt-4", 
 
   if (!API.flag) {
     message <- paste0("Identify cell types of ", tissuename, 
-      " cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types. ", 
-      "\n", paste(input, collapse = "\n"))
+      " cells using the following markers separately for each/n row. Only provide the cell type name. Do not show numbers before the name./n Some can be a mixture of multiple cell types. ", 
+      "/n", paste(input, collapse = "/n"))
     return(message)
   } else {
     print("Note: OpenAI API key found: returning the cell type annotations.")
@@ -200,18 +190,18 @@ identify_cell_types <- function(input_data, tissuename = NULL, model = "gpt-4", 
           messages = list(list(
             role = "user", 
             content = paste0("Identify cell types of ", tissuename, 
-              " cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types.\n", 
-              paste(input[id], collapse = "\n"))
+              " cells using the following markers separately for each/n row. Only provide the cell type name. Do not show numbers before the name./n Some can be a mixture of multiple cell types./n", 
+              paste(input[id], collapse = "/n"))
           ))
         )
-        res <- strsplit(k$choices$message$content, "\n")[[1]]
+        res <- strsplit(k$choices$message$content, "/n")[[1]]
         if (length(res) == length(id)) flag <- 1
       }
       names(res) <- names(input)[id]
       res
     }, simplify = FALSE)
 
-    print("Note: It is always recommended to check the results returned by GPT-4 in case of\n AI hallucination, before going to down-stream analysis.")
+    print("Note: It is always recommended to check the results returned by GPT-4 in case of/n AI hallucination, before going to down-stream analysis.")
     return(gsub(",$", "", unlist(allres)))
   }
 }
@@ -241,6 +231,7 @@ library(openai)
 
 
 
+
 # Assume you have already run the Seurat pipeline https://satijalab.org/seurat/
 # "obj" is the Seurat object; "markers" is the output from FindAllMarkers(obj)
 # Cell type annotation by GPT-4
@@ -257,4 +248,54 @@ obj@meta.data$celltype <- as.factor(res[as.character(Idents(obj))])
 # Visualize cell type annotation on UMAP
 DimPlot(obj,group.by='celltype')
 ```
+
+
+
+```{r}
+
+# Define the function
+process_test_board <- function(file_path) {
+  
+  # Read the CSV file
+  test_board <- read.csv(file_path)
+  
+  # Rename the columns
+  colnames(test_board)[colnames(test_board) == "group"] <- "cluster"
+  colnames(test_board)[colnames(test_board) == "logfoldchanges"] <- "avg_log2FC"
+  colnames(test_board)[colnames(test_board) == "names"] <- "gene"
+  
+  # Assuming gptcelltype is a function that takes a dataframe and a model
+  res <- gptcelltype(test_board, model = 'gpt-4o')
+  
+  # Return the result
+  return(res)
+}
+
+
+
+
+# Example usage:
+result_broad <- process_test_board("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/test_code/default_markers_broad_cell_type.csv")
+
+result_broad
+
+
+# Fully correct: 7
+# Partially correct: 4
+# Incorrect: 4
+
+result_granular <- process_test_board("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/test_code/default_markers_granular_cell_type.csv")
+
+result_granular
+
+
+# Fully correct: 11
+# Partially correct: 3
+# Incorrect: 6
+
+
+#USe LLM to benchmarker
+
+```
+
 
