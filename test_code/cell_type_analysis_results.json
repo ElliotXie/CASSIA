@@ -1,9 +1,10 @@
 {
   "Endothelial cell (lymphatic)": {
-    "main_cell_type": "lymphatic endothelial cells",
+    "main_cell_type": "Mixed Population",
     "sub_cell_types": [
-      "goblet cells",
-      "general endothelial cells"
+      "Lymphatic Endothelial Cells",
+      "Mucosal Epithelial Cells (Goblet Cells)",
+      "Developing Endothelial Cells"
     ]
   },
   "Endothelial cell (vascular)": {
@@ -12,8 +13,96 @@
       "Vascular Endothelial Cells",
       "Lymphatic Endothelial Cells",
       "Endothelial Progenitor Cells"
+    ]
+  },
+  "Epithelial cell (alveolar type I)": {
+    "main_cell_type": "alveolar type I cells",
+    "sub_cell_types": [
+      "endothelial cells",
+      "epithelial cells"
+    ]
+  },
+  "Epithelial cell (alveolar type II)": {
+    "main_cell_type": "alveolar epithelial cells",
+    "sub_cell_types": [
+      "Alveolar Type II (AT2) Cells",
+      "Alveolar Type I (AT1) Cells",
+      "Club Cells"
+    ]
+  },
+  "Epithelial cell (basal)": {
+    "main_cell_type": "Basal Epithelial Cells",
+    "sub_cell_types": [
+      "Basal Cells in the Lung Epithelium",
+      "Progenitor Basal Cells",
+      "Basal Keratinocytes"
+    ]
+  },
+  "Epithelial cell (club)": {
+    "main_cell_type": "secretory cells",
+    "sub_cell_types": [
+      "club cells",
+      "goblet cells",
+      "multiciliated cells"
+    ]
+  },
+  "Immune (B cell)": {
+    "main_cell_type": "B cells",
+    "sub_cell_types": [
+      "Naive B cells",
+      "Memory B cells",
+      "Plasma cells"
+    ]
+  },
+  "Immune (DC/macrophage)": {
+    "main_cell_type": "myeloid cells",
+    "sub_cell_types": [
+      "macrophages",
+      "dendritic cells",
+      "eosinophils"
     ],
-    "most_probable_sub_cell_type": "Vascular Endothelial Cells",
-    "most_probable_sub_sub_cell_type": "Microvascular Endothelial Cells"
+    "most_probable_sub_sub_cell_type": "tissue-resident macrophages"
+  },
+  "Immune (NK cell)": {
+    "main_cell_type": "cytotoxic lymphocytes",
+    "sub_cell_types": [
+      "Natural Killer (NK) Cells",
+      "Cytotoxic T Lymphocytes (CTLs)",
+      "Innate Lymphoid Cells (ILCs)"
+    ],
+    "most_probable_sub_cell_type": "Natural Killer (NK) Cells",
+    "most_probable_sub_sub_cell_type": "CD56^dim NK Cells"
+  },
+  "Immune (T cell)": {
+    "main_cell_type": "T-cells",
+    "sub_cell_types": [
+      "Helper T-cells (Th cells)",
+      "Cytotoxic T-cells (CTLs)",
+      "Regulatory T-cells (Tregs)"
+    ]
+  },
+  "Immune (alveolar macrophage)": {
+    "main_cell_type": "macrophages",
+    "sub_cell_types": [
+      "alveolar macrophages",
+      "interstitial macrophages",
+      "monocyte-derived macrophages"
+    ]
+  },
+  "Immune (mast cell)": {
+    "main_cell_type": "Mast Cells",
+    "sub_cell_types": [
+      "Connective Tissue Mast Cells (CTMCs)",
+      "Mature Connective Tissue Mast Cells"
+    ],
+    "additional_notes": "Presence of FOXI2, KRT1, and APOBEC3F suggests a mixed cell population, including epithelial cells."
+  },
+  "Pericyte/SMC": {
+    "main_cell_type": "Smooth Muscle Cells",
+    "sub_cell_types": [
+      "Airway Smooth Muscle Cells",
+      "Vascular Smooth Muscle Cells",
+      "Pericytes"
+    ]
   }
 }
