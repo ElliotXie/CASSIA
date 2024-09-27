@@ -8,7 +8,6 @@ output: html_notebook
 
 
 
-
 # Define the function
 process_test_board <- function(file_path) {
   

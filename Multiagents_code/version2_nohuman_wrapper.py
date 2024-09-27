@@ -108,16 +108,9 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
     """
         response = agent(validation_message, "final_annotation")
         print(f"Coupling Validator: {response}\n", flush=True)
-        
-        # Extract confidence score
-        confidence_score = None
-        confidence_match = re.search(r'### Confidence Score: (\d+)', response)
-        if confidence_match:
-            confidence_score = int(confidence_match.group(1))
-        
-        return response, confidence_score
+        return response
 
-    def format_results(agent, final_annotations, num_markers, confidence_score):
+    def format_results(agent, final_annotations, num_markers):
         final_text = "\n\n".join([msg[1] for msg in final_annotations])
         formatted_result = agent(final_text, "user")
         
@@ -125,9 +118,8 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
         json_data = extract_json_from_reply(formatted_result)
         
         if json_data:
-            # Add the number of markers and confidence score to the JSON
+            # Add the number of markers to the JSON
             json_data["num_markers"] = num_markers
-            json_data["confidence_score"] = confidence_score
             
             # Convert back to a JSON string
             return json.dumps(json_data, indent=2)
@@ -207,6 +199,7 @@ Remember, your role is crucial in ensuring the accuracy and reliability of the s
     {
     "main_cell_type": "...",
     "sub_cell_types": ["...", "..."]
+    "confidence score": "..."
     }
     ```
     """, model=model, temperature=temperature)
@@ -234,11 +227,10 @@ Remember, your role is crucial in ensuring the accuracy and reliability of the s
         full_conversation_history.extend(final_annotation_conversation)
         
         print("Validating annotation...\n")
-        validation_result, confidence_score = coupling_validation(coupling_validator_agent, final_annotation_conversation[-1][1], user_data)
+        validation_result = coupling_validation(coupling_validator_agent, final_annotation_conversation[-1][1], user_data)
         full_conversation_history.append(("Coupling Validator", validation_result))
         
         print(validation_result)
-        print(f"Confidence Score: {confidence_score}")
         if "VALIDATION PASSED" in validation_result:
             validation_passed = True
         else:
@@ -248,11 +240,10 @@ Remember, your role is crucial in ensuring the accuracy and reliability of the s
         print("\nValidation Conversation:")
         print(f"Final Annotation Agent: {final_annotation_conversation[-1][1]}\n")
         print(f"Coupling Validator: {validation_result}\n")
-        print(f"Confidence Score: {confidence_score}\n")
 
     if validation_passed:
         print("Formatting final results...\n")
-        formatted_output = format_results(formatting_agent, final_annotation_conversation[-2:], len(marker_list), confidence_score)
+        formatted_output = format_results(formatting_agent, final_annotation_conversation[-2:], len(marker_list))
         full_conversation_history.append(("Formatting Agent", formatted_output))
         structured_output = json.loads(formatted_output)
         
@@ -296,13 +287,12 @@ if __name__ == "__main__":
         if result:
             results[broad_cell_type] = {
                 "analysis_result": result,
-                "conversation_history": conversation_history,
-                "confidence_score": result.get("confidence_score")  # Extract confidence score from the result
+                "conversation_history": conversation_history
             }
         print(f"Analysis for {broad_cell_type} completed.\n")
     
     # Save results to a JSON file
-    with open('cell_type_analysis_results_10.json', 'w') as f:
+    with open('cell_type_analysis_results_5.json', 'w') as f:
         json.dump(results, f, indent=2)
     
     print("All analyses completed. Results saved to 'cell_type_analysis_results.json'.")
