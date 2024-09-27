@@ -100,6 +100,10 @@ def create_app():
 
         return Response(generate(), content_type='text/event-stream')
 
+    @app.route('/about')
+    def about():
+        return render_template('about.html')
+
     return app
 
 def run_cell_type_analysis_app(port=5000):
