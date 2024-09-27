@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cell Type Analysis Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #progress {
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 30px;
+        }
+        #progress-bar {
+            background-color: #3498db;
+            height: 100%;
+            border-radius: 15px;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+        #progress-text {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+        }
+        #tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #ecf0f1;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .tab-button:hover {
+            background-color: #d5dbdb;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab {
+            display: none;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .tab h2 {
+            color: #2980b9;
+            margin-top: 0;
+        }
+        .tab h3 {
+            color: #34495e;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        #status-bar {
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                background-color: #3498db;
+            }
+            50% {
+                background-color: #2980b9;
+            }
+            100% {
+                background-color: #3498db;
+            }
+        }
+
+        #cell-animation {
+            width: 100%;
+            height: 60px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .cell {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(52,152,219,0.8) 0%, rgba(52,152,219,0.4) 70%, rgba(52,152,219,0) 100%);
+            animation: move-grow 8s linear infinite;
+            opacity: 0;
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(41,128,185,0.6);
+            border-radius: 50%;
+            top: 15px;
+            left: 15px;
+        }
+
+        @keyframes move-grow {
+            0% {
+                left: -50px;
+                transform: scale(0.2);
+                opacity: 0.2;
+            }
+            10% {
+                opacity: 0.8;
+                transform: scale(0.36);
+            }
+            90% {
+                opacity: 0.8;
+                transform: scale(0.84);
+            }
+            100% {
+                left: calc(100% + 50px);
+                transform: scale(1);
+                opacity: 0.2;
+            }
+        }
+
+        #console-output {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #console-output p {
+            margin: 5px 0;
+        }
+
+        .conversation-history {
+            white-space: pre-wrap;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .agent-response {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .agent-response h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .final-annotation {
+            background-color: #e8f5e9;
+            border-left: 5px solid #4caf50;
+        }
+
+        .coupling-validator {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+        }
+
+        .formatting-agent {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+        }
+
+        .agent-response pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #save-button {
+            display: none;
+            margin-top: 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        #save-button:hover {
+            background-color: #219a52;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cell Type Analysis Results</h1>
+        
+        <div id="cell-animation">
+            <div class="cell"></div>
+        </div>
+        
+        <div id="status-bar">Working on annotation...</div>
+        
+        <div id="progress">
+            <div id="progress-bar"></div>
+            <div id="progress-text">Analyzing...</div>
+        </div>
+        
+        <div id="console-output"></div>
+        
+        <div id="tab-buttons"></div>
+
+        <div id="results"></div>
+
+        <button id="save-button" onclick="saveResults()" style="display: none;">Save Current Results</button>
+        <p id="analysis-status" style="display: none;">Analysis is still in progress. You can save the current results or wait for all analyses to complete.</p>
+    </div>
+
+    <script>
+        let analyzedCount = 0;
+        const totalRows = {{ total_rows }};
+        const results = {};
+
+        function startAnalysis() {
+            const statusBar = document.getElementById('status-bar');
+            const cellAnimation = document.getElementById('cell-animation');
+            const consoleOutput = document.getElementById('console-output');
+            const saveButton = document.getElementById('save-button');
+            const analysisStatus = document.getElementById('analysis-status');
+            statusBar.style.display = 'block';
+            cellAnimation.style.display = 'block';
+            saveButton.style.display = 'none';
+            analysisStatus.style.display = 'none';
+            
+            const eventSource = new EventSource('/stream_results');
+            
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'console') {
+                    // This is a console message
+                    appendToConsole(data.message);
+                } else {
+                    // This is a result
+                    results[data.broad_cell_type] = data;
+                    analyzedCount++;
+                    
+                    updateProgress();
+                    updateTabs();
+                    updateResults();
+
+                    if (analyzedCount === 1) {
+                        // Show save button and status message after the first cell type is analyzed
+                        saveButton.style.display = 'block';
+                        analysisStatus.style.display = 'block';
+                    }
+
+                    if (analyzedCount === totalRows) {
+                        eventSource.close();
+                        statusBar.style.display = 'none';
+                        cellAnimation.style.display = 'none';
+                        analysisStatus.style.display = 'none';
+                        saveButton.textContent = 'Save All Results';
+                    }
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('EventSource failed:', error);
+                eventSource.close();
+                statusBar.style.display = 'none';
+                cellAnimation.style.display = 'none';
+            };
+        }
+
+        function appendToConsole(message) {
+            const consoleOutput = document.getElementById('console-output');
+            const p = document.createElement('p');
+            p.textContent = message;
+            consoleOutput.appendChild(p);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const progress = (analyzedCount / totalRows) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `Analyzing: ${analyzedCount} / ${totalRows}`;
+        }
+
+        function updateTabs() {
+            const tabButtons = document.getElementById('tab-buttons');
+            tabButtons.innerHTML = Object.keys(results).map(cellType => 
+                `<button class="tab-button" onclick="openTab('${cellType}')">${cellType}</button>`
+            ).join('');
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = Object.entries(results).map(([cellType, data]) => `
+                <div id="${cellType}" class="tab">
+                    <h2>${cellType}</h2>
+                    <h3>Analysis Result:</h3>
+                    <pre>${JSON.stringify(data.analysis_result, null, 2)}</pre>
+                    
+                    <h3>Confidence Score: ${data.confidence_score}</h3>
+                    
+                    <h3>Conversation History:</h3>
+                    <button onclick="toggleConversation('${cellType}')">Show/Hide Conversation</button>
+                    <div id="${cellType}-conversation" style="display: none;" class="conversation-history">
+                        ${formatConversationHistory(data.conversation_history)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatConversationHistory(history) {
+            return history.map(([role, message]) => {
+                let className = '';
+                switch (role) {
+                    case 'Final Annotation Agent':
+                        className = 'final-annotation';
+                        break;
+                    case 'Coupling Validator':
+                        className = 'coupling-validator';
+                        break;
+                    case 'Formatting Agent':
+                        className = 'formatting-agent';
+                        break;
+                }
+                return `
+                    <div class="agent-response ${className}">
+                        <h4>${role}:</h4>
+                        <pre>${message}</pre>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openTab(cellType) {
+            var i, tabContent, tabButtons;
+            tabContent = document.getElementsByClassName("tab");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+            }
+            tabButtons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+            }
+            document.getElementById(cellType).style.display = "block";
+            event.currentTarget.className += " active";
+        }
+
+        function toggleConversation(cellType) {
+            var conversation = document.getElementById(cellType + "-conversation");
+            if (conversation.style.display === "none") {
+                conversation.style.display = "block";
+            } else {
+                conversation.style.display = "none";
+            }
+        }
+
+        function saveResults() {
+            // Clone the current document
+            const clone = document.cloneNode(true);
+
+            // Instead of removing all scripts, we'll keep the essential ones
+            const scripts = clone.getElementsByTagName('script');
+            for (let i = scripts.length - 1; i >= 0; i--) {
+                const script = scripts[i];
+                if (!script.textContent.includes('function openTab') && 
+                    !script.textContent.includes('function toggleConversation') &&
+                    !script.textContent.includes('function formatConversationHistory')) {
+                    script.parentNode.removeChild(script);
+                }
+            }
+
+            // Update the analysis status in the cloned document
+            const analysisStatus = clone.getElementById('analysis-status');
+            if (analyzedCount < totalRows) {
+                analysisStatus.textContent = `Analysis completed for ${analyzedCount} out of ${totalRows} cell types.`;
+                analysisStatus.style.display = 'block';
+            } else {
+                analysisStatus.style.display = 'none';
+            }
+
+            // Remove the EventSource and other dynamic elements
+            clone.getElementById('cell-animation').remove();
+            clone.getElementById('status-bar').remove();
+            clone.getElementById('progress').remove();
+            clone.getElementById('console-output').remove();
+            clone.getElementById('save-button').remove();
+
+            // Add a small script to initialize the tabs on page load
+            const initScript = clone.createElement('script');
+            initScript.textContent = `
+                window.onload = function() {
+                    const firstTab = document.querySelector('.tab-button');
+                    if (firstTab) {
+                        firstTab.click();
+                    }
+                };
+            `;
+            clone.body.appendChild(initScript);
+
+            // Create a Blob with the HTML content
+            const blob = new Blob([clone.documentElement.outerHTML], {type: 'text/html'});
+
+            // Create a temporary URL for the Blob
+            const url = URL.createObjectURL(blob);
+
+            // Create a link element and trigger the download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cell_type_analysis_results.html';
+            document.body.appendChild(a);
+            a.click();
+
+            // Clean up
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        window.onload = startAnalysis;
+    </script>
+</body>
+</html>
