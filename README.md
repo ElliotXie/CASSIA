@@ -10,7 +10,7 @@ Next Step:
 
 3. Incorporating RAG
 
-4. Build Web UI
+~~4. Build Web UI~~
 
 5. Build Python package, R package
 
