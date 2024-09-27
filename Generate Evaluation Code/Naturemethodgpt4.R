@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+#file_path would be the dataframe from scanpy or seurat findallmarkers
+
+
+
+
+# Define the function
+process_test_board <- function(file_path) {
+  
+  # Read the CSV file
+  test_board <- read.csv(file_path)
+  
+  # Rename the columns
+  colnames(test_board)[colnames(test_board) == "group"] <- "cluster"
+  colnames(test_board)[colnames(test_board) == "logfoldchanges"] <- "avg_log2FC"
+  colnames(test_board)[colnames(test_board) == "names"] <- "gene"
+  
+  # Assuming gptcelltype is a function that takes a dataframe and a model
+  res <- gptcelltype(test_board, model = 'gpt-4o')
+  
+  # Return the result
+  return(res)
+}
+
+
+
+# Example usage:
+result_broad <- process_test_board("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/test_code/default_markers_broad_cell_type.csv")
+
+
+
+
+# Fully correct: 7
+# Partially correct: 4
+# Incorrect: 4
+
+result_granular <- process_test_board("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/test_code/default_markers_granular_cell_type.csv")
+
+result_granular
+
+
+# Fully correct: 11
+# Partially correct: 3
+# Incorrect: 6
+
