@@ -111,7 +111,7 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
         
         # Extract confidence score
         confidence_score = None
-        confidence_match = re.search(r'### Confidence Score: (\d+)', response)
+        confidence_match = re.search(r'[Cc]onfidence\s*[Ss]core:?\s*(\d+(?:\.\d+)?)', response)
         if confidence_match:
             confidence_score = int(confidence_match.group(1))
         
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     
     # Iterate over each row in the dataframe
     results = {}
-    for index, row in df.head(2).iterrows():
+    for index, row in df.iterrows():
         broad_cell_type = row['Broad cell type']
         marker_list = row['Top 10 Markers'].split(', ')
         

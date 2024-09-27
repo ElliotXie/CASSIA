@@ -28,13 +28,13 @@ for true_cell_type, details in data.items():
     summary_data.append([true_cell_type, main_cell_type, sub_cell_types])
 
 # Write the full data CSV
-write_csv('cell_type_analysis_results_full10.csv', 
+write_csv('cell_type_analysis_results_full11.csv', 
           ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types', 
            'Marker Number', 'Confidence Score', 'Conversation History'],
           full_data)
 
 # Write the summary data CSV
-write_csv('cell_type_analysis_results_summary10.csv',
+write_csv('cell_type_analysis_results_summary11.csv',
           ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types'],
           summary_data)
 
