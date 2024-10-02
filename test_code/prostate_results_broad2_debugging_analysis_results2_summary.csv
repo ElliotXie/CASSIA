@@ -1,0 +1,17 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types
+Endothelial cell (lymphatic),mixed cell population,"lymphatic endothelial cells, adipocytes, progenitor cells"
+Endothelial cell (vascular),Endothelial Cells,"Vascular Endothelial Cells, Arterial Endothelial Cells"
+Epithelial cell (Hillock),epithelial cells,"keratinocytes, prostate epithelial cells, mucosal epithelial cells"
+Epithelial cell (basal),basal epithelial cells,"prostate basal epithelial cells, progenitor or stem-like basal epithelial cells"
+Epithelial cell (club),Epithelial Cells,"Basal Epithelial Cells, Luminal Epithelial Cells, Secretory Epithelial Cells, Secretory Luminal Epithelial Cells"
+Epithelial cell (luminal),Prostate Epithelial Cells,"Luminal Epithelial Cells, Basal Epithelial Cells, Neuroendocrine Cells"
+Fibroblast,fibroblasts,"prostatic fibroblasts, stromal fibroblasts, myofibroblasts"
+Immune (B cell),Mixed population,"B cells (naive or memory), Prostate epithelial cells"
+Immune (DC/macrophage),myeloid cells,"macrophages, dendritic cells, microglia-like cells"
+Immune (NK cell),Natural Killer (NK) cells,"Conventional NK cells (cNK cells), Cytotoxic T lymphocytes (CTLs), Innate Lymphoid Cells (ILCs)"
+Immune (T cell),T cells,"Cytotoxic T cells (CD8+ T cells), Helper T cells (CD4+ T cells), Regulatory T cells (Tregs)"
+Immune (mast cell),Mast Cell,Connective Tissue Mast Cell
+Myocyte (smooth muscle),Smooth Muscle Cells,"Prostate Smooth Muscle Cells, Vascular Smooth Muscle Cells, Myofibroblasts"
+Neuroendocrine,Neuroendocrine Cells,"Neuroendocrine Prostate Cells, Serotonin-Producing Neuroendocrine Cells, Neuroendocrine Progenitor Cells"
+Pericyte/SMC,Prostate Stromal Cells,"Prostate Epithelial Cells, Prostate Immune Cells, Smooth Muscle Cells"
+Schwann cell,Prostate Epithelial Cells,"Neuroendocrine Cells, Stromal Cells, Luminal Epithelial Cells"

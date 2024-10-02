@@ -1,0 +1,1400 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Marker Number,Conversation History
+Endothelial cell (lymphatic),Endothelial Cells,"Lymphatic Endothelial Cells, Blood Endothelial Cells, General Endothelial Cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **CCL21**: Chemokine involved in immune cell trafficking.
+- **RELN**: Reelin, involved in neuronal migration and positioning.
+- **PROX1**: Transcription factor critical for lymphatic endothelial cell differentiation.
+- **FLT4**: Also known as VEGFR-3, involved in lymphangiogenesis.
+- **LYVE1**: Lymphatic vessel endothelial hyaluronan receptor 1, a marker for lymphatic endothelial cells.
+- **FOXC2**: Transcription factor involved in lymphatic and vascular development.
+- **PIEZO2**: Mechanosensitive ion channel, involved in mechanotransduction.
+- **NRG3**: Neuregulin 3, involved in cell-cell signaling.
+- **GJC2**: Gap junction protein, involved in cell communication.
+- **CLDN5**: Claudin 5, involved in tight junctions in endothelial cells.
+
+#### 2. List the Key Cell Type Markers
+- **PROX1**: Marker for lymphatic endothelial cells.
+- **FLT4 (VEGFR-3)**: Marker for lymphatic endothelial cells.
+- **LYVE1**: Marker for lymphatic endothelial cells.
+- **FOXC2**: Marker for lymphatic endothelial cells.
+- **CCL21**: Often expressed in lymphatic endothelial cells.
+- **CD36**: Expressed in various cell types including endothelial cells.
+- **GPR182**: G-protein coupled receptor, expressed in endothelial cells.
+- **SEMA3A**: Semaphorin, involved in axonal guidance and endothelial cell function.
+- **SEMA3D**: Semaphorin, involved in endothelial cell function.
+- **CLDN5**: Marker for endothelial cells, particularly in the blood-brain barrier.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and literature, we can cross-reference these markers:
+- **PROX1, FLT4, LYVE1, FOXC2**: Strongly indicate lymphatic endothelial cells.
+- **CCL21, CD36, GPR182, SEMA3A, SEMA3D, CLDN5**: Support endothelial cell identity, with a focus on lymphatic endothelium.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of markers such as PROX1, FLT4, LYVE1, and FOXC2, the most probable general cell type is **Endothelial Cells**, specifically **Lymphatic Endothelial Cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Lymphatic Endothelial Cells**: Strongly supported by PROX1, FLT4, LYVE1, and FOXC2.
+2. **Blood Endothelial Cells**: Supported by markers like CLDN5 and CD36, though less specific.
+3. **General Endothelial Cells**: Supported by a broader range of endothelial markers like GPR182 and SEMA3A.
+
+#### 6. Provide a Concise Summary of Your Analysis
+Based on the ranked marker list, the cell cluster is most likely composed of **Lymphatic Endothelial Cells**. This is supported by the high expression of key markers such as PROX1, FLT4, LYVE1, and FOXC2, which are specific to lymphatic endothelial cells. Other markers like CCL21, CD36, and CLDN5 further support an endothelial cell identity, with a focus on the lymphatic subtype.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Markers in the Provided Marker List**:
+   - **CCL21**: Present in the marker list.
+   - **RELN**: Present in the marker list.
+   - **PROX1**: Present in the marker list.
+   - **FLT4**: Present in the marker list.
+   - **LYVE1**: Present in the marker list.
+   - **FOXC2**: Present in the marker list.
+   - **PIEZO2**: Present in the marker list.
+   - **NRG3**: Present in the marker list.
+   - **GJC2**: Present in the marker list.
+   - **CLDN5**: Present in the marker list.
+
+2. **Consistency Between Identified Cell Type and Provided Markers**:
+   - The markers **PROX1, FLT4, LYVE1, and FOXC2** are well-known markers for lymphatic endothelial cells.
+   - **CCL21** is often expressed in lymphatic endothelial cells, supporting the annotation.
+   - **CD36, GPR182, SEMA3A, SEMA3D, and CLDN5** are markers for endothelial cells, which align with the general endothelial cell identity.
+   - The presence of **RELN, PIEZO2, NRG3, and GJC2** does not contradict the endothelial cell identity and may indicate additional functional roles or mixed cell types.
+
+#### Mixed Cell Type Consideration:
+- The primary markers strongly support the identity of lymphatic endothelial cells.
+- There is no strong evidence of multiple distinct cell types based on the high-ranking markers provided. The markers that are not specific to lymphatic endothelial cells (e.g., RELN, PIEZO2) do not strongly suggest a different cell type but rather additional functional characteristics.
+
+### Conclusion:
+The annotation of the cell cluster as **Lymphatic Endothelial Cells** is well-supported by the provided markers and their known functions. The analysis is thorough and consistent with the marker list and known databases.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""Endothelial Cells"",
+  ""sub_cell_types"": [
+    ""Lymphatic Endothelial Cells"",
+    ""Blood Endothelial Cells"",
+    ""General Endothelial Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Endothelial cell (vascular),endothelial cells,"capillary endothelial cells, venous endothelial cells, arterial endothelial cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **PLVAP (Plasmalemma Vesicle Associated Protein)**: Involved in the formation of fenestral and transendothelial channels, typically found in endothelial cells.
+- **FLT1 (Fms Related Receptor Tyrosine Kinase 1)**: A receptor for VEGF, playing a crucial role in angiogenesis and vasculogenesis.
+- **ABCB1 (ATP Binding Cassette Subfamily B Member 1)**: A transporter protein involved in multidrug resistance.
+- **ACKR1 (Atypical Chemokine Receptor 1)**: Binds to chemokines and is involved in inflammatory responses.
+- **ADGRL4 (Adhesion G Protein-Coupled Receptor L4)**: Involved in cell adhesion and signaling.
+- **AQP1 (Aquaporin 1)**: A water channel protein, important for water transport across cell membranes.
+- **PTPRB (Protein Tyrosine Phosphatase Receptor Type B)**: Involved in the regulation of endothelial cell function.
+- **EMCN (Endomucin)**: A marker for endothelial cells, involved in angiogenesis.
+- **DHH (Desert Hedgehog Signaling Molecule)**: Involved in cell signaling during development.
+- **POSTN (Periostin)**: Involved in tissue repair and remodeling.
+- **SELP (Selectin P)**: Mediates the interaction of activated endothelial cells or platelets with leukocytes.
+- **SOX17 (SRY-Box Transcription Factor 17)**: Involved in the regulation of developmental processes.
+- **LIFR (Leukemia Inhibitory Factor Receptor)**: Involved in cell differentiation and survival.
+- **EBF3 (Early B Cell Factor 3)**: A transcription factor involved in neuronal differentiation.
+- **SEMA3G (Semaphorin 3G)**: Involved in axonal guidance and cell signaling.
+- **RAMP3 (Receptor Activity Modifying Protein 3)**: Modulates receptor function, particularly in the cardiovascular system.
+- **NOSTRIN (Nostrin, Nitric Oxide Synthase Trafficking)**: Involved in nitric oxide signaling.
+- **GJA5 (Gap Junction Protein Alpha 5)**: Involved in cell-cell communication.
+- **TPO (Thrombopoietin)**: Regulates platelet production.
+- **MYRIP (Myosin VIIA and Rab Interacting Protein)**: Involved in vesicle transport.
+- **CYYR1 (Cysteine and Tyrosine-Rich 1)**: Function not well characterized.
+- **APLNR (Apelin Receptor)**: Involved in cardiovascular regulation.
+- **CCDC85A (Coiled-Coil Domain Containing 85A)**: Function not well characterized.
+- **PECAM1 (Platelet And Endothelial Cell Adhesion Molecule 1)**: Involved in leukocyte transmigration and angiogenesis.
+- **FAM110D (Family With Sequence Similarity 110 Member D)**: Function not well characterized.
+- **JAM2 (Junctional Adhesion Molecule 2)**: Involved in tight junction formation.
+- **BTBD17 (BTB Domain Containing 17)**: Function not well characterized.
+- **ENG (Endoglin)**: Involved in angiogenesis.
+- **MCTP1 (Multiple C2 And Transmembrane Domain Containing 1)**: Function not well characterized.
+- **RUNDC3B (RUN Domain Containing 3B)**: Function not well characterized.
+- **FAM69B (Family With Sequence Similarity 69 Member B)**: Function not well characterized.
+- **NR5A2 (Nuclear Receptor Subfamily 5 Group A Member 2)**: Involved in regulation of gene expression.
+- **HEY1 (Hes Related Family BHLH Transcription Factor With YRPW Motif 1)**: Involved in Notch signaling.
+- **PDE10A (Phosphodiesterase 10A)**: Involved in signal transduction.
+- **ANO2 (Anoctamin 2)**: Involved in ion transport.
+- **CLEC14A (C-Type Lectin Domain Family 14 Member A)**: Involved in angiogenesis.
+- **TACR1 (Tachykinin Receptor 1)**: Involved in neurotransmission.
+- **PIK3R3 (Phosphoinositide-3-Kinase Regulatory Subunit 3)**: Involved in signal transduction.
+- **SMAD6 (SMAD Family Member 6)**: Involved in TGF-beta signaling.
+- **EGFL7 (EGF Like Domain Multiple 7)**: Involved in vascular development.
+- **TCTEX1D1 (Tctex1 Domain Containing 1)**: Function not well characterized.
+- **ALPL (Alkaline Phosphatase, Liver/Bone/Kidney)**: Involved in dephosphorylation.
+- **CYTL1 (Cytokine Like 1)**: Involved in immune response.
+- **TEK (TEK Receptor Tyrosine Kinase)**: Involved in angiogenesis.
+- **CD93 (CD93 Molecule)**: Involved in cell adhesion and angiogenesis.
+- **MEOX1 (Mesenchyme Homeobox 1)**: Involved in mesoderm development.
+- **NES (Nestin)**: A marker for neural stem cells.
+- **SLCO2A1 (Solute Carrier Organic Anion Transporter Family Member 2A1)**: Involved in prostaglandin transport.
+- **IGFBP3 (Insulin Like Growth Factor Binding Protein 3)**: Involved in cell growth and development.
+- **KIF19 (Kinesin Family Member 19)**: Involved in intracellular transport.
+
+#### 2. List the Key Cell Type Markers
+- **PECAM1 (CD31)**: A well-known marker for endothelial cells.
+- **EMCN (Endomucin)**: Another marker for endothelial cells.
+- **PLVAP**: Specific to endothelial cells, particularly those involved in forming fenestrations.
+- **FLT1 (VEGFR1)**: A marker for endothelial cells involved in angiogenesis.
+- **TEK (Tie2)**: A receptor tyrosine kinase expressed in endothelial cells.
+- **CD93**: Expressed in endothelial cells and involved in angiogenesis.
+- **ENG (Endoglin)**: Expressed in endothelial cells and involved in angiogenesis.
+- **CLEC14A**: A marker for endothelial cells involved in angiogenesis.
+- **AQP1**: Expressed in endothelial cells, particularly in capillaries.
+- **SELP (P-Selectin)**: Expressed in activated endothelial cells.
+- **ACKR1 (DARC)**: Expressed in endothelial cells, particularly in post-capillary venules.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, the markers listed above are predominantly associated with endothelial cells. These databases confirm the expression of PECAM1, EMCN, PLVAP, FLT1, TEK, CD93, ENG, CLEC14A, AQP1, SELP, and ACKR1 in endothelial cells.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of the markers, the most probable general cell type is **endothelial cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Capillary Endothelial Cells**: High expression of PLVAP, AQP1, and EMCN suggests capillary endothelial cells, which are involved in forming the blood-brain barrier and other selective barriers.
+2. **Venous Endothelial Cells**: Expression of ACKR1 and SELP suggests venous endothelial cells, particularly those involved in inflammation and leukocyte trafficking.
+3. **Arterial Endothelial Cells**: Expression of TEK and FLT1 suggests arterial endothelial cells, which are involved in angiogenesis and vascular stability.
+
+#### Most Likely Subtype
+The most likely subtype based on the markers is **capillary endothelial cells**, given the high expression of PLVAP, AQP1, and EMCN, which are specific to capillary endothelial cells.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The analysis of the highly expressed markers in the provided dataset indicates that the cell type is most likely endothelial cells. The markers PLVAP, FLT1, PECAM1, EMCN, and others are strongly associated with endothelial cells. Among the endothelial cells, the most probable subtypes are capillary endothelial cells, venous endothelial cells, and arterial endothelial cells. The most likely subtype is capillary endothelial cells, given the high expression of PLVAP, AQP1, and EMCN.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Marker List Verification**:
+   - The markers listed in the annotation result (PLVAP, FLT1, ABCB1, ACKR1, ADGRL4, AQP1, PTPRB, EMCN, DHH, POSTN, SELP, SOX17, LIFR, EBF3, SEMA3G, RAMP3, NOSTRIN, GJA5, TPO, MYRIP, CYYR1, APLNR, CCDC85A, PECAM1, FAM110D, JAM2, BTBD17, ENG, MCTP1, RUNDC3B, FAM69B, NR5A2, HEY1, PDE10A, ANO2, CLEC14A, TACR1, PIK3R3, SMAD6, EGFL7, TCTEX1D1, ALPL, CYTL1, TEK, CD93, MEOX1, NES, SLCO2A1, IGFBP3, KIF19) are all present in the provided marker list.
+
+2. **Consistency with Identified Cell Type**:
+   - The identified cell type is **endothelial cells**.
+   - Key markers such as PECAM1, EMCN, PLVAP, FLT1, TEK, CD93, ENG, CLEC14A, AQP1, SELP, and ACKR1 are well-known markers for endothelial cells.
+   - The annotation correctly identifies these markers and associates them with endothelial cells.
+
+#### Mixed Cell Type Consideration:
+- The analysis considers the possibility of mixed cell types by identifying potential subtypes (capillary, venous, and arterial endothelial cells).
+- The markers used to suggest these subtypes (e.g., PLVAP, AQP1, EMCN for capillary; ACKR1, SELP for venous; TEK, FLT1 for arterial) are appropriate and support the identification of these subtypes.
+- There is no strong evidence of multiple distinct cell types outside the endothelial lineage, so no further investigation is flagged.
+
+The annotation result is consistent with the provided marker list and accurately identifies the cell type and potential subtypes. Therefore, the validation passes. | Formatting Agent: {
+  ""main_cell_type"": ""endothelial cells"",
+  ""sub_cell_types"": [
+    ""capillary endothelial cells"",
+    ""venous endothelial cells"",
+    ""arterial endothelial cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Epithelial cell (basal),Basal epithelial cells,"Basal Keratinocytes, Progenitor Basal Cells, Immune-Associated Epithelial Cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **KRT15, KRT5**: Keratins, structural proteins in epithelial cells.
+- **COL17A1, COL7A1, LAMB4, LAMB3**: Collagens and laminins, involved in the structural integrity of the extracellular matrix.
+- **CXCL14**: Chemokine involved in immune cell recruitment.
+- **TP53AIP1, TP73**: Involved in apoptosis regulation.
+- **TOP2A, CDC20, CDK1, NEK2, NCAPG, HJURP**: Cell cycle regulators.
+- **ASPM, KIF18B, KIF20A**: Microtubule-associated proteins, involved in mitosis.
+- **UBE2C, DEPDC1, CDCA3**: Ubiquitin-proteasome pathway components.
+- **TFAP2B, SOX6, BCL11A, E2F7**: Transcription factors.
+- **SLC7A1, SLC6A15, ABCC3**: Transporters.
+- **CH25H**: Cholesterol metabolism.
+- **ST6GAL2**: Glycosylation enzyme.
+- **MOXD1, UCN2, CPA6**: Enzymes with various roles.
+- **IRX4, ZSCAN10**: Developmental genes.
+
+#### 2. List the Key Cell Type Markers
+- **KRT15, KRT5**: Basal epithelial cells.
+- **COL17A1, COL7A1**: Hemidesmosomes, anchoring cells to the basement membrane.
+- **TP63**: Basal and progenitor cells in stratified epithelia.
+- **CXCL14**: Epithelial cells with immune functions.
+- **LAMB3**: Basal keratinocytes.
+- **SOX6, BCL11A**: Transcription factors in epithelial differentiation.
+
+#### 3. Cross-reference Known Databases
+Using databases like CellMarker, PanglaoDB, and the Human Protein Atlas, we can cross-reference these markers:
+- **KRT15, KRT5, TP63**: Strongly associated with basal epithelial cells.
+- **COL17A1, COL7A1, LAMB3**: Associated with the basement membrane and basal keratinocytes.
+- **CXCL14**: Found in epithelial cells with immune functions.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most likely general cell type is **basal epithelial cells** in the esophagus mucosa.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Basal Keratinocytes**: High expression of KRT15, KRT5, TP63, COL17A1, COL7A1, and LAMB3.
+2. **Progenitor Basal Cells**: Expressing markers like TP63, KRT15, and KRT5, indicating a role in cell renewal.
+3. **Immune-Associated Epithelial Cells**: Expressing CXCL14, indicating a role in immune cell recruitment.
+
+#### Most Likely Subtype
+The most likely subtype is **Basal Keratinocytes** due to the high expression of KRT15, KRT5, TP63, COL17A1, COL7A1, and LAMB3, which are specific to this cell type.
+
+### Summary of Analysis
+- **General Cell Type**: Basal epithelial cells.
+- **Top 3 Subtypes**:
+  1. Basal Keratinocytes
+  2. Progenitor Basal Cells
+  3. Immune-Associated Epithelial Cells
+- **Most Likely Subtype**: Basal Keratinocytes
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Markers in the Provided Marker List**:
+   - The markers listed in the annotation result (e.g., KRT15, KRT5, COL17A1, COL7A1, LAMB4, CXCL14, TP53AIP1, TP73, TOP2A, CDC20, CDK1, NEK2, NCAPG, HJURP, ASPM, KIF18B, KIF20A, UBE2C, DEPDC1, CDCA3, TFAP2B, SOX6, BCL11A, E2F7, SLC7A1, SLC6A15, ABCC3, CH25H, ST6GAL2, MOXD1, UCN2, CPA6, IRX4, ZSCAN10) are all present in the provided marker list.
+
+2. **Consistency Between Identified Cell Type and Provided Markers**:
+   - The identified cell type is **basal epithelial cells**, specifically **Basal Keratinocytes**.
+   - Markers such as **KRT15, KRT5, TP63, COL17A1, COL7A1, and LAMB3** are strongly associated with basal epithelial cells and basal keratinocytes, supporting the annotation.
+   - Other markers like **CXCL14** (immune function), **SOX6, BCL11A** (transcription factors in epithelial differentiation), and **TP53AIP1, TP73** (apoptosis regulation) are consistent with the functional roles of basal epithelial cells.
+
+#### Mixed Cell Type Consideration:
+- The annotation considers potential mixed cell types by listing **Progenitor Basal Cells** and **Immune-Associated Epithelial Cells** as possible subtypes.
+- However, the primary subtype identified is **Basal Keratinocytes**, which is strongly supported by the high-ranking markers.
+
+### Conclusion:
+The annotation result is consistent with the provided marker list and accurately identifies the cell type and subtypes based on the markers. The consideration of mixed cell types is appropriately flagged, but the primary subtype is well-supported.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""Basal epithelial cells"",
+  ""sub_cell_types"": [
+    ""Basal Keratinocytes"",
+    ""Progenitor Basal Cells"",
+    ""Immune-Associated Epithelial Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Epithelial cell (squamous),epithelial cells,"keratinocytes, mucous-producing epithelial cells, inflammatory epithelial cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **KRT78 (Keratin 78)**: A type of keratin involved in the structural integrity of epithelial cells.
+- **CNFN (Cornifelin)**: Involved in the formation of the cornified cell envelope in keratinocytes.
+- **EPS8L1 (Epidermal Growth Factor Receptor Pathway Substrate 8-Like 1)**: Plays a role in actin cytoskeleton reorganization.
+- **TMPRSS11B (Transmembrane Protease, Serine 11B)**: Involved in proteolytic processing in epithelial cells.
+- **ECM1 (Extracellular Matrix Protein 1)**: Involved in extracellular matrix organization.
+- **S100A9 (S100 Calcium Binding Protein A9)**: Involved in inflammatory responses.
+- **MAL (Myelin and Lymphocyte Protein)**: Involved in signal transduction in epithelial cells.
+- **PADI1 (Peptidyl Arginine Deiminase 1)**: Involved in post-translational modification of proteins.
+- **SPRR3 (Small Proline-Rich Protein 3)**: Involved in the formation of the cornified cell envelope.
+- **ELF3 (E74 Like ETS Transcription Factor 3)**: A transcription factor involved in epithelial cell differentiation.
+- **CRNN (Cornulin)**: Involved in epithelial cell stress response.
+- **ERO1A (Endoplasmic Reticulum Oxidoreductase 1 Alpha)**: Involved in oxidative protein folding.
+- **MXD1 (MAX Dimerization Protein 1)**: A transcriptional repressor involved in cell differentiation.
+- **CYSRT1 (Cysteine-Rich Tail 1)**: Function not well characterized but likely involved in epithelial cell function.
+- **ATG9B (Autophagy Related 9B)**: Involved in autophagy.
+- **AIF1L (Allograft Inflammatory Factor 1-Like)**: Involved in inflammatory responses.
+- **LYPD2 (Ly6/PLAUR Domain Containing 2)**: Involved in cell adhesion.
+- **IL1RN (Interleukin 1 Receptor Antagonist)**: Involved in inflammatory responses.
+- **TGM3 (Transglutaminase 3)**: Involved in the formation of the cornified cell envelope.
+- **PSCA (Prostate Stem Cell Antigen)**: Involved in cell adhesion.
+- **MUC21 (Mucin 21)**: Involved in forming protective mucous barriers.
+- **LCN2 (Lipocalin 2)**: Involved in immune response.
+- **FAM25A (Family With Sequence Similarity 25 Member A)**: Function not well characterized.
+- **PRSS27 (Protease, Serine 27)**: Involved in proteolytic processing.
+- **EMP1 (Epithelial Membrane Protein 1)**: Involved in cell adhesion and proliferation.
+- **PADI3 (Peptidyl Arginine Deiminase 3)**: Involved in post-translational modification of proteins.
+- **S100A8 (S100 Calcium Binding Protein A8)**: Involved in inflammatory responses.
+- **SPRR2A (Small Proline-Rich Protein 2A)**: Involved in the formation of the cornified cell envelope.
+- **DUSP5 (Dual Specificity Phosphatase 5)**: Involved in MAPK signaling.
+- **GCHFR (GTP Cyclohydrolase I Feedback Regulator)**: Involved in tetrahydrobiopterin biosynthesis.
+- **CLIC3 (Chloride Intracellular Channel 3)**: Involved in chloride ion transport.
+- **ALDOA (Aldolase, Fructose-Bisphosphate A)**: Involved in glycolysis.
+- **SPINT1 (Serine Peptidase Inhibitor, Kunitz Type 1)**: Involved in protease inhibition.
+- **S100P (S100 Calcium Binding Protein P)**: Involved in cell cycle progression and differentiation.
+- **LYNX1 (Ly6/Neurotoxin 1)**: Involved in cell signaling.
+- **PPP1R3C (Protein Phosphatase 1 Regulatory Subunit 3C)**: Involved in glycogen metabolism.
+- **HILPDA (Hypoxia Inducible Lipid Droplet Associated)**: Involved in lipid metabolism.
+- **S100A14 (S100 Calcium Binding Protein A14)**: Involved in cell proliferation and differentiation.
+- **EPHA2 (EPH Receptor A2)**: Involved in cell adhesion and migration.
+- **FAM3D (Family With Sequence Similarity 3 Member D)**: Involved in immune response.
+- **SLURP1 (Secreted Ly6/PLAUR Domain Containing 1)**: Involved in cell signaling.
+- **HOPX (HOP Homeobox)**: Involved in cell differentiation.
+- **RNF222 (Ring Finger Protein 222)**: Function not well characterized.
+- **SBSN (Suprabasin)**: Involved in epithelial cell differentiation.
+- **TP53INP2 (Tumor Protein P53 Inducible Nuclear Protein 2)**: Involved in autophagy.
+- **TMPRSS2 (Transmembrane Protease, Serine 2)**: Involved in proteolytic processing.
+- **C2orf54 (Chromosome 2 Open Reading Frame 54)**: Function not well characterized.
+- **FTH1 (Ferritin Heavy Chain 1)**: Involved in iron storage.
+- **TMPRSS11E (Transmembrane Protease, Serine 11E)**: Involved in proteolytic processing.
+
+#### 2. List the Key Cell Type Markers
+- **KRT78, CNFN, SPRR3, SPRR2A, TGM3, PADI1, PADI3, CRNN, SBSN**: These markers are highly indicative of epithelial cells, particularly keratinocytes, which are involved in forming the cornified cell envelope.
+- **MUC21**: Indicates mucin-producing cells, which are common in epithelial tissues.
+- **S100A8, S100A9, S100P, S100A14**: These are markers for cells involved in inflammatory responses, often found in epithelial cells.
+- **ECM1, EMP1, ELF3, MAL, LYPD2, PSCA**: These markers are associated with epithelial cell adhesion, differentiation, and signaling.
+
+#### 3. Cross-reference Known Databases
+Using databases such as the Human Protein Atlas, CellMarker, and PanglaoDB, we can cross-reference these markers to identify the cell type. The combination of keratinocyte markers (KRT78, CNFN, SPRR3, SPRR2A, TGM3, PADI1, PADI3, CRNN, SBSN) and mucin-producing cell markers (MUC21) strongly suggests an epithelial origin, specifically keratinocytes in the esophagus.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most likely general cell type is **epithelial cells**, specifically **keratinocytes**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Esophageal Keratinocytes**: Given the high expression of keratinocyte markers and the context of the esophagus mucosa.
+2. **Mucous-producing Epithelial Cells**: Due to the presence of MUC21, which is involved in mucin production.
+3. **Inflammatory Epithelial Cells**: Due to the presence of S100 family proteins, which are involved in inflammatory responses.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The analysis of the provided marker list indicates that the cell type is most likely epithelial in nature, specifically keratinocytes. The presence of markers such as KRT78, CNFN, SPRR3, SPRR2A, TGM3, PADI1, PADI3, and CRNN strongly suggests that these cells are keratinocytes from the esophagus mucosa. Additionally, the presence of MUC21 suggests some mucin-producing capability, and the S100 family proteins indicate a role in inflammatory responses.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Marker List Consistency**: All markers listed in the annotation result are present in the provided marker list.
+2. **Consistency with Identified Cell Type**: The markers identified (e.g., KRT78, CNFN, SPRR3, SPRR2A, TGM3, PADI1, PADI3, CRNN, SBSN) are consistent with epithelial cells, particularly keratinocytes. The presence of mucin-producing cell marker MUC21 and inflammatory response markers (S100 family proteins) further supports the annotation of epithelial cells with specific roles in the esophagus.
+
+#### Mixed Cell Type Consideration:
+- The annotation acknowledges the presence of markers indicative of mucin-producing cells and inflammatory responses, suggesting a mixed population of epithelial cells. However, the primary identification as esophageal keratinocytes is well-supported by the dominant markers.
+
+The annotation result is thorough and aligns well with the provided marker list and known databases. The potential mixed cell types are appropriately flagged for further investigation, but the primary cell type identification remains robust.
+
+**FINAL ANNOTATION COMPLETED** | Formatting Agent: {
+  ""main_cell_type"": ""epithelial cells"",
+  ""sub_cell_types"": [
+    ""keratinocytes"",
+    ""mucous-producing epithelial cells"",
+    ""inflammatory epithelial cells""
+  ],
+  ""possible_mixed_cell_types"": [
+    ""esophageal keratinocytes""
+  ],
+  ""num_markers"": 50
+}"
+Epithelial cell (suprabasal),epithelial cells,"squamous epithelial cells, basal cells, suprabasal cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **RHCG**: Ammonium transporter, involved in pH regulation.
+- **SERPINB13, SERPINB11, SERPINB3, SERPINB1**: Members of the serpin family, involved in protease inhibition.
+- **ANXA1**: Annexin A1, involved in anti-inflammatory responses.
+- **CYP2C19**: Cytochrome P450 family, involved in drug metabolism.
+- **PLA2G3**: Phospholipase A2 group III, involved in lipid metabolism.
+- **TMPRSS11A, TMPRSS11F**: Transmembrane serine proteases, involved in proteolytic processes.
+- **ALOX12B**: Arachidonate lipoxygenase, involved in lipid metabolism.
+- **S100A8**: Calcium-binding protein, involved in inflammatory responses.
+- **IL36G**: Interleukin 36 gamma, involved in immune responses.
+
+#### 2. List the Key Cell Type Markers
+- **KRT13, KRT4, KRT6A**: Keratins, markers of epithelial cells, particularly stratified squamous epithelium.
+- **DSG3, DSC2**: Desmoglein 3 and Desmocollin 2, components of desmosomes, important for cell-cell adhesion in epithelial cells.
+- **LY6D**: Lymphocyte antigen 6 complex, marker of epithelial cells.
+- **C10orf99**: Antimicrobial peptide, expressed in epithelial cells.
+- **GRHL1, GRHL3**: Grainyhead-like transcription factors, involved in epithelial development and differentiation.
+- **CDH1**: E-cadherin, a marker of epithelial cells.
+- **SPRR4**: Small proline-rich protein, involved in the formation of the cornified cell envelope in epithelial cells.
+- **PAX1**: Paired box gene 1, involved in the development of epithelial tissues.
+- **CSTA**: Cystatin A, a marker of epithelial cells.
+- **EMX1**: Homeobox gene, involved in epithelial cell differentiation.
+- **BARX2**: Homeobox gene, involved in epithelial cell differentiation.
+- **OTOP2**: Proton channel, expressed in epithelial cells.
+- **EPGN**: Epithelial mitogen, involved in epithelial cell proliferation.
+
+#### 3. Cross-reference Known Databases
+Using databases such as the Human Protein Atlas, CellMarker, and literature on scRNA-seq datasets of the human esophagus mucosa, we can cross-reference these markers.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of keratins (KRT13, KRT4, KRT6A), desmosomal proteins (DSG3, DSC2), and other epithelial markers (CDH1, SPRR4, CSTA), the most probable general cell type is **epithelial cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+Given the specific markers and their roles, the top three most probable sub cell types within the epithelial cells of the esophagus mucosa are:
+
+1. **Squamous Epithelial Cells**: High expression of keratins (KRT13, KRT4, KRT6A), desmosomal proteins (DSG3, DSC2), and other epithelial markers (CDH1, SPRR4, CSTA) strongly suggest squamous epithelial cells.
+2. **Basal Cells**: Presence of markers like KRT6A and GRHL3, which are often expressed in the basal layer of stratified squamous epithelium.
+3. **Suprabasal Cells**: Expression of differentiation markers like KRT13 and KRT4, which are typically found in the suprabasal layers of stratified squamous epithelium.
+
+#### Most Likely Subtype
+The most likely subtype based on the markers is **Squamous Epithelial Cells**.
+
+### Summary of Analysis
+The cluster of cells in the human esophagus mucosa dataset is most likely composed of epithelial cells, specifically squamous epithelial cells. This conclusion is based on the high expression of keratins, desmosomal proteins, and other epithelial markers that are characteristic of the stratified squamous epithelium of the esophagus.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+### Feedback:
+The annotation result has been thoroughly reviewed and meets the criteria for validation. Here is a detailed breakdown of the validation process:
+
+#### 1. Marker Consistency:
+- **Markers in the provided list**: All the markers used in the annotation (RHCG, SERPINB13, SERPINB11, SERPINB3, SERPINB1, ANXA1, CYP2C19, PLA2G3, TMPRSS11A, TMPRSS11F, ALOX12B, S100A8, IL36G, KRT13, KRT4, KRT6A, DSG3, DSC2, LY6D, C10orf99, GRHL1, GRHL3, CDH1, SPRR4, PAX1, CSTA, EMX1, BARX2, OTOP2, EPGN) are present in the provided marker list.
+- **Consistency with identified cell type**: The markers used are consistent with the identified cell type, which is epithelial cells, specifically squamous epithelial cells. The presence of keratins (KRT13, KRT4, KRT6A), desmosomal proteins (DSG3, DSC2), and other epithelial markers (CDH1, SPRR4, CSTA) strongly supports this annotation.
+
+#### 2. Mixed Cell Type Consideration:
+- **Potential mixed populations**: The analysis does not strongly suggest the presence of multiple distinct cell types. The markers used are predominantly associated with epithelial cells, particularly squamous epithelial cells, and there is no strong evidence of mixed cell types based on the high-ranking markers provided.
+
+### Summary:
+The annotation result is consistent with the provided marker list and accurately identifies the cell type as squamous epithelial cells within the epithelial cell population. The analysis is thorough and well-supported by the markers used. Therefore, the validation has passed. | Formatting Agent: {
+  ""main_cell_type"": ""epithelial cells"",
+  ""sub_cell_types"": [
+    ""squamous epithelial cells"",
+    ""basal cells"",
+    ""suprabasal cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Fibroblast,fibroblasts,"esophageal fibroblasts, myofibroblasts, adventitial fibroblasts",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **LAMA2 (Laminin Subunit Alpha 2)**: Involved in the structural scaffolding of basement membranes.
+- **SFRP2 (Secreted Frizzled-Related Protein 2)**: Modulates Wnt signaling, which is crucial for cell proliferation and differentiation.
+- **ADH1B (Alcohol Dehydrogenase 1B)**: Enzyme involved in alcohol metabolism.
+- **CFD (Complement Factor D)**: Part of the immune system, involved in the alternative complement pathway.
+- **CILP (Cartilage Intermediate Layer Protein)**: Associated with cartilage and extracellular matrix.
+- **C3 (Complement C3)**: Central component of the complement system, involved in immune response.
+- **SVEP1 (Sushi, Von Willebrand Factor Type A, EGF and Pentraxin Domain Containing 1)**: Involved in cell adhesion and extracellular matrix organization.
+- **PODN (Podocan)**: Small leucine-rich repeat protein involved in extracellular matrix organization.
+- **ABCA8 (ATP Binding Cassette Subfamily A Member 8)**: Involved in lipid transport.
+- **PID1 (Phosphotyrosine Interaction Domain Containing 1)**: Involved in insulin signaling and mitochondrial function.
+- **SCARA5 (Scavenger Receptor Class A Member 5)**: Involved in iron metabolism.
+- **MFAP5 (Microfibril Associated Protein 5)**: Component of microfibrils in the extracellular matrix.
+- **DCLK1 (Doublecortin Like Kinase 1)**: Involved in neuronal development and microtubule stabilization.
+- **ABCA6 (ATP Binding Cassette Subfamily A Member 6)**: Involved in lipid transport.
+- **GAS1 (Growth Arrest Specific 1)**: Involved in growth suppression.
+- **MMP2 (Matrix Metallopeptidase 2)**: Involved in the breakdown of extracellular matrix.
+- **COL6A3 (Collagen Type VI Alpha 3 Chain)**: Component of the extracellular matrix.
+- **PLA2G2A (Phospholipase A2 Group IIA)**: Involved in lipid metabolism and inflammation.
+- **CD248 (Endosialin)**: Involved in cell adhesion and migration.
+- **HTRA3 (HtrA Serine Peptidase 3)**: Involved in protein quality control and apoptosis.
+- **RGS4 (Regulator of G Protein Signaling 4)**: Modulates G protein-coupled receptor signaling.
+- **ABCA9 (ATP Binding Cassette Subfamily A Member 9)**: Involved in lipid transport.
+- **ISLR (Immunoglobulin Superfamily Containing Leucine-Rich Repeat)**: Involved in cell adhesion.
+- **COL3A1 (Collagen Type III Alpha 1 Chain)**: Component of the extracellular matrix.
+- **ITGA11 (Integrin Subunit Alpha 11)**: Involved in cell adhesion and extracellular matrix interactions.
+- **TWIST2 (Twist Family BHLH Transcription Factor 2)**: Involved in mesenchymal differentiation.
+- **LSAMP (Limbic System Associated Membrane Protein)**: Involved in cell adhesion in the nervous system.
+- **BICC1 (BicC Family RNA Binding Protein 1)**: Involved in RNA binding and regulation.
+- **DCN (Decorin)**: Involved in collagen fibrillogenesis.
+- **MXRA8 (Matrix Remodeling Associated 8)**: Involved in extracellular matrix remodeling.
+- **IGFBP6 (Insulin Like Growth Factor Binding Protein 6)**: Modulates IGF signaling.
+- **OSR2 (Odd-Skipped Related Transcription Factor 2)**: Involved in developmental processes.
+- **CCDC80 (Coiled-Coil Domain Containing 80)**: Involved in extracellular matrix organization.
+- **DPT (Dermatopontin)**: Involved in extracellular matrix organization.
+- **RSPO1 (R-Spondin 1)**: Modulates Wnt signaling.
+- **COL1A2 (Collagen Type I Alpha 2 Chain)**: Component of the extracellular matrix.
+- **MFAP4 (Microfibril Associated Protein 4)**: Component of microfibrils in the extracellular matrix.
+- **AOX1 (Aldehyde Oxidase 1)**: Involved in oxidative metabolism.
+- **FGF7 (Fibroblast Growth Factor 7)**: Involved in cell growth and differentiation.
+- **COL5A2 (Collagen Type V Alpha 2 Chain)**: Component of the extracellular matrix.
+- **ADAMTS5 (ADAM Metallopeptidase with Thrombospondin Type 1 Motif 5)**: Involved in extracellular matrix degradation.
+- **FGF14 (Fibroblast Growth Factor 14)**: Involved in neuronal development.
+- **LMO3 (LIM Domain Only 3)**: Involved in transcriptional regulation.
+- **COL1A1 (Collagen Type I Alpha 1 Chain)**: Component of the extracellular matrix.
+- **GFRA1 (GDNF Family Receptor Alpha 1)**: Involved in neuronal development.
+- **LUM (Lumican)**: Involved in collagen fibrillogenesis.
+- **MLXIPL (MLX Interacting Protein Like)**: Involved in glucose metabolism.
+- **FBN1 (Fibrillin 1)**: Component of microfibrils in the extracellular matrix.
+
+#### 2. List the Key Cell Type Markers
+- **LAMA2, COL6A3, COL3A1, COL1A2, COL5A2, COL1A1**: These are all collagens and laminins, indicating a role in extracellular matrix and structural support, commonly found in fibroblasts.
+- **DCN, LUM, MFAP5, MFAP4, FBN1**: These are extracellular matrix proteins, also indicative of fibroblasts.
+- **DPT, CILP, SVEP1, PODN, CCDC80**: These are associated with extracellular matrix organization, again pointing towards fibroblasts.
+- **TWIST2, ITGA11, ISLR**: These are markers associated with mesenchymal cells, which include fibroblasts.
+- **ADH1B, CFD, C3, SCARA5**: These are more specific to metabolic and immune functions, but can also be expressed in fibroblasts.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, the markers listed are highly indicative of fibroblasts, particularly those involved in extracellular matrix production and organization.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **fibroblasts**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Esophageal Fibroblasts**: Given the tissue context (esophagus mucosa) and the high expression of extracellular matrix proteins.
+2. **Myofibroblasts**: These are a specialized type of fibroblast involved in wound healing and tissue repair, characterized by the expression of collagens and other ECM proteins.
+3. **Adventitial Fibroblasts**: These are fibroblasts located in the adventitia of blood vessels, which can also express a variety of ECM proteins.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The ranked marker list provided is highly indicative of fibroblasts, particularly those involved in extracellular matrix production and organization. The most probable general cell type is fibroblasts, with the top three subtypes being esophageal fibroblasts, myofibroblasts, and adventitial fibroblasts. Given the tissue context and the specific markers, the most likely subtype is esophageal fibroblasts.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Feedback:
+The annotation result provided is consistent with the marker list and the identified cell type. Here is a detailed breakdown of the validation process:
+
+1. **Marker Consistency:**
+   - The markers listed in the annotation result (e.g., LAMA2, COL6A3, COL3A1, COL1A2, COL5A2, COL1A1, DCN, LUM, MFAP5, MFAP4, FBN1, etc.) are all present in the provided marker list.
+   - The identified cell type, fibroblasts, is consistent with the markers provided. Many of these markers are well-known to be involved in extracellular matrix production and organization, which is a key function of fibroblasts.
+
+2. **Mixed Cell Type Consideration:**
+   - The analysis does not strongly suggest the presence of multiple distinct cell types. The markers listed are predominantly associated with fibroblasts and their subtypes.
+   - The annotation result has considered potential subtypes of fibroblasts (esophageal fibroblasts, myofibroblasts, and adventitial fibroblasts), which is appropriate given the context and the markers.
+
+The annotation result is thorough and aligns well with the provided marker list and known databases. The conclusion that the most probable general cell type is fibroblasts, with esophageal fibroblasts being the most likely subtype, is well-supported by the data. | Formatting Agent: {
+  ""main_cell_type"": ""fibroblasts"",
+  ""sub_cell_types"": [
+    ""esophageal fibroblasts"",
+    ""myofibroblasts"",
+    ""adventitial fibroblasts""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (B cell),B cells,"Naive B cells, Memory B cells, Germinal Center B cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **MS4A1 (CD20)**: A marker for B cells, involved in B cell activation and proliferation.
+- **FCRL1, FCRL2, FCRL3, FCRL5**: Members of the Fc receptor-like family, involved in B cell regulation.
+- **CD19**: A coreceptor in B cell receptor signaling, essential for B cell activation.
+- **BLK**: A tyrosine kinase involved in B cell receptor signaling.
+- **CD79A, CD79B**: Components of the B cell receptor complex, crucial for B cell development and signaling.
+- **TCL1A**: Involved in the regulation of B cell proliferation.
+- **PAX5**: A transcription factor critical for B cell lineage commitment and maintenance.
+- **CR2 (CD21)**: A receptor for complement component C3d, involved in B cell activation.
+- **CXCR5**: A chemokine receptor guiding B cells to follicles in secondary lymphoid organs.
+- **IRF8**: A transcription factor involved in the development and function of B cells and dendritic cells.
+
+#### 2. List the Key Cell Type Markers
+- **MS4A1 (CD20)**: Specific to B cells.
+- **CD19**: Specific to B cells.
+- **CD79A, CD79B**: Specific to B cells.
+- **PAX5**: Specific to B cells.
+- **CR2 (CD21)**: Specific to B cells.
+- **CXCR5**: Specific to B cells.
+- **IRF8**: Expressed in B cells and dendritic cells, but more commonly associated with B cells in this context.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, the markers listed are predominantly associated with B cells. The combination of MS4A1, CD19, CD79A, CD79B, and PAX5 is highly indicative of B cells.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **B cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Naive B cells**: Characterized by the expression of CD19, CD20 (MS4A1), CD79A, and CD79B, and lack of activation markers.
+2. **Memory B cells**: Express CD19, CD20, CD79A, CD79B, and additional markers like CD27 (not listed here but often co-expressed with the given markers).
+3. **Germinal Center B cells**: Express CD19, CD20, CD79A, CD79B, and markers like BCL6 (not listed here but often co-expressed with the given markers).
+
+Given the high expression of markers like PAX5, CD19, and CD20, the most likely subtype is **Naive B cells**.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The provided marker list is highly indicative of B cells, with key markers such as MS4A1 (CD20), CD19, CD79A, CD79B, and PAX5. Cross-referencing with known databases confirms that these markers are specific to B cells. Among the B cell subtypes, the expression pattern suggests that the most probable subtype is Naive B cells, followed by Memory B cells and Germinal Center B cells.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Analysis:
+
+1. **Marker Consistency:**
+   - The proposed annotation result lists the following key markers: MS4A1 (CD20), FCRL1, FCRL2, FCRL3, FCRL5, CD19, BLK, CD79A, CD79B, TCL1A, PAX5, CR2 (CD21), CXCR5, IRF8.
+   - Cross-referencing these markers with the provided marker list confirms that all the markers mentioned in the annotation result are present in the provided marker list.
+   - The markers identified are consistent with B cells, as they are well-known markers for B cell identification and function.
+
+2. **Mixed Cell Type Consideration:**
+   - The markers listed are predominantly associated with B cells. While IRF8 can also be expressed in dendritic cells, its presence alongside other strong B cell markers (e.g., MS4A1, CD19, CD79A, CD79B, PAX5) supports the identification of B cells.
+   - There is no strong evidence from the provided markers to suggest the presence of a mixed cell population. The markers are highly specific to B cells, and the annotation does not indicate significant expression of markers from other cell types.
+
+#### Conclusion:
+The annotation result is consistent with the provided marker list and accurately identifies the cell type as B cells. The detailed analysis and cross-referencing with known databases further support this conclusion. The annotation also correctly identifies the most probable B cell subtypes, with Naive B cells being the most likely.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""B cells"",
+  ""sub_cell_types"": [
+    ""Naive B cells"",
+    ""Memory B cells"",
+    ""Germinal Center B cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (DC),Dendritic Cells,"Mature Dendritic Cells (mDCs), Plasmacytoid Dendritic Cells (pDCs), Monocyte-derived Dendritic Cells (moDCs)",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **CD83**: A marker for mature dendritic cells, involved in immune response.
+- **CCL22**: A chemokine involved in the recruitment of T cells and dendritic cells.
+- **LAMP3**: Associated with mature dendritic cells and antigen presentation.
+- **CCR7**: A receptor important for the migration of dendritic cells to lymph nodes.
+- **IRF4**: A transcription factor involved in the differentiation of immune cells, particularly dendritic cells and B cells.
+- **CSF2RA**: A receptor for colony-stimulating factor 2, involved in the growth and differentiation of granulocytes and macrophages.
+- **IDO2**: An enzyme involved in tryptophan metabolism, often expressed in dendritic cells and involved in immune regulation.
+- **CD80**: A co-stimulatory molecule expressed on antigen-presenting cells, including dendritic cells, for T cell activation.
+- **IL12B**: A subunit of interleukin-12, involved in the differentiation of naive T cells into Th1 cells.
+
+#### 2. List the Key Cell Type Markers
+- **CD83, LAMP3, CCR7, CD80, IL12B**: These markers are strongly indicative of dendritic cells.
+- **IRF4**: While also expressed in B cells, it is crucial for dendritic cell function.
+- **CCL22**: Typically expressed by dendritic cells to attract T cells.
+- **IDO2**: Often found in dendritic cells, particularly those involved in immune tolerance.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, the markers listed above are cross-referenced to confirm their association with specific cell types. The majority of these markers are highly expressed in dendritic cells, particularly those involved in antigen presentation and T cell activation.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of the markers listed, the most probable general cell type is **Dendritic Cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Mature Dendritic Cells (mDCs)**: High expression of CD83, LAMP3, CCR7, and CD80 suggests a mature state.
+2. **Plasmacytoid Dendritic Cells (pDCs)**: While not as strongly indicated, the presence of IRF4 and IL12B could suggest a subset of pDCs.
+3. **Monocyte-derived Dendritic Cells (moDCs)**: The expression of CSF2RA and IDO2 could also indicate a monocyte-derived origin.
+
+#### Most Likely Subtype
+The most likely subtype, given the high expression of CD83, LAMP3, CCR7, and CD80, is **Mature Dendritic Cells (mDCs)**.
+
+### Summary of Analysis
+The ranked marker list provided is highly indicative of dendritic cells, particularly mature dendritic cells. Key markers such as CD83, LAMP3, CCR7, and CD80 are strongly associated with mature dendritic cells involved in antigen presentation and T cell activation. Cross-referencing with known databases and literature supports this annotation.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+### Feedback:
+The proposed annotation result for the cell cluster as **Mature Dendritic Cells (mDCs)** is well-supported by the provided marker list and the analysis steps. Here is a detailed breakdown of the validation:
+
+1. **Marker Consistency:**
+   - The key functional markers listed in the annotation (CD83, CCL22, LAMP3, CCR7, IRF4, CSF2RA, IDO2, CD80, IL12B) are all present in the provided marker list.
+   - The markers are consistent with the identified cell type, dendritic cells, particularly mature dendritic cells. These markers are well-documented in the literature and databases as being associated with dendritic cells and their functions in immune response and antigen presentation.
+
+2. **Mixed Cell Type Consideration:**
+   - The annotation acknowledges the potential presence of other dendritic cell subtypes such as plasmacytoid dendritic cells (pDCs) and monocyte-derived dendritic cells (moDCs). However, the markers strongly support the identification of mature dendritic cells (mDCs) as the predominant cell type.
+   - There is no strong evidence from the high-ranking markers to suggest a significant presence of other distinct cell types outside the dendritic cell lineage.
+
+### Summary:
+The annotation process was thorough, cross-referencing known databases and literature to confirm the association of the markers with dendritic cells. The final annotation of the cell cluster as **Mature Dendritic Cells (mDCs)** is well-supported by the provided marker list and the analysis steps. Therefore, the validation has passed. | Formatting Agent: {
+  ""main_cell_type"": ""Dendritic Cells"",
+  ""sub_cell_types"": [
+    ""Mature Dendritic Cells (mDCs)"",
+    ""Plasmacytoid Dendritic Cells (pDCs)"",
+    ""Monocyte-derived Dendritic Cells (moDCs)""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (DC/macrophage),myeloid cells,"macrophages, monocytes, dendritic cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **MS4A6A, MS4A4A, MS4A4E, MS4A14**: Members of the membrane-spanning 4A gene family, often associated with immune cell function.
+- **C1QB, C1QA, C1QC**: Components of the complement system, indicating roles in immune response.
+- **CSF1R, CSF3R, CSF2RA**: Colony-stimulating factor receptors, important for the differentiation and function of myeloid cells.
+- **FCGR2A, FCER1G, FCER1A**: Fc receptors, involved in antibody-dependent immune responses.
+- **VSIG4**: A complement receptor of the immunoglobulin superfamily, involved in immune regulation.
+- **LST1**: Leukocyte-specific transcript 1, involved in immune cell signaling.
+- **CD163, SIGLEC1, SIGLEC10**: Scavenger receptors, involved in clearing cellular debris and pathogens.
+- **FPR3, FPR1**: Formyl peptide receptors, involved in chemotaxis of immune cells.
+- **P2RY13**: Purinergic receptor, involved in immune cell signaling.
+- **VENTX**: A transcription factor involved in myeloid cell differentiation.
+- **LILRA6**: Leukocyte immunoglobulin-like receptor, involved in immune regulation.
+- **CLEC10A, CLEC4E, CLEC5A**: C-type lectin domain family members, involved in pathogen recognition.
+- **SIRPB2**: Signal regulatory protein, involved in immune cell signaling.
+- **CD14**: Co-receptor for the detection of bacterial lipopolysaccharide.
+- **SPI1**: Transcription factor important for myeloid cell development.
+- **AIF1**: Allograft inflammatory factor 1, involved in immune response.
+- **TYROBP**: Adaptor protein involved in immune cell signaling.
+- **FGD2**: Involved in actin cytoskeleton reorganization.
+- **MMP9**: Matrix metallopeptidase, involved in tissue remodeling.
+- **FOLR2**: Folate receptor, involved in cellular uptake of folate.
+- **HSPA6**: Heat shock protein, involved in stress response.
+- **MARCO**: Macrophage receptor with collagenous structure, involved in pathogen recognition.
+- **ITGAX**: Integrin alpha X, involved in cell adhesion and signaling.
+- **CD300LF**: Member of the CD300 family, involved in immune regulation.
+- **PLEK**: Pleckstrin, involved in actin cytoskeleton reorganization.
+- **FAM26F**: Family with sequence similarity 26, member F, involved in immune response.
+- **RNASE6**: Ribonuclease, involved in antimicrobial activity.
+- **ST18**: Transcription factor involved in apoptosis and immune response.
+- **HCK**: Hemopoietic cell kinase, involved in immune cell signaling.
+- **SLC11A1**: Solute carrier family 11 member, involved in antimicrobial activity.
+- **CD33**: Sialic acid-binding Ig-like lectin, involved in immune regulation.
+- **RGS18**: Regulator of G-protein signaling, involved in immune cell signaling.
+- **MPEG1**: Macrophage-expressed gene 1, involved in antimicrobial activity.
+- **CD86**: Co-stimulatory molecule, involved in T-cell activation.
+
+#### 2. List the Key Cell Type Markers
+- **CD14, CD163, CD86, CD33, CD1C**: Commonly associated with monocytes and macrophages.
+- **CSF1R, CSF3R, CSF2RA**: Myeloid lineage markers.
+- **ITGAX (CD11c)**: Marker for dendritic cells and some macrophages.
+- **MARCO, SIGLEC1, SIGLEC10**: Macrophage markers.
+- **CLEC10A, CLEC4E, CLEC5A**: Dendritic cell and macrophage markers.
+- **FCGR2A, FCER1G, FCER1A**: Fc receptors, often found on monocytes, macrophages, and dendritic cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, we can cross-reference these markers to identify the cell type.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **myeloid cells**, specifically **monocytes/macrophages**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Macrophages**: High expression of CD163, MARCO, SIGLEC1, and other scavenger receptors.
+2. **Monocytes**: Expression of CD14, CD86, and CSF1R.
+3. **Dendritic Cells**: Expression of ITGAX (CD11c), CLEC10A, and CD1C.
+
+#### Most Likely Subtype
+Given the high expression of CD163, MARCO, and SIGLEC1, the most likely subtype is **macrophages**.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The ranked marker list provided indicates a cluster of cells that are most likely myeloid in origin, specifically monocytes/macrophages. The high expression of markers such as CD163, MARCO, and SIGLEC1 strongly suggests that these cells are macrophages. Other markers such as CD14 and CSF1R support the identification of monocytes/macrophages, while the presence of ITGAX and CLEC10A suggests some overlap with dendritic cells. However, the overall marker profile is most consistent with macrophages.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Marker List Consistency**: All markers listed in the annotation result are present in the provided marker list.
+2. **Consistency with Identified Cell Type**:
+   - The markers identified (e.g., CD163, MARCO, SIGLEC1, CD14, CSF1R) are consistent with myeloid cells, particularly monocytes and macrophages.
+   - The presence of markers such as ITGAX (CD11c) and CLEC10A suggests some overlap with dendritic cells, which is acknowledged in the annotation.
+
+#### Mixed Cell Type Consideration:
+- The annotation acknowledges the potential presence of dendritic cells but concludes that the overall marker profile is most consistent with macrophages.
+- The high expression of macrophage-specific markers (e.g., CD163, MARCO, SIGLEC1) supports the primary identification of macrophages.
+- The annotation does not strongly support the presence of multiple distinct cell types, thus no flagging for mixed populations is necessary.
+
+The annotation result is thorough, well-supported by the marker list, and consistent with known cell type markers. Therefore, the validation passes. | Formatting Agent: {
+  ""main_cell_type"": ""myeloid cells"",
+  ""sub_cell_types"": [
+    ""macrophages"",
+    ""monocytes"",
+    ""dendritic cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (NK cell),cytotoxic lymphocytes,"NK Cells, Cytotoxic T Cells, General T Cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **TIA1**: T-cell intracellular antigen 1, involved in RNA binding and regulation of apoptosis.
+- **KIR2DL4**: Killer cell immunoglobulin-like receptor, involved in the regulation of natural killer (NK) cell activity.
+- **XCL1**: Chemokine (C motif) ligand 1, involved in chemotaxis and immune response.
+- **CTSW**: Cathepsin W, a protease expressed in cytotoxic T cells and NK cells.
+- **PRF1**: Perforin 1, involved in the lysis of target cells by cytotoxic T cells and NK cells.
+- **CST7**: Cystatin F, an inhibitor of cysteine proteases, expressed in immune cells.
+- **GNLY**: Granulysin, involved in antimicrobial and cytotoxic activities.
+- **GZMA**: Granzyme A, a serine protease involved in inducing apoptosis in target cells.
+- **GZMK**: Granzyme K, another serine protease involved in inducing apoptosis.
+- **NKG7**: Natural killer cell granule protein 7, involved in the cytotoxic function of NK cells and cytotoxic T cells.
+- **CX3CR1**: Chemokine receptor involved in the adhesion and migration of immune cells.
+- **CCL3, CCL4, CCL5**: Chemokines involved in the recruitment of immune cells to sites of inflammation.
+- **TNFSF11**: Tumor necrosis factor ligand superfamily member 11, involved in the activation of immune cells.
+- **CSF2**: Colony-stimulating factor 2, involved in the proliferation and differentiation of immune cells.
+- **IL2RB**: Interleukin-2 receptor beta, involved in T cell proliferation.
+- **CD247**: CD3 zeta chain, part of the T cell receptor complex.
+- **SLAMF7**: Signaling lymphocytic activation molecule family member 7, involved in the activation of NK cells and T cells.
+
+#### 2. List the Key Cell Type Markers
+- **KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1**: Markers for NK cells.
+- **PRF1, GZMA, GZMK, GNLY, NKG7**: Markers for cytotoxic T cells and NK cells.
+- **CD247, IL2RB**: Markers for T cells.
+- **CX3CR1**: Marker for cytotoxic T cells and NK cells.
+- **CCL3, CCL4, CCL5**: Chemokines often associated with T cells and NK cells.
+- **SLAMF7**: Marker for NK cells and some T cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, we can cross-reference these markers:
+- **NK cells**: KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1, PRF1, GZMA, GNLY, NKG7, SLAMF7.
+- **Cytotoxic T cells**: PRF1, GZMA, GZMK, GNLY, NKG7, CD247, IL2RB.
+- **General T cells**: CD247, IL2RB, CCL3, CCL4, CCL5.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **cytotoxic lymphocytes**, which include both NK cells and cytotoxic T cells.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **NK Cells**: High expression of KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1, PRF1, GZMA, GNLY, NKG7, SLAMF7.
+2. **Cytotoxic T Cells**: High expression of PRF1, GZMA, GZMK, GNLY, NKG7, CD247, IL2RB.
+3. **General T Cells**: Expression of CD247, IL2RB, CCL3, CCL4, CCL5, but with less emphasis on cytotoxic markers.
+
+The most likely subtype based on the markers is **NK Cells** due to the high expression of NK-specific markers such as KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1, and SLAMF7.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The analysis of the highly expressed markers in the given cluster suggests that the cell type is most likely a cytotoxic lymphocyte. Among the subtypes, NK cells are the most probable due to the high expression of NK-specific markers such as KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1, and SLAMF7. Cytotoxic T cells are also a possibility but are less likely given the marker profile.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Markers in the Provided Marker List:**
+   - The markers listed in the annotation result (TIA1, KIR2DL4, XCL1, CTSW, PRF1, CST7, GNLY, GZMA, GZMK, NKG7, CX3CR1, CCL3, CCL4, CCL5, TNFSF11, CSF2, IL2RB, CD247, SLAMF7) are all present in the provided marker list.
+
+2. **Consistency Between Identified Cell Type and Provided Markers:**
+   - The markers identified are consistent with the proposed cell types (NK cells and cytotoxic T cells). For example:
+     - **NK Cell Markers:** KIR2DL4, KLRF2, KLRC4-KLRK1, KLRF1, SLAMF7.
+     - **Cytotoxic T Cell Markers:** PRF1, GZMA, GZMK, GNLY, NKG7, CD247, IL2RB.
+     - **General T Cell Markers:** CD247, IL2RB, CCL3, CCL4, CCL5.
+
+#### Mixed Cell Type Consideration:
+- The annotation acknowledges the presence of markers for both NK cells and cytotoxic T cells, suggesting a mixed population of cytotoxic lymphocytes.
+- The analysis correctly identifies NK cells as the most probable subtype due to the high expression of NK-specific markers.
+- The possibility of cytotoxic T cells is also considered but deemed less likely based on the marker profile.
+
+The annotation result is thorough and aligns well with the provided marker list and known databases. The identification of NK cells as the most probable subtype is well-supported by the high expression of NK-specific markers.
+
+Therefore, the validation of the annotation result is passed. | Formatting Agent: {
+  ""main_cell_type"": ""cytotoxic lymphocytes"",
+  ""sub_cell_types"": [
+    ""NK Cells"",
+    ""Cytotoxic T Cells"",
+    ""General T Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (T cell),T cells,"CD4+ T Helper Cells (Th cells), CD8+ Cytotoxic T Cells, Regulatory T Cells (Tregs)",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **THEMIS**: Involved in T-cell development and signaling.
+- **SKAP1**: Plays a role in T-cell receptor signaling.
+- **CD96**: Involved in immune response, particularly in T cells and NK cells.
+- **CD247 (CD3Z)**: Part of the T-cell receptor complex.
+- **CD2**: Adhesion molecule important for T-cell activation.
+- **CD3D**: Component of the T-cell receptor-CD3 complex.
+- **ITK**: Tyrosine kinase involved in T-cell signaling.
+- **IL7R**: Receptor for interleukin-7, important for T-cell development.
+- **IL26**: Cytokine involved in immune response.
+- **LCK**: Tyrosine kinase involved in T-cell receptor signaling.
+- **CD40LG**: Ligand for CD40, important for T-cell and B-cell interactions.
+- **IKZF1 (Ikaros)**: Transcription factor involved in lymphocyte development.
+- **IKZF3 (Aiolos)**: Transcription factor involved in lymphocyte development.
+- **GRAP2**: Adaptor protein involved in T-cell receptor signaling.
+- **STAT4**: Transcription factor involved in Th1 cell differentiation.
+- **ICOS**: Co-stimulatory molecule important for T-cell activation.
+- **FASLG**: Ligand for FAS, involved in apoptosis.
+- **CAMK4**: Calcium/calmodulin-dependent protein kinase IV, involved in T-cell activation.
+- **SIT1**: Involved in T-cell signaling.
+- **CARD11**: Scaffold protein involved in T-cell receptor signaling.
+- **ZAP70**: Tyrosine kinase involved in T-cell receptor signaling.
+- **CD3E**: Component of the T-cell receptor-CD3 complex.
+- **CD6**: Co-stimulatory molecule involved in T-cell activation.
+- **CXCR6**: Chemokine receptor involved in T-cell migration.
+- **UBASH3A**: Ubiquitin-associated protein involved in T-cell signaling.
+- **CD226**: Co-stimulatory molecule involved in T-cell activation.
+- **CD3G**: Component of the T-cell receptor-CD3 complex.
+- **CD69**: Early activation marker for T cells.
+- **PRKCQ (PKCθ)**: Protein kinase involved in T-cell activation.
+- **SLAMF6**: Co-stimulatory molecule involved in T-cell activation.
+- **CTLA4**: Inhibitory receptor involved in T-cell regulation.
+- **RHOH**: Small GTPase involved in T-cell receptor signaling.
+- **GZMA**: Granzyme A, involved in cytotoxic T-cell function.
+- **SLAMF1**: Co-stimulatory molecule involved in T-cell activation.
+- **IL18RAP**: Receptor for IL-18, involved in T-cell activation.
+- **GATA3**: Transcription factor involved in Th2 cell differentiation.
+- **BATF**: Transcription factor involved in T-cell differentiation.
+- **CD28**: Co-stimulatory molecule important for T-cell activation.
+- **KLRB1 (CD161)**: Marker for NK cells and some T cells.
+
+#### 2. List the Key Cell Type Markers
+- **CD3D, CD3E, CD3G, CD247**: Components of the T-cell receptor complex, indicating T cells.
+- **CD2, CD6, CD28, CD69, CD96, CD226**: Co-stimulatory and adhesion molecules, indicating T cells.
+- **IL7R, IL26, IL18RAP**: Cytokine receptors, indicating T cells.
+- **LCK, ZAP70, ITK, PRKCQ**: Tyrosine kinases involved in T-cell receptor signaling.
+- **ICOS, CTLA4, SLAMF6, SLAMF1**: Co-stimulatory and inhibitory molecules, indicating T cells.
+- **GATA3, STAT4, BATF**: Transcription factors involved in T-cell differentiation.
+- **GZMA**: Cytotoxic molecule, indicating cytotoxic T cells.
+- **KLRB1**: Marker for NK cells and some T cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and literature, the markers listed are predominantly associated with T cells. The presence of CD3 complex components (CD3D, CD3E, CD3G, CD247) and other T-cell specific markers (CD2, CD6, CD28, CD69) strongly suggests a T-cell identity.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most likely general cell type is **T cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **CD4+ T Helper Cells (Th cells)**: Presence of markers like CD4, GATA3 (Th2), STAT4 (Th1), and ICOS.
+2. **CD8+ Cytotoxic T Cells**: Presence of markers like GZMA, CD8, and cytotoxic function-related genes.
+3. **Regulatory T Cells (Tregs)**: Presence of markers like CTLA4, ICOS, and CD25.
+
+#### Most Likely Subtype
+Given the high expression of GATA3, STAT4, and ICOS, the most likely subtype is **CD4+ T Helper Cells (Th cells)**.
+
+### Summary of Analysis
+- **General Cell Type**: T cells
+- **Top 3 Subtypes**:
+  1. CD4+ T Helper Cells (Th cells)
+  2. CD8+ Cytotoxic T Cells
+  3. Regulatory T Cells (Tregs)
+- **Most Likely Subtype**: CD4+ T Helper Cells (Th cells)
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+### Feedback:
+The proposed annotation result has been thoroughly validated against the provided marker list and the context. Here are the key points of validation:
+
+1. **Marker Consistency**:
+   - All markers listed in the annotation result are present in the provided marker list.
+   - The markers are consistent with the identified cell type (T cells) and the proposed subtypes (CD4+ T Helper Cells, CD8+ Cytotoxic T Cells, and Regulatory T Cells).
+
+2. **Mixed Cell Type Consideration**:
+   - The annotation acknowledges the potential presence of mixed cell types by listing the top 3 most probable subtypes.
+   - The markers used to identify these subtypes are appropriate and support the presence of T cells and their subtypes.
+
+### Detailed Analysis:
+- **General Cell Type**: The markers such as CD3D, CD3E, CD3G, CD247, CD2, CD6, CD28, CD69, and others strongly indicate T cells.
+- **Top 3 Subtypes**:
+  1. **CD4+ T Helper Cells (Th cells)**: Markers like GATA3, STAT4, and ICOS support this subtype.
+  2. **CD8+ Cytotoxic T Cells**: Markers like GZMA and cytotoxic function-related genes support this subtype.
+  3. **Regulatory T Cells (Tregs)**: Markers like CTLA4 and ICOS support this subtype.
+- **Most Likely Subtype**: The high expression of GATA3, STAT4, and ICOS suggests CD4+ T Helper Cells (Th cells) as the most likely subtype.
+
+The annotation result is well-supported by the provided markers and the context, and it appropriately considers the possibility of mixed cell types. Therefore, the validation is passed. | Formatting Agent: {
+  ""main_cell_type"": ""T cells"",
+  ""sub_cell_types"": [
+    ""CD4+ T Helper Cells (Th cells)"",
+    ""CD8+ Cytotoxic T Cells"",
+    ""Regulatory T Cells (Tregs)""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells (CTMCs), Mucosal Mast Cells (MMCs), Interstitial Mast Cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **TPSB2, TPSAB1, CPA3, MS4A2, ADCYAP1, SIGLEC6, KIT, TPSD1, HDC, RGS13, CDK15, CTSG, HPGDS, PNMT, RAB44, KIAA1549, HABP2, LCN8, TESPA1, SLC22A9, TPSG1, MSX2, SLC8A3, SLC45A3, GLOD5, SLFN14, IL18R1, SLC18A2, SIGLEC8, GATA1, ASIC4, WFDC11, CD22, NAP1L5, GATA2, SLC38A11, TRIM63, LIF, BTK, SLC6A2, SAMSN1, MAB21L1, VWA5A, ALOX5, P2RX1, SYCP2L, GCSAML, MAOB, JAKMIP3, FREM1**
+
+- **TPSB2, TPSAB1, CPA3, MS4A2, TPSD1, HDC, CTSG, HPGDS, TPSG1, SIGLEC8**: These are all markers associated with mast cells. Tryptases (TPSB2, TPSAB1, TPSD1, TPSG1) are serine proteases stored in mast cell granules. CPA3 (carboxypeptidase A3) is another protease found in mast cells. MS4A2 (FcεRIβ) is part of the high-affinity IgE receptor complex. HDC (histidine decarboxylase) is involved in histamine synthesis. CTSG (cathepsin G) and HPGDS (hematopoietic prostaglandin D synthase) are also associated with mast cell function. SIGLEC8 is a sialic acid-binding immunoglobulin-like lectin found on mast cells and eosinophils.
+
+- **KIT**: A receptor tyrosine kinase critical for mast cell development and function.
+
+- **ADCYAP1**: Encodes PACAP, which can influence mast cell degranulation.
+
+- **GATA1, GATA2**: Transcription factors important for hematopoietic cell differentiation, including mast cells.
+
+- **IL18R1**: Interleukin-18 receptor, involved in immune responses.
+
+- **CD22**: Typically a B-cell marker but can be expressed in some mast cells.
+
+- **BTK**: Bruton’s tyrosine kinase, involved in B-cell receptor signaling but also expressed in mast cells.
+
+#### 2. List the Key Cell Type Markers
+- **Mast Cell Markers**: TPSB2, TPSAB1, CPA3, MS4A2, TPSD1, HDC, CTSG, HPGDS, TPSG1, SIGLEC8, KIT, GATA1, GATA2, IL18R1, CD22, BTK.
+
+#### 3. Cross-reference Known Databases
+- **Human Protein Atlas, CellMarker, PanglaoDB**: These databases confirm that the markers listed above are highly specific to mast cells.
+
+#### 4. Determine the Most Probable General Cell Type
+- **Mast Cells**: The presence of multiple tryptases (TPSB2, TPSAB1, TPSD1, TPSG1), CPA3, MS4A2, KIT, and other mast cell-specific markers strongly indicates that the general cell type is mast cells.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+- **1. Connective Tissue Mast Cells (CTMCs)**: These cells are typically found in connective tissues and express high levels of tryptases and chymases.
+- **2. Mucosal Mast Cells (MMCs)**: These cells are found in mucosal tissues and are characterized by the expression of tryptases but not chymases.
+- **3. Interstitial Mast Cells**: These cells are found in various tissues and may have a mixed expression profile.
+
+Based on the expression of markers like TPSB2, TPSAB1, CPA3, MS4A2, and KIT, the most likely subtype is **Mucosal Mast Cells (MMCs)**, given the context of the esophagus mucosa.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The cluster of cells in the human esophagus mucosa dataset is most likely composed of mast cells. This conclusion is based on the high expression of mast cell-specific markers such as TPSB2, TPSAB1, CPA3, MS4A2, KIT, and others. Among the subtypes, mucosal mast cells (MMCs) are the most probable, given the tissue context and the expression profile.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Analysis:
+
+1. **Marker Consistency:**
+   - The markers listed in the annotation result (TPSB2, TPSAB1, CPA3, MS4A2, ADCYAP1, SIGLEC6, KIT, TPSD1, HDC, RGS13, CDK15, CTSG, HPGDS, PNMT, RAB44, KIAA1549, HABP2, LCN8, TESPA1, SLC22A9, TPSG1, MSX2, SLC8A3, SLC45A3, GLOD5, SLFN14, IL18R1, SLC18A2, SIGLEC8, GATA1, ASIC4, WFDC11, CD22, NAP1L5, GATA2, SLC38A11, TRIM63, LIF, BTK, SLC6A2, SAMSN1, MAB21L1, VWA5A, ALOX5, P2RX1, SYCP2L, GCSAML, MAOB, JAKMIP3, FREM1) are all present in the provided marker list.
+   - The identified cell type, mast cells, is consistent with the provided markers. Key mast cell markers such as TPSB2, TPSAB1, CPA3, MS4A2, KIT, TPSD1, HDC, CTSG, HPGDS, TPSG1, and SIGLEC8 are all present and correctly identified.
+
+2. **Mixed Cell Type Consideration:**
+   - The analysis does not strongly support the presence of multiple distinct cell types. The markers listed are predominantly specific to mast cells, and there is no significant indication of a mixed cell population.
+
+#### Conclusion:
+The annotation result is consistent with the provided marker list and correctly identifies the cell type as mast cells. The detailed analysis and cross-referencing with known databases further support this conclusion. There is no strong evidence of mixed cell types in the provided data.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""Mast Cells"",
+  ""sub_cell_types"": [
+    ""Connective Tissue Mast Cells (CTMCs)"",
+    ""Mucosal Mast Cells (MMCs)"",
+    ""Interstitial Mast Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Mucous cell,secretory epithelial cells,"Goblet Cells, Club Cells, Paneth Cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **AZGP1 (Alpha-2-glycoprotein 1, zinc-binding)**: Involved in lipid metabolism and immune response.
+- **MMP7 (Matrix metallopeptidase 7)**: Involved in the breakdown of extracellular matrix, important in tissue remodeling and repair.
+- **PIGR (Polymeric immunoglobulin receptor)**: Transports immunoglobulins across epithelial cells.
+- **ERN2 (Endoplasmic reticulum to nucleus signaling 2)**: Involved in the unfolded protein response.
+- **BPIFB1 (BPI fold containing family B member 1)**: Associated with innate immune response in mucosal surfaces.
+- **MUC5B (Mucin 5B)**: Major component of mucus, important for mucosal protection.
+- **SCGB3A1 (Secretoglobin family 3A member 1)**: Involved in anti-inflammatory processes.
+- **NKX3-1 (NK3 homeobox 1)**: A transcription factor involved in prostate development and function.
+- **WFDC2 (WAP four-disulfide core domain 2)**: Involved in immune response and protease inhibition.
+- **TOX3 (TOX high mobility group box family member 3)**: Involved in chromatin remodeling and transcriptional regulation.
+- **BMP3 (Bone morphogenetic protein 3)**: Involved in bone and cartilage development.
+- **CLDN3 (Claudin 3)**: A component of tight junctions in epithelial cells.
+- **SPDEF (SAM pointed domain containing ETS transcription factor)**: Regulates epithelial cell differentiation.
+- **GPR12 (G protein-coupled receptor 12)**: Involved in cell signaling.
+- **SLC44A4 (Solute carrier family 44 member 4)**: Involved in choline transport.
+- **DMBT1 (Deleted in malignant brain tumors 1)**: Involved in mucosal defense and epithelial differentiation.
+- **AGR2 (Anterior gradient 2)**: Involved in protein folding and mucin production.
+- **PROM1 (Prominin 1)**: Marker for stem and progenitor cells.
+- **MUC16 (Mucin 16)**: A component of the mucosal barrier.
+- **SLC34A2 (Solute carrier family 34 member 2)**: Involved in phosphate transport.
+- **FOLR1 (Folate receptor 1)**: Involved in folate transport.
+- **ZG16B (Zymogen granule protein 16B)**: Involved in mucosal immunity.
+- **ENTPD8 (Ectonucleoside triphosphate diphosphohydrolase 8)**: Involved in nucleotide metabolism.
+- **TFF1 (Trefoil factor 1)**: Involved in mucosal healing and protection.
+
+#### 2. List the Key Cell Type Markers
+- **MUC5B, MUC16**: Mucins, typically expressed in goblet cells and other mucus-secreting cells.
+- **BPIFB1, BPIFB2**: Associated with secretory cells in mucosal surfaces.
+- **SCGB3A1**: Secretory cells, particularly in the respiratory and reproductive tracts.
+- **CLDN3**: Epithelial cells, particularly in tight junctions.
+- **SPDEF**: Goblet cells and other secretory epithelial cells.
+- **AGR2**: Goblet cells and other secretory cells.
+- **PROM1**: Stem and progenitor cells.
+- **WFDC2**: Secretory cells, particularly in the reproductive tract.
+- **TFF1**: Goblet cells and other mucosal epithelial cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as the Human Protein Atlas, CellMarker, and PanglaoDB, we can cross-reference these markers to identify the cell type.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of mucins (MUC5B, MUC16), secretory proteins (BPIFB1, BPIFB2, SCGB3A1), and other markers associated with epithelial and secretory functions (SPDEF, AGR2, TFF1), the most probable general cell type is **secretory epithelial cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Goblet Cells**: High expression of mucins (MUC5B, MUC16), AGR2, and TFF1 strongly suggests goblet cells, which are specialized for mucus secretion.
+2. **Club Cells**: Expression of SCGB3A1 and BPIFB1 suggests club cells, which are secretory cells found in the respiratory tract.
+3. **Paneth Cells**: Although less likely, the presence of some immune-related markers (BPIFB1, BPIFB2) could suggest Paneth cells, which are secretory cells in the intestinal epithelium.
+
+#### Most Likely Subtype
+The most likely subtype based on the markers is **Goblet Cells**.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The analysis of the highly expressed markers in the esophagus mucosa dataset indicates that the cell cluster is most likely composed of secretory epithelial cells. The high expression of mucins (MUC5B, MUC16), along with other secretory and epithelial markers (BPIFB1, SCGB3A1, AGR2, TFF1), strongly suggests that these cells are goblet cells, which are specialized for mucus secretion in the mucosal lining.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Feedback:
+The proposed annotation result has been thoroughly reviewed and meets the criteria for validation. Here is a detailed breakdown of the validation process:
+
+1. **Marker Consistency:**
+   - The markers listed in the annotation result (AZGP1, MMP7, PIGR, ERN2, BPIFB1, MUC5B, SCGB3A1, NKX3-1, WFDC2, TOX3, BMP3, CLDN3, SPDEF, GPR12, SLC44A4, DMBT1, AGR2, PROM1, MUC16, SLC34A2, FOLR1, ZG16B, ENTPD8, TFF1) are all present in the provided marker list.
+   - The identified cell type, **Goblet Cells**, is consistent with the provided markers. Goblet cells are known for their role in mucus secretion, which aligns with the high expression of mucins (MUC5B, MUC16) and other secretory markers (BPIFB1, SCGB3A1, AGR2, TFF1).
+
+2. **Mixed Cell Type Consideration:**
+   - The analysis acknowledges the potential presence of mixed cell types by listing the top 3 most probable sub cell types: Goblet Cells, Club Cells, and Paneth Cells.
+   - However, the evidence strongly supports Goblet Cells as the primary cell type due to the high expression of mucins and other goblet cell-specific markers.
+   - There is no strong indication of multiple distinct cell types being equally represented, so the annotation does not need to be flagged for mixed populations.
+
+The annotation result is well-supported by the marker list and the analysis provided. Therefore, the validation is passed. | Formatting Agent: {
+  ""main_cell_type"": ""secretory epithelial cells"",
+  ""sub_cell_types"": [
+    ""Goblet Cells"",
+    ""Club Cells"",
+    ""Paneth Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Myofibroblast,smooth muscle cells,"esophageal smooth muscle cells, gastrointestinal smooth muscle cells, vascular smooth muscle cells",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **ACTG2 (Actin, gamma-enteric smooth muscle):** Involved in muscle contraction.
+- **DES (Desmin):** Intermediate filament in muscle cells, crucial for structural integrity.
+- **MYH11 (Myosin heavy chain 11):** Smooth muscle myosin, involved in muscle contraction.
+- **CNN1 (Calponin 1):** Actin-binding protein, involved in smooth muscle contraction.
+- **ACTA2 (Actin, alpha 2, smooth muscle):** Smooth muscle actin, involved in muscle contraction.
+- **MYL9 (Myosin light chain 9):** Regulatory light chain of myosin, involved in muscle contraction.
+- **MYOCD (Myocardin):** Transcriptional coactivator involved in muscle differentiation.
+- **TPM2 (Tropomyosin 2):** Actin-binding protein, involved in muscle contraction.
+- **TAGLN (Transgelin):** Actin-binding protein, involved in smooth muscle contraction.
+- **LMOD1 (Leiomodin 1):** Actin-binding protein, involved in muscle contraction.
+- **CASQ2 (Calsequestrin 2):** Calcium-binding protein in muscle cells, involved in calcium storage.
+- **SYNM (Synemin):** Intermediate filament protein, involved in muscle cell structure.
+- **SPEG (Striated muscle preferentially expressed protein kinase):** Involved in muscle function.
+- **FHL1 (Four and a half LIM domains 1):** Involved in muscle development and function.
+- **SMOC2 (SPARC related modular calcium binding 2):** Involved in extracellular matrix organization.
+- **FLNA (Filamin A):** Actin-binding protein, involved in cytoskeletal organization.
+
+#### 2. List the Key Cell Type Markers
+- **ACTG2, DES, MYH11, CNN1, ACTA2, MYL9, MYOCD, TPM2, TAGLN, LMOD1, CASQ2, SYNM, SPEG, FHL1:** These markers are highly indicative of smooth muscle cells.
+- **P2RX1 (Purinergic receptor P2X1):** Expressed in smooth muscle cells.
+- **TACR2 (Tachykinin receptor 2):** Expressed in smooth muscle cells.
+- **HPSE2 (Heparanase 2):** Expressed in smooth muscle cells.
+- **TMEM158, JPH2, ATP1A2, PTCHD1, PLA2G2C, DTNA, AARD, CHRM3, GTSF1, SORBS1, SLC2A4, IP6K3, HSPB7, CELF3, TMEM108, TMEM252, P2RY14, NRXN3, ASB5, FN1, PNCK, WBSCR17, CSRP1, ADAMTS8, SYNPO2, ZNF536:** These markers are less specific but can be expressed in various cell types, including smooth muscle cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, the markers listed above are predominantly associated with smooth muscle cells, particularly in the gastrointestinal tract.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **smooth muscle cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Esophageal Smooth Muscle Cells:** Given the tissue context (esophagus mucosa) and the high expression of smooth muscle markers.
+2. **Gastrointestinal Smooth Muscle Cells:** These cells share many markers with esophageal smooth muscle cells.
+3. **Vascular Smooth Muscle Cells:** While less likely given the tissue context, they also express many of the same markers.
+
+#### 6. Provide a Concise Summary of Your Analysis
+The cluster of cells in the human esophagus mucosa dataset is most likely composed of smooth muscle cells. The high expression of markers such as ACTG2, DES, MYH11, CNN1, and ACTA2 strongly indicates this. The top three probable subtypes are esophageal smooth muscle cells, gastrointestinal smooth muscle cells, and vascular smooth muscle cells, with esophageal smooth muscle cells being the most likely subtype.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Marker List Consistency**: All the markers listed in the annotation result are present in the provided marker list.
+2. **Functional and Cell Type Marker Consistency**:
+   - The key functional markers (e.g., ACTG2, DES, MYH11, CNN1, ACTA2, MYL9, MYOCD, TPM2, TAGLN, LMOD1, CASQ2, SYNM, SPEG, FHL1, SMOC2, FLNA) are consistent with smooth muscle cell function and structure.
+   - The key cell type markers (e.g., ACTG2, DES, MYH11, CNN1, ACTA2, MYL9, MYOCD, TPM2, TAGLN, LMOD1, CASQ2, SYNM, SPEG, FHL1, P2RX1, TACR2, HPSE2) are highly indicative of smooth muscle cells.
+
+#### Mixed Cell Type Consideration:
+- The annotation result does not strongly support the presence of multiple distinct cell types. The markers listed predominantly indicate smooth muscle cells, and there is no significant evidence of a mixed cell population.
+
+#### Summary:
+The annotation result is consistent with the provided marker list and accurately identifies the cell cluster as smooth muscle cells. The detailed analysis and cross-referencing with known databases further support this conclusion. The consideration of potential subtypes (esophageal, gastrointestinal, and vascular smooth muscle cells) is reasonable given the tissue context and marker expression.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""smooth muscle cells"",
+  ""sub_cell_types"": [
+    ""esophageal smooth muscle cells"",
+    ""gastrointestinal smooth muscle cells"",
+    ""vascular smooth muscle cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Neuroendocrine,neuroendocrine cells,"enteroendocrine cells, pancreatic islet cells, neuroendocrine cells of the esophagus",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **CHGA (Chromogranin A)**: A marker for neuroendocrine cells, involved in the formation of secretory granules.
+- **SCGN (Secretagogin)**: A calcium-binding protein, often found in neuroendocrine cells.
+- **SYT13 (Synaptotagmin 13)**: Involved in synaptic vesicle trafficking, indicating a role in neurotransmitter release.
+- **SNAP25 (Synaptosomal-associated protein 25)**: A component of the SNARE complex, crucial for synaptic vesicle fusion.
+- **SYN2 (Synapsin II)**: Associated with synaptic vesicles, involved in neurotransmitter release.
+- **PCSK2 (Proprotein convertase subtilisin/kexin type 2)**: Involved in the processing of prohormones, indicating endocrine or neuroendocrine function.
+- **FOXA2 (Forkhead box A2)**: A transcription factor involved in the regulation of genes essential for the development and function of the liver, pancreas, and lungs, but also expressed in some neuroendocrine cells.
+
+#### 2. List the Key Cell Type Markers
+- **HEPACAM2**: Not widely characterized, but potentially involved in cell adhesion.
+- **KRT20 (Keratin 20)**: Typically expressed in gastrointestinal epithelium and urothelium.
+- **POU4F1 (POU class 4 homeobox 1)**: A transcription factor expressed in sensory neurons.
+- **NRSN1 (Neurensin 1)**: Associated with neuronal cells.
+- **GJD2 (Gap junction delta-2 protein)**: Involved in forming gap junctions in neurons.
+- **CHRNA1 (Cholinergic receptor nicotinic alpha 1 subunit)**: Found in neuromuscular junctions.
+- **HLA-G**: An immune checkpoint molecule, often expressed in immune cells.
+- **TAGLN3 (Transgelin 3)**: Expressed in neurons.
+- **ADRA2B (Adrenoceptor alpha 2B)**: A receptor involved in neurotransmission.
+- **PTPRR (Protein tyrosine phosphatase receptor type R)**: Expressed in the brain.
+- **KCNMB2 (Potassium calcium-activated channel subfamily M regulatory beta subunit 2)**: Involved in neuronal excitability.
+- **DACH2 (Dachshund family transcription factor 2)**: Involved in neuronal development.
+- **SCGB2A1 (Secretoglobin family 2A member 1)**: Expressed in secretory cells.
+- **SLC12A5 (Solute carrier family 12 member 5)**: A potassium-chloride cotransporter, expressed in neurons.
+- **PRKCG (Protein kinase C gamma)**: Predominantly expressed in the brain.
+- **KIF1A (Kinesin family member 1A)**: Involved in axonal transport in neurons.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, we can cross-reference these markers to identify the cell type.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of neuroendocrine markers (CHGA, SCGN, SYT13, SNAP25, SYN2, PCSK2) and neuronal markers (POU4F1, NRSN1, GJD2, CHRNA1, TAGLN3, ADRA2B, PTPRR, KCNMB2, DACH2, SLC12A5, PRKCG, KIF1A), the most probable general cell type is **neuroendocrine cells**.
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Enteroendocrine Cells**: These cells are found in the gastrointestinal tract and express markers like CHGA, SCGN, and PCSK2.
+2. **Pancreatic Islet Cells**: These cells also express neuroendocrine markers and are involved in hormone secretion.
+3. **Neuroendocrine Cells of the Esophagus**: Given the tissue context, these cells are specialized neuroendocrine cells found in the esophagus.
+
+#### Most Likely Subtype
+Based on the tissue context (esophagus mucosa) and the expression of neuroendocrine markers, the most likely subtype is **neuroendocrine cells of the esophagus**.
+
+### Summary of Analysis
+The cluster of cells in the human esophagus mucosa dataset is most likely composed of neuroendocrine cells. The expression of key neuroendocrine markers such as CHGA, SCGN, SYT13, and SNAP25, along with neuronal markers, supports this conclusion. The top three probable subtypes are enteroendocrine cells, pancreatic islet cells, and neuroendocrine cells of the esophagus, with the latter being the most likely given the tissue context.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Markers in the Provided Marker List:**
+   - **CHGA (Chromogranin A)**: Present in the marker list.
+   - **SCGN (Secretagogin)**: Present in the marker list.
+   - **SYT13 (Synaptotagmin 13)**: Present in the marker list.
+   - **SNAP25 (Synaptosomal-associated protein 25)**: Present in the marker list.
+   - **SYN2 (Synapsin II)**: Present in the marker list.
+   - **PCSK2 (Proprotein convertase subtilisin/kexin type 2)**: Present in the marker list.
+   - **FOXA2 (Forkhead box A2)**: Present in the marker list.
+
+2. **Consistency Between Identified Cell Type and Provided Markers:**
+   - The identified cell type is **neuroendocrine cells**, which is consistent with the expression of markers such as CHGA, SCGN, SYT13, SNAP25, SYN2, and PCSK2. These markers are well-known to be associated with neuroendocrine functions.
+   - Additional markers like POU4F1, NRSN1, GJD2, CHRNA1, TAGLN3, ADRA2B, PTPRR, KCNMB2, DACH2, SLC12A5, PRKCG, and KIF1A further support the neuroendocrine and neuronal characteristics of the cell cluster.
+
+#### Mixed Cell Type Consideration:
+- The analysis does not strongly suggest the presence of multiple distinct cell types. The markers listed predominantly support a neuroendocrine identity, with some overlap into neuronal markers, which is not uncommon for neuroendocrine cells.
+- The annotation has considered potential subtypes (enteroendocrine cells, pancreatic islet cells, and neuroendocrine cells of the esophagus) and concluded that neuroendocrine cells of the esophagus are the most likely subtype given the tissue context.
+
+### Summary:
+The annotation result is consistent with the provided marker list and the identified cell type. The analysis has been thorough, considering both general and specific markers, and has appropriately identified the most probable cell type and subtypes. There is no strong evidence of mixed cell types that would necessitate further investigation.
+
+**FINAL ANNOTATION COMPLETED** | Formatting Agent: {
+  ""main_cell_type"": ""neuroendocrine cells"",
+  ""sub_cell_types"": [
+    ""enteroendocrine cells"",
+    ""pancreatic islet cells"",
+    ""neuroendocrine cells of the esophagus""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Pericyte/SMC,smooth muscle cells,"Esophageal Smooth Muscle Cells, Vascular Smooth Muscle Cells, Pericytes",50,"Final Annotation Agent: To identify the cell type based on the provided ranked marker list, I will follow the outlined steps:
+
+### Step 1: List the Key Functional Markers
+1. **FHL5 (Four and a Half LIM Domains 5)**: Involved in transcriptional regulation.
+2. **ANGPT4 (Angiopoietin 4)**: Involved in angiogenesis.
+3. **COX4I2 (Cytochrome c Oxidase Subunit 4I2)**: Part of the mitochondrial respiratory chain.
+4. **EMX2 (Empty Spiracles Homeobox 2)**: Involved in brain development.
+5. **AVPR1A (Arginine Vasopressin Receptor 1A)**: Involved in vasoconstriction and water reabsorption.
+6. **SLC38A11 (Solute Carrier Family 38 Member 11)**: Amino acid transporter.
+7. **GPR20 (G Protein-Coupled Receptor 20)**: Orphan receptor.
+8. **LDB3 (LIM Domain Binding 3)**: Involved in muscle structure.
+9. **CDH6 (Cadherin 6)**: Cell adhesion molecule.
+10. **MYL7 (Myosin Light Chain 7)**: Involved in muscle contraction.
+11. **HTR1F (5-Hydroxytryptamine Receptor 1F)**: Serotonin receptor.
+12. **SLCO1C1 (Solute Carrier Organic Anion Transporter Family Member 1C1)**: Transporter protein.
+13. **NTRK3 (Neurotrophic Receptor Tyrosine Kinase 3)**: Involved in neuronal development.
+14. **HEYL (Hes-Related Family BHLH Transcription Factor with YRPW Motif-Like)**: Involved in Notch signaling.
+15. **TBX2 (T-Box Transcription Factor 2)**: Involved in developmental processes.
+16. **RGS6 (Regulator of G-Protein Signaling 6)**: Modulates G-protein signaling.
+17. **EBF2 (Early B-Cell Factor 2)**: Transcription factor involved in neuronal differentiation.
+18. **PDE3A (Phosphodiesterase 3A)**: Involved in cAMP and cGMP signaling.
+19. **ADRA2B (Adrenoceptor Alpha 2B)**: Adrenergic receptor.
+20. **KCNT1 (Potassium Sodium-Activated Channel Subfamily T Member 1)**: Ion channel.
+21. **RCAN2 (Regulator of Calcineurin 2)**: Involved in calcineurin signaling.
+22. **ITGA7 (Integrin Subunit Alpha 7)**: Cell adhesion molecule.
+23. **OR51E1 (Olfactory Receptor Family 51 Subfamily E Member 1)**: Olfactory receptor.
+24. **CBLN1 (Cerebellin 1 Precursor)**: Involved in synapse formation.
+25. **KCNAB1 (Potassium Voltage-Gated Channel Subfamily A Regulatory Beta Subunit 1)**: Ion channel.
+26. **CNR1 (Cannabinoid Receptor 1)**: Involved in neurotransmission.
+27. **LGI4 (Leucine-Rich Glioma Inactivated 4)**: Involved in myelination.
+28. **FAM162B (Family with Sequence Similarity 162 Member B)**: Unknown function.
+29. **CACNA1H (Calcium Voltage-Gated Channel Subunit Alpha1 H)**: Ion channel.
+30. **REM1 (RRAD and GEM Like GTPase 1)**: GTPase.
+31. **FOXS1 (Forkhead Box S1)**: Transcription factor.
+32. **CSPG4 (Chondroitin Sulfate Proteoglycan 4)**: Involved in cell adhesion.
+33. **OPN4 (Opsin 4)**: Photoreceptor.
+34. **ADRA2A (Adrenoceptor Alpha 2A)**: Adrenergic receptor.
+35. **LMOD1 (Leiomodin 1)**: Actin-binding protein.
+36. **AMELX (Amelogenin X-Linked)**: Involved in enamel formation.
+37. **ACTA2 (Actin Alpha 2, Smooth Muscle)**: Smooth muscle actin.
+38. **WFDC1 (WAP Four-Disulfide Core Domain 1)**: Protease inhibitor.
+39. **SEMA5B (Semaphorin 5B)**: Involved in axon guidance.
+40. **EGFLAM (EGF Like, Fibronectin Type III and Laminin G Domains)**: Involved in cell adhesion.
+41. **PRKG1 (Protein Kinase cGMP-Dependent 1)**: Involved in cGMP signaling.
+42. **MYH11 (Myosin Heavy Chain 11)**: Smooth muscle myosin.
+43. **HRC (Histidine Rich Calcium Binding Protein)**: Involved in calcium homeostasis.
+44. **NPY1R (Neuropeptide Y Receptor Y1)**: Involved in neurotransmission.
+45. **DEFB124 (Defensin Beta 124)**: Antimicrobial peptide.
+46. **GUCY1B3 (Guanylate Cyclase 1 Soluble Subunit Beta 3)**: Involved in cGMP signaling.
+47. **C1QTNF1 (C1q and TNF Related 1)**: Involved in metabolism.
+48. **ADRA1A (Adrenoceptor Alpha 1A)**: Adrenergic receptor.
+49. **KLHL30 (Kelch Like Family Member 30)**: Unknown function.
+50. **GJC1 (Gap Junction Protein Gamma 1)**: Involved in cell communication.
+
+### Step 2: List the Key Cell Type Markers
+1. **ACTA2, MYH11, LMOD1**: Smooth muscle markers.
+2. **CDH6, ITGA7**: Cell adhesion molecules, often found in epithelial and muscle cells.
+3. **CSPG4**: Marker for pericytes and some types of stem cells.
+4. **NPY1R, CNR1, NTRK3**: Neuronal markers.
+5. **ADRA2A, ADRA2B, ADRA1A**: Adrenergic receptors, often found in smooth muscle and neuronal cells.
+6. **HTR1F**: Serotonin receptor, found in neuronal cells.
+7. **GJC1**: Gap junction protein, found in various cell types including smooth muscle and epithelial cells.
+
+### Step 3: Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and the Human Protein Atlas, I will cross-reference the identified markers.
+
+### Step 4: Determine the Most Probable General Cell Type
+Based on the expression of smooth muscle markers (ACTA2, MYH11, LMOD1) and the presence of adrenergic receptors (ADRA2A, ADRA2B, ADRA1A), the most probable general cell type is **smooth muscle cells**.
+
+### Step 5: Identify the Top 3 Most Probable Sub Cell Types
+1. **Esophageal Smooth Muscle Cells**: Given the tissue context (esophagus mucosa) and the presence of smooth muscle markers.
+2. **Vascular Smooth Muscle Cells**: Due to the presence of markers like ACTA2 and MYH11, which are also found in vascular smooth muscle.
+3. **Pericytes**: Due to the presence of CSPG4, which is a marker for pericytes, although less likely given the strong smooth muscle signature.
+
+### Step 6: Provide a Concise Summary of Your Analysis
+Based on the ranked marker list, the most probable general cell type is smooth muscle cells. The top three most probable sub cell types are:
+1. Esophageal Smooth Muscle Cells
+2. Vascular Smooth Muscle Cells
+3. Pericytes
+
+The most likely subtype, given the tissue context and marker expression, is **Esophageal Smooth Muscle Cells**.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+### Feedback:
+The annotation result has been validated successfully based on the following criteria:
+
+1. **Marker Consistency**:
+   - The markers listed in the annotation result are consistent with the provided marker list.
+   - The identified cell type (smooth muscle cells) is supported by the presence of key smooth muscle markers such as **ACTA2, MYH11, and LMOD1**.
+   - Additional markers such as **ADRA2A, ADRA2B, and ADRA1A** (adrenergic receptors) further support the identification of smooth muscle cells.
+
+2. **Mixed Cell Type Consideration**:
+   - While there are markers that could indicate other cell types (e.g., **CSPG4** for pericytes, **NPY1R, CNR1, NTRK3** for neuronal cells), the strong presence of smooth muscle markers and adrenergic receptors suggests that the primary cell type is indeed smooth muscle cells.
+   - The annotation appropriately considers the possibility of mixed cell types and provides a ranked list of probable sub cell types, with **Esophageal Smooth Muscle Cells** being the most likely subtype given the tissue context.
+
+### Summary:
+The annotation result is well-supported by the provided marker list and the identified markers. The consideration of potential mixed cell types is appropriately flagged, and the final annotation of **Esophageal Smooth Muscle Cells** is reasonable and well-justified. | Formatting Agent: {
+  ""main_cell_type"": ""smooth muscle cells"",
+  ""sub_cell_types"": [
+    ""Esophageal Smooth Muscle Cells"",
+    ""Vascular Smooth Muscle Cells"",
+    ""Pericytes""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+Schwann cell,neural crest-derived cells,"Schwann Cells, Neurons, Oligodendrocytes",50,"Final Annotation Agent: ### Step-by-Step Analysis
+
+#### 1. List the Key Functional Markers
+- **CDH19 (Cadherin 19)**: Involved in cell adhesion.
+- **HAND2 (Heart and Neural Crest Derivatives Expressed 2)**: Transcription factor important in neural crest development.
+- **NRXN1 (Neurexin 1)**: Synaptic adhesion molecule.
+- **LGI4 (Leucine-Rich Glioma Inactivated 4)**: Involved in myelination.
+- **PLP1 (Proteolipid Protein 1)**: Major component of myelin in the central nervous system.
+- **SCN7A (Sodium Channel, Voltage-Gated, Type VII Alpha Subunit)**: Involved in the generation and propagation of action potentials.
+- **FOXD3 (Forkhead Box D3)**: Transcription factor involved in neural crest development.
+- **NCAM1 (Neural Cell Adhesion Molecule 1)**: Involved in cell-cell adhesion in the nervous system.
+- **SOX10 (SRY-Box Transcription Factor 10)**: Critical for neural crest and Schwann cell development.
+- **GFRA3 (GDNF Family Receptor Alpha 3)**: Receptor for GDNF, involved in neuronal survival.
+- **PMP2 (Peripheral Myelin Protein 2)**: Involved in myelin sheath formation.
+- **SLC5A7 (Solute Carrier Family 5 Member 7)**: Choline transporter, important for acetylcholine synthesis.
+- **NRXN3 (Neurexin 3)**: Synaptic adhesion molecule.
+- **L1CAM (L1 Cell Adhesion Molecule)**: Involved in neural development.
+- **AQP6 (Aquaporin 6)**: Water channel protein.
+
+#### 2. List the Key Cell Type Markers
+- **SOX10**: Marker for neural crest cells and Schwann cells.
+- **PLP1**: Marker for oligodendrocytes and Schwann cells.
+- **NCAM1**: Marker for neurons and glial cells.
+- **GFRA3**: Marker for neurons.
+- **PMP2**: Marker for Schwann cells.
+- **SLC5A7**: Marker for cholinergic neurons.
+- **NRXN1, NRXN3**: Markers for neurons.
+- **L1CAM**: Marker for neurons.
+- **HAND2, FOXD3**: Markers for neural crest cells.
+
+#### 3. Cross-reference Known Databases
+Using databases such as CellMarker, PanglaoDB, and literature on scRNA-seq datasets, we can cross-reference these markers:
+
+- **SOX10, PLP1, PMP2**: Strongly associated with Schwann cells.
+- **NCAM1, NRXN1, NRXN3, L1CAM**: Commonly found in neurons.
+- **GFRA3, SLC5A7**: Associated with neuronal cells, particularly cholinergic neurons.
+
+#### 4. Determine the Most Probable General Cell Type
+Based on the expression of these markers, the most probable general cell type is **neural crest-derived cells**. This includes both neurons and glial cells (Schwann cells).
+
+#### 5. Identify the Top 3 Most Probable Sub Cell Types
+1. **Schwann Cells**: High expression of SOX10, PLP1, PMP2, and GFRA3.
+2. **Neurons**: Expression of NCAM1, NRXN1, NRXN3, L1CAM, and SLC5A7.
+3. **Oligodendrocytes**: Expression of PLP1, although less likely given the esophagus mucosa context.
+
+#### Most Likely Subtype
+Given the high expression of SOX10, PLP1, and PMP2, the most likely subtype is **Schwann Cells**.
+
+### Concise Summary of Analysis
+The ranked marker list provided suggests that the cell cluster is most likely composed of neural crest-derived cells. The high expression of SOX10, PLP1, and PMP2, along with other markers such as GFRA3 and NCAM1, strongly indicates that these cells are Schwann cells. Schwann cells are glial cells that play a crucial role in the peripheral nervous system by myelinating axons and supporting neuronal function.
+
+**FINAL ANNOTATION COMPLETED** | Coupling Validator: ### Validation Result: VALIDATION PASSED
+
+#### Marker Consistency:
+1. **Marker List Consistency**:
+   - The markers listed in the annotation result (CDH19, HAND2, NRXN1, LGI4, PLP1, SCN7A, FOXD3, NCAM1, SOX10, GFRA3, PMP2, SLC5A7, NRXN3, L1CAM, AQP6) are all present in the provided marker list.
+
+2. **Consistency Between Identified Cell Type and Provided Markers**:
+   - The identified cell type is **Schwann Cells**, which are neural crest-derived cells.
+   - Markers such as **SOX10, PLP1, and PMP2** are strongly associated with Schwann cells.
+   - Other markers like **NCAM1, NRXN1, NRXN3, L1CAM** are commonly found in neurons, which are also neural crest-derived.
+   - **GFRA3** and **SLC5A7** are associated with neuronal cells, particularly cholinergic neurons, which supports the neural crest origin.
+   - The presence of **HAND2** and **FOXD3** further supports the neural crest origin.
+
+#### Mixed Cell Type Consideration:
+- The analysis acknowledges the presence of markers for both Schwann cells and neurons, which are both neural crest-derived.
+- The annotation correctly identifies Schwann cells as the most likely subtype based on the high expression of specific markers (SOX10, PLP1, PMP2).
+- The potential presence of neurons is noted but does not strongly suggest a mixed population that would require further investigation.
+
+### Conclusion:
+The annotation result is consistent with the provided marker list and accurately identifies the cell type as Schwann cells, with appropriate consideration of potential neuronal markers. The analysis is thorough and well-supported by the marker data.
+
+**Validation result: VALIDATION PASSED** | Formatting Agent: {
+  ""main_cell_type"": ""neural crest-derived cells"",
+  ""sub_cell_types"": [
+    ""Schwann Cells"",
+    ""Neurons"",
+    ""Oligodendrocytes""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
