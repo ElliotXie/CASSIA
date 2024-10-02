@@ -2,7 +2,12 @@ library(Seurat)
 library(data.table)
 library(dplyr)
 
-tissues = c("bonemarrow", "eye", "pancreas", "skin", "vasculature")
+#"bonemarrow", "eye", "pancreas", "skin", "vasculature"
+#"largeintestine", "smallintestine", "prostate", "tongue","heart"
+# too many cells: "blood", "spleen","bladder" 
+
+tissues = c("bonemarrow", "eye", "pancreas", "skin", "vasculature"，"largeintestine", "smallintestine", "prostate", "tongue","heart")
+
 
 for (i in tissues){
     mat <- fread(paste0("./TS_datasets/",i,"/exprMatrix.tsv.gz"))
@@ -13,7 +18,7 @@ for (i in tissues){
     mat = data.frame(mat[,-1], row.names=genes) 
 
     k = CreateSeuratObject(counts = mat, project = i, meta.data=meta)
-
+    rm(mat)
     k = NormalizeData(object = k)
     k = FindVariableFeatures(object = k)
     k = ScaleData(object = k)
@@ -24,11 +29,11 @@ for (i in tissues){
 
     Idents(k) <- k@meta.data$orig.ident <-  meta$cell_ontology_class
     saveRDS(k,file=paste0("./TS_datasets/",i,"/seurat_object"))
-    print(paste0(i,"is done saving Seurat Object."))
+    print(paste0(i," is done saving Seurat Object."))
 
     g <- FindAllMarkers(k)
     saveRDS(g,file=paste0("./TS_datasets/",i,"/seurat_object_findallmarkers"))
-    print(paste0(i,"is done saving Seurat FindAllMarkers."))
+    print(paste0(i," is done saving Seurat FindAllMarkers."))
 
 
     sorted_markers <- g %>%

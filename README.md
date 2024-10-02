@@ -8,13 +8,15 @@ Next Step:
 
 ~~2. Incorporating more LLM (CLAUDE)~~
 
-3. Incorporating RAG
+~~3. Incorporating RAG~~
 
 ~~4. Build Web UI~~
 
 5. Build Python package, R package
 
 6. Incorporating subcluster and cluster funcation
+
+~~7. WEB UI~~
 
 
 
