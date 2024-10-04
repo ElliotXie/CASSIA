@@ -1,0 +1,5 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types
+Collecting duct cells,epithelial cells,"Collecting Duct Principal Cells, Intercalated Cells, Distal Convoluted Tubule Cells"
+Endothelial cells,endothelial cells,"glomerular endothelial cells, peritubular capillary endothelial cells, vasa recta endothelial cells"
+Podocytes,podocytes,"mature podocytes, immature podocytes, injured podocytes"
+Proximal tubule cells,Proximal Tubule Cells,"S1 Segment Proximal Tubule Cells, S2 Segment Proximal Tubule Cells, S3 Segment Proximal Tubule Cells"
