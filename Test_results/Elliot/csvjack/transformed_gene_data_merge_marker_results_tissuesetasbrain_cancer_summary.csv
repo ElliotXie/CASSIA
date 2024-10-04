@@ -1,0 +1,14 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+1,microglia,"microglia, adipose tissue macrophages, Kupffer cells",,1
+6,Sensory Neurons,"Olfactory Sensory Neurons, Endothelial Cells, Epithelial or Developing Neuronal Cells","Olfactory Sensory Neurons, Endothelial Cells",2
+3,N/A,"N, /, A","N, /, A",3
+5,Epithelial Cells,"Goblet Cells, Respiratory Epithelial Cells, Glandular Epithelial Cells",,1
+2,Plasma Cell,"Mature Plasma Cells, Memory B Cells transitioning to Plasma Cells, Plasmablasts",,1
+4,Proliferative Cells,"Cancer Cells, Stem/Progenitor Cells, Transit-Amplifying Cells",,1
+7,Myeloid,"Monocytes/Dendritic Cells, Epithelial Cells, Cardiac Cells","Myeloid and Epithelial, Myeloid and Cardiac",2
+11,Smooth Muscle Cells,"Vascular Smooth Muscle Cells, Pericytes, Fibroblasts",,1
+9,High metabolic activity cells,"Skeletal Muscle Cells (Myocytes), Neurons, Activated T-Cells","Muscle cells, Neurons, Activated immune cells",2
+10,T cells,"Regulatory T cells (Tregs), T helper 2 (Th2) cells, Natural Killer T (NKT) cells",,1
+12,smooth muscle cells,"vascular smooth muscle cells (VSMCs), visceral smooth muscle cells, pericytes",,1
+8,epithelial cells,"melanocytes, breast epithelial cells, ciliated epithelial cells","melanocytes, breast epithelial cells",2
+13,Epithelial,"Mixed Epithelial Cells, Liver Epithelial Cells (Hepatocytes), Kidney Epithelial Cells (Intercalated Cells)","Gastrointestinal Epithelial Cells, Lung Epithelial Cells",2

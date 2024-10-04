@@ -1,0 +1,22 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Endothelial cell (lymphatic),Lymphatic Endothelial Cells,"Lymphatic Endothelial Cells, Liver Sinusoidal Endothelial-like Cells, Immature Endothelial Cells",1
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, fenestrated endothelial cells",1
+Endothelial cell (vascular) II,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",1
+Endothelial cell (vascular) III,Endothelial Cells,"Vascular Endothelial Cells, Lymphatic Endothelial Cells, Capillary Endothelial Cells",1
+Epithelial cell (Hillock),Epithelial cells,"Keratinocytes, Mucosal Epithelial Cells, Prostate Basal Epithelial Cells",1
+Epithelial cell (basal I),Basal Epithelial Cells,"Prostate Basal Epithelial Cells, Prostate Intermediate Cells, Prostate Stem/Progenitor Cells",1
+Epithelial cell (basal II),Basal Epithelial Cells,"Basal Progenitor Cells, Basal Stem Cells, Intermediate Basal Cells",1
+Epithelial cell (club),Epithelial Cells,"Luminal Epithelial Cells, Secretory Epithelial Cells, Proliferative Epithelial Cells",1
+Epithelial cell (luminal),Prostate Epithelial Cells,"Luminal Epithelial Cells, Prostate Basal Cells, Neuroendocrine Cells",1
+Fibroblast,Fibroblasts,"Prostate Stromal Fibroblasts, Myofibroblasts, Mesenchymal Stem Cells",1
+Immune (B cell),B cells,"Follicular B Cells, Memory B Cells, Plasma Cells",1
+Immune (NK cell),Natural Killer (NK) cells,"CD56^dim NK cells, CD56^bright NK cells, Effector CD8+ T cells",1
+Immune (T cell),T cells,"Cytotoxic CD8+ T Cells, Effector Memory CD8+ T Cells, Activated CD8+ T Cells",1
+Immune (macrophage I),Myeloid Cell (Antigen-Presenting Cell),"Langerhans Cells, Macrophages, Microglia-like Cells",1
+Immune (macrophage II),Macrophages,"Tissue-Resident Macrophages, Inflammatory Macrophages, Dendritic Cells",1
+Immune (mast cell),Mast Cells,"Neuroendocrine Cells, Basophils or Other Immune Cells",2
+Immune (neutrophil),Macrophages,"Pro-inflammatory Macrophages (M1-like), Anti-inflammatory Macrophages (M2-like), Monocyte-derived Macrophages",1
+Myocyte (smooth muscle),Smooth Muscle Cells,"Prostate Smooth Muscle Cells, Vascular Smooth Muscle Cells, Myofibroblasts",1
+Neuroendocrine,Neuroendocrine Cells,"Prostate Neuroendocrine Cells, Enteroendocrine-like Cells, Small Cell Neuroendocrine Carcinoma Cells",1
+Pericyte/SMC,Mesenchymal or Stromal Cells,"Pericytes, Vascular Smooth Muscle Cells, Fibroblasts",1
+Schwann cell,Schwann cells,"Myelinating Schwann Cells, Non-Myelinating Schwann Cells, Neural Crest Stem Cells",1

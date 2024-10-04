@@ -1,0 +1,27 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Endothelial cell (lymphatic),lymphatic endothelial cells,"lymphatic endothelial cells, blood endothelial cells, perivascular cells",1
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, microvascular endothelial cells",1
+Endothelial cell (vascular) II,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",1
+Endothelial cell (vascular) III,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial cells",1
+Epithelial cell (basal I),Basal Epithelial Cells of the Esophagus,"Basal Cells of the Esophageal Epithelium, Proliferative Basal Cells, Differentiating Basal Cells",1
+Epithelial cell (basal II),epithelial cells,"keratinocytes, basal epithelial cells, suprabasal epithelial cells",1
+Epithelial cell (squamous),Epithelial Cells,"Esophageal Keratinocytes, Basal Esophageal Epithelial Cells, Differentiated Esophageal Epithelial Cells",1
+Epithelial cell (suprabasal),Epithelial Cells,"Esophageal Squamous Epithelial Cells, Basal Epithelial Cells, Differentiated Epithelial Cells",1
+Fibroblast I,Stromal cells,"Fibroblasts, Tuft Cells, Myofibroblasts",1
+Fibroblast II,Mesenchymal cells,"Fibroblasts, Myofibroblasts, Stromal Cells",1
+Fibroblast III,Fibroblasts,"Esophageal Fibroblasts, Myofibroblasts, Stromal Cells",1
+Immune (B cell),B cells,"Follicular B Cells, Memory B Cells, Plasma Cells",1
+Immune (DC),Dendritic Cells,"Langerhans Cells, Conventional Dendritic Cells (cDCs), Plasmacytoid Dendritic Cells (pDCs)",1
+Immune (NK cell),Natural Killer (NK) cells,"Conventional NK Cells, CD56^dim NK Cells, CD56^bright NK Cells",1
+Immune (T cell),T cells,"Cytotoxic T Cells (CD8+ T Cells), Helper T Cells (CD4+ T Cells), Regulatory T Cells (Tregs)",1
+Immune (macrophage I),Macrophages,"Tissue-Resident Macrophages, Anti-inflammatory Macrophages (M2-like), Pro-inflammatory Macrophages (M1-like)",1
+Immune (macrophage II),myeloid cells,"macrophages, monocytes, dendritic cells",1
+Immune (mast cell),mast cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Basophil-like Mast Cells",1
+Immune (mmDC),Dendritic Cells,"Conventional Dendritic Cells (cDCs), Plasmacytoid Dendritic Cells (pDCs), Activated Dendritic Cells",1
+Mucous cell I,Epithelial Cells,"Goblet Cells, Club Cells, Paneth Cells",1
+Mucous cell II,Epithelial Cells,"Goblet Cells, Columnar Epithelial Cells, Basal Epithelial Cells",1
+Myofibroblast,Smooth Muscle Cells,"Visceral Smooth Muscle Cells, Vascular Smooth Muscle Cells, Myofibroblasts",1
+Neuroendocrine,Neuroendocrine Cells,"Enteroendocrine Cells, Pancreatic Islet Cells, Gastrointestinal Epithelial Cells",1
+Pericyte/SMC I,Smooth Muscle Cells,"Vascular Smooth Muscle Cells, Visceral Smooth Muscle Cells, Pericytes",1
+Pericyte/SMC II,vascular smooth muscle cells,"pericytes, interstitial cells of Cajal",1
+Schwann cell,glial cells,"Schwann Cells, Satellite Glial Cells, Oligodendrocyte Precursor Cells (OPCs)",1

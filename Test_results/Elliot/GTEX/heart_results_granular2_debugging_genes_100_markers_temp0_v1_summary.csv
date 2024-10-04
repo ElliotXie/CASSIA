@@ -1,0 +1,22 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Adipocyte,Adipocytes,"White Adipocytes, Brown Adipocytes, Beige Adipocytes",1
+Endothelial cell (cardiac microvascular),cardiac fibroblasts,"cardiac progenitor cells, endothelial cells",1
+Endothelial cell (lymphatic),Endothelial Cells,"Lymphatic Endothelial Cells, Vascular Endothelial Cells, Epithelial-like Endothelial Cells",1
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial cells",1
+Endothelial cell (vascular) II,Endothelial Cells,"Vascular Endothelial Cells, Arterial Endothelial Cells, Venous Endothelial Cells",1
+Endothelial cell (vascular) III,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, atrial endothelial cells",1
+Fibroblast I,fibroblasts,"cardiac fibroblasts, perivascular fibroblasts, adventitial fibroblasts",1
+Fibroblast II,Fibroblasts,"Cardiac Fibroblasts, Activated Fibroblasts/Myofibroblasts, Perivascular Fibroblasts",1
+Fibroblast III,Fibroblasts,"Cardiac Fibroblasts, Activated Fibroblasts (Myofibroblasts), Perivascular Fibroblasts",1
+Immune (B cell),B cells,"Plasma Cells, Memory B Cells, Naive B Cells",1
+Immune (DC/macrophage),myeloid cells,"monocytes, macrophages, dendritic cells",1
+Immune (LAMs),Macrophages,"Cardiac Macrophages, Inflammatory Macrophages, Dendritic Cell-like Macrophages",1
+Immune (NK cell),Natural Killer (NK) cells,"Conventional NK Cells (cNK), CD56^dim NK Cells",1
+Immune (T cell),T cells,"Cytotoxic CD8+ T Cells, Effector Memory T Cells, Natural Killer T (NKT) Cells",1
+Immune (macrophage I),macrophages,"Tissue-Resident Cardiac Macrophages, Anti-inflammatory Macrophages (M2-like), Kupffer Cell-like Macrophages",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Basophil-like Mast Cells",1
+Myocyte (cardiac),Cardiomyocytes,"Ventricular Cardiomyocytes, Atrial Cardiomyocytes, Purkinje Fibers",1
+"Myocyte (cardiac, cytoplasmic)",Cardiomyocytes,"Ventricular Cardiomyocytes, Atrial Cardiomyocytes, Conduction System Cells",1
+Pericyte/SMC I,Vascular Smooth Muscle Cells,"Pericytes, Mesenchymal Stem/Progenitor Cells",1
+Pericyte/SMC II,Vascular Smooth Muscle Cells,"Pericytes, Cardiac Fibroblasts",1
+Schwann cell,glial cells,"Schwann Cells, Oligodendrocytes, Peripheral Glial Cells",1

@@ -1,0 +1,21 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Endothelial cell (lymphatic),Endothelial Cells,"Lymphatic Endothelial Cells, Vascular Endothelial Cells, Endothelial Cells in Lymphoid Tissues",1
+Endothelial cell (vascular) I,endothelial cells,"microvascular endothelial cells, venous endothelial cells, arterial endothelial cells",1
+Endothelial cell (vascular) II,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial endothelial cells",1
+Endothelial cell (vascular) III,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, tip cells",1
+Epithelial cell (alveolar type I),Epithelial Cells,"Alveolar Type I Cells, Bronchial Epithelial Cells, Club Cells",1
+Epithelial cell (alveolar type II),Alveolar Type II (AT2) Cells,"Classical Alveolar Type II Cells, Progenitor-like AT2 Cells, Inflammatory-responsive AT2 Cells",1
+Epithelial cell (basal),Basal Epithelial Cells,"Airway Basal Cells, Basal Stem Cells, Progenitor Basal Cells",1
+Epithelial cell (ciliated),Ciliated Epithelial Cells,"Ciliated Airway Epithelial Cells, Multiciliated Cells, Basal Cells with Ciliogenesis Potential",1
+Epithelial cell (club),club cells,"club cells, goblet cells, ciliated cells",1
+Fibroblast I,fibroblasts,"lung fibroblasts, myofibroblasts, adventitial fibroblasts",1
+Fibroblast II,Fibroblasts,"Lung Fibroblasts, Myofibroblasts, Adventitial Fibroblasts",1
+Immune (B cell),B cells,"Plasma Cells, Memory B Cells, Naive B Cells",1
+Immune (NK cell),Cytotoxic Lymphocytes,"Natural Killer (NK) Cells, CD8+ Cytotoxic T Cells, NKT Cells",1
+Immune (T cell),T cells,"Cytotoxic T Cells (CD8+ T Cells), Helper T Cells (CD4+ T Cells), Regulatory T Cells (Tregs)",1
+Immune (alveolar macrophage activated),Macrophages,"Alveolar Macrophages, Interstitial Macrophages, Monocyte-derived Macrophages",1
+Immune (alveolar macrophage),Macrophages,"M2 Macrophages, Alveolar Macrophages, Interstitial Macrophages",1
+Immune (macrophage activated),Dendritic Cells,"Myeloid Dendritic Cells, Plasmacytoid Dendritic Cells, Monocyte-derived Dendritic Cells",1
+Immune (macrophage),Dendritic Cells,"Langerhans Cells, Conventional Dendritic Cells, Monocyte-derived Dendritic Cells",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Immature Mast Cells",1
+Pericyte/SMC,smooth muscle cells,"vascular smooth muscle cells, pericytes, visceral smooth muscle cells",1

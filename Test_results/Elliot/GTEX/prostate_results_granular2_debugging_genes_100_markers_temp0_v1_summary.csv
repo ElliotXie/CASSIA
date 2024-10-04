@@ -1,0 +1,22 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Endothelial cell (lymphatic),Lymphatic Endothelial Cells,"Lymphatic Endothelial Cells, Vascular Endothelial Cells, Immature Lymphatic Endothelial Cells",1
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",1
+Endothelial cell (vascular) II,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial endothelial cells",1
+Endothelial cell (vascular) III,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial endothelial cells",1
+Epithelial cell (Hillock),Epithelial Cells,"Differentiated Keratinocytes, Basal Keratinocytes, Prostate Epithelial Cells",1
+Epithelial cell (basal I),Basal Epithelial Cells,"Prostate Basal Epithelial Cells, Prostate Stem/Progenitor Cells, Basal-like Cells with Proliferative Potential",1
+Epithelial cell (basal II),Basal Epithelial Cells of the Prostate,"Prostate Basal Epithelial Cells, Basal Cells of Other Stratified Epithelia, Progenitor Basal Cells",1
+Epithelial cell (club),Epithelial Cells,"Prostate Luminal Epithelial Cells, Prostate Basal Epithelial Cells, Prostate Club Cells",1
+Epithelial cell (luminal),Prostate Epithelial Cells,"Luminal Prostate Epithelial Cells, Basal Prostate Epithelial Cells, Neuroendocrine Prostate Cells",1
+Fibroblast,Fibroblasts,"Prostatic Fibroblasts, Myofibroblasts, Adventitial Fibroblasts",1
+Immune (B cell),B cells,"Follicular B Cells, Regulatory B Cells (Bregs), Plasma Cells",1
+Immune (NK cell),Natural Killer (NK) cells,"Conventional NK Cells (CD56^dim NK cells), CD56^bright NK Cells, Adaptive NK Cells",1
+Immune (T cell),T cells,"Cytotoxic CD8+ T Cells, Effector Memory CD8+ T Cells, Exhausted CD8+ T Cells",1
+Immune (macrophage I),Macrophages,"M2 Macrophages, Dendritic Cells, Microglia-like Macrophages",1
+Immune (macrophage II),macrophages,"Tissue-Resident Macrophages, Inflammatory Macrophages, Tumor-Associated Macrophages (TAMs)",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Prostate-Associated Mast Cells",1
+Immune (neutrophil),Macrophages,"M1 Macrophages, M2 Macrophages, Monocyte-derived Macrophages",1
+Myocyte (smooth muscle),Smooth Muscle Cells,"Prostatic Smooth Muscle Cells, Vascular Smooth Muscle Cells, Visceral Smooth Muscle Cells",1
+Neuroendocrine,neuroendocrine cells,"Prostate Neuroendocrine Cells, Small Cell Neuroendocrine Carcinoma Cells, Enteroendocrine-like Cells",1
+Pericyte/SMC,Pericytes or Vascular Smooth Muscle Cells,"Pericytes, Vascular Smooth Muscle Cells, Fibroblasts",1
+Schwann cell,Glial Cells,"Schwann Cells, Astrocytes, Oligodendrocytes",1

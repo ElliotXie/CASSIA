@@ -1,0 +1,22 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Endothelial cell (lymphatic),Endothelial Cells,"Lymphatic Endothelial Cells, General Endothelial Cells, Adipose-related Endothelial Cells",1
+Endothelial cell (vascular) I,Endothelial Cells,"Microvascular Endothelial Cells, Venous Endothelial Cells, Arterial Endothelial Cells",1
+Endothelial cell (vascular) II,Endothelial Cells,"Venous Endothelial Cells, Arterial Endothelial Cells, Capillary Endothelial Cells",1
+Endothelial cell (vascular) III,Endothelial Cells,"Capillary Endothelial Cells, Arterial Endothelial Cells, Venous Endothelial Cells",1
+Epithelial cell (Hillock),Epithelial Cells,"Prostate Luminal Epithelial Cells, Keratinocytes, Progenitor or Stem-like Epithelial Cells",1
+Epithelial cell (basal I),Transitional/Intermediate Epithelial Cells,"Progenitor-like Basal Cells, Basal Epithelial Cells with Differentiation Potential",2
+Epithelial cell (basal II),Basal Epithelial Cells,"Prostate Basal Epithelial Cells, Prostate Luminal Epithelial Cells, Prostate Intermediate Cells",1
+Epithelial cell (club),Epithelial Cells,"Luminal Epithelial Cells, Basal Epithelial Cells, Luminal Progenitor Cells",1
+Epithelial cell (luminal),Prostate Epithelial Cells,Luminal Prostate Epithelial Cells,1
+Fibroblast,Fibroblasts,"Prostate Stromal Fibroblasts, Myofibroblasts, Adventitial Fibroblasts",1
+Immune (B cell),B cells,"Follicular B cells, Memory B cells, Plasma cells",1
+Immune (NK cell),Natural Killer (NK) cells,"CD56^dim NK cells, CD56^bright NK cells, Cytotoxic CD8+ T cells",1
+Immune (T cell),T Cells,"Cytotoxic CD8+ T Cells, Effector Memory CD8+ T Cells, Natural Killer T (NKT) Cells",1
+Immune (macrophage I),Myeloid lineage cells,"Macrophages, Dendritic Cells, Monocytes",1
+Immune (macrophage II),Macrophages,"Tissue-Resident Macrophages, Pro-inflammatory Macrophages (M1-like), Anti-inflammatory Macrophages (M2-like)",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Immature Mast Cells",1
+Immune (neutrophil),Monocytes/Macrophages,"Classical Monocytes, Non-classical Monocytes, Macrophages",1
+Myocyte (smooth muscle),Smooth Muscle Cells,"Prostatic Smooth Muscle Cells, Vascular Smooth Muscle Cells, Myofibroblasts",1
+Neuroendocrine,Neuroendocrine Cells,"Prostate Neuroendocrine Cells, Small-Cell Neuroendocrine Carcinoma Cells, Enteroendocrine-like Cells",1
+Pericyte/SMC,stromal cells,"Pericytes, Vascular Smooth Muscle Cells, Fibroblasts",1
+Schwann cell,Schwann Cells,"Peripheral Glial Cells, Oligodendrocyte Precursor Cells",1

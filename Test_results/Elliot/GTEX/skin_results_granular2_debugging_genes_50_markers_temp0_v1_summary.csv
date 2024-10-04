@@ -1,0 +1,23 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Adipocyte,Adipocytes,"White Adipocytes, Brown Adipocytes, Beige Adipocytes",1
+Endothelial cell (lymphatic),Lymphatic Endothelial Cells,"Neuronal/Neuroendocrine-like Cells, Immune Cells",2
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, microvascular endothelial cells",1
+Endothelial cell (vascular) II,Epidermal Keratinocytes,"B Cells, Oligodendrocytes",2
+Epithelial cell (basal keratinocyte),Keratinocytes,"Basal Keratinocytes, Hair Follicle Keratinocytes, Progenitor Keratinocytes",1
+Epithelial cell (cornified keratinocyte),keratinocytes,"epidermal keratinocytes, cornified keratinocytes, basal keratinocytes",1
+Epithelial cell (mature keratinocyte),Keratinocytes,"Stratum Corneum Keratinocytes, Stratum Granulosum Keratinocytes",2
+Epithelial cell (suprabasal keratinocyte),Keratinocytes,"Differentiated Keratinocytes (Stratum Spinosum/Granulosum), Basal Keratinocytes, Immune-Associated Keratinocytes",1
+Fibroblast,Fibroblasts,"Dermal Fibroblasts, Myofibroblasts, Papillary Fibroblasts",1
+Immune (DC/macrophage),myeloid cells,"macrophages, dendritic cells (myeloid DCs), monocytes",1
+Immune (Langerhans),Dendritic Cells,"Langerhans Cells, Dermal Dendritic Cells, Inflammatory Dendritic Cells",1
+Immune (T cell),T-cell,"CD4+ T Helper Cells, CD8+ Cytotoxic T Cells, Regulatory T Cells (Tregs)",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Basophil-like Mast Cells",1
+Melanocyte,Melanocytes,"Epidermal Melanocytes, Follicular Melanocytes, Choroidal Melanocytes",1
+Pericyte/SMC I,Smooth Muscle Cells,"Vascular Smooth Muscle Cells, Visceral Smooth Muscle Cells, Myofibroblasts",1
+Pericyte/SMC II,vascular-associated cells,"Pericytes, Vascular Smooth Muscle Cells, Endothelial Cells",1
+Sebaceous gland cell (CYP4F3+),Keratinocytes,"Hair Follicle Keratinocytes, Basal Keratinocytes, Sebaceous Gland Cells",1
+Sebaceous gland cell (KRT79 hi),Adipocytes,"White Adipocytes, Brown Adipocytes, Sebaceous Gland Cells",1
+Sebaceous gland cell (SEC14L6+),Epithelial Cells,"Sebaceous Gland Cells, Keratinocytes, Mast Cells",1
+Sweat gland cell,Epithelial Cells,"Mammary Gland Epithelial Cells, Sweat Gland Epithelial Cells, Lacrimal Gland Epithelial Cells",1
+Unknown (ATP1B3-GJB6),keratinocytes,"basal keratinocytes, suprabasal keratinocytes, differentiated keratinocytes",1
+Unknown (SFN-GJA1),Mixed Cell Population,"Epidermal Keratinocytes, Cytotoxic Lymphocytes, B Cells",2

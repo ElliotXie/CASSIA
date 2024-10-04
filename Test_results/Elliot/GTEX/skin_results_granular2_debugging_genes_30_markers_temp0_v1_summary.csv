@@ -1,0 +1,23 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Adipocyte,Adipocytes,"White Adipocytes, Brown Adipocytes, Beige Adipocytes",1
+Endothelial cell (lymphatic),Lymphatic Endothelial Cells,"Lymphatic Endothelial Cells (LECs), Lymphatic Valve Endothelial Cells, Lymphatic Capillary Endothelial Cells",1
+Endothelial cell (vascular) I,Endothelial Cells,"Microvascular Endothelial Cells, Venous Endothelial Cells, Arterial Endothelial Cells",1
+Endothelial cell (vascular) II,Mesenchymal or Stromal Cells,"Fibroblasts, Smooth Muscle Cells, Endothelial Cells",1
+Epithelial cell (basal keratinocyte),Keratinocytes,"Basal Keratinocytes, Hair Follicle Keratinocytes, Suprabasal Keratinocytes",1
+Epithelial cell (cornified keratinocyte),Keratinocytes,"Stratum Corneum Keratinocytes, Stratum Granulosum Keratinocytes, Stratum Spinosum Keratinocytes",1
+Epithelial cell (mature keratinocyte),Keratinocytes,"Differentiated Keratinocytes, Basal Keratinocytes, Hair Follicle Keratinocytes",1
+Epithelial cell (suprabasal keratinocyte),epithelial cells of the skin,"keratinocytes, melanocytes, Langerhans cells",1
+Fibroblast,Fibroblasts,"Dermal Fibroblasts, Myofibroblasts, Adipose-derived Fibroblasts",1
+Immune (DC/macrophage),myeloid cells,"macrophages, myeloid dendritic cells, monocytes",1
+Immune (Langerhans),Dendritic Cells,"Langerhans Cells, Other Dendritic Cells, Inflammatory Dendritic Cells",1
+Immune (T cell),T-cells,"CD4+ T Helper Cells, CD8+ Cytotoxic T Cells, Regulatory T Cells (Tregs)",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Activated Mast Cells",1
+Melanocyte,Melanocytes,"Epidermal Melanocytes, Follicular Melanocytes, Choroidal Melanocytes",1
+Pericyte/SMC I,smooth muscle cells,"vascular smooth muscle cells, visceral smooth muscle cells, myofibroblasts",1
+Pericyte/SMC II,vascular-associated cells,"Pericytes, Vascular Smooth Muscle Cells, Endothelial Cells",1
+Sebaceous gland cell (CYP4F3+),Specialized subset of keratinocytes with immune functions,"Inflammatory Keratinocytes, Hair Follicle Keratinocytes",2
+Sebaceous gland cell (KRT79 hi),Keratinocytes,"Sebaceous Gland Cells, Epidermal Keratinocytes, Mucosal Keratinocytes",1
+Sebaceous gland cell (SEC14L6+),Epithelial Cells,"Sebaceous Gland Cells, Hair Follicle Keratinocytes, Epidermal Keratinocytes",1
+Sweat gland cell,Epithelial Cells,"Sweat Gland Epithelial Cells, Mammary Gland Epithelial Cells, Salivary Gland Epithelial Cells",1
+Unknown (ATP1B3-GJB6),Keratinocytes,"Basal Keratinocytes, Suprabasal Keratinocytes, Immature Keratinocytes",1
+Unknown (SFN-GJA1),Cytotoxic Lymphocytes,"Natural Killer (NK) Cells, Cytotoxic T Cells, Myeloid Cells, B Cells",2

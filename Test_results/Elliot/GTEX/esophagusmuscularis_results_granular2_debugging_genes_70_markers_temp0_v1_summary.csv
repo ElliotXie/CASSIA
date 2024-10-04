@@ -1,0 +1,24 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Adipocyte,Adipocytes,"White Adipocytes, Brown Adipocytes, Beige Adipocytes",1
+Endothelial cell (lymphatic),Mixed Cell Population,"Lymphatic Endothelial Cells, Epithelial Cells, Developmental Mesodermal Cells",2
+Endothelial cell (vascular) I,Endothelial Cells,"Vascular Endothelial Cells, Lymphatic Endothelial Cells, Endocardial Endothelial Cells",1
+Endothelial cell (vascular) II,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial cells",1
+Endothelial cell (vascular) III,endothelial cells,"arterial endothelial cells, lymphatic endothelial cells, venous endothelial cells",1
+Fibroblast I,Fibroblasts,"Esophageal Fibroblasts, Smooth Muscle Fibroblasts, Mesenchymal Stem/Progenitor Cells",1
+Fibroblast II,Smooth Muscle Cells,"Smooth Muscle Cells, Fibroblast-like Cells, Myofibroblasts",1
+ICCs,Interstitial Cells of Cajal (ICCs),"Enteric Neurons, Smooth Muscle Cells",1
+Immune (B cell),B cells,"Naive B Cells, Memory B Cells, Marginal Zone B Cells",1
+Immune (DC),myeloid cells,"dendritic cells, monocytes/macrophages, plasmacytoid dendritic cells",1
+Immune (DC/macrophage),Immune Cell,"Dendritic Cells, Natural Killer (NK) Cells, Cytotoxic T Cells",1
+Immune (NK cell),Natural Killer (NK) cells,"Conventional NK Cells (cNK cells), Adaptive NK Cells, Tissue-resident NK Cells",1
+Immune (T cell),T cells,"Cytotoxic T Cells (CD8+ T Cells), Helper T Cells (CD4+ T Cells), Natural Killer T (NKT) Cells",1
+Immune (macrophage I),Macrophages,"M2 Macrophages, Tissue-Resident Macrophages, Complement-Associated Macrophages",1
+Immune (macrophage II),myeloid cells,"macrophages, monocytes, dendritic cells",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Immature Mast Cells",1
+Myocyte (smooth muscle TAGLN lo),smooth muscle cells,"visceral smooth muscle cells, vascular smooth muscle cells, myofibroblasts",1
+Myocyte (smooth muscle),smooth muscle cells,"esophageal smooth muscle cells, visceral smooth muscle cells, vascular smooth muscle cells",1
+Neuronal,neuronal cells,"Enteric Neurons, Autonomic Neurons, Sensory Neurons",1
+Pericyte/SMC I,Smooth Muscle Cells,"Esophageal Smooth Muscle Cells, Vascular Smooth Muscle Cells, Neuroendocrine Cells",2
+Pericyte/SMC II,smooth muscle cells,"interstitial cells of Cajal, vascular smooth muscle cells",1
+Schwann cell I,Schwann cells,"Myelinating Schwann Cells, Non-Myelinating Schwann Cells, Immature Schwann Cells",1
+Schwann cell II,neuronal,"enteric neurons, neuroendocrine cells, glial cells",1

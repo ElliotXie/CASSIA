@@ -1,0 +1,23 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Iterations
+Adipocyte,Adipocytes,"White Adipocytes, Brown Adipocytes, Beige Adipocytes",1
+Endothelial cell (lymphatic),Endothelial Cells,"Lymphatic Endothelial Cells, Vascular Endothelial Cells, Mesenchymal Stem Cells/Fibroblasts",1
+Endothelial cell (vascular) I,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",1
+Endothelial cell (vascular) II,Endothelial Cells,"Microvascular Endothelial Cells, Venous Endothelial Cells, Arterial Endothelial Cells",1
+Endothelial cell (vascular) III,Endothelial Cells,"Vascular Endothelial Cells, Pericytes, Smooth Muscle Cells",2
+Fibroblast,Fibroblasts,"Skeletal Muscle Fibroblasts, Perimysial Fibroblasts, Endomysial Fibroblasts",1
+Immune (DC),Dendritic Cells,"Conventional Dendritic Cells (cDCs), Plasmacytoid Dendritic Cells (pDCs), Macrophages",1
+Immune (DC/macrophage),Myeloid Cells,"Dendritic Cells, Macrophages, Monocytes",1
+Immune (NK cell),Natural Killer (NK) cells,"CD56^dim NK cells, CD56^bright NK cells, Adaptive NK cells",1
+Immune (T cell),T cells,"Effector T Cells (CD8+ T Cells), Helper T Cells (CD4+ T Cells), Regulatory T Cells (Tregs)",1
+Immune (macrophage),Macrophages,"Anti-inflammatory Macrophages (M2-like), Tissue-resident Macrophages, Complement-associated Macrophages",1
+Immune (mast cell),Mast Cells,"Connective Tissue Mast Cells, Mucosal Mast Cells, Atypical Mast Cells",1
+Immune (neutrophil),myeloid cells,"Classical Monocytes, Non-classical Monocytes, Macrophages",1
+Myocyte (NMJ-rich),Skeletal Muscle Cells,"Neuromuscular Junction-associated Skeletal Muscle Cells, Myoblasts or Satellite Cells, Mature Skeletal Muscle Fibers",1
+Myocyte (fast-twitch),skeletal muscle cell,"Fast-twitch Type IIx Muscle Fibers, Fast-twitch Type IIa Muscle Fibers, Fast-twitch Type IIb Muscle Fibers",1
+"Myocyte (fast-twitch, cytoplasmic)",Skeletal Muscle Fiber,"Type IIa Muscle Fibers, Type IIx Muscle Fibers, Type I Muscle Fibers",1
+Myocyte (sk. muscle),skeletal muscle fibers,"oxidative muscle fibers (Type I fibers), fast-twitch muscle fibers (Type II fibers), muscle progenitor cells",1
+"Myocyte (slow-twitch, cytoplasmic)",Skeletal Muscle Cells,"Slow-twitch (Type I) Muscle Fibers, Fast-twitch (Type IIa) Muscle Fibers, Fast-twitch (Type IIx) Muscle Fibers",1
+Pericyte/SMC I,smooth muscle cells,"vascular smooth muscle cells, visceral smooth muscle cells, pericytes",1
+Pericyte/SMC II,vascular smooth muscle cells,"vascular smooth muscle cells, pericytes, endothelial cells",1
+Satellite cell,muscle satellite cells,"quiescent satellite cells, activated satellite cells, muscle progenitor cells",1
+Schwann cell,Schwann cells,"Myelinating Schwann Cells, Non-Myelinating Schwann Cells, Schwann Cell Precursors",1
