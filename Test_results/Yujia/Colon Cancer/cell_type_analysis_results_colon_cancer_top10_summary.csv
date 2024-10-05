@@ -1,0 +1,39 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Epithelial cells_CMS2,intestinal epithelial cells,"enterocytes, stem/progenitor cells, cancer-like or proliferative cells","enterocytes, stem/progenitor cells, proliferative or dysregulated cells",2
+Epithelial cells_CMS3,intestinal epithelial cells,"Goblet Cells, Enteroendocrine Cells, Paneth Cells",,1
+Epithelial cells_CMS1,Specialized epithelial cells in the colon,"Enteroendocrine Cells, Goblet Cells, Absorptive Enterocytes",,1
+Epithelial cells_CMS4,epithelial cells,"colon enterocytes, goblet cells, enteroendocrine cells",,1
+Epithelial cells_Goblet cells,Epithelial cells of the colon,"Goblet Cells, Enteroendocrine Cells, Ion-Transporting Epithelial Cells","Enteroendocrine Cells, Ion-Transporting Epithelial Cells",1
+Epithelial cells_Stem-like/TA,Epithelial cells from the colon,"Colon Enterocytes, Colon Goblet Cells, Colon Stem Cells",,1
+Epithelial cells_Intermediate,Epithelial cells from the colon,"Colon Enterocytes, Goblet Cells, Colonocytes",,1
+Epithelial cells_Mature Enterocytes type 2,intestinal epithelial cells,Colonocytes,,1
+Epithelial cells_Mature Enterocytes type 1,BEST4+ enterocytes,"Colonocytes, Goblet Cells",,1
+Stromal cells_Myofibroblasts,Chondrocytes,"Hypertrophic Chondrocytes, Proliferative Chondrocytes, Prehypertrophic Chondrocytes",,1
+Stromal cells_Stromal 1,Mixed Population,"Neuronal Cells, Macrophages/Dendritic Cells, Fibroblasts","Neuronal Cells, Immune Cells, Stromal Component",2
+Stromal cells_Stromal 2,Enteroendocrine Cells,"Enteroendocrine Cells, Enteric Neurons, Epithelial Cells",Enteric Neurons,1
+Stromal cells_Stalk-like ECs,Endothelial Cells,"Inflammatory Endothelial Cells, Mucosal Endothelial Cells, General Vascular Endothelial Cells",,1
+Stromal cells_Tip-like ECs,Endothelial Cells,"Fenestrated Endothelial Cells, Vascular Endothelial Cells, Endothelial Progenitor Cells",,1
+Stromal cells_Lymphatic ECs,Endothelial Cells,"Lymphatic Endothelial Cells, Sinusoidal Endothelial Cells, Vascular Endothelial Cells",Sinusoidal Endothelial Cells,1
+Stromal cells_Pericytes,Smooth Muscle Cells,"Interstitial Cells of Cajal, Myofibroblasts",,1
+Stromal cells_Proliferative ECs,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells","neuronal cells, muscle cells",1
+Stromal cells_Stromal 3,Stromal Cells,"Colonic Fibroblasts, Myofibroblasts, Stromal Cells with Epithelial Features",Stromal Cells with Epithelial Features,1
+Stromal cells_Smooth muscle cells,Smooth Muscle Cells,"Colonic Smooth Muscle Cells, Vascular Smooth Muscle Cells, Interstitial Cells of Cajal",,1
+Stromal cells_Enteric glial cells,Schwann Cells,"Myelinating Schwann Cells, Non-Myelinating Schwann Cells, Neural Crest-Derived Schwann Cell Precursors",,1
+Myeloids_Pro-inflammatory,myeloid cells,"classical monocytes, intermediate monocytes, non-classical monocytes",,1
+Myeloids_SPP1+,macrophages,"Tissue-Resident Macrophages, M2 Macrophages, Dendritic Cell-like Macrophages",Dendritic Cell-like Macrophages,1
+Myeloids_Unknown,Plasmacytoid Dendritic Cells (pDCs),"Basal Epithelial Cells, Neuronal Cells","Neural Cells, Epithelial Cells",2
+Myeloids_cDC,Dendritic Cells,"Langerhans Cells, Classical Dendritic Cells, Plasmacytoid Dendritic Cells",,1
+Myeloids_Proliferating,macrophages,"M2 Macrophages, Tissue-Resident Macrophages, Monocyte-Derived Macrophages",,1
+T cells_Regulatory T cells,Regulatory T cells (Tregs),"Activated T cells, Memory T cells","Activated T cells, Memory T cells",1
+T cells_Unknown,T cells,"Tissue-Resident Memory T Cells (Trm cells), Cytotoxic T Lymphocytes (CTLs), Natural Killer (NK) Cells",,1
+T cells_CD8+ T cells,CD8+ Cytotoxic T Cells,"Effector CD8+ T Cells, Memory CD8+ T Cells, Exhausted CD8+ T Cells",,1
+T cells_T follicular helper cells,T Follicular Helper (Tfh) Cells,"Regulatory T Cells (Tregs), Natural Killer T (NKT) Cells","Regulatory T Cells (Tregs), Natural Killer T (NKT) Cells",1
+T cells_CD4+ T cells,T cells,"Naive T Cells, Central Memory T Cells, Mucosal-associated Invariant T (MAIT) Cells",,1
+T cells_T helper 17 cells,T cells,Th17 Cells,"MAIT Cells, NK T Cells",1
+T cells_gamma delta T cells,immune cells,"Gamma-delta T Cells, NK Cells, Cytotoxic T Cells","Gamma-delta T Cells, NK Cells",1
+T cells_NK cells,Natural Killer (NK) cells,"Conventional NK Cells (CD56^dim), CD56^bright NK Cells, Tissue-resident NK Cells",Epithelial cells,1
+B cells_IgG+ Plasma,B cells,"Plasma Cells, Memory B Cells, Activated B Cells",,1
+B cells_CD19+CD20+ B,B cells,"Naive B Cells, Memory B Cells, Marginal Zone B Cells",,1
+B cells_IgA+ Plasma,Plasma Cells,"IgA-secreting Plasma Cells, IgM-secreting Plasma Cells, Memory B Cells",,1
+B cells_Unknown,Plasma Cells,"IgA-secreting Plasma Cells, IgM-secreting Plasma Cells, IgG-secreting Plasma Cells",,1
+Mast cells_Mast cells,Mast Cells,Connective Tissue Mast Cells,Basophil-like Mast Cells,1
