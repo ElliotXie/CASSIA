@@ -1,7 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types
-B cells,B cells,"Naive B cells, Memory B cells, Plasma cells"
-Cardiomyocytes,cardiac muscle cells (cardiomyocytes),"ventricular cardiomyocytes, atrial cardiomyocytes, conduction system cells"
-Endothelial cells,Endothelial Cells,"Vascular Endothelial Cells, Lymphatic Endothelial Cells, Endocardial Cells"
-Fibroblasts,fibroblasts,"cardiac fibroblasts, myofibroblasts, perivascular fibroblasts"
-Macrophages,macrophages,"M2 Macrophages, Tissue-Resident Macrophages, Inflammatory Macrophages"
-T cells,T-cells,"CD4+ T-cells, CD8+ T-cells, Regulatory T-cells"
