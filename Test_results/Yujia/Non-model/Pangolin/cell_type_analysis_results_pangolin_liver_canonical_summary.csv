@@ -1,0 +1,3 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Endothelial cells,endothelial cells,"Liver Sinusoidal Endothelial Cells (LSECs), Vascular Endothelial Cells, Hepatic Stellate Cells",endothelial and hepatic cells,1
+Hepatocytes,hepatocytes,"Periportal Hepatocytes, Perivenous Hepatocytes, Intermediate Hepatocytes",,1

@@ -1,0 +1,3 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Fibroblasts,Cardiac Fibroblasts,"Activated Fibroblasts/Myofibroblasts, Fibroblast-like Adipogenic Cells",,1
+Macrophages,macrophages,"Cardiac Resident Macrophages, Anti-inflammatory Macrophages (M2-like), Classical Monocytes/Macrophages",,1
