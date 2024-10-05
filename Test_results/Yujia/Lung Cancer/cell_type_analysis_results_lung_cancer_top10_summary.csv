@@ -1,0 +1,11 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Myeloid cells,Macrophages,"Alveolar Macrophages, Interstitial Macrophages, Monocyte-derived Macrophages",,1
+T lymphocytes,Cytotoxic CD8+ T cells,"Effector Memory CD8+ T cells, Activated CD8+ T cells",,1
+NK cells,Natural Killer (NK) cells,CD56^dim NK Cells,,1
+B lymphocytes,B cells,"Plasma Cells, Memory B Cells, Naive B Cells",,1
+Fibroblasts,Fibroblasts,"Lung Fibroblasts, Myofibroblasts, Adventitial Fibroblasts",,1
+Endothelial cells,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, pulmonary microvascular endothelial cells",,1
+MAST cells,mast cell,"Connective Tissue Mast Cells, Mucosal Mast Cells, Basophil-like Mast Cells",,1
+Epithelial cells,Lung Epithelial Cells,"Club Cells (Clara Cells), Type I Alveolar Epithelial Cells, Type II Alveolar Epithelial Cells",Alveolar Epithelial Cells,1
+Epithelial cells_malignant cells,epithelial cells,"basal epithelial cells, club cells, alveolar type II cells",,1
+Oligodendrocytes,oligodendrocytes,"Mature Oligodendrocytes, Oligodendrocyte Precursor Cells (OPCs), Myelinating Oligodendrocytes",,1
