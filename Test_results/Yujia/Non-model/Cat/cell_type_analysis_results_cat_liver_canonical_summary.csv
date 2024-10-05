@@ -1,0 +1,8 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+B cells,B-cells,"Naive B-cells, Memory B-cells, Plasma B-cells",,1
+Endothelial cells,Endothelial Cells,"Liver Sinusoidal Endothelial Cells (LSECs), Vascular Endothelial Cells, Kupffer Cells (Liver Macrophages)",Kupffer Cells (Liver Macrophages),1
+Hepatic stellate cells,Hepatic Stellate Cells (HSCs),"Myofibroblasts, Liver Endothelial Cells",,1
+Hepatocytes,Hepatocytes,"Periportal Hepatocytes, Pericentral Hepatocytes, Midzonal Hepatocytes",,1
+Kupffer cells,macrophages,"Kupffer Cells, Anti-inflammatory Macrophages, Stress-responsive Macrophages",,1
+LSECs,liver epithelial cells,"Cholangiocytes, Hepatocytes, Liver Endothelial Cells",Liver Endothelial Cells,1
+T cells,T cell,"CD4+ T Helper Cells, CD8+ Cytotoxic T Cells, Regulatory T Cells (Tregs)",,1
