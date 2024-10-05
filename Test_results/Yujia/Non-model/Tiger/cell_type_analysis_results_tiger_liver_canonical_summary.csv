@@ -1,0 +1,8 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Cholangiocytes,epithelial cells,"Hepatocytes, Cholangiocytes, Liver Progenitor Cells",,1
+Endothelial cells,Endothelial Cells,"Vascular Endothelial Cells, Endothelial Progenitor Cells, Liver Sinusoidal Endothelial Cells",,1
+Hepatic stellate cells,Hepatocytes,"Hepatic Stellate Cells, Liver Sinusoidal Endothelial Cells",,1
+Hepatocytes,Hepatocytes,"Periportal Hepatocytes, Perivenous Hepatocytes, Intermediate Hepatocytes",,1
+Kupffer cells,macrophages,"Kupffer Cells, Anti-inflammatory Macrophages (M2-like), Monocyte-derived Macrophages",,1
+LSECs,Fibroblasts,"Hepatic Stellate Cells, Portal Fibroblasts, General Liver Fibroblasts",,1
+T cells,Mixed cell population,"Kupffer Cells, Hepatocytes, Hepatic Stellate Cells or Other Non-Parenchymal Cells","Liver Parenchymal Cells, Liver-Resident Immune Cells, Non-Parenchymal Cells",2
