@@ -1,0 +1,11 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
+Myeloid cells,monocytes/macrophages,"Classical Monocytes, Non-classical Monocytes, Macrophages",,1
+Malignant B cells,B cells,"Plasma Cells, Germinal Center B Cells, Memory B Cells","Germinal Center B Cells, Memory B Cells",1
+CD8 T cells,T cells,"Cytotoxic CD8+ T Cells, γδ T Cells, NK T Cells","γδ T Cells, NK T Cells",1
+Non-malignant B cells,B cells,"Memory B Cells, Naive B Cells, Plasmablasts/Plasma Cells","Naive B Cells, Plasmablasts/Plasma Cells",1
+Treg,Regulatory T cells (Tregs),"Natural Regulatory T cells (nTregs), Induced Regulatory T cells (iTregs), Activated Regulatory T cells",,1
+gd T,γδ T cells,"Vγ9Vδ2 T cells, Innate-like γδ T cells, Cytotoxic γδ T cells",,1
+activeted CD4 T,CD4+ T-helper cells,"Regulatory T-cells (Tregs), Follicular helper T-cells (Tfh)",B-cells,1
+Oligo,Oligodendrocytes,"Mature Oligodendrocytes, Neurons, Astrocytes or Other Glial Cells","Neurons, Astrocytes or Other Glial Cells",2
+NK,Natural Killer (NK) cells,"CD56^dim NK Cells, CD56^bright NK Cells, Tissue-resident NK Cells",,1
+cytotoxic CD4 T,CD4+ T cells,"Effector CD4+ T cells, Regulatory T cells (Tregs), Follicular helper T cells (Tfh)",,1
