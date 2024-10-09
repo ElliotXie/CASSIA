@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(SingleR)
+library(celldex)
+```
+
+```{r}
+# example sce
+sce <- scRNAseq::KotliarovPBMCData(mode = c('rna'))
+seu <- CreateSeuratObject(counts = counts(sce), meta.data = as.data.frame(colData(sce)))
+rm(sce)
+seu <- NormalizeData(object = seu)
+seu <- FindVariableFeatures(seu, selection.method = "vst", nfeatures = 2000)
+seu <- ScaleData(seu, features = rownames(seu))
+seu <- RunPCA(seu, features = VariableFeatures(object = seu))
+seu <- FindNeighbors(seu, dims = 1:10)
+seu <- FindClusters(seu, resolution = 0.5)
+seu <- RunUMAP(seu, dims = 1:10) 
+```
+
+```{r}
+# 2. Get reference dataset, has some others, 
+ref <- celldex::HumanPrimaryCellAtlasData()
+unique(ref$label.main)
+unique(ref$label.fine)
+```
+
+
+```{r}
+run_singler <- function(seu, sub_celltype = NULL, ref = ref, de_method = "wilcox", raw_or_norm = "data"){
+  norm_counts <- GetAssayData(seu, layer = raw_or_norm) 
+  
+  if (!is.null(sub_celltype)) {
+    ref <- ref[,grepl(sub_celltype, ref$label.main)]
+  }
+  
+  ct_ann <- SingleR(test = norm_counts, 
+                    ref = ref, 
+                    labels = ref$label.main,
+                    de.method = de_method)
+  return(ct_ann)
+}
+
+# Example usage:
+sub_celltype <- 'DC|B_cell|Neutrophils|T_cells|Monocyte|Erythroblast|Macrophage|NK_cell|Platelets|Myelocyte'
+
+ct_ann_subtyped <- run_singler(seu, sub_celltype = sub_celltype, ref = ref, de_method = "wilcox", raw_or_norm = "data")
+```
+
+
+## Visualization and inspection
+
+```{r}
+# Inspect quality of the predictions
+plotScoreHeatmap(ct_ann_subtyped)
+plotDeltaDistribution(ct_ann_subtyped, ncol = 4, dots.on.top = FALSE)
+```
+
+```{r}
+# Add to seurat object
+rownames(ct_ann_subtyped)[1:5] # make sure you have cell IDs
+seu <- AddMetaData(seu, ct_ann_subtyped$pruned.labels, col.name = 'SingleR_HCA')
+
+# Visualise them on the UMAP
+seu <- SetIdent(seu, value = "SingleR_HCA")
+DimPlot(seu, label = T , repel = T, label.size = 3) + NoLegend()
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
