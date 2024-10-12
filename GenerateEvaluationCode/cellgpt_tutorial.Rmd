@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(cellgpt)
+```
+
+
+```{r}
+model <- "gpt-4o"
+temperature <- 0
+marker_list <- c("CD3D", "CD4", "CD8A", "FOXP3", "IL2RA")
+tissue <- "blood"
+species <- "human"
+additional_info <- "Sample from healthy donor"
+
+# Run the analysis
+result <- run_cell_type_analysis(
+  model = model,
+  temperature = temperature,
+  marker_list = marker_list,
+  tissue = tissue,
+  species = species,
+  additional_info = additional_info
+)
+
+```
+
+
+
+```{r}
+library(cellgpt)
+
+df_path <- "C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/Test_results/Elliot/GTEX/lung_modified_markers_broad_cell_type_30genes.csv"
+output_json_name <- "batch_results3.json"
+
+batch_results <- run_cell_type_analysis_batchrun(
+  df_path = df_path,
+  output_json_name = output_json_name,
+  model = "gpt-4o",
+  temperature = 0,
+  tissue = "lung",
+  species = "Human",
+  additional_info = NULL,
+  celltype_column = "Broad cell type",
+  max_workers = 8
+)
+
+
+create_csv_from_json("batch_results3.json")
+```
+
