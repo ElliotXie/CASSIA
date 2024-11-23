@@ -1,4 +1,0 @@
-Elliot:GTEx_8_tissues_snRNAseq_atlas_071421
-
-
-For the GTEx5 dataset, manually annotated cell types, differential gene lists and gene expression matrices were downloaded directly from the publication5. In the original study, gene expression raw counts were library-size-normalized and log-transformed after adding a pseudocount of 1 with SCANPY17. ComBat18 was used to account for the protocol- and sex-specific effects with SCANPY17. Welch’s t-test was then performed to identify differential genes that compare one cell type against the rest. For each cell type, genes were ranked increasingly by P values, and genes with the same P values were further ranked decreasingly by t-statistics. Top 10, 20 and 30 differential genes were used in this study. Lists of marker genes through literature search and the corresponding cell types were downloaded from the same study5, and only cell types with at least five marker genes were used.
