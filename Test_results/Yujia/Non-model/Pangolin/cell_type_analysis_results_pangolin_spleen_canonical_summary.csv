@@ -1,5 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
-B cells,Mixed cell population,"Fibroblasts, Macrophages, Endothelial Cells",Immune cells and structural cells,2
-Dendrocytes,Immune Cell,"Dendritic Cells, Macrophages, T Cells",,1
-Endothelial cells,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",,1
-T cells,immune cells,"T-cells, B-cells, Natural Killer (NK) cells","B-cells, NK cells",1

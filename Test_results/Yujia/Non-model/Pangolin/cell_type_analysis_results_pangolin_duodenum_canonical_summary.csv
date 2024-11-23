@@ -1,7 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
-Endothelial cells,endothelial cells,"venular endothelial cells, arterial endothelial cells, capillary endothelial cells",,1
-Enteroendocrine,neuroendocrine cells,"enteroendocrine cells, pancreatic endocrine cells, gastric neuroendocrine cells",,1
-Paneth cells,macrophages,"Anti-inflammatory Macrophages (M2 Macrophages), Classical Macrophages (M1 Macrophages), Tissue-resident Macrophages",,1
-Progenitor cells,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, inflammatory endothelial cells",,1
-Stem cells,Lgr5+ Intestinal Stem Cells,"Transit-Amplifying Progenitor Cells, Early Differentiating Enterocytes",,1
-Tuft cells,tuft cells,"tuft cells, enteroendocrine cells, immune-related epithelial cells",,1

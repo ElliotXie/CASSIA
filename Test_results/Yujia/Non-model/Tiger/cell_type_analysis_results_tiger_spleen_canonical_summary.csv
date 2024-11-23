@@ -1,7 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
-B cells,B cells,"Naive B Cells, Memory B Cells, Plasma Cells",,1
-Endothelial cells,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endothelial progenitor cells",,1
-Fibroblasts,fibroblasts,"dermal fibroblasts, adventitial fibroblasts, perivascular fibroblasts",,1
-Macrophages,macrophages,"Anti-inflammatory Macrophages (M2-like Macrophages), Tissue-resident Macrophages, Monocyte-derived Macrophages",,1
-Neurons,Neural crest-derived cell,"Schwann Cells, Enteric Glial Cells, Neural Crest Stem Cells",,1
-T cells,T-cells,"Regulatory T-cells (Tregs), Activated T-cells, Memory T-cells",,1

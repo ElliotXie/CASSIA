@@ -1,7 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Iterations
-B cells,B-cells,"Naive B-cells, Memory B-cells, Plasma B-cells",,1
-Cardiomyocytes,Cardiomyocytes,"Ventricular Cardiomyocytes, Atrial Cardiomyocytes, Cardiac Conduction Cells",,1
-Endothelial cells,endothelial cells,"vascular endothelial cells, lymphatic endothelial cells, endocardial cells",,1
-Fibroblasts,fibroblasts,"cardiac fibroblasts, activated fibroblasts, fibroblast progenitor cells",,1
-Macrophages,macrophages,"Tissue-Resident Cardiac Macrophages, Alternatively Activated (M2) Macrophages, Monocyte-Derived Macrophages",,1
-T cells,T-cells,"CD4+ T Helper Cells, CD8+ Cytotoxic T Cells, Regulatory T Cells (Tregs)",,1
