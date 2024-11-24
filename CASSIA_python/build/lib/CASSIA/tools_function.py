@@ -342,6 +342,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
+
 def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai"):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
@@ -484,17 +485,17 @@ def extract_celltypes_from_llm(llm_response):
             data = json.loads(json_str)
             final_results = data.get("final_results", [])
             mixed_celltypes = data.get("possible_mixed_celltypes", [])
-            
+            consensus_score = data.get("consensus_score", 0)
             general_celltype = final_results[0] if len(final_results) > 0 else "Not found"
             sub_celltype = final_results[1] if len(final_results) > 1 else "Not found"
             
-            return general_celltype, sub_celltype, mixed_celltypes
+            return general_celltype, sub_celltype, mixed_celltypes, consensus_score
         except json.JSONDecodeError:
             print("Error decoding JSON from LLM response")
     else:
         print("No JSON data found in the LLM response")
     
-    return "Not found", "Not found", []
+    return "Not found", "Not found", [], "Not found"
 
 
 from collections import Counter
@@ -770,8 +771,6 @@ from collections import defaultdict
 
 def organize_batch_results(marker, file_pattern, celltype_column=None):
     # Read marker data
-
-
     if isinstance(marker, pd.DataFrame):
         df = marker.copy()
     elif isinstance(marker, str):
@@ -779,7 +778,12 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
     else:
         raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
 
-    marker = get_top_markers(df,n_genes=50)
+    # Only process with get_top_markers if more than 2 columns
+    if len(df.columns) > 2:
+        marker = get_top_markers(df, n_genes=50)
+    else:
+        marker = df  # Use the DataFrame directly if it has 2 or fewer columns
+        
     # If celltype_column is not provided, use the first column
     if celltype_column is None:
         celltype_column = marker.columns[0]
@@ -852,9 +856,12 @@ def process_cell_type_variance_analysis_batch(results, model="gpt-4o", temperatu
         temperature=temperature
     )
 
-    
+
     # Extract consensus celltypes
     general_celltype, sub_celltype, mixed_types, llm_generated_consensus_score_llm = extract_celltypes_from_llm(result_consensus_from_llm)
+
+    print(llm_generated_consensus_score_llm)
+
     general_celltype_oncology, sub_celltype_oncology, mixed_types_oncology, llm_generated_consensus_score_oncology = extract_celltypes_from_llm(result_consensus_from_oncology)
     
     print(f"General celltype: {general_celltype}")

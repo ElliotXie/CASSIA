@@ -1,0 +1,156 @@
+Cell Type,General Cell Type LLM,Sub Cell Type LLM,Mixed Cell Types LLM,General Cell Type Oncology,Sub Cell Type Oncology,Mixed Cell Types Oncology,Similarity Score LLM,Similarity Score Oncology,LLM Generated Consensus Score LLM,LLM Generated Consensus Score Oncology,Count Consensus General Type LLM,Count Consensus Sub Type LLM,Count Consensus General Type Oncology,Count Consensus Sub Type Oncology,Unified Results LLM,Unified Results Oncology,Consensus Result LLM,Consensus Result Oncology,Original Non-Unified Results,Original General Type 1,Original Sub Type 1,Original General Type 2,Original Sub Type 2
+Endothelial cell (lymphatic),Lymphatic Endothelial Cell,Lymphatic Endothelial Cell,,endothelial cell of lymphatic vessel,endothelial cell of lymphatic vessel,,1.0,1.0,100,100,Lymphatic Endothelial Cell,Lymphatic Endothelial Cell,endothelial cell of lymphatic vessel,endothelial cell of lymphatic vessel,"result1:(Lymphatic Endothelial Cell, Lymphatic Endothelial Cell),result2:(Lymphatic Endothelial Cell, Lymphatic Endothelial Cell)","result1:('endothelial cell of lymphatic vessel', 'endothelial cell of lymphatic vessel'),result2:('endothelial cell of lymphatic vessel', 'endothelial cell of lymphatic vessel')","To determine the consensus cell type, let's analyze the given results:
+
+1. **Result 1**: (Lymphatic Endothelial Cell, Lymphatic Endothelial Cell)
+   - General cell type: Lymphatic Endothelial Cell
+   - Subtype: Lymphatic Endothelial Cell
+
+2. **Result 2**: (Lymphatic Endothelial Cell, Lymphatic Endothelial Cell)
+   - General cell type: Lymphatic Endothelial Cell
+   - Subtype: Lymphatic Endothelial Cell
+
+**Step-by-step reasoning:**
+
+- Both results indicate the same general cell type: Lymphatic Endothelial Cell.
+- Both results also indicate the same subtype: Lymphatic Endothelial Cell.
+- There is no variation in the results, which suggests a strong consensus.
+
+**Final determination:**
+
+- The consensus general cell type is ""Lymphatic Endothelial Cell"".
+- The consensus subtype is ""Lymphatic Endothelial Cell"".
+- There is no evidence of mixed cell types since both results are identical.
+
+**Consensus score:**
+
+- Since both results are identical, the consensus score is 100, indicating perfect agreement.
+
+**JSON output:**
+
+```json
+{
+  ""final_results"": [
+    ""Lymphatic Endothelial Cell"",
+    ""Lymphatic Endothelial Cell""
+  ],
+  ""possible_mixed_celltypes"": [],
+  ""consensus_score"": 100
+}
+```
+
+This output reflects the strong agreement between the results, with no indication of mixed cell types.","To determine the consensus cell type, let's analyze the provided results:
+
+1. **Result 1**: ('endothelial cell of lymphatic vessel', 'endothelial cell of lymphatic vessel')
+   - General cell type: endothelial cell of lymphatic vessel
+   - Subtype: endothelial cell of lymphatic vessel
+
+2. **Result 2**: ('endothelial cell of lymphatic vessel', 'endothelial cell of lymphatic vessel')
+   - General cell type: endothelial cell of lymphatic vessel
+   - Subtype: endothelial cell of lymphatic vessel
+
+**Step-by-step reasoning:**
+
+- Both results indicate the same general cell type: ""endothelial cell of lymphatic vessel"".
+- Both results also indicate the same subtype: ""endothelial cell of lymphatic vessel"".
+- There is no variation between the results, suggesting a strong consensus.
+
+**Final determination:**
+
+- **Final General Cell Type**: endothelial cell of lymphatic vessel
+- **Final Subtype**: endothelial cell of lymphatic vessel
+
+**Possible Mixed Cell Types:**
+
+- There is no evidence of mixed cell types as both results are identical.
+
+**Consensus Score:**
+
+- Since both results are identical, the consensus score is 100, indicating perfect agreement.
+
+Here is the output in JSON format:
+
+```json
+{
+  ""final_results"": [
+    ""endothelial cell of lymphatic vessel"",
+    ""endothelial cell of lymphatic vessel""
+  ],
+  ""possible_mixed_celltypes"": [],
+  ""consensus_score"": 100
+}
+```","result1:('Lymphatic Endothelial Cells', 'Lymphatic Endothelial Cells'),result2:('lymphatic endothelial cells', 'lymphatic endothelial cells')",Lymphatic Endothelial Cells,Lymphatic Endothelial Cells,lymphatic endothelial cells,lymphatic endothelial cells
+Endothelial cell (vascular),Endothelial Cell,Vascular Endothelial Cell,"Venous Endothelial Cell, Vascular Endothelial Cell",endothelial cell,vein endothelial cell,"vein endothelial cell, endothelial cell of vascular tree",0.75,0.75,70,70,Endothelial Cell,Venous Endothelial Cell,endothelial cell,vein endothelial cell,"result1:(Endothelial Cell, Venous Endothelial Cell),result2:(Endothelial Cell, Vascular Endothelial Cell)","result1:('endothelial cell', 'vein endothelial cell'),result2:('endothelial cell', 'endothelial cell of vascular tree')","To determine the consensus cell type, let's analyze the given results:
+
+1. **Result 1**: (Endothelial Cell, Venous Endothelial Cell)
+   - General cell type: Endothelial Cell
+   - Subtype: Venous Endothelial Cell
+
+2. **Result 2**: (Endothelial Cell, Vascular Endothelial Cell)
+   - General cell type: Endothelial Cell
+   - Subtype: Vascular Endothelial Cell
+
+**Step-by-step reasoning:**
+
+- **General Cell Type**: Both results agree on the general cell type being ""Endothelial Cell"". This is a strong consensus for the general cell type.
+
+- **Subtype**: The subtypes differ between the two results:
+  - Result 1 suggests ""Venous Endothelial Cell"".
+  - Result 2 suggests ""Vascular Endothelial Cell"".
+
+- **Mixed Cell Types**: The subtypes are both related to the vascular system, with ""Venous"" being a specific type of ""Vascular"". This suggests that there might be a mixed population or a lack of specificity in the subtype annotation.
+
+- **Consensus Score**: Since the general cell type is consistent but the subtypes differ, the consensus score should reflect this partial agreement. A score of around 70 would indicate strong agreement on the general cell type but some disagreement on the subtype.
+
+**Final Answer in JSON format:**
+
+```json
+{
+  ""final_results"": [
+    ""Endothelial Cell"",
+    ""Vascular Endothelial Cell""
+  ],
+  ""possible_mixed_celltypes"": [
+    ""Venous Endothelial Cell"",
+    ""Vascular Endothelial Cell""
+  ],
+  ""consensus_score"": 70
+}
+```
+
+This output reflects the consensus on the general cell type and acknowledges the potential for mixed subtypes. The consensus score indicates a strong agreement on the general cell type but some variability in the subtype.","To determine the consensus cell type, let's analyze the given results:
+
+1. **Result 1**: ('endothelial cell', 'vein endothelial cell')
+   - General cell type: endothelial cell
+   - Subtype: vein endothelial cell
+
+2. **Result 2**: ('endothelial cell', 'endothelial cell of vascular tree')
+   - General cell type: endothelial cell
+   - Subtype: endothelial cell of vascular tree
+
+**Step-by-step reasoning:**
+
+- **General Cell Type**: Both results agree on the general cell type being ""endothelial cell"". This is a strong consensus for the general cell type.
+
+- **Subtype**: The subtypes differ between the two results:
+  - Result 1 specifies ""vein endothelial cell"".
+  - Result 2 specifies ""endothelial cell of vascular tree"".
+
+- **Possible Mixed Cell Types**: The subtypes suggest that there might be a mixture of endothelial cells from different parts of the vascular system. However, both subtypes are related to the vascular system, which is consistent with the general cell type.
+
+- **Consensus Score**: Since the general cell type is consistent across both results, but the subtypes differ, the consensus score should reflect this partial agreement. A reasonable score would be around 70, indicating strong agreement on the general cell type but some variation in the subtype.
+
+**Final Answer in JSON format:**
+
+```json
+{
+  ""final_results"": [
+    ""endothelial cell"",
+    ""vein endothelial cell""
+  ],
+  ""possible_mixed_celltypes"": [
+    ""vein endothelial cell"",
+    ""endothelial cell of vascular tree""
+  ],
+  ""consensus_score"": 70
+}
+```","result1:('Endothelial Cells', 'Venous Endothelial Cells'),result2:('Endothelial Cells', 'Vascular Endothelial Cells')",Endothelial Cells,Venous Endothelial Cells,Endothelial Cells,Vascular Endothelial Cells
