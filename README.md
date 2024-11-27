@@ -14,18 +14,18 @@ Let's get started!
 
 ## Table of Contents
 
-1. [Introduction](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#introduction)
-2. [Setup and Installation](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#setup-and-installation)
-    - [Installing Required Packages](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#installing-required-packages)
-    - [Setting Up the Python Environment](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#setting-up-the-python-environment)
-    - [Setting API Keys](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#setting-api-keys)
-3. [Single Cluster Analysis](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#single-cluster-analysis)
-4. [Batch Processing](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#batch-processing)
-5. [Quality Scoring](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#quality-scoring)
-6. [Report Generation](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#report-generation)
-7. [Annotation Boost (Validation Plus)](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#annotation-boost-validation-plus)
-8. [Uncertainty Quantification](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#uncertainty-quantification)
-9. [Conclusion](https://chatgpt.com/c/67475af8-2f78-800b-bac0-9593da8d3f6a#conclusion)
+1. Introduction
+2. Setup and Installation
+    - Installing Required Packages
+    - Setting Up the Python Environment
+    - Setting API Keys
+3. Single Cluster Analysis
+4. Batch Processing
+5. Quality Scoring
+6. Report Generation
+7. Annotation Boost (Validation Plus)
+8. Uncertainty Quantification
+9. Conclusion
 
 ---
 
