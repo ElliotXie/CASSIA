@@ -8,8 +8,10 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 
 📚 [Complete Documentation](https://cassia-true-final-4.vercel.app/)
 
+
 ### Installation
 
+Option 1: Install from GitHub
 ```R
 # Install dependencies
 install.packages("devtools")
@@ -17,6 +19,13 @@ install.packages("reticulate")
 
 # Install CASSIA
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
+```
+
+Option 2: Install from source
+```R
+install.packages("reticulate")
+install.packages("remotes")
+remotes::install_url("https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source_R/CASSIA_0.1.0.tar.gz")
 ```
 
 ### Set Up API Keys
