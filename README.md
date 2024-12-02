@@ -2,6 +2,8 @@
 
 CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
+- [Refer to the paper for more detail and example]()
+
 ## Quick Start
 
 ### Installation
@@ -16,6 +18,17 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ```
 
 ### Set Up API Keys
+
+- **API Provider Guides:**
+	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
+	- [How to get an Anthropic api key](https://console.anthropic.com/settings/keys)
+	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
+    - [OpenAI API Documentation](https://beta.openai.com/docs/)
+    - [Anthropic API Documentation](https://docs.anthropic.com/)
+    - [OpenRouter API documentatioon](https://openrouter.ai/docs/quick-start)
+
+
+We recommend starting with OpenRouter as it provides access to most models with a single API key. While slightly more expensive, it offers greater convenience. Direct access via OpenAI or Anthropic provides more stability for production use.
 
 ```R
 # For OpenAI
@@ -50,6 +63,8 @@ runCASSIA_pipeline(
     annotation_provider = "openai",                 # Provider for annotation
     score_model = "anthropic/claude-3.5-sonnet",    # Model for scoring
     score_provider = "openrouter",                  # Provider for scoring
+    annotationboost_model="anthropic/claude-3.5-sonnet", #model for annotation boost
+    annotationboost_provider="openrouter", #provider for annotation boost
     score_threshold = 75,                          # Minimum acceptable score
     additional_info = NULL                         # Optional context information
 )
@@ -67,7 +82,7 @@ runCASSIA_pipeline(
 
 ### OpenRouter
 - `anthropic/claude-3.5-sonnet`: High rate limit access to Claude
-- `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4
+- `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4o
 - `meta-llama/llama-3.2-90b-vision-instruct`: Cost-effective open-source option
 
 ## Output
