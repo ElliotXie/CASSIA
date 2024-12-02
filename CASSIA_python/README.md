@@ -118,21 +118,6 @@ CASSIA.generate_cell_type_analysis_report_wrapper(
 )
 ```
 
-## Development Status
-
-Current Version: 0.1.0 (Alpha)
-
-### Roadmap
-
-1. ✅ Core functionality implementation
-2. ✅ Multiple LLM provider support
-3. ✅ Report generation
-4. 🔄 Marker grouping (In Progress)
-5. 📋 Python package distribution
-6. 📋 R package development
-7. 📋 Subcluster functionality
-8. ✅ Web UI implementation
-
 ## Contributing
 
 We welcome contributions! Please feel free to submit pull requests or open issues on our GitHub repository.
@@ -140,20 +125,6 @@ We welcome contributions! Please feel free to submit pull requests or open issue
 ## License
 
 This project is licensed under the MIT License.
-
-## Citation
-
-If you use CASSIA in your research, please cite:
-
-```bibtex
-@software{CASSIA2024,
-  author = {Xie, Elliot Yixuan},
-  title = {CASSIA: Cell type Annotation using Specialized System with Integrated AI},
-  year = {2024},
-  publisher = {GitHub},
-  url = {https://github.com/elliotxe/CASSIA}
-}
-```
 
 ## Support
 
