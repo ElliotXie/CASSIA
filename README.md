@@ -8,6 +8,7 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 
 📚 [Complete Documentation](https://cassia-true-final-4.vercel.app/)
 
+🌐 [Try CASSIA Web UI](https://cassiacell.com/) - A web interface for basic CASSIA functionality
 
 ### Installation
 
