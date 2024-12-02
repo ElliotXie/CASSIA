@@ -1,0 +1,12 @@
+[2024-10-19 17:07:31] [INFO]    [OmnipathR] Welcome to OmnipathR!
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] Reading JSON from `C:\Users\ellio\AppData\Local\cache\OmnipathR/cache.json` (encoding: UTF-8).
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] JSON validation successful: TRUE
+[2024-10-19 17:07:31] [INFO]    [OmnipathR] Initialized cache: `C:\Users\ellio\AppData\Local\cache\OmnipathR`.
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] Reading JSON from `D:/R-4.3.3/library/OmnipathR/db/db_def.json` (encoding: UTF-8).
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] JSON validation successful: TRUE
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] Reading JSON from `D:/R-4.3.3/library/OmnipathR/internal/magic_bytes.json` (encoding: UTF-8).
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] JSON validation successful: TRUE
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] Reading JSON from `D:/R-4.3.3/library/OmnipathR/internal/urls.json` (encoding: UTF-8).
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] JSON validation successful: TRUE
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] Reading JSON from `D:/R-4.3.3/library/OmnipathR/internal/id_types.json` (encoding: UTF-8).
+[2024-10-19 17:07:31] [TRACE]   [OmnipathR] JSON validation successful: TRUE
