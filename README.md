@@ -7,12 +7,7 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 📝 Example workflows:
 - [R workflow with TS large intestine data](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
-## Quick Start
 
-### Installation
-...
-
-## Quick Start
 
 ### Installation
 
