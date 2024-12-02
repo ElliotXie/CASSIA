@@ -14,8 +14,16 @@ CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a P
 
 ## Installation
 
+
+
 ```bash
+
+#Prepare dependency
+pip install pandas openai requests numpy anthropic
+
+#Install CASSIA
 pip install CASSIA
+pip install CASSIA_rag  # optional for the RAG agent
 ```
 
 ## Quick Start
