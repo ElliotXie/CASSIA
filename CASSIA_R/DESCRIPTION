@@ -1,0 +1,22 @@
+Package: CASSIA
+Title: Collaborative agent system for single-cell interpretable annotation
+Version: 0.1.0
+Authors@R: 
+    person("Elliot Yixuan", "Xie", email = "xie227@wisc.edu", role = c("aut", "cre"))
+Description: CASSIA (Collaborative agent system for single-cell interpretable annotation) provides R wrappers for a Python-based single-cell annotator.
+    It uses reticulate to interface with the Python backend for cell type analysis and batch processing.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    reticulate
+Suggests: 
+    testthat (>= 3.0.0),
+    R (>= 2.10)
+Config/testthat/edition: 3
+Config/reticulate:
+    list(
+        conda_env = "cassia_env"
+    )
