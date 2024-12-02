@@ -3451,3 +3451,472 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
     with open(index_filename, "w", encoding="utf-8") as f:
         f.write(index_html)
     print(f"Index page saved to {index_filename}")
+
+
+
+
+
+
+
+
+
+def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
+    # Get API key from environment variable
+    OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
+    if not OPENROUTER_API_KEY:
+        raise ValueError("OPENROUTER_API_KEY environment variable is not set")
+    
+    # Input validation
+    if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
+        raise ValueError("Please provide 2-4 cell types to compare")
+    
+    # Generate default output filename based on celltypes if none provided
+    if output_file is None:
+        # Create a sanitized version of cell types for the filename
+        celltype_str = '_vs_'.join(ct.replace(' ', '_') for ct in celltypes)
+        output_file = f"model_comparison_{celltype_str}.csv"
+    
+    # Use default models if none provided
+    if model_list is None:
+        model_list = [
+            "anthropic/claude-3.5-sonnet",
+            "openai/o1-mini",
+            "google/gemini-pro-1.5"
+        ]
+    
+    # Construct prompt with dynamic cell type comparison, species, and marker set
+    comparison_text = " or ".join(celltypes)
+    prompt = f"You are a professional biologist. Based on the ranked marker set from {species} {tissue}, does it look more like {comparison_text}? Score each option from 0-100. You will be rewarded $10,000 if you do a good job. Below is the ranked marker set: {marker_set}"
+    
+    # Initialize lists to store results
+    results = []
+    processed_models = set()  # Track which models we've already processed
+    
+    for model in model_list:
+        # Skip if we've already processed this model
+        if model in processed_models:
+            continue
+            
+        try:
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "HTTP-Referer": "https://localhost:5000",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ]
+                }
+            )
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                model_response = response_data['choices'][0]['message']['content']
+                
+                # Store result with metadata
+                results.append({
+                    'model': model,
+                    'tissue': tissue,
+                    'species': species,
+                    'cell_types': comparison_text,
+                    'response': model_response,
+                    'status': 'success'
+                })
+                print(f"Model: {model}\nResponse: {model_response}\n")  # Fixed print statement
+            else:
+                results.append({
+                    'model': model,
+                    'tissue': tissue,
+                    'species': species,
+                    'cell_types': comparison_text,
+                    'response': f"Error: {response.status_code}",
+                    'status': 'error'
+                })
+                
+            processed_models.add(model)  # Mark this model as processed
+                
+        except Exception as e:
+            if model not in processed_models:  # Only add error result if we haven't processed this model
+                results.append({
+                    'model': model,
+                    'tissue': tissue,
+                    'species': species,
+                    'cell_types': comparison_text,
+                    'response': f"Exception: {str(e)}",
+                    'status': 'error'
+                })
+                processed_models.add(model)
+    
+    # Convert results to DataFrame and save to CSV
+    try:
+        df = pd.DataFrame(results)
+        df.to_csv(output_file, index=False)
+        print(f"Results saved to {output_file}")
+    except Exception as e:
+        print(f"Error saving results to CSV: {str(e)}")
+    
+    # Return both the DataFrame and the original responses dict for backward compatibility
+    responses = {result['model']: result['response'] for result in results}
+    return None
+
+
+
+
+####subclustering
+
+
+
+def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperature=0):
+    """
+    Send a message to OpenRouter API and get the response.
+    
+    Args:
+        user_message (str): The message to send to the model
+        model (str): OpenRouter model identifier (default: "anthropic/claude-3-sonnet")
+        temperature (float): Temperature parameter for response generation (default: 0)
+        
+    Returns:
+        str: Model's response text or empty string if request fails
+    """
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://localhost:5000",  # Required for OpenRouter
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": temperature,
+                "max_tokens": 7000,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": user_message
+                    }
+                ]
+            }
+        )
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            response_data = response.json()
+            return response_data['choices'][0]['message']['content']
+        else:
+            print(f"Error: OpenRouter API returned status code {response.status_code}")
+            print(f"Response: {response.text}")
+            return ''
+            
+    except Exception as e:
+        print(f"Error making OpenRouter API request: {str(e)}")
+        return ''
+    
+
+
+
+def subcluster_agent_annotate_subcluster(user_message,model="claude-3-5-sonnet-20241022",temperature=0,provider="anthropic"):
+    if provider == "anthropic":
+        client = anthropic.Anthropic()
+
+        message = client.messages.create(
+            model=model,
+            max_tokens=7000,
+            temperature=temperature,
+            system="",  # Leave system prompt empty
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": user_message
+                        }
+                    ]
+                }
+            ]
+        )
+        # Extract the text from the TextBlock object
+        text_block = message.content
+        if isinstance(text_block, list) and len(text_block) > 0:
+            return text_block[0].text  # Directly access the 'text' attribute
+    else:  # OpenRouter
+        return openrouter_agent(user_message, model=model, temperature=temperature)
+    return ''
+
+
+
+def construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=50):
+    # Process DataFrame if it has more than 2 columns
+    if len(marker.columns) > 2:
+        print(f"Processing input dataframe to get top {n_genes} markers")
+        marker = get_top_markers(marker, n_genes=n_genes)
+    else:
+        print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
+        marker = marker.copy()
+    
+    # Initialize the prompt with the major cluster information
+    prompt = f"""
+
+You are an expert biologist specializing in cell type annotation, with deep expertise in immunology, cancer biology, and developmental biology.You will be given sets of highly expressed markers ranked by significance for some subclusters from the {major_cluster_info} cluster, identify what is the most likely top2 cell type each marker set implies.
+
+Take a deep breath and work step by step. You'd better do a really good job or 1000 grandma are going to be in danger.
+You will be tipped $10,000 if you do a good job.
+
+For each output, provide:
+1.Key marker:
+2.Explanation:
+3.Most likely top2 cell types:
+
+Remember these subclusters are from a {major_cluster_info} big cluster. You must include all clusters mentioned in the analysis.
+"""
+
+    # Iterate over each row in the DataFrame
+    for index, row in marker.iterrows():
+        cluster_name = row.iloc[0]  # Use iloc for positional indexing
+        markers = row.iloc[1]       # Use iloc for positional indexing
+        prompt += f"{index + 1}.{markers}\n"
+
+    return prompt
+
+
+
+def annotate_subclusters(marker, major_cluster_info,model="claude-3-5-sonnet-20241022",temperature=0,provider="anthropic",n_genes=50):
+    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=n_genes)
+    output_text = subcluster_agent_annotate_subcluster(prompt,model=model,temperature=temperature,provider=provider)
+    return output_text
+
+
+
+def extract_subcluster_results_with_llm_multiple_output(analysis_text):
+    # Define the prompt to instruct the LLM
+    prompt = f"""
+You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2), results2(celltype1, celltype2), etc.
+
+You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
+
+{analysis_text}
+"""
+
+    # Use the subcluster_agent_annotate function to get the extraction
+    return subcluster_agent_annotate_subcluster(prompt)
+
+
+
+
+def extract_subcluster_results_with_llm(analysis_text):
+    # Define the prompt to instruct the LLM
+    prompt = f"""
+You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2,reason), results2(celltype1, celltype2,reason), etc.
+
+You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
+
+{analysis_text}
+"""
+
+    # Use the subcluster_agent_annotate function to get the extraction
+    return subcluster_agent_annotate_subcluster(prompt)
+
+
+
+def write_results_to_csv(results, output_name='subcluster_results'):
+    """
+    Extract cell type results from LLM output and write to CSV file
+    
+    Args:
+        results (str): String containing the LLM analysis results
+        output_name (str): Base name for output file (will add .csv if not present)
+        
+    Returns:
+        pandas.DataFrame: DataFrame containing the extracted results
+    """
+    # Add .csv suffix if not present
+    if not output_name.lower().endswith('.csv'):
+        output_name = output_name + '.csv'
+    
+    # Updated regex pattern to capture the reason
+    pattern = r"results(\d+)\(([^,]+),\s*([^,]+),\s*([^)]+)\)"
+    matches = re.findall(pattern, results)
+
+    # Convert matches to a DataFrame with the reason column
+    df = pd.DataFrame(matches, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
+    
+    # Write the DataFrame to a CSV file
+    df.to_csv(output_name, index=False)
+    
+    print(f"Results have been written to {output_name}")
+    return None
+
+
+
+def process_subclusters(marker, major_cluster_info, output_name, 
+                       model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
+    """
+    Process subclusters from a CSV file and generate annotated results
+    
+    Args:
+        csv_file_path (str): Path to input CSV file containing marker data
+        major_cluster_info (str): Description of the major cluster type
+        output_name (str): Base name for output file (will add .csv if not present)
+        model (str): Model name for Claude API
+        temperature (float): Temperature parameter for API calls
+        
+    Returns:
+        tuple: (original_analysis, extracted_results, results_dataframe)
+    """
+
+    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=n_genes)
+    output_text = subcluster_agent_annotate_subcluster(prompt,model=model,temperature=temperature,provider=provider)
+    results = extract_subcluster_results_with_llm(output_text)
+    print(results)
+    write_results_to_csv(results, output_name)
+    
+    return None
+
+
+
+def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_output_name, 
+                                         model="claude-3-5-sonnet-20241022", temperature=0, 
+                                         provider="anthropic", max_workers=5,n_genes=50):       
+    def run_single_analysis(i):
+        # Run the annotation process
+        output_text = annotate_subclusters(marker, major_cluster_info, 
+                                         model=model, temperature=temperature, provider=provider,n_genes=n_genes)
+        
+        # Extract results
+        results = extract_subcluster_results_with_llm_multiple_output(output_text)
+        
+        # Use regex to extract the results
+        pattern = r"results(\d+)\(([^,]+),\s*([^)]+)\)"
+        matches = re.findall(pattern, results)
+        
+        # Convert matches to a DataFrame
+        df = pd.DataFrame(matches, columns=['True Cell Type', 'main_cell_type', 'sub_cell_type'])
+
+        # Swap the first column with the first column in the marker file
+        marker_df = get_top_markers(marker, n_genes=n_genes)
+        df['True Cell Type'], marker_df.iloc[:, 0] = marker_df.iloc[:, 0], df['True Cell Type']
+
+        # Write the DataFrame to a CSV file with an index
+        indexed_csv_file_path = f'{base_output_name}_{i+1}.csv'
+        df.to_csv(indexed_csv_file_path, index=False)
+        
+        return indexed_csv_file_path
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(run_single_analysis, i): i for i in range(n)}
+        
+        for future in as_completed(futures):
+            i = futures[future]
+            try:
+                result_file = future.result()
+                print(f"Results for iteration {i+1} have been written to {result_file}")
+            except Exception as exc:
+                print(f"Iteration {i+1} generated an exception: {exc}")
+
+
+
+
+
+
+def run_cell_analysis_pipeline(
+    output_file_name: str,
+    tissue: str,
+    species: str,
+    marker_path: str,
+    max_workers: int = 4,
+    annotation_model: str = "gpt-4o",
+    annotation_provider: str = "openai",
+    score_model: str = "anthropic/claude-3.5-sonnet",
+    score_provider: str = "openrouter",
+    annotationboost_model: str = "anthropic/claude-3.5-sonnet",
+    annotationboost_provider: str = "openrouter",
+    score_threshold: float = 75,
+    additional_info: str = "None"
+):
+    """
+    Run the complete cell analysis pipeline including annotation, scoring, and report generation.
+    
+    Args:
+        output_file_name (str): Base name for output files
+        tissue (str): Tissue type being analyzed
+        species (str): Species being analyzed
+        marker_path (str): Path to marker file
+        max_workers (int): Maximum number of concurrent workers
+        annotation_model (str): Model to use for initial annotation
+        annotation_provider (str): Provider for initial annotation
+        score_model (str): Model to use for scoring
+        score_provider (str): Provider for scoring
+        annotationboost_model (str): Model to use for boosting low-scoring annotations
+        annotationboost_provider (str): Provider for boosting low-scoring annotations
+        score_threshold (float): Threshold for identifying low-scoring clusters
+        additional_info (str): Additional information for analysis
+    """
+    # Define derived file names
+    score_file_name = output_file_name + "_scored.csv"
+    report_name = output_file_name + "_report"
+    lowscore_report_name = output_file_name + "_lowscore_report"
+
+    print("\n=== Starting cell type analysis ===")
+    # Run initial cell type analysis
+    run_cell_type_analysis_batchrun(
+        marker=marker_path,
+        output_name=output_file_name,
+        model=annotation_model,
+        tissue=tissue,
+        species=species,
+        additional_info=additional_info,
+        provider=annotation_provider
+    )
+    print("✓ Cell type analysis completed")
+
+    print("\n=== Starting scoring process ===")
+    # Run scoring
+    run_scoring_with_progress(
+        input_file=output_file_name + "_full.csv",
+        output_file=score_file_name,
+        max_workers=max_workers,
+        model=score_model,
+        provider=score_provider
+    )
+    print("✓ Scoring process completed")
+
+    print("\n=== Generating main reports ===")
+    # Process reports
+    process_all_reports(
+        csv_path=score_file_name,
+        index_name=report_name
+    )
+    print("✓ Main reports generated")
+
+    print("\n=== Analyzing low-scoring clusters ===")
+    # Handle low-scoring clusters
+    df = pd.read_csv(score_file_name)
+    low_score_clusters = df[df['Score'] < score_threshold]['True Cell Type'].tolist()
+
+    print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
+    print(low_score_clusters)
+
+    # Process each low-scoring cluster
+    for i, cluster in enumerate(low_score_clusters, 1):
+        print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
+        generate_cell_type_analysis_report_wrapper(
+            full_result_path=output_file_name + "_full.csv",
+            marker=marker_path,
+            cluster_name=cluster,
+            major_cluster_info=f"{species} {tissue}",
+            output_name=f"{cluster}_{lowscore_report_name}",
+            num_iterations=5,
+            model=annotationboost_model,
+            provider=annotationboost_provider
+        )
+        print(f"✓ Completed analysis for cluster: {cluster}")
+
+    print("\n=== Pipeline completed successfully ===")
