@@ -18,8 +18,14 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ### Set Up API Keys
 
 ```R
-# For OpenAI (most common)
-setLLMApiKey("your_api_key", provider = "openai", persist = TRUE)
+# For OpenAI
+setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
+
+# For Anthropic
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
+
+# For OpenRouter
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 ```
 
 ## Example Data
@@ -71,6 +77,30 @@ The pipeline generates four key files:
 2. Quality scores with reasoning
 3. Summary report
 4. Annotation boost report
+
+## Troubleshooting
+
+### Authentication (Error 401)
+```R
+# Check if API key is set correctly
+key <- Sys.getenv("ANTHROPIC_API_KEY")
+print(key)  # Should not be empty
+
+# Reset API key if needed
+setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
+```
+
+### File Errors
+- Use absolute paths when necessary
+- Check file permissions
+- Ensure files aren't open in other programs
+- Verify sufficient disk space
+
+### Best Practices
+- Keep API keys secure
+- Maintain sufficient API credits
+- Backup data before overwriting files
+- Double-check file paths and permissions
 
 Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
 [CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/)
