@@ -1,0 +1,423 @@
+---
+title: "CASSIA Analysis Tutorial"
+output: html_notebook
+---
+
+# CASSIA Analysis Tutorial
+
+This R Notebook demonstrates a complete workflow using CASSIA for cell type annotation of single-cell RNA sequencing data. We'll analyze an intestinal cell dataset containing six distinct populations:
+
+1.monocyte
+2.plasma cells
+3.cd8-positive, alpha-beta t cell
+4.transit amplifying cell of large intestine
+5.intestinal enteroendocrine cell
+6.intestinal crypt stem cell
+
+
+
+### Setup and Environment Preparation
+
+First, let's install and load the required packages:
+
+```{r}
+
+# Install required packages if not already installed
+install.packages("reticulate")
+install.packages("CASSIA_0.1.0.tar.gz", repos = NULL, type = "source")
+
+
+
+
+# Load libraries
+library(reticulate)
+library(CASSIA)
+```
+
+### Setting up the Python Environment
+
+By running library(CASSIA), the environment will be set up automatically. However, if it fails, please restart the R session and run the command below.
+
+```{r}
+# Set up the Python environment for CASSIA
+setup_cassia_env(conda_env = "cassia_env")
+```
+
+### API Key Configuration
+
+We recommend setting up APIs for anthropic and openrouter to use this tutorial
+
+```{r}
+
+# Set up API keys (replace with your actual keys)
+
+setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
+
+```
+
+### Loading and Preparing Data
+
+```{r load_data}
+# Load example marker data in both formats
+markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Direct Seurat findallmarkers output
+markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
+
+
+
+# Preview both data formats
+head(markers_unprocessed)
+head(markers_processed)
+```
+
+### Step 1: Fast Mode Analysis
+
+```{r}
+
+# Run the CASSIA pipeline in fast mode
+fast_results <- runCASSIA_pipeline(
+    output_file_name = "FastAnalysisResults",
+    tissue = "large intestine",
+    species = "human",
+    marker = markers_unprocessed,
+    max_workers = 6,  # Matches the number of clusters in dataset
+    annotation_model = "openai/gpt-4o-2024-11-20", #openai/gpt-4o-2024-11-20
+    annotation_provider = "openrouter",
+    score_model = "anthropic/claude-3.5-sonnet",
+    score_provider = "openrouter",
+    score_threshold = 75,
+    annotationboost_model="anthropic/claude-3.5-sonnet",
+    annotationboost_provider="openrouter"
+)
+
+```
+
+
+
+### Step 2: Detailed Batch Analysis
+
+```{r}
+# Calculate recommended workers
+available_cores <- parallel::detectCores()
+recommended_workers <- floor(available_cores * 0.75)
+output_name="intestine_detailed"
+
+
+# Run batch analysis
+batch_results <- runCASSIA_batch(
+    marker = markers_unprocessed,
+    output_name = output_name,
+    model = "openai/gpt-4o-2024-11-20",
+    tissue = "large intestine",
+    species = "human",
+    max_workers = 6,  # Matching cluster count
+    n_genes = 50,
+    additional_info = NULL,
+    provider = "openrouter"
+)
+
+# # Run batch analysis
+# batch_results <- runCASSIA_batch(
+#     marker = markers_unprocessed,
+#     output_name = output_name,
+#     model = "gpt-4o",
+#     tissue = "large intestine",
+#     species = "human",
+#     max_workers = 6,  # Matching cluster count
+#     n_genes = 50,
+#     additional_info = NULL,
+#     provider = "openai"
+# )
+
+
+# # Run batch analysis
+# batch_results <- runCASSIA_batch(
+#     marker = markers_unprocessed,
+#     output_name = output_name,
+#     model = "claude-3-5-sonnet-20241022",
+#     tissue = "large intestine",
+#     species = "human",
+#     max_workers = 6,  # Matching cluster count
+#     n_genes = 50,
+#     additional_info = NULL,
+#     provider = "anthropic"
+# )
+
+```
+
+### Step 3: Quality Scoring
+
+
+```{r}
+
+# Run quality scoring
+quality_scores <- runCASSIA_score_batch(
+  input_file = paste0(output_name, "_full.csv"),
+  output_file = paste0(output_name, "_scored.csv"),
+  max_workers = 6,
+  model = "anthropic/claude-3.5-sonnet",
+  provider = "openrouter"
+)
+
+
+# Generate quality report
+runCASSIA_generate_score_report(
+  csv_path = paste0(output_name, "_scored.csv"),
+  output_name = paste0(output_name, "_report.html")
+)
+
+```
+
+
+### Optional Step: Uncertainty Quantification
+
+```{r}
+
+
+#######Note:This is step will be costy, since multiple iteration will be performed.#######
+
+# Run multiple iterations
+iteration_results <- runCASSIA_batch_n_times(
+    n = 5,
+    marker = markers_unprocessed,
+    output_name = paste0(output_name,"_Uncertainty"),
+    model = "openai/gpt-4o-2024-11-20",
+    provider = "openrouter",
+    tissue = "large intestine",
+    species = "human",
+    max_workers = 6,
+    batch_max_workers = 3  # Conservative setting for API rate limits
+)
+
+
+#######Note:Openrouter is not supported for this analysis for now.#######
+
+# Calculate similarity scores
+similarity_scores <- runCASSIA_similarity_score_batch(
+    marker = markers_unprocessed,
+    file_pattern = paste0(output_name,"_Uncertainty_*_full.csv"),
+    output_name = "intestine_similarity2",
+    max_workers = 6,
+    model = "claude-3-5-sonnet-20241022",
+    provider = "anthropic",
+    main_weight = 0.5,
+    sub_weight = 0.5
+)
+
+```
+
+
+### Optional Step: Annotation Boost on Selected Cluster
+
+The monocyte cluster is sometimes annotated as mixed population of immune cell and neuron/glia cells.
+
+Here we use annotation boost agent to test these hypothesis in more detail.
+
+```{r}
+# Run validation plus for the high mitochondrial content cluster
+validation_results <- runCASSIA_annotationboost(
+    full_result_path = paste0(output_name, "_full.csv"),
+    marker = markers_unprocessed,
+    output_name="monocyte_annotationboost2",
+    cluster_name = "monocyte",
+    major_cluster_info = "Human Large Intestine",
+    num_iterations = 5,
+    model = "anthropic/claude-3.5-sonnet",
+    provider = "openrouter"
+)
+
+
+
+```
+
+
+### Optional Step: Compare the Subtypes Using Multiple LLMs
+
+This agent can be used after you finish the default CASSIA pipeline, and are still unsure about a celltype. You can use this agent to get a more confident subtype annotation. Here we use the Plasma Cells cluster as examples. To distinguish if it is more like a general plasma cell or other celltypes.
+
+```{r}
+#The marker here are copy from CASSIA's previous results.
+
+marker="IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1"
+
+
+
+  compareCelltypes(
+      tissue = "large intestine",
+      celltypes = c("Plasma Cells","IgA-secreting Plasma Cells","IgG-secreting Plasma Cells","IgM-secreting Plasma Cells"),
+      marker = marker,
+      species = "human",
+      output_file = "plasama_cell_subtype"
+    )
+
+
+```
+
+
+### Optional Step: Subclustering
+
+
+This agent can be used to study subclustered population, such as a T cell population or a Fibroblast cluster. We recommend to apply the default cassia first, and on a target cluster, apply Seurat pipeline to subcluster the cluster and get the findallmarke results to be used here. Here we present the results for the cd8-positive, alpha-beta t cell cluster as example. This cluster is a cd8 population mixed with other celltypes.
+
+```{r}
+
+
+# large=readRDS("/Users/xie227/Downloads/seurat_object.rds")
+# # Extract CD8+ T cells
+# cd8_cells <- subset(large, cell_ontology_class == "cd8-positive, alpha-beta t cell")
+# # Normalize and identify variable features
+# cd8_cells <- NormalizeData(cd8_cells)
+# cd8_cells <- FindVariableFeatures(cd8_cells, selection.method = "vst", nfeatures = 2000)
+# # Scale data and run PCA
+# all.genes <- rownames(cd8_cells)
+# cd8_cells <- ScaleData(cd8_cells, features = all.genes)
+# cd8_cells <- RunPCA(cd8_cells, features = VariableFeatures(object = cd8_cells),npcs = 30)
+# # Run clustering (adjust resolution and dims as needed based on elbow plot)
+# cd8_cells <- FindNeighbors(cd8_cells, dims = 1:20)
+# cd8_cells <- FindClusters(cd8_cells, resolution = 0.3)
+# # Run UMAP
+# cd8_cells <- RunUMAP(cd8_cells, dims = 1:20)
+# # Create visualization plots
+# p1 <- DimPlot(cd8_cells, reduction = "umap", label = TRUE) +
+#   ggtitle("CD8+ T Cell Subclusters")
+# # Find markers for each subcluster
+# cd8_markers <- FindAllMarkers(cd8_cells,
+#                             only.pos = TRUE,
+#                             min.pct = 0.1,
+#                             logfc.threshold = 0.25)
+# cd8_markers=cd8_markers %>% filter(p_val_adj<0.05)
+# write.csv(cd8_markers, "cd8_subcluster_markers.csv")
+
+marker_sub=read.csv("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/Test_results/Elliot/GTEX/final_testing/final_code_for_r_package/inst/extdata/subcluster_results.csv")
+
+marker_sub=loadExampleMarkers_subcluster()
+
+
+runCASSIA_subclusters(marker = marker_sub,
+    major_cluster_info = "cd8 t cell",
+    output_name = "subclustering_results",
+    model = "anthropic/claude-3.5-sonnet",
+    provider = "openrouter")
+
+```
+
+
+It is recommend to run the CS score for the subclustering to get a more confident answer. (Unfinished)
+```{r}
+
+runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell", "subclustering_results_n", 
+                                               model = "anthropic/claude-3.5-sonnet", temperature = 0, 
+                                               provider = "openrouter", max_workers = 5,n_genes=50L)
+
+
+
+
+# Calculate similarity scores
+similarity_scores <- runCASSIA_similarity_score_batch(
+    marker = marker_sub,
+    file_pattern = "subclustering_results_n_*.csv",
+    output_name = "subclustering_uncertainty",
+    max_workers = 6,
+    model = "claude-3-5-sonnet-20241022",
+    provider = "anthropic",
+    main_weight = 0.5,
+    sub_weight = 0.5
+)
+
+```
+
+
+
+
+
+### Optional Step: Annotation Boost with Additional Task
+
+This can be used to study a given problem related to a cluster, such as infer the state of a cluster. Here we use the cd8-positive, alpha-beta t cell as an example. Note that the performance of this agent has not been benchmarked, so please be cautious with the results.
+
+```{r}
+
+#only openrouter is supported as provider now.
+
+
+runCASSIA_annottaionboost_additional_task(
+    full_result_path = paste0(output_name, "_full.csv"),
+    marker = markers_unprocessed,
+    output_name="T_cell_state",
+    cluster_name = "cd8-positive, alpha-beta t cell",  # Cluster with high mitochondrial content
+    major_cluster_info = "Human Large Intestine",
+    num_iterations = 5,
+    model = "anthropic/claude-3.5-sonnet",
+    additional_task = "infer the state of this T cell cluster"
+)
+
+
+
+```
+
+
+#Trouble Shooting
+```{r}
+
+#1. Authentication Errors (Error 401)
+## Common causes:
+## - API key not properly loaded
+## - Invalid or expired API key
+## - Insufficient API credits
+
+## Solutions:
+## a) Verify API key is correctly set:
+key <- Sys.getenv("ANTHROPIC_API_KEY")
+print(key)  # Should display your API key, not an empty string
+
+## b) Reset API key if needed:
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
+
+## c) Check account balance:
+## - Verify you have sufficient credits on your platform account
+## - Add funds if necessary through the platform's billing portal
+
+#2. File Not Found Errors
+## Common causes:
+## - Incorrect file paths
+## - Missing input files
+## - CASSIA automatic file matching issues
+
+## Solutions:
+## a) Verify file paths are correct and files exist:
+file.exists("your_input_file.csv")  # Returns TRUE if file exists
+
+## b) Use absolute paths when necessary:
+## Bad:  "data/input.csv"
+## Good: "C:/Users/YourName/Project/data/input.csv"
+
+## c) Ensure input and output filenames match CASSIA's expectations:
+## - Follow naming conventions exactly
+## - Check file extensions match required format
+
+#3. Permission Errors
+## Common causes:
+## - File already exists and is locked/in use
+## - Insufficient write permissions
+## - Directory access restrictions
+
+## Solutions:
+## a) Check if file is already open:
+## - Close any programs using the file
+## - Wait a few seconds before retrying
+
+
+## b) If file exists, either:
+## - Use a different output filename
+## - Remove existing file first:
+if(file.exists("output.csv")) {
+    file.remove("output.csv")
+}
+
+#4. Additional Tips
+## - Keep API keys secure and never share them
+## - Always backup important data before overwriting files
+
+```
+
+
