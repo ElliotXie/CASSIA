@@ -2,7 +2,15 @@
 
 CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
-- [Refer to the paper for more detail and example]()
+📖 [Read our paper](link-to-paper) for detailed methodology and benchmarking results.
+
+📝 Example workflows:
+- [R workflow with TS large intestine data](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
+
+## Quick Start
+
+### Installation
+...
 
 ## Quick Start
 
@@ -118,4 +126,4 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 - Double-check file paths and permissions
 
 Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/)
+[CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
