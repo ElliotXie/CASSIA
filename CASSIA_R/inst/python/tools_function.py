@@ -1750,7 +1750,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
 
 def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai"):
     """
-    Run scoring with progress updates.
+    Run scoring with progress updates and retry failed rows once.
     
     Args:
         input_file (str): Path to input CSV file (with or without .csv extension)
@@ -1793,6 +1793,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
+        failed_rows = []
         
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -1813,8 +1814,11 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
                 
                 # Safely update DataFrame
                 with df_lock:
-                    results.loc[idx, 'Score'] = score
-                    results.loc[idx, 'Scoring_Reasoning'] = reasoning
+                    if score is None:  # Failed row
+                        failed_rows.append((idx, results.loc[idx]))
+                    else:
+                        results.loc[idx, 'Score'] = score
+                        results.loc[idx, 'Scoring_Reasoning'] = reasoning
                     
                     # Save intermediate results if output file is specified
                     if output_file:
@@ -1822,6 +1826,41 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
                     else:
                         output_file = input_file.replace('.csv', '_scored.csv')
                         results.to_csv(output_file, index=False)
+        
+        # Retry failed rows
+        if failed_rows:
+            print(f"\nRetrying {len(failed_rows)} failed rows...")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as retry_executor:
+                # Submit retry jobs
+                retry_futures = {
+                    retry_executor.submit(
+                        process_single_row, 
+                        row_data,
+                        model=model,
+                        provider=provider
+                    ): row_data[0] 
+                    for row_data in failed_rows
+                }
+                
+                # Process retry results
+                for future in as_completed(retry_futures):
+                    idx, score, reasoning = future.result()
+                    
+                    # Safely update DataFrame
+                    with df_lock:
+                        if score is not None:  # Successfully retried
+                            results.loc[idx, 'Score'] = score
+                            results.loc[idx, 'Scoring_Reasoning'] = reasoning
+                        else:  # Failed again
+                            results.loc[idx, 'Scoring_Reasoning'] = "Failed after retry"
+                        
+                        # Save results
+                        if output_file:
+                            results.to_csv(output_file, index=False)
+                        else:
+                            output_file = input_file.replace('.csv', '_scored.csv')
+                            results.to_csv(output_file, index=False)
         
         # Print summary statistics
         total_rows = len(results)
@@ -1831,7 +1870,11 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         print(f"Total rows: {total_rows}")
         print(f"Successfully scored: {scored_rows}")
         print(f"Failed/Skipped: {total_rows - scored_rows}")
+        if failed_rows:
+            print(f"Initially failed rows: {len(failed_rows)}")
+            print(f"Successfully retried: {sum(1 for idx, _ in failed_rows if pd.notna(results.loc[idx, 'Score']))}")
         
+        return results
         
     except Exception as e:
         print(f"Error in run_scoring_with_progress: {str(e)}")
