@@ -1,0 +1,264 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    ### Step-by-Step Analysis:<br><br>#### 1. **List the Key Functional Markers**<br>   - **TRBC1**: T-cell receptor beta constant 1, a key component of the T-cell receptor (TCR) complex, essential for T-cell activation and signaling.<br>   - **IL7R**: Interleukin-7 receptor, critical for T-cell development, survival, and homeostasis.<br>   - **ZNF683**: Also known as Hobit, a transcription factor associated with tissue-resident memory T cells (TRM).<br>   - **PDCD1**: Programmed cell death protein 1 (PD-1), a marker of T-cell exhaustion and immune regulation.<br>   - **CXCR6**: A chemokine receptor associated with tissue-resident T cells and effector memory T cells.<br>   - **BCL11B**: A transcription factor critical for T-cell lineage commitment and development.<br>   - **STAT4**: A transcription factor involved in T-helper 1 (Th1) cell differentiation and cytokine signaling.<br>   - **ITK**: IL-2-inducible T-cell kinase, important for TCR signaling and T-cell activation.<br>   - **LAT**: Linker for activation of T cells, a key adaptor protein in TCR signaling.<br>   - **SLAMF6**: A member of the SLAM family, involved in T-cell activation and immune regulation.<br><br>   These markers collectively indicate a strong association with T-cell function, particularly TCR signaling, immune regulation, and tissue residency.<br><br>#### 2. **List the Key Cell Type Markers**<br>   - **TRBC1, IL7R, PDCD1, CXCR6, BCL11B**: These are canonical markers of T cells, specifically subsets such as effector, memory, or tissue-resident T cells.<br>   - **ZNF683**: A marker of tissue-resident memory T cells (TRM), particularly in non-lymphoid tissues like the intestine.<br>   - **CD96**: Expressed on T cells and natural killer (NK) cells, involved in immune regulation.<br>   - **SIT1, THEMIS**: Associated with T-cell signaling and development.<br>   - **P2RY10, RHOH**: Involved in T-cell signaling and migration.<br>   - **DEF6, SH2D2A**: Regulators of T-cell activation and cytoskeletal dynamics.<br>   - **STAT4, ITK, LAT**: Markers of T-cell activation and differentiation.<br><br>   These markers strongly suggest that the cluster represents a T-cell population, with a potential bias toward tissue-resident or memory subsets.<br><br>#### 3. **Cross-reference Known Databases**<br>   - Using scRNA-seq databases such as the Human Cell Atlas, PanglaoDB, and literature on intestinal immune cells:<br>     - **TRBC1, IL7R, ZNF683, CXCR6** are highly expressed in tissue-resident memory T cells (TRM) in the intestine.<br>     - **PDCD1** is expressed in exhausted or regulatory T cells, often in chronic inflammation or tumor microenvironments.<br>     - **BCL11B** is a universal marker of T cells, particularly in development and lineage commitment.<br>     - **STAT4, ITK, LAT** are associated with activated T cells, particularly Th1 or cytotoxic subsets.<br><br>   These markers align with a T-cell population, likely tissue-resident memory T cells (TRM) or a related subset.<br><br>#### 4. **Determine the Most Probable General Cell Type**<br>   - Based on the expression of T-cell-specific markers (TRBC1, IL7R, ZNF683, PDCD1, CXCR6, BCL11B), the most probable general cell type is **T cells**.<br><br>#### 5. **Identify the Top 3 Most Probable Sub Cell Types**<br>   - **1. Tissue-Resident Memory T Cells (TRM)**:<br>     - Markers: ZNF683, CXCR6, IL7R, PDCD1.<br>     - These cells are known to reside in non-lymphoid tissues like the intestine and play a role in local immune surveillance.<br>   - **2. Effector Memory T Cells (TEM)**:<br>     - Markers: IL7R, CXCR6, STAT4, ITK.<br>     - These cells are highly mobile and involved in rapid immune responses.<br>   - **3. Exhausted T Cells**:<br>     - Markers: PDCD1, SLAMF6, DEF6.<br>     - These cells are often found in chronic inflammation or tumor microenvironments and exhibit reduced effector function.<br><br>   **Most Likely Subtype**: Tissue-Resident Memory T Cells (TRM), based on the strong expression of ZNF683, CXCR6, and IL7R, which are hallmark markers of this subset in the intestine.<br><br>#### 6. **Provide a Concise Summary of Your Analysis**<br>   - The cluster of cells is most likely a T-cell population, specifically tissue-resident memory T cells (TRM). This conclusion is supported by the expression of key markers such as ZNF683, CXCR6, and IL7R, which are characteristic of TRM cells in the intestine. These cells play a critical role in local immune surveillance and maintaining tissue homeostasis.<br><br>**FINAL ANNOTATION COMPLETED**
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    ### Validation Process:<br><br>#### 1. **Marker Consistency**<br>   - The proposed annotation identifies the cluster as **Tissue-Resident Memory T Cells (TRM)**, a subset of T cells.<br>   - The markers used in the annotation (e.g., **TRBC1, IL7R, ZNF683, PDCD1, CXCR6, BCL11B, STAT4, ITK, LAT, SLAMF6**) are all present in the provided marker list.<br>   - The markers are consistent with the identified cell type. Specifically:<br>     - **ZNF683** and **CXCR6** are hallmark markers of TRM cells.<br>     - **IL7R** and **PDCD1** are associated with T-cell subsets, including memory and exhausted T cells.<br>     - **BCL11B** is a universal T-cell marker.<br>     - **STAT4, ITK, LAT** are involved in T-cell activation and differentiation.<br>   - No markers used in the annotation are inconsistent with the T-cell lineage or the TRM subset.<br><br>#### 2. **Mixed Cell Type Consideration**<br>   - The annotation considers potential subtypes of T cells, including **Tissue-Resident Memory T Cells (TRM)**, **Effector Memory T Cells (TEM)**, and **Exhausted T Cells**.<br>   - The markers strongly support the TRM subtype, particularly **ZNF683, CXCR6, and IL7R**, which are hallmark markers of TRM cells.<br>   - While some markers (e.g., **PDCD1**) could indicate exhausted T cells, the overall marker profile does not strongly support a mixed population. Instead, the markers align more closely with a TRM population.<br>   - There is no strong evidence of multiple distinct cell types within the cluster based on the provided marker list and analysis.<br><br>#### 3. **Final Assessment**<br>   - The annotation is well-supported by the marker list and the analysis provided.<br>   - The markers used are consistent with the identified cell type (T cells) and the proposed subtype (Tissue-Resident Memory T Cells, TRM).<br>   - There is no indication of a mixed cell population that would require further investigation.<br><br>---<br><br>### Validation Result:<br>**VALIDATION PASSED**
+                </div>
+            
+                        <div class="agent-section formatting">
+                            <h2>📋 Summary</h2>
+                            
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <span class="summary-label">Main Cell Type:</span>
+                                <span class="summary-value">T cells</span>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Sub Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>Tissue-Resident Memory T Cells (TRM)</li><li>Effector Memory T Cells (TEM)</li><li>Exhausted T Cells</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Possible Mixed Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li class="empty-list">No mixed cell types identified</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Number of Markers:</span>
+                                <span class="summary-value">50</span>
+                            </div>
+                        </div>
+                    
+                        </div>
+                    
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">95</div>
+                        <div class="scoring-content">
+                            The annotation analysis demonstrates several strong points and a few minor limitations:<br><br>Strengths:<br>1. Comprehensive marker analysis: The annotation thoroughly examines multiple key T cell markers, including TRBC1 and IL7R (which appear at the top of the marker list and are indeed crucial T cell markers), demonstrating appropriate weighting of marker importance.<br><br>2. Accurate cell type identification: The main classification as T cells is strongly supported by multiple lines of evidence, including TCR components (TRBC1), cytokine receptors (IL7R), and T cell-specific transcription factors (BCL11B).<br><br>3. Well-justified subtype classification: The identification of Tissue-Resident Memory T cells (TRM) as the primary subtype is well-supported by the presence of ZNF683 (Hobit) and CXCR6, which are indeed canonical TRM markers in intestinal tissue.<br><br>4. Appropriate consideration of tissue context: The annotation takes into account the intestinal origin of the cells, which strengthens the TRM classification.<br><br>Minor limitations:<br>1. Could have placed more emphasis on TRBC1 as the top marker, though it was still appropriately considered in the analysis.<br><br>2. While the analysis considers alternative T cell subtypes (TEM and exhausted T cells), it could have more explicitly discussed why these are less likely than TRM given the marker profile.<br><br>Overall, the annotation provides a highly accurate and well-supported classification that appropriately weighs multiple lines of evidence and considers tissue context. The step-by-step analysis is thorough and scientifically sound, with conclusions that align well with current understanding of T cell biology in intestinal tissue.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

@@ -8,3 +8,7 @@ CASSIA.egg-info/SOURCES.txt
 CASSIA.egg-info/dependency_links.txt
 CASSIA.egg-info/requires.txt
 CASSIA.egg-info/top_level.txt
+CASSIA/data/__init__.py
+CASSIA/data/processed.csv
+CASSIA/data/subcluster_results.csv
+CASSIA/data/unprocessed.csv

@@ -10,6 +10,7 @@ from .main_function_code import *
 import requests
 import threading
 import numpy as np
+from importlib import resources
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -170,7 +171,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -199,7 +200,7 @@ def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=No
 
 
 
-def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai"):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai"):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -226,7 +227,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     
     
     # Choose the appropriate analysis function based on provider
-    analysis_function = run_cell_type_analysis_wrapper
+    analysis_function = runCASSIA
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
@@ -343,12 +344,12 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
-def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai"):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai"):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
-        result = run_cell_type_analysis_batchrun(
+        result = runCASSIA_batch(
             marker=marker,
             output_name=output_json_name,
             model=model,
@@ -394,7 +395,7 @@ def run_single_analysis(args):
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
-        result = run_cell_type_analysis_wrapper(
+        result = runCASSIA(
             tissue=tissue,
             species=species,
             additional_info=additional_info,
@@ -410,7 +411,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -437,6 +438,7 @@ def run_analysis_n_times(n, tissue, species, additional_info, temperature, marke
     end_time = time.time()
     print(f"All analyses completed in {end_time - start_time:.2f} seconds")
     return results
+
 
 
 
@@ -1135,7 +1137,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def process_and_save_batch_results(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1190,6 +1192,8 @@ def extract_cell_types_from_results_single(results):
         else:
             extracted_results.append(('Failed', 'Failed'))
     return extracted_results
+
+
 
 
 
@@ -1315,7 +1319,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
     '''
 
 
-    results=run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
+    results=runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
 
     results=extract_cell_types_from_results_single(results)
     
@@ -1345,7 +1349,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def process_cell_type_analysis_single_wrapper(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1382,7 +1386,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types
@@ -1742,7 +1746,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai"):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai"):
     """
     Run scoring with progress updates.
     
@@ -1828,7 +1832,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         
         
     except Exception as e:
-        print(f"Error in run_scoring_with_progress: {str(e)}")
+        print(f"Error in runCASSIA_score_batch: {str(e)}")
         raise
 
 
@@ -1895,8 +1899,8 @@ def prompt_hypothesis_generator3(major_cluster_info, marker, annotation_history)
 
 
 context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
-
 {marker}
+
 
 
 Below is the annotation analysis history:
@@ -1937,8 +1941,59 @@ When you think you can generate the final annotation, you can say "FINAL ANNOTAT
     """
     return prompt
 
-import pandas as pd
-import re
+
+def prompt_hypothesis_generator3_additional_task(major_cluster_info, marker, annotation_history,task):
+    prompt = f"""
+        You are an expert in single-cell biology. Your task is to {task}. Divide the problem to several steps that can be validated by gene expression information. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. You can check at most two hypothesis at a time. Provide your detailed reasoning. Note that you can also mention other hypothesis. Better do a good job or 10 grandma are going to be in danger. Take a deep breath.
+
+
+context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
+{marker}
+
+
+
+Below is the annotation analysis history:
+{annotation_history}
+
+
+
+Output format:
+
+Give a brief evaluation of the annotation results first,then focus on the task:{task}. State the hypothesis you want to check to the excecuter.
+
+
+1. hypothesis to check 1
+
+<check_genes>
+[list of genes name, use gene symbol]
+</check_genes>
+
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
+
+
+1. hypothesis to check 2
+
+<check_genes>
+[list of genes name, use gene symbol]
+</check_genes>
+
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
+
+include more hypothesis if necessary.
+
+When you think you can generate the final answer to the task, you can say "FINAL ANALYSIS COMPLETED"
+
+    """
+    return prompt
+
+
+
+
+
 
 def prepare_analysis_data(full_result_path, marker_path, cluster_name):
     # Load the full results and marker files
@@ -2039,12 +2094,6 @@ def get_marker_info(gene_list, marker):
 
     return marker_string
 
-
-
-
-
-import re
-from openai import OpenAI
 
 
 
@@ -2158,7 +2207,7 @@ def iterative_marker_analysis(major_cluster_info, marker, comma_separated_genes,
 
 
 
-def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3-sonnet"):
+def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet"):
     """
     Perform iterative marker analysis using OpenRouter API.
     
@@ -2251,6 +2300,107 @@ def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separ
     except Exception as e:
         print(f"Error in final response: {str(e)}")
         return '', messages
+
+
+
+
+def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet",additional_task="check if this is a cancer cluster"):
+    """
+    Perform iterative marker analysis using OpenRouter API.
+    
+    Args:
+        major_cluster_info (str): Information about the cluster
+        marker (DataFrame): Marker gene expression data
+        comma_separated_genes (str): List of genes as comma-separated string
+        annotation_history (str): Previous annotation history
+        num_iterations (int): Maximum number of iterations
+        model (str): OpenRouter model identifier
+        additional_task (str): Additional task to be performed
+
+    Returns:
+        tuple: (final_response_text, messages)
+    """
+    messages = [{"role": "user", "content": prompt_hypothesis_generator3_additional_task(major_cluster_info, comma_separated_genes, annotation_history,additional_task)}]
+
+    for iteration in range(num_iterations):
+        try:
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                    "HTTP-Referer": "https://localhost:5000",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "temperature": 0,
+                    "max_tokens": 7000,
+                    "messages": messages
+                }
+            )
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                response_data = response.json()
+                conversation = response_data['choices'][0]['message']['content']
+
+                # Check for completion
+                if "FINAL ANALYSIS COMPLETED" in conversation:
+                    print(f"Final annotation completed in iteration {iteration + 1}.")
+                    return conversation, messages
+
+                # Extract gene lists and get marker info
+                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
+                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+                unique_genes = sorted(set(all_genes))
+
+                retrived_marker_info = get_marker_info(unique_genes, marker)
+                
+                # Append messages
+                messages.append({"role": "assistant", "content": conversation})
+                messages.append({"role": "user", "content": retrived_marker_info})
+
+                print(f"Iteration {iteration + 1} completed.")
+            else:
+                print(f"Error: OpenRouter API returned status code {response.status_code}")
+                print(f"Response: {response.text}")
+                return '', messages
+
+        except Exception as e:
+            print(f"Error in iteration {iteration + 1}: {str(e)}")
+            return '', messages
+
+    # Final response if max iterations reached
+    try:
+        final_response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://localhost:5000",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": 0,
+                "max_tokens": 7000,
+                "messages": messages
+            }
+        )
+        
+        if final_response.status_code == 200:
+            final_data = final_response.json()
+            return final_data['choices'][0]['message']['content'], messages
+        else:
+            print(f"Error getting final response: {final_response.status_code}")
+            print(f"Response: {final_response.text}")
+            return '', messages
+            
+    except Exception as e:
+        print(f"Error in final response: {str(e)}")
+        return '', messages
+
+
+
 
 
 
@@ -2615,6 +2765,243 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
         return None
     
 
+def generate_raw_cell_annotation_report_additional_task(conversation_history, output_filename='cell_annotation_report.html'):
+    """
+    Generate and save an HTML report from cell annotation conversation history.
+    
+    Args:
+        conversation_history (list): List of conversation dictionaries
+        output_filename (str): Name of the output HTML file (default: 'cell_annotation_report.html')
+    
+    Returns:
+        str: Path to the saved HTML file
+    """
+    
+    def parse_check_genes(text):
+        """Extract gene lists from check_genes tags"""
+        genes = []
+        pattern = r'<check_genes>(.*?)</check_genes>'
+        matches = re.findall(pattern, text, re.DOTALL)
+        for match in matches:
+            genes.extend([g.strip() for g in match.split(',')])
+        return genes
+    
+    def format_message(text):
+        """Convert plain text formatting to HTML"""
+        # Replace newlines with HTML line breaks
+        text = text.replace('\n', '<br>')
+        # Preserve multiple consecutive newlines
+        text = text.replace('<br><br>', '<br><br>')  # Prevent collapse of multiple newlines
+        return text   
+    
+    def parse_reasoning(text):
+        """Extract reasoning sections"""
+        pattern = r'<reasoning>(.*?)</reasoning>'
+        matches = re.findall(pattern, text, re.DOTALL)
+        return matches
+
+    def format_gene_table(genes_data):
+        """Format gene expression data as HTML table"""
+        if not genes_data:
+            return ""
+        
+        rows = []
+        # Skip the first row by splitting into lines and starting from index 2
+        lines = genes_data.split('\n')[2:]  # Skip first two rows which contain headers
+        
+        for gene in lines:
+            if gene.strip():
+                cells = gene.split()
+                if len(cells) >= 5:
+                    rows.append(f"<tr><td>{'</td><td>'.join(cells)}</td></tr>")
+        
+        if not rows:
+            return ""
+            
+        return f"""
+        <table class="gene-table">
+            <tr>
+                <th>Gene</th>
+                <th>p-val</th>
+                <th>avg_log2FC</th>
+                <th>pct.1</th>
+                <th>pct.2</th>
+                <th>p_val_adj</th>
+            </tr>
+            {''.join(rows)}
+        </table>
+        """
+
+    # Note the double curly braces for CSS
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                color: #333;
+            }}
+            .conversation-block {{
+                margin: 20px 0;
+                padding: 15px;
+                border-radius: 5px;
+            }}
+            .user {{
+                background-color: #f0f7ff;
+                border-left: 5px solid #0066cc;
+            }}
+            .assistant {{
+                background-color: #f5f5f5;
+                border-left: 5px solid #666;
+            }}
+            .gene-list {{
+                background-color: #e6ffe6;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 3px;
+            }}
+            .reasoning {{
+                background-color: #fff3e6;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 3px;
+            }}
+            .gene-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+            }}
+            .gene-table th, .gene-table td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }}
+            .gene-table th {{
+                background-color: #f2f2f2;
+            }}
+            .final-annotation {{
+                background-color: #e6ffe6;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 5px;
+                border-left: 5px solid #00cc00;
+            }}
+            h1, h2, h3 {{
+                color: #444;
+            }}
+            p {{
+                margin: 0.5em 0;
+            }}
+            br {{
+                display: block;
+                margin: 0.5em 0;
+                content: "";
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>Single-Cell Analysis Report</h1>
+        {content}
+    </body>
+    </html>
+    """
+
+    content = []
+    
+    try:
+        for entry in conversation_history:
+            role = entry.get('role', '')
+            message = entry.get('content', '')
+            
+            # Handle different message formats
+            if isinstance(message, list):
+                message = message[0].text if message and hasattr(message[0], 'text') else str(message)
+            elif not isinstance(message, str):
+                message = str(message)
+
+            block_class = 'user' if role == 'user' else 'assistant'
+            
+            # Format the content based on the role
+            if role == 'user' and 'p_val' in message:
+                # This is gene expression data
+                content.append(f"""
+                    <div class="conversation-block {block_class}">
+                        <h3>Gene Expression Data</h3>
+                        {format_gene_table(message)}
+                    </div>
+                """)
+            else:
+                # Regular conversation content
+                formatted_message = format_message(message)  # Apply formatting
+                
+                # Check for final annotation
+                if "FINAL ANALYSIS COMPLETED" in message:
+                    content.append(f"""
+                        <div class="final-annotation">
+                            <h2>Final Annotation</h2>
+                            {formatted_message}
+                        </div>
+                    """)
+                else:
+                    # Process gene lists and reasoning
+                    genes = parse_check_genes(message)
+                    reasoning = parse_reasoning(message)
+                    
+                    if genes or reasoning:
+                        content.append(f"""
+                            <div class="conversation-block {block_class}">
+                                <h3>Analysis Step</h3>
+                                {'<div class="gene-list"><h4>Genes to Check:</h4><ul>' + 
+                                ''.join(f'<li>{gene}</li>' for gene in genes) + '</ul></div>' if genes else ''}
+                                {''.join(f'<div class="reasoning"><h4>Reasoning:</h4><p>{r}</p></div>' 
+                                        for r in reasoning)}
+                            </div>
+                        """)
+                    else:
+                        content.append(f"""
+                            <div class="conversation-block {block_class}">
+                                {formatted_message}
+                            </div>
+                        """)
+
+        # Generate HTML content
+        html_content = html_template.format(content=''.join(content))
+        
+        # Save the HTML file
+        try:
+            with open(output_filename, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            print(f"Report successfully saved as '{output_filename}'")
+        except Exception as e:
+            print(f"Error saving file: {str(e)}")
+            
+        return None
+        
+    except Exception as e:
+        error_html = f"""
+            <div class="conversation-block" style="background-color: #ffe6e6; border-left: 5px solid #cc0000;">
+                <h3>Error Generating Report</h3>
+                <p>An error occurred while generating the report: {str(e)}</p>
+            </div>
+        """
+        html_content = html_template.format(content=error_html)
+        
+        # Still try to save the error report
+        try:
+            with open(output_filename, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            print(f"Error report saved as '{output_filename}'")
+        except Exception as write_error:
+            print(f"Error saving error report: {str(write_error)}")
+            
+        return None
+
 
 
 def report_generator(annotation_history):
@@ -2712,6 +3099,52 @@ Below is my annotation analysis history:
 
 
 
+def report_generator_additional_task(annotation_history):
+
+    prompt=f'''
+I just had a very detailed single-cell analysis of a cluster of cells.It has multiple iterations of analysis. For each iteration,summerzie what it did and extract the hypotehsis, reasoning and conclusion. You better do a good job or 1000 grandma are going to be in danger. Take a deep breath and think step by step.
+
+Below is my annotation analysis history:
+{annotation_history}
+
+
+
+Below is the format of the report:
+
+# Single-Cell RNA-Seq Cluster Analysis Report
+## Previous Analysis Overview
+
+## Analysis Strategy and Decision Points
+
+### Phase 1: summerize what the analysis in the first iteration did
+#### hypothesis
+#### reasoning
+#### conclusion
+
+
+
+### Phase 2: summerize what the analysis in the first iteration did
+#### hypothesis    
+#### reasoning
+#### conclusion
+
+### Phase n: summerize what the analysis in the first iteration did
+#### hypothesis
+#### reasoning
+#### conclusion
+
+## Final conclusion
+   
+## Confidence Level
+
+'''
+
+    return prompt
+
+
+
+
+
 def generate_cell_type_analysis_report(
     full_result_path,
     marker,
@@ -2784,7 +3217,7 @@ def generate_cell_type_analysis_report_openrouter(
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="claude-3-5-sonnet-20241022"
+    model="anthropic/claude-3.5-sonnet"
 ):
     """
     Generate a detailed HTML report for cell type analysis of a specific cluster.
@@ -2839,6 +3272,397 @@ def generate_cell_type_analysis_report_openrouter(
     except Exception as e:
         print(f"Error generating analysis report: {str(e)}")
         raise
+
+
+from pathlib import Path
+import re
+
+
+def convert_markdown_to_html(text):
+    """
+    Converts markdown-like syntax to HTML using regex patterns.
+    """
+    # Replace first h1 title with CASSIA Analysis Report
+    text = re.sub(r'^# .*?$', '# CASSIA Analysis Report', text, count=1, flags=re.MULTILINE)
+    
+    # Convert headers
+    text = re.sub(r'^# (.*?)$', r'<h1><span class="highlight">\1</span></h1>', text, flags=re.MULTILINE)
+    text = re.sub(r'^## (.*?)$', r'<h2><span class="highlight">\1</span></h2>', text, flags=re.MULTILINE)
+    text = re.sub(
+        r'^### Phase (\d+): (.*?)$',
+        r'<h3 class="phase-header phase-\1"><span class="phase-number">Phase \1</span><span class="phase-title">\2</span></h3>',
+        text,
+        flags=re.MULTILINE
+    )
+    text = re.sub(r'^#### (.*?)$', r'<h4><span class="highlight">\1</span></h4>', text, flags=re.MULTILINE)
+    
+    # Convert lists with custom bullets
+    text = re.sub(r'^\- (.*?)$', r'<li class="custom-bullet">\1</li>', text, flags=re.MULTILINE)
+    text = re.sub(r'(<li.*?</li>\n)+', r'<ul class="custom-list">\g<0></ul>', text, flags=re.DOTALL)
+    
+    # Convert numbered lists
+    text = re.sub(r'^\d+\. (.*?)$', r'<li>\1</li>', text, flags=re.MULTILINE)
+    text = re.sub(r'(<li>.*?</li>\n)+', r'<ol class="numbered-list">\g<0></ol>', text, flags=re.DOTALL)
+    
+    # Convert paragraphs
+    text = re.sub(r'\n\n(.*?)\n\n', r'\n<p class="fade-in">\1</p>\n', text, flags=re.DOTALL)
+    
+    # Convert bold text
+    text = re.sub(r'\*\*(.*?)\*\*', r'<strong class="highlight-text">\1</strong>', text)
+    
+    # Convert italic text
+    text = re.sub(r'\*(.*?)\*', r'<em class="emphasis">\1</em>', text)
+    
+    return text
+
+def render_report_to_html(report_content, output_path):
+    """
+    Renders a markdown-like report to a styled HTML file with high-tech aesthetics.
+    """
+    # Generate CSS color pairs for 15 phases
+    color_pairs = []
+    for i in range(15):
+        hue = (i * 137.5) % 360  # Golden angle approximation for better color distribution
+        color_pairs.append(
+            f"--phase-{i+1}-start: hsl({hue}, 70%, 45%);\n"
+            f"--phase-{i+1}-end: hsl({(hue + 20) % 360}, 80%, 60%);"
+        )
+    
+    css = """
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap');
+        
+        :root {
+            """ + "\n            ".join(color_pairs) + """
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 600;
+            line-height: 1.3;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #1e40af;
+            margin-top: 0;
+            text-align: center;
+            padding: 0.5em 0;
+            animation: fadeInDown 0.8s ease-out;
+            font-weight: 800;
+        }
+
+        h1 .highlight {
+            background: linear-gradient(120deg, #1e40af, #3b82f6);
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.3em;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            color: var(--accent);
+        }
+
+        h4 {
+            font-size: 1.2em;
+            color: var(--primary);
+        }
+
+        .highlight {
+            position: relative;
+            z-index: 1;
+        }
+
+        .custom-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .custom-bullet {
+            position: relative;
+            padding-left: 1.5em;
+            margin: 0.5em 0;
+        }
+
+        .custom-bullet::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        .numbered-list {
+            counter-reset: item;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .numbered-list li {
+            counter-increment: item;
+            margin: 0.5em 0;
+            padding-left: 2em;
+            position: relative;
+        }
+
+        .numbered-list li::before {
+            content: counter(item);
+            position: absolute;
+            left: 0;
+            width: 1.5em;
+            height: 1.5em;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+
+        p {
+            margin: 1em 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .highlight-text {
+            background: linear-gradient(120deg, rgba(45, 212, 191, 0.2), rgba(6, 182, 212, 0.2));
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .emphasis {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #f1f5f9;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary);
+            margin: 1.5em 0;
+            padding: 1em;
+            background-color: #f8fafc;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Simple, reliable phase styling */
+        .phase-header {
+            margin: 2em 0 1em;
+            padding: 1em;
+            border-radius: 12px;
+            color: white;
+            animation: slideInPhase 0.8s ease-out forwards;
+        }
+
+        """ + "\n        ".join([
+            f".phase-{i+1} {{" +
+            f"background: linear-gradient(135deg, var(--phase-{i+1}-start), var(--phase-{i+1}-end));" +
+            f"animation-delay: {i * 0.1}s; }}"
+            for i in range(15)
+        ]) + """
+
+        .phase-number {
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-right: 1em;
+            padding: 0.3em 0.8em;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes slideInPhase {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Enhance container animation */
+        .container {
+            opacity: 0;
+            animation: fadeInScale 1s ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+    """
+
+    try:
+        html_content = convert_markdown_to_html(report_content)
+        
+        html_document = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Single-Cell RNA-Seq Analysis Report</title>
+            {css}
+        </head>
+        <body>
+            <div class="container">
+                {html_content}
+            </div>
+        </body>
+        </html>
+        """
+        
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_document)
+            
+        return True, f"Report successfully generated at {output_path}"
+    
+    except Exception as e:
+        return False, f"Error generating report: {str(e)}"
+    
+
+
+
+def runCASSIA_annottaionboost_additional_task(
+    full_result_path,
+    marker,
+    cluster_name,
+    major_cluster_info,
+    output_name,
+    num_iterations=5,
+    model="claude-3-5-sonnet-20241022",
+    additional_task=""
+):
+    """
+    Generate a detailed HTML report for cell type analysis of a specific cluster.
+    
+    Args:
+        full_result_path (str): Path to the full results CSV file
+        marker_path (str): Path to the marker genes CSV file
+        cluster_name (str): Name of the cluster to analyze
+        major_cluster_info (str): General information about the dataset (e.g., "Human PBMC")
+        output_name (str): Name of the output HTML file
+        num_iterations (int): Number of iterations for marker analysis (default=5)
+        model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
+        
+    Returns:
+        tuple: (analysis_result, messages_history)
+            - analysis_result: Final analysis text
+            - messages_history: Complete conversation history
+    """
+    try:
+        # Step 1: Prepare analysis data
+        annotation_history, comma_separated_genes, marker_subset = prepare_analysis_data(
+            full_result_path, 
+            marker, 
+            cluster_name
+        )
+        
+        # Step 2: Perform iterative marker analysis
+        analysis_result = iterative_marker_analysis_openrouter_additional_task(
+            major_cluster_info,
+            marker=marker_subset,
+            comma_separated_genes=comma_separated_genes,
+            annotation_history=annotation_history,
+            num_iterations=num_iterations,
+            model=model,
+            additional_task=additional_task
+        )
+        
+        # Step 3: Add final result to message history
+        messages = analysis_result[1]
+        messages.append({"role": "user", "content": analysis_result[0]})
+        
+        # Step 4: Generate and save HTML report
+        report = openrouter_agent(report_generator_additional_task(messages), model=model)
+        
+        render_report_to_html(report, f"{output_name}_summary_report.html")
+        print(f"Analysis completed successfully. Summary Report saved as {output_name}_summary_report.html")
+ 
+        generate_raw_cell_annotation_report_additional_task(messages, f'{output_name}_raw.html')
+        print(f"Analysis completed successfully. Raw Cell Annotation Report saved as {output_name}_raw.html")
+        return None
+        
+    except Exception as e:
+        print(f"Error generating analysis report: {str(e)}")
+        raise
+
 
 
 
@@ -2904,7 +3728,7 @@ def generate_cell_type_analysis_report_openai(
 
 
 
-def generate_cell_type_analysis_report_wrapper(
+def runCASSIA_annotationboost(
     full_result_path,
     marker,
     cluster_name,
@@ -2970,7 +3794,7 @@ def generate_cell_type_analysis_report_wrapper(
                 model=model
             )
     except Exception as e:
-        print(f"Error in generate_cell_type_analysis_report_wrapper: {str(e)}")
+        print(f"Error in runCASSIA_annotationboost: {str(e)}")
         raise
 
 
@@ -3419,7 +4243,7 @@ def generate_index_page(report_files):
     
     return index_template.format('\n'.join(links))
 
-def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
+def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
     # Read the CSV file
     report = pd.read_csv(csv_path)
     report_files = []
@@ -3457,10 +4281,7 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
 
 
 
-
-
-
-def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
+def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
     # Get API key from environment variable
     OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
     if not OPENROUTER_API_KEY:
@@ -3695,7 +4516,7 @@ def annotate_subclusters(marker, major_cluster_info,model="claude-3-5-sonnet-202
 
 
 
-def extract_subcluster_results_with_llm_multiple_output(analysis_text):
+def extract_subcluster_results_with_llm_multiple_output(analysis_text,provider="anthropic",model="claude-3-5-sonnet-20241022",temperature=0):
     # Define the prompt to instruct the LLM
     prompt = f"""
 You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2), results2(celltype1, celltype2), etc.
@@ -3706,12 +4527,12 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 """
 
     # Use the subcluster_agent_annotate function to get the extraction
-    return subcluster_agent_annotate_subcluster(prompt)
+    return subcluster_agent_annotate_subcluster(prompt,provider=provider,model=model,temperature=temperature)
 
 
 
 
-def extract_subcluster_results_with_llm(analysis_text):
+def extract_subcluster_results_with_llm(analysis_text,provider="anthropic",model="claude-3-5-sonnet-20241022",temperature=0):
     # Define the prompt to instruct the LLM
     prompt = f"""
 You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2,reason), results2(celltype1, celltype2,reason), etc.
@@ -3722,7 +4543,7 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 """
 
     # Use the subcluster_agent_annotate function to get the extraction
-    return subcluster_agent_annotate_subcluster(prompt)
+    return subcluster_agent_annotate_subcluster(prompt,provider=provider,model=model,temperature=temperature)
 
 
 
@@ -3756,7 +4577,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 
-def process_subclusters(marker, major_cluster_info, output_name, 
+def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
                        model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
     """
     Process subclusters from a CSV file and generate annotated results
@@ -3774,7 +4595,7 @@ def process_subclusters(marker, major_cluster_info, output_name,
 
     prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=n_genes)
     output_text = subcluster_agent_annotate_subcluster(prompt,model=model,temperature=temperature,provider=provider)
-    results = extract_subcluster_results_with_llm(output_text)
+    results = extract_subcluster_results_with_llm(output_text,provider=provider,model=model,temperature=temperature)
     print(results)
     write_results_to_csv(results, output_name)
     
@@ -3782,7 +4603,7 @@ def process_subclusters(marker, major_cluster_info, output_name,
 
 
 
-def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_output_name, 
+def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
                                          model="claude-3-5-sonnet-20241022", temperature=0, 
                                          provider="anthropic", max_workers=5,n_genes=50):       
     def run_single_analysis(i):
@@ -3791,7 +4612,7 @@ def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_o
                                          model=model, temperature=temperature, provider=provider,n_genes=n_genes)
         
         # Extract results
-        results = extract_subcluster_results_with_llm_multiple_output(output_text)
+        results = extract_subcluster_results_with_llm_multiple_output(output_text,provider=provider,model=model,temperature=temperature)
         
         # Use regex to extract the results
         pattern = r"results(\d+)\(([^,]+),\s*([^)]+)\)"
@@ -3825,8 +4646,7 @@ def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_o
 
 
 
-
-def run_cell_analysis_pipeline(
+def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
     species: str,
@@ -3866,7 +4686,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
-    run_cell_type_analysis_batchrun(
+    runCASSIA_batch(
         marker=marker_path,
         output_name=output_file_name,
         model=annotation_model,
@@ -3879,7 +4699,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting scoring process ===")
     # Run scoring
-    run_scoring_with_progress(
+    runCASSIA_score_batch(
         input_file=output_file_name + "_full.csv",
         output_file=score_file_name,
         max_workers=max_workers,
@@ -3890,7 +4710,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Generating main reports ===")
     # Process reports
-    process_all_reports(
+    runCASSIA_generate_score_report(
         csv_path=score_file_name,
         index_name=report_name
     )
@@ -3907,7 +4727,7 @@ def run_cell_analysis_pipeline(
     # Process each low-scoring cluster
     for i, cluster in enumerate(low_score_clusters, 1):
         print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
-        generate_cell_type_analysis_report_wrapper(
+        runCASSIA_annotationboost(
             full_result_path=output_file_name + "_full.csv",
             marker=marker_path,
             cluster_name=cluster,
@@ -3920,3 +4740,48 @@ def run_cell_analysis_pipeline(
         print(f"✓ Completed analysis for cluster: {cluster}")
 
     print("\n=== Pipeline completed successfully ===")
+
+
+
+def loadmarker(marker_type="processed"):
+    """
+    Load built-in marker files.
+    
+    Args:
+        marker_type (str): Type of markers to load. Options:
+            - "processed": For processed marker data
+            - "unprocessed": For raw unprocessed marker data
+            - "subcluster_results": For subcluster analysis results
+    
+    Returns:
+        pandas.DataFrame: Marker data
+    
+    Raises:
+        ValueError: If marker_type is not recognized
+    """
+    marker_files = {
+        "processed": "processed.csv",
+        "unprocessed": "unprocessed.csv",
+        "subcluster_results": "subcluster_results.csv"
+    }
+    
+    if marker_type not in marker_files:
+        raise ValueError(f"Unknown marker type: {marker_type}. Available types: {list(marker_files.keys())}")
+    
+    filename = marker_files[marker_type]
+    
+    try:
+        # Using importlib.resources for Python 3.7+
+        with resources.path('CASSIA.data', filename) as file_path:
+            return pd.read_csv(file_path)
+    except Exception as e:
+        raise Exception(f"Error loading marker file: {str(e)}")
+
+def list_available_markers():
+    """List all available built-in marker sets."""
+    try:
+        with resources.path('CASSIA.data', '') as data_path:
+            marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+        return [f.replace('.csv', '') for f in marker_files]
+    except Exception as e:
+        raise Exception(f"Error listing marker files: {str(e)}")

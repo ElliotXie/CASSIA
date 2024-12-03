@@ -2,8 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name="CASSIA",
-    version="0.1.6",
+    version="0.1.8",
     packages=find_packages(),
+    package_data={
+        'CASSIA': ['data/*.csv'],  # Include all CSV files in data directory
+    },
+    include_package_data=True,  # This tells setuptools to include package_data
     install_requires=[
         "numpy",
         "pandas",

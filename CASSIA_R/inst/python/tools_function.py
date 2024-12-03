@@ -4395,7 +4395,6 @@ def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list
 ####subclustering
 
 
-
 def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperature=0):
     """
     Send a message to OpenRouter API and get the response.
@@ -4518,7 +4517,7 @@ def annotate_subclusters(marker, major_cluster_info,model="claude-3-5-sonnet-202
 
 
 
-def extract_subcluster_results_with_llm_multiple_output(analysis_text):
+def extract_subcluster_results_with_llm_multiple_output(analysis_text,provider="anthropic",model="claude-3-5-sonnet-20241022",temperature=0):
     # Define the prompt to instruct the LLM
     prompt = f"""
 You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2), results2(celltype1, celltype2), etc.
@@ -4529,12 +4528,12 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 """
 
     # Use the subcluster_agent_annotate function to get the extraction
-    return subcluster_agent_annotate_subcluster(prompt)
+    return subcluster_agent_annotate_subcluster(prompt,provider=provider,model=model,temperature=temperature)
 
 
 
 
-def extract_subcluster_results_with_llm(analysis_text):
+def extract_subcluster_results_with_llm(analysis_text,provider="anthropic",model="claude-3-5-sonnet-20241022",temperature=0):
     # Define the prompt to instruct the LLM
     prompt = f"""
 You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2,reason), results2(celltype1, celltype2,reason), etc.
@@ -4545,7 +4544,7 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 """
 
     # Use the subcluster_agent_annotate function to get the extraction
-    return subcluster_agent_annotate_subcluster(prompt)
+    return subcluster_agent_annotate_subcluster(prompt,provider=provider,model=model,temperature=temperature)
 
 
 
@@ -4579,7 +4578,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 
-def process_subclusters(marker, major_cluster_info, output_name, 
+def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
                        model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
     """
     Process subclusters from a CSV file and generate annotated results
@@ -4597,7 +4596,7 @@ def process_subclusters(marker, major_cluster_info, output_name,
 
     prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=n_genes)
     output_text = subcluster_agent_annotate_subcluster(prompt,model=model,temperature=temperature,provider=provider)
-    results = extract_subcluster_results_with_llm(output_text)
+    results = extract_subcluster_results_with_llm(output_text,provider=provider,model=model,temperature=temperature)
     print(results)
     write_results_to_csv(results, output_name)
     
@@ -4605,7 +4604,7 @@ def process_subclusters(marker, major_cluster_info, output_name,
 
 
 
-def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_output_name, 
+def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
                                          model="claude-3-5-sonnet-20241022", temperature=0, 
                                          provider="anthropic", max_workers=5,n_genes=50):       
     def run_single_analysis(i):
@@ -4614,7 +4613,7 @@ def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_o
                                          model=model, temperature=temperature, provider=provider,n_genes=n_genes)
         
         # Extract results
-        results = extract_subcluster_results_with_llm_multiple_output(output_text)
+        results = extract_subcluster_results_with_llm_multiple_output(output_text,provider=provider,model=model,temperature=temperature)
         
         # Use regex to extract the results
         pattern = r"results(\d+)\(([^,]+),\s*([^)]+)\)"
@@ -4643,6 +4642,7 @@ def run_analysis_multiple_times_subcluster(n, marker, major_cluster_info, base_o
                 print(f"Results for iteration {i+1} have been written to {result_file}")
             except Exception as exc:
                 print(f"Iteration {i+1} generated an exception: {exc}")
+
 
 
 
