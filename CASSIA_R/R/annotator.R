@@ -40,7 +40,8 @@ py_determinator <- NULL  # Add this line
 #' @return Invisible NULL. Called for side effects.
 #' @export
 setup_cassia_env <- function(conda_env = NULL, python_version = "3.10", 
-                           pip_packages = c("openai", "pandas", "numpy", "scikit-learn", "requests","anthropic")) {
+                           pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
+                                          "requests", "anthropic", "charset-normalizer")) {
   if (is.null(conda_env)) {
     conda_env <- getOption("CASSIA.conda_env", default = "cassia_env")
   }

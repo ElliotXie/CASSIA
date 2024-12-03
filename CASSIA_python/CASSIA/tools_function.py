@@ -4742,7 +4742,6 @@ def runCASSIA_pipeline(
     print("\n=== Pipeline completed successfully ===")
 
 
-
 def loadmarker(marker_type="processed"):
     """
     Load built-in marker files.

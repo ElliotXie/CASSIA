@@ -31,6 +31,17 @@ loadExampleMarkers <- function(processed = FALSE) {
 }
 
 
-loadExampleMarkers_subcluster <- function(){
-  return(read.csv(system.file("extdata","subcluster_results.csv",package = "CASSIA")))
+#' Load Example Subcluster Results
+#'
+#' This function loads example subcluster results data that can be used to test CASSIA's
+#' functionality.
+#'
+#' @return A data frame containing subcluster results
+#' @export
+#'
+#' @examples
+#' subcluster_data <- loadExampleMarkers_subcluster()
+#' head(subcluster_data)
+loadExampleMarkers_subcluster <- function() {
+  return(read.csv(system.file("extdata", "subcluster_results.csv", package = "CASSIA")))
 }
