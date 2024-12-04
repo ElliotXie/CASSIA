@@ -33,16 +33,8 @@ remotes::install_url("https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source
 
 ### Set Up API Keys
 
-- **API Provider Guides:**
-	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
-	- [How to get an Anthropic api key](https://console.anthropic.com/settings/keys)
-	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
-    - [OpenAI API Documentation](https://beta.openai.com/docs/)
-    - [Anthropic API Documentation](https://docs.anthropic.com/)
-    - [OpenRouter API documentatioon](https://openrouter.ai/docs/quick-start)
-
-
 We recommend starting with OpenRouter since it provides access to most models through a single API key. While slightly more expensive and occasionally unstable, it offers greater convenience. For production use, direct access via OpenAI or Anthropic provides better stability.
+
 ```R
 # For OpenAI
 setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
@@ -53,6 +45,15 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 # For OpenRouter
 setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 ```
+
+- **API Provider Guides:**
+	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
+	- [How to get an Anthropic api key](https://console.anthropic.com/settings/keys)
+	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
+    - [OpenAI API Documentation](https://beta.openai.com/docs/)
+    - [Anthropic API Documentation](https://docs.anthropic.com/)
+    - [OpenRouter API documentatioon](https://openrouter.ai/docs/quick-start)
+
 
 ## Example Data
 
