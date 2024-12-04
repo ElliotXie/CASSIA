@@ -47,7 +47,7 @@ setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 ```
 
 
-**API Provider Guides:**
+- **API Provider Guides:**
 	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
 	- [How to get an Anthropic api key](https://console.anthropic.com/settings/keys)
 	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
