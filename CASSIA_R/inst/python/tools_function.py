@@ -1874,7 +1874,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
             print(f"Initially failed rows: {len(failed_rows)}")
             print(f"Successfully retried: {sum(1 for idx, _ in failed_rows if pd.notna(results.loc[idx, 'Score']))}")
         
-        return results
+        return None
         
     except Exception as e:
         print(f"Error in run_scoring_with_progress: {str(e)}")
