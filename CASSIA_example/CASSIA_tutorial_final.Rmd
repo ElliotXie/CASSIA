@@ -5,7 +5,7 @@ output: html_notebook
 
 # CASSIA Analysis Tutorial
 
-This R Notebook demonstrates a complete workflow using CASSIA for cell type annotation of single-cell RNA sequencing data. We'll analyze an intestinal cell dataset containing six distinct populations:
+This R Notebook demonstrates a complete workflow using CASSIA for cell type annotation of single-cell RNA sequencing data. We'll analyze a large intestine dataset containing six distinct cell populations from Tabula Sapiens.
 
 1.monocyte
 2.plasma cells
