@@ -47,6 +47,8 @@ setup_cassia_env(conda_env = "cassia_env")
 
 We recommend setting up APIs for anthropic and openrouter to use this tutorial
 
+**Important:** At least one valid API key must be configured for CASSIA to function.
+
 ```{r}
 
 # Set up API keys (replace with your actual keys)
@@ -93,7 +95,25 @@ fast_results <- runCASSIA_pipeline(
 
 ```
 
+```{r}
 
+# # Run the CASSIA pipeline in fast mode
+# fast_results <- runCASSIA_pipeline(
+#     output_file_name = "FastAnalysisResults6",
+#     tissue = "large intestine",
+#     species = "human",
+#     marker = markers_unprocessed,
+#     max_workers = 6,  # Matches the number of clusters in dataset
+#     annotation_model = "gpt-4o",
+#     annotation_provider = "openai",
+#     score_model = "claude-3-5-sonnet-20241022",
+#     score_provider = "anthropic",
+#     score_threshold = 76,
+#     annotationboost_model="anthropic/claude-3.5-sonnet",
+#     annotationboost_provider="openrouter"
+# )
+
+```
 
 ### Step 2: Detailed Batch Analysis
 
