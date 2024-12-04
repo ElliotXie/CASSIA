@@ -309,7 +309,6 @@ This agent can be used to study subclustered population, such as a T cell popula
 # cd8_markers=cd8_markers %>% filter(p_val_adj<0.05)
 # write.csv(cd8_markers, "cd8_subcluster_markers.csv")
 
-marker_sub=read.csv("C:/Users/ellio/OneDrive - UW-Madison/cellgpt_final_folder/Test_results/Elliot/GTEX/final_testing/final_code_for_r_package/inst/extdata/subcluster_results.csv")
 
 marker_sub=loadExampleMarkers_subcluster()
 
