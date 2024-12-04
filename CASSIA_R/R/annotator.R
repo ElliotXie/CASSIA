@@ -781,7 +781,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name, 
                                model = "claude-3-5-sonnet-20241022", temperature = 0, 
                                provider = "anthropic", n_genes = 50L) {
-  py_tools$process_subclusters(
+  py_tools$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
     output_name = output_name,
@@ -808,7 +808,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name, 
                                                model = "claude-3-5-sonnet-20241022", temperature = 0, 
                                                provider = "anthropic", max_workers = 5,n_genes=50L) {
-  py_tools$run_analysis_multiple_times_subcluster(
+  py_tools$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
     major_cluster_info = major_cluster_info,
