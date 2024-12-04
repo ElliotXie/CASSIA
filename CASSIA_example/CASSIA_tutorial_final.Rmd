@@ -278,7 +278,10 @@ marker="IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, 
 ### Optional Step: Subclustering
 
 
-This agent can be used to study subclustered population, such as a T cell population or a Fibroblast cluster. We recommend to apply the default cassia first, and on a target cluster, apply Seurat pipeline to subcluster the cluster and get the findallmarke results to be used here. Here we present the results for the cd8-positive, alpha-beta t cell cluster as example. This cluster is a cd8 population mixed with other celltypes.
+This agent can be used to study subclustered population, such as a T cell population or a Fibroblast cluster. We recommend to apply the default cassia first, and on a target cluster, apply Seurat pipeline to subcluster the cluster and get the findallmarke results to be used here. 
+
+
+Here we present the results for the CD8-positive, alpha-beta T cell cluster analyzed previously as an example. This cluster is a CD8 population mixed with other non-CD8 T cell types.
 
 ```{r}
 
