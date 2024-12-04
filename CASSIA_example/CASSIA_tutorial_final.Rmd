@@ -24,9 +24,9 @@ First, let's install and load the required packages:
 
 # Install required packages if not already installed
 install.packages("reticulate")
-install.packages("CASSIA_0.1.0.tar.gz", repos = NULL, type = "source")
-
-
+install.packages("devtools")
+library(devtools)
+devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 
 # Load libraries
