@@ -321,6 +321,17 @@ runCASSIA_subclusters(marker = marker_sub,
     model = "anthropic/claude-3.5-sonnet",
     provider = "openrouter")
 
+
+
+#To better capture the mixed signal, specify the major_cluster_info as "cd8 t cell mixed with other celltypes" instead
+
+
+runCASSIA_subclusters(marker = marker_sub,
+    major_cluster_info = "cd8 t cell mixed with other celltypes",
+    output_name = "subclustering_results2",
+    model = "anthropic/claude-3.5-sonnet",
+    provider = "openrouter")
+
 ```
 
 
