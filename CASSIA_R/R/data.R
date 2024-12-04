@@ -43,5 +43,11 @@ loadExampleMarkers <- function(processed = FALSE) {
 #' subcluster_data <- loadExampleMarkers_subcluster()
 #' head(subcluster_data)
 loadExampleMarkers_subcluster <- function() {
-  return(read.csv(system.file("extdata", "subcluster_results.csv", package = "CASSIA")))
+  file_path <- system.file("extdata", "subcluster_results.csv", package = "CASSIA")
+  
+  if (file_path == "") {
+    stop("Example data files not found. Please ensure CASSIA is properly installed.")
+  }
+  
+  return(read.csv(file_path))
 }
