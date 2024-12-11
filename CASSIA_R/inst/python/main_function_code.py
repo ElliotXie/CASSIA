@@ -6,7 +6,7 @@ import anthropic
 import requests
 
 def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info):
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"),timeout=500.0, max_retries=3)
 
     class Agent:
         def __init__(self, system="", human_input_mode="never", model="gpt-4o", temperature=0):
