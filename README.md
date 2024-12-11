@@ -35,6 +35,8 @@ remotes::install_url("https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source
 
 We recommend starting with OpenRouter since it provides access to most models through a single API key. While slightly more expensive and occasionally unstable, it offers greater convenience. For production use, direct access via OpenAI or Anthropic provides better stability.
 
+Note that in certain countries, OpenAI and Anthropic may be banned. In these cases, users can use OpenRouter instead.
+
 ```R
 # For OpenAI
 setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
