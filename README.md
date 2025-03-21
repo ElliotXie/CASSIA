@@ -134,5 +134,13 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 - Backup data before overwriting files
 - Double-check file paths and permissions
 
+## 🛠️ To-Do List
+
+- [ ] Better integration with Seurat directly  
+- [ ] Integration with Clustering Pipeline  
+- [ ] Marker selection process optimization  
+- [ ] More robust workflow with auto-retry mechanisms  
+- [ ] Improved output file management
+
 Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
 [CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
