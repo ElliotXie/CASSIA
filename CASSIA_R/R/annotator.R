@@ -769,12 +769,13 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
 
 #' Process Subclusters
 #'
-#' @param csv_file_path Path to input CSV file containing marker data
+#' @param marker Marker data (data frame or file path)
 #' @param major_cluster_info Description of the major cluster type
-#' @param output_path Path where results CSV should be saved
+#' @param output_name Base name for the output file (will add .csv if not present)
 #' @param model Model name for Claude API (default: "claude-3-5-sonnet-20241022")
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
+#' @param n_genes Number of top genes to use (default: 50)
 #'
 #' @return None. This function processes subclusters and saves results to a CSV file.
 #' @export
@@ -795,13 +796,14 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' Run Analysis Multiple Times for Subclusters
 #'
 #' @param n Number of times to run the analysis
-#' @param csv_file_path Path to input CSV file containing marker data
+#' @param marker Marker data (data frame or file path)
 #' @param major_cluster_info Description of the major cluster type
 #' @param base_output_name Base name for output CSV files
 #' @param model Model name for Claude API (default: "claude-3-5-sonnet-20241022")
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
 #' @param max_workers Maximum number of workers for parallel processing (default: 5)
+#' @param n_genes Number of top genes to use (default: 50)
 #'
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
 #' @export
