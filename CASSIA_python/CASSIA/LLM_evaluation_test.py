@@ -13,8 +13,6 @@ import time
 import base64
 from io import BytesIO
 
-
-os.environ["OPENROUTER_API_KEY"] = "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"
 def test_simulated_data():
     print("\n--- Simulated Data Generation Test ---")
     df = generate_simulated_data(5)
@@ -186,10 +184,11 @@ def generate_html_report(result_df, gold_col, pred_col, score_col="evaluation_sc
         f.write(html)
     print(f"HTML report saved to {html_report_path}")
 
-def test_external_dataset(file_path, gold_col, pred_col, tissue_col=None, species_col=None, save_path=None, visualize=False, n=1, max_workers=4, html_report_path=None, retry_zero_score=1, model="deepseek/deepseek-chat-v3-0324"):
+def test_external_dataset(file_path, gold_col, pred_col, tissue_col=None, species_col=None, save_path=None, visualize=False, n=1, max_workers=4, html_report_path=None, retry_zero_score=1, model="deepseek/deepseek-chat-v3-0324", cassia_format=False):
     """
     Evaluate an external dataset using the LLM evaluator. After the main evaluation, any rows with score 0 will be retried up to 'retry_zero_score' times (default 1). If a retry yields a score > 0, the score and explanation are updated.
     The LLM model can be selected with the 'model' parameter.
+    If cassia_format is True, automatically create a predicted celltype column by splitting the pred_col entries on commas and use that as the prediction column.
     """
     print("\n--- External Dataset Batch Evaluation ---")
     if not os.path.isfile(file_path):
@@ -201,7 +200,18 @@ def test_external_dataset(file_path, gold_col, pred_col, tissue_col=None, specie
         print("[SKIP] No OpenRouter API key found. Skipping real LLM call.")
         return
 
-    df = pd.read_csv(file_path)
+    if file_path.endswith('.xlsx'):
+        df = pd.read_excel(file_path)
+    else:
+        df = pd.read_csv(file_path)
+
+    # If cassia_format, create a new prediction column from pred_col
+    if cassia_format:
+        new_pred_col = pred_col + "_processed"
+        df[new_pred_col] = df[pred_col].astype(str).apply(lambda x: x.split(",")[0].strip() if "," in x else x.strip())
+        pred_col = new_pred_col
+        print(f"[INFO] Cassia format detected. Using '{pred_col}' as the prediction column.")
+
     evaluator = LLMEvaluator(api_key=api_key, model=model)
 
     results = []
@@ -295,6 +305,8 @@ def test_external_dataset(file_path, gold_col, pred_col, tissue_col=None, specie
         metrics = calculate_evaluation_metrics(result_df, score_col="evaluation_score")
         generate_html_report(result_df, gold_col, pred_col, score_col="evaluation_score", metrics=metrics, html_report_path=html_report_path)
 
+os.environ["OPENROUTER_API_KEY"] = "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"
+
 def main():
     #test_simulated_data()
     #test_single_evaluation()
@@ -302,17 +314,18 @@ def main():
     #test_metrics()
     # Example usage in main (commented out):
     test_external_dataset(
-        file_path="C:/Users/ellio/Downloads/mode_evaluation.xlsx - Llama3.2.csv",
+        file_path="C:/Users/ellio/OneDrive - UW-Madison/dailyimprove/CASSIA/CASSIA_example/Benchmark/claude3.5.xlsx",
         gold_col="True Cell Type",
-        pred_col="Predicted",
+        pred_col="Predicted Sub Cell Types",
         tissue_col="Tissue",
         species_col="Species",
-        save_path="results_tested14.csv",
+        save_path="C:/Users/ellio/OneDrive - UW-Madison/dailyimprove/CASSIA/CASSIA_example/Benchmark/evaluation/claude3.5.csv",
         visualize=True,
         n=3,                # or n=5, n=10, etc.
         max_workers=6,       # number of parallel workers
-        html_report_path="report14.html",
-        model="deepseek/deepseek-chat-v3-0324"
+        html_report_path="C:/Users/ellio/OneDrive - UW-Madison/dailyimprove/CASSIA/CASSIA_example/Benchmark/evaluation/claude3.5.html",
+        model="deepseek/deepseek-chat-v3-0324",
+        cassia_format=True
     )
 
 if __name__ == "__main__":

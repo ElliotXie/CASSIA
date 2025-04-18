@@ -112,7 +112,7 @@ You will be given a set of predicted cell types and their corresponding gold sta
 Evaluate how accurate and specific each prediction is compared to its gold standard, considering cell ontology relationships.
 
 For each pair, score the prediction on a scale of 0-5 where:
-- 5: 100% exact match to the gold standard
+- 5: 100% exact match to the gold standard，or if the predicted cell type is a more specific subtype of the gold standard.
 - 4: General cell type is correct AND subtype is mostly correct but missing subtle details (e.g., activation state, exhaustion status, or minor variations like vascular endothelial cell vs. lymphatic endothelial cell)
 - 3: The general cell type is correct, but the predicted subtype does not exactly match the gold standard. However, the prediction is still closely related in the cell ontology.
 For example, the prediction is a differentiated cell type while the gold standard is an undifferentiated or progenitor cell type (e.g., “muscle cell progenitor cell” vs. “muscle cell”).
@@ -132,8 +132,8 @@ Your response must include:
 
 Additional Note:
 
-If the predicted cell type is a more specific subtype of the gold standard, assign a score of 4.
-Example: If the gold standard is "epithelial cell" and the prediction is "basal cell," assign a score of 4 and explain that "basal cell" is a specific subtype of "epithelial cell."
+If the predicted cell type is a more specific subtype of the gold standard, assign a score of 5.
+Example: If the gold standard is "epithelial cell" and the prediction is "basal cell," assign a score of 5 and explain that "basal cell" is a specific subtype of "epithelial cell."
 
 If the gold standard is a broad or feature-based label (such as "proliferating cell"), and the prediction is a cell type commonly known to exhibit that feature (for example, "keratinocyte" is known to proliferate), assign a score of 4.
 
