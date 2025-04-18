@@ -12,6 +12,13 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 
 🌐 [Try CASSIA Web UI](https://cassiacell.com/) - A web interface for basic CASSIA functionality
 
+## 📰 News
+
+> **2025-04-17**  
+> 🚀 **CASSIA now supports automatic single cell annotation benchmarking!**  
+> The latest update introduces a new function that enables fully automated benchmarking of single cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
+> **A dedicated benchmark website is coming soon—stay tuned!**
+
 ### Installation
 
 Option 1: Install from GitHub
