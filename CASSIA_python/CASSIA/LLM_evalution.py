@@ -3,6 +3,7 @@ import numpy as np
 import json
 import os
 import requests
+import re  # Import regex
 from typing import List, Dict, Union, Tuple, Optional, Any
 
 class LLMEvaluator:
@@ -43,31 +44,31 @@ class LLMEvaluator:
             Tuple[str, str]: System prompt and user prompt
         """
         
-        system_prompt = """You are an expert cell biologist tasked with evaluating the accuracy of cell type annotations.
-You will be given a predicted cell type and a gold standard (correct) cell type annotation.
-Evaluate how accurate and specific the prediction is compared to the gold standard, considering cell ontology relationships.
+        system_prompt = """You are an expert cell biologist tasked with evaluating the accuracy of cell type annotations. You will be given a set of predicted cell types and their corresponding gold standard (correct) annotations.
+Evaluate how accurate and specific each prediction is compared to its gold standard, considering cell ontology relationships.
 
-Score the prediction on a scale of 0-5 where:
-- 5: 100% exact match to the gold standard
-- 4: General cell type is correct AND subtype is mostly correct but missing subtle details (e.g., activation state, exhaustion status, or minor variations like vascular endothelial cell vs. lymphatic endothelial cell)
-- 3: General cell type is correct but subtype is not quite right, though still close on the ontology tree (e.g., macrophage vs. dendritic cell - both are myeloid cells)
-- 2: Only the general cell type is correct but the subtype is very far in the ontology tree (e.g., T cell vs. myeloid cell - both are immune cells but far apart)
-- 1: Incorrect general cell type, but prediction is somewhat related to the actual cell type in the broader classification
+For each cell type, there is a natural hierarchy: every specific (sub)cell type belongs to a broader general cell type category. The general cell type represents the broader classification (e.g., "epithelial cell"), while the subcell type refers to the more specific identity. for example, if the predicted cell type is "club cell", its general cell type is "epithelial cell. Its subcell type is "club cell".
+
+You will be tip 10000$ if you did a good job, or 100 grandma are going to die.
+
+For each pair, score the prediction on a scale of 0-5 where:
+- 5: 100% exact match to the gold standard, or if the predicted cell type is more specific than the gold standard, if the predicted cell type has more details than the gold standard. We consider it as extra detail provided, so it is still a 100% match.
+example: if the gold standard is "epithelial cell" and the prediction is "basal cell", assign a score of 5.
+- 4: General cell type is correct AND subtype is mostly correct but missing subtle details (e.g., activation state, exhaustion status, or minor variations like vascular endothelial cell vs. lymphatic endothelial cell).It is either incomplete or not correct subtype information.
+- 3: The general cell type is correct, but the predicted subtype matches partially to the gold standard. However, the prediction is still closely related in the cell ontology.
+For example, the prediction is a differentiated cell type while the gold standard is an undifferentiated or progenitor cell type (e.g., "muscle cell progenitor cell" vs. "muscle cell").
+Another example: the predicted and gold standard cell types are derived from the same ancestor but belong to different lineages (e.g., "dendritic cell" vs. "macrophage"—both derived from monocytes).
+- 2: If the general cell type is correct, then it is at least a 2, it is not higher because of the subtype is very far from the gold standard, two or more than two layers away in the ontology tree. For example, predicted is cd8 t cell but gold standard is monocyte. or predicted is macrophage but gold standard is neutrophil.
+- 1: Incorrect general cell type, means the even the broad cell type is not correct but prediction is somewhat related to the actual cell type in the broader classification
 - 0: Completely irrelevant prediction that makes no sense in relation to the gold standard
 
-Your response must include:
-1. A numeric score (0-5)
-2. A brief explanation of why you assigned this score, specifically referencing the cell ontology relationship
-3. A JSON-formatted result with the format:
-{"score": X, "explanation": "Your explanation here"}
 
-Note that if a predicted cell type is more specific than the gold standard, give it a 4 and point that out in your explanation. For example, if true type is epithelicall cell and predicted is basal cell, that is a 4.
+Additional Note:
 
-Note that when the orginal celltype is not specific, such as proliferating cell  cells, if the predicted celltype such as keratinocyte is a celltype known to be sharing that feature, give it a 4.
-
-Note that if the predicted celltype is functionaly similar to the gold standard consider boost up the score.
+If the gold standard is a broad or feature-based label (such as "proliferating cell"), and the prediction is a cell type commonly known to exhibit that feature (for example, "keratinocyte" is known to proliferate), assign a score of 4. for example predicted celltype NKT cell and gold standard is CD8+ Cytotoxic T cell, assign a score of 4.They are both t cell and share the cytotoxic feature.
 
 
+If the gold standard is a broad or feature-based label (such as "proliferating cell"), and the prediction is a cell type commonly known to exhibit that feature (for example, "keratinocyte" is known to proliferate), assign a score of 4. for example predicted celltype NKT cell and gold standard is CD8+ Cytotoxic T cell, assign a score of 4.They are both t cell and share the cytotoxic feature.
 """
         
         user_prompt = f"""
@@ -107,18 +108,22 @@ Please provide your score (0-5) and explanation, followed by a JSON in the forma
             Tuple[str, str]: System prompt and user prompt
         """
         
-        system_prompt = """You are an expert cell biologist tasked with evaluating the accuracy of cell type annotations.
-You will be given a set of predicted cell types and their corresponding gold standard (correct) annotations.
+        system_prompt = """You are an expert cell biologist tasked with evaluating the accuracy of cell type annotations. You will be given a set of predicted cell types and their corresponding gold standard (correct) annotations.
 Evaluate how accurate and specific each prediction is compared to its gold standard, considering cell ontology relationships.
 
+For each cell type, there is a natural hierarchy: every specific (sub)cell type belongs to a broader general cell type category. The general cell type represents the broader classification (e.g., "epithelial cell"), while the subcell type refers to the more specific identity. for example, if the predicted cell type is "club cell", its general cell type is "epithelial cell. Its subcell type is "club cell".
+
+You will be tip 10000$ if you did a good job, or 100 grandma are going to die.
+
 For each pair, score the prediction on a scale of 0-5 where:
-- 5: 100% exact match to the gold standard，or if the predicted cell type is a more specific subtype of the gold standard.
-- 4: General cell type is correct AND subtype is mostly correct but missing subtle details (e.g., activation state, exhaustion status, or minor variations like vascular endothelial cell vs. lymphatic endothelial cell)
-- 3: The general cell type is correct, but the predicted subtype does not exactly match the gold standard. However, the prediction is still closely related in the cell ontology.
-For example, the prediction is a differentiated cell type while the gold standard is an undifferentiated or progenitor cell type (e.g., “muscle cell progenitor cell” vs. “muscle cell”).
-Another example: the predicted and gold standard cell types are derived from the same ancestor but belong to different lineages (e.g., “dendritic cell” vs. “macrophage”—both derived from monocytes).
-- 2: Only the general cell type is correct but the subtype is very far in the ontology tree. For example, predicted is muscle cell but gold standard is neuron cell.
-- 1: Incorrect general cell type, but prediction is somewhat related to the actual cell type in the broader classification
+- 5: 100% exact match to the gold standard, or if the predicted cell type is more specific than the gold standard, if the predicted cell type has more details than the gold standard. We consider it as extra detail provided, so it is still a 100% match.
+example: if the gold standard is "epithelial cell" and the prediction is "basal cell", assign a score of 5.
+- 4: General cell type is correct AND subtype is mostly correct but missing subtle details (e.g., activation state, exhaustion status, or minor variations like vascular endothelial cell vs. lymphatic endothelial cell).It is either incomplete or not correct subtype information.
+- 3: The general cell type is correct, but the predicted subtype matches partially to the gold standard. However, the prediction is still closely related in the cell ontology.
+For example, the prediction is a differentiated cell type while the gold standard is an undifferentiated or progenitor cell type (e.g., "muscle cell progenitor cell" vs. "muscle cell").
+Another example: the predicted and gold standard cell types are derived from the same ancestor but belong to different lineages (e.g., "dendritic cell" vs. "macrophage"—both derived from monocytes).
+- 2: Only the general cell type is correct but the subtype is very far in the, two or more than two layers away in the ontology tree. For example, predicted is cd8 t cell but gold standard is monocyte. or predicted is macrophage but gold standard is neutrophil.
+- 1: Incorrect general cell type, means the even the broad cell type is not correct but prediction is somewhat related to the actual cell type in the broader classification
 - 0: Completely irrelevant prediction that makes no sense in relation to the gold standard
 
 Your response must include:
@@ -132,17 +137,16 @@ Your response must include:
 
 Additional Note:
 
-If the predicted cell type is a more specific subtype of the gold standard, assign a score of 5.
-Example: If the gold standard is "epithelial cell" and the prediction is "basal cell," assign a score of 5 and explain that "basal cell" is a specific subtype of "epithelial cell."
-
-If the gold standard is a broad or feature-based label (such as "proliferating cell"), and the prediction is a cell type commonly known to exhibit that feature (for example, "keratinocyte" is known to proliferate), assign a score of 4.
+If the gold standard is a broad or feature-based label (such as "proliferating cell"), and the prediction is a cell type commonly known to exhibit that feature (for example, "keratinocyte" is known to proliferate), assign a score of 4. for example predicted celltype NKT cell and gold standard is CD8+ Cytotoxic T cell, assign a score of 4.They are both t cell and share the cytotoxic feature.
 
 """
         
         # Construct the pairs for evaluation
         pairs = []
         for i, (pred, gold) in enumerate(zip(predicted_celltypes, gold_standards)):
-            pairs.append(f"Pair {i+1}:\nPredicted: {pred}\nGold standard: {gold}\n")
+            # Explicitly format the string for clarity
+            pair_string = f"Pair {i+1}:\nPredicted: {pred}\nGold standard: {gold}\n"
+            pairs.append(pair_string)
         
         pairs_text = "\n".join(pairs)
         
@@ -181,7 +185,6 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
         system_prompt, user_prompt = self.get_single_celltype_prompts(
             predicted_celltype, gold_standard, tissue, species
         )
-        
         response = self._call_llm(system_prompt, user_prompt)
         result = self._extract_score_json(response)
         return result
@@ -210,7 +213,6 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
         system_prompt, user_prompt = self.get_multiple_celltypes_prompts(
             predicted_celltypes, gold_standards, tissue, species
         )
-        
         response = self._call_llm(system_prompt, user_prompt)
         result = self._extract_multiple_scores_json(response)
         return result
@@ -225,6 +227,8 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
                                      default_species: str = "human") -> pd.DataFrame:
         """
         Evaluate a batch of predictions from a dataframe.
+        If the prediction and gold columns contain lists (or comma-separated strings), use the multiple celltype prompt.
+        Otherwise, use the single celltype prompt.
         
         Args:
             df (pd.DataFrame): Dataframe containing predictions and gold standards
@@ -238,29 +242,52 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
         Returns:
             pd.DataFrame with original data plus evaluation results
         """
-        
-        # Create copies of the dataframe columns for modification
         result_df = df.copy()
         result_df['evaluation_score'] = None
         result_df['evaluation_explanation'] = None
         
         for idx, row in df.iterrows():
-            # Get tissue and species, using default if not in dataframe
             tissue = row.get(tissue_col, default_tissue) if tissue_col else default_tissue
             species = row.get(species_col, default_species) if species_col else default_species
-            
-            # Evaluate this row
-            eval_result = self.evaluate_single_celltype(
-                predicted_celltype=row[predicted_col],
-                gold_standard=row[gold_col],
-                tissue=tissue,
-                species=species
-            )
-            
-            # Store results
-            result_df.at[idx, 'evaluation_score'] = eval_result.get('score', 0)
-            result_df.at[idx, 'evaluation_explanation'] = eval_result.get('explanation', '')
-        
+            pred_val = row[predicted_col]
+            gold_val = row[gold_col]
+            # Detect if both are lists or comma-separated strings
+            is_multi = False
+            pred_list = None
+            gold_list = None
+            if isinstance(pred_val, list) and isinstance(gold_val, list):
+                is_multi = True
+                pred_list = pred_val
+                gold_list = gold_val
+            elif isinstance(pred_val, str) and isinstance(gold_val, str):
+                if "," in pred_val and "," in gold_val:
+                    pred_list = [p.strip() for p in pred_val.split(",")]
+                    gold_list = [g.strip() for g in gold_val.split(",")]
+                    if len(pred_list) == len(gold_list):
+                        is_multi = True
+            # Use multiple or single evaluation
+            if is_multi:
+                eval_result = self.evaluate_multiple_celltypes(
+                    predicted_celltypes=pred_list,
+                    gold_standards=gold_list,
+                    tissue=tissue,
+                    species=species
+                )
+                # Store mean score and explanations
+                scores = eval_result.get('individual_scores', [])
+                explanations = eval_result.get('explanations', [])
+                mean_score = sum(scores)/len(scores) if scores else 0
+                result_df.at[idx, 'evaluation_score'] = mean_score
+                result_df.at[idx, 'evaluation_explanation'] = '\n'.join(explanations)
+            else:
+                eval_result = self.evaluate_single_celltype(
+                    predicted_celltype=pred_val,
+                    gold_standard=gold_val,
+                    tissue=tissue,
+                    species=species
+                )
+                result_df.at[idx, 'evaluation_score'] = eval_result.get('score', 0)
+                result_df.at[idx, 'evaluation_explanation'] = eval_result.get('explanation', '')
         return result_df
     
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
@@ -391,6 +418,246 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
                 "explanations": []
             }
 
+    # --- NEW 0-100 Similarity Prompts ---
+    def get_single_similarity_prompts(self, 
+                                     predicted_celltype: str, 
+                                     gold_standard: str, 
+                                     tissue: str, 
+                                     species: str) -> Tuple[str, str]:
+        """
+        Generate system and user prompts for evaluating similarity (0-100 scale).
+        """
+        system_prompt = """You are an expert cell biologist. Comprehensively evaluate the similarity between two cell types. Give a score from 0-100. Do a good job and you will be tipped 10000$!
+        
+        Note: if the predicted celltype is more specific than the gold standard, the score should be 90. For example, if the predicted celltype is "CD4+ T cell" and the gold standard is "T cell", the score should be 90. If the the two celltypes share a general celltype, then it should at least be 50. Only give 0 score when the two celltypes are compeletly differnt, means that they are not even from the same general celltype.
+
+response format:
+<reasoning>
+Provide your detailed biological reasoning for the score here. Explain the relationship (or lack thereof) between the two cell types.
+</reasoning>
+<score>
+Provide the numeric similarity score (0-100) here.
+</score>
+"""
+        user_prompt = f"""
+Context:
+- Tissue: {tissue}
+- Species: {species}
+
+Predicted cell type: {predicted_celltype}
+Gold standard annotation: {gold_standard}
+"""
+        return system_prompt, user_prompt
+
+    def get_multiple_similarity_prompts(self, 
+                                       predicted_celltypes: List[str], 
+                                       gold_standards: List[str], 
+                                       tissue: str, 
+                                       species: str) -> Tuple[str, str]:
+        """
+        Generate system and user prompts for evaluating similarity for multiple pairs (0-100 scale).
+        """
+        system_prompt = """You are an expert cell biologist. For each pair of predicted and gold standard cell types provided below, evaluate their similarity.
+
+Provide a similarity score from 0 (completely dissimilar) to 100 (identical or the prediction is a direct, valid subtype of the gold standard) for each pair.
+
+Your response MUST strictly follow this format, repeating the tags for EACH pair:
+<reasoning>
+Reasoning for Pair 1.
+</reasoning>
+<score>
+Score for Pair 1 (0-100).
+</score>
+<reasoning>
+Reasoning for Pair 2.
+</reasoning>
+<score>
+Score for Pair 2 (0-100).
+</score>
+... etc. for all pairs.
+"""
+        # Construct the pairs for evaluation
+        pairs = []
+        for i, (pred, gold) in enumerate(zip(predicted_celltypes, gold_standards)):
+            # Explicitly format the string for clarity
+            pair_string = f"Pair {i+1}:\nPredicted: {pred}\nGold standard: {gold}\n"
+            pairs.append(pair_string)
+        pairs_text = "\n".join(pairs)
+
+        user_prompt = f"""
+Evaluate the similarity for the following cell type annotation pairs:
+
+Context:
+- Tissue: {tissue}
+- Species: {species}
+
+{pairs_text}
+
+For EACH pair, provide your reasoning and score using the specified <reasoning> and <score> tags, repeating the tag pair for each input pair.
+"""
+        return system_prompt, user_prompt
+
+    # --- NEW 0-100 Similarity Evaluation Methods ---
+    def evaluate_single_similarity(self, 
+                                  predicted_celltype: str, 
+                                  gold_standard: str, 
+                                  tissue: str, 
+                                  species: str) -> Dict[str, Any]:
+        """
+        Evaluate similarity for a single pair (0-100 scale).
+        """
+        system_prompt, user_prompt = self.get_single_similarity_prompts(
+            predicted_celltype, gold_standard, tissue, species
+        )
+        print("\n--- SYSTEM PROMPT (Single Similarity) ---\n" + system_prompt + "\n--- END SYSTEM PROMPT ---\n")
+        print("\n--- USER PROMPT (Single Similarity) ---\n" + user_prompt + "\n--- END USER PROMPT ---\n")
+        response = self._call_llm(system_prompt, user_prompt)
+        print(f"\n--- LLM RAW RESPONSE (Single Similarity) ---\n{response}\n--- END RAW RESPONSE ---\n") # Print raw response
+        result = self._extract_similarity_single(response)
+        return result
+
+    def evaluate_multiple_similarity(self, 
+                                    predicted_celltypes: List[str], 
+                                    gold_standards: List[str], 
+                                    tissue: str, 
+                                    species: str) -> Dict[str, Any]:
+        """
+        Evaluate similarity for multiple pairs (0-100 scale).
+        """
+        if len(predicted_celltypes) != len(gold_standards):
+            raise ValueError("Length of predicted_celltypes must match length of gold_standards")
+        
+        system_prompt, user_prompt = self.get_multiple_similarity_prompts(
+            predicted_celltypes, gold_standards, tissue, species
+        )
+        print("\n--- SYSTEM PROMPT (Multiple Similarity) ---\n" + system_prompt + "\n--- END SYSTEM PROMPT ---\n")
+        print("\n--- USER PROMPT (Multiple Similarity) ---\n" + user_prompt + "\n--- END USER PROMPT ---\n")
+        response = self._call_llm(system_prompt, user_prompt)
+        print(f"\n--- LLM RAW RESPONSE (Multiple Similarity) ---\n{response}\n--- END RAW RESPONSE ---\n") # Print raw response
+        result = self._extract_similarity_multiple(response)
+        return result
+
+    # --- NEW Similarity Parsers ---
+    def _extract_similarity_single(self, response: str) -> Dict[str, Any]:
+        """
+        Extract similarity score (0-100) and reasoning using tags.
+        """
+        try:
+            print(f"[DEBUG] Extracting from response of length {len(response)}")
+            
+            # More robust pattern that allows for whitespace and is case-insensitive
+            reasoning_match = re.search(r'<reasoning>\s*(.*?)\s*</reasoning>', response, re.DOTALL | re.IGNORECASE)
+            score_match = re.search(r'<score>\s*(\d+)\s*</score>', response, re.IGNORECASE)
+            
+            if reasoning_match:
+                reasoning = reasoning_match.group(1).strip()
+                print(f"[DEBUG] Found reasoning: {reasoning[:50]}...")
+            else:
+                print("[DEBUG] No reasoning match found")
+                reasoning = "No reasoning provided"
+                
+            score = None
+            if score_match:
+                score_str = score_match.group(1).strip()
+                print(f"[DEBUG] Found score: {score_str}")
+                try:
+                    score = int(score_str)
+                    if not (0 <= score <= 100):
+                        print(f"Warning: Score {score} out of range 0-100.")
+                        # Optionally clamp score
+                        score = max(0, min(100, score)) 
+                except ValueError:
+                    print(f"[DEBUG] Warning: Could not convert score '{score_str}' to integer.")
+                    score = None # Treat non-integer score as None
+            else:
+                print("[DEBUG] No score match found")
+                
+            # Try a more lenient pattern if the strict one failed
+            if score is None:
+                print("[DEBUG] Trying lenient score pattern")
+                lenient_score_match = re.search(r'<score>.*?(\d+).*?</score>', response, re.DOTALL | re.IGNORECASE)
+                if lenient_score_match:
+                    score_str = lenient_score_match.group(1).strip()
+                    print(f"[DEBUG] Found score with lenient pattern: {score_str}")
+                    try:
+                        score = int(score_str)
+                    except ValueError:
+                        print(f"[DEBUG] Warning: Still could not convert score '{score_str}' to integer.")
+
+            result = {
+                "similarity_score": score,
+                "similarity_reasoning": reasoning
+            }
+            print(f"[DEBUG] Final extracted result: {result}")
+            return result
+        except Exception as e:
+            print(f"[DEBUG] Error extracting similarity: {str(e)}")
+            return {
+                "similarity_score": None,
+                "similarity_reasoning": f"Error extracting: {str(e)}"
+            }
+
+    def _extract_similarity_multiple(self, response: str) -> Dict[str, Any]:
+        """
+        Extract multiple similarity scores (0-100) and reasonings using tags.
+        """
+        try:
+            print(f"[DEBUG] Extracting multiple from response of length {len(response)}")
+            
+            # More robust pattern that allows for whitespace and is case-insensitive
+            reasonings = [m.strip() for m in re.findall(r'<reasoning>\s*(.*?)\s*</reasoning>', response, re.DOTALL | re.IGNORECASE)]
+            score_strs = [m.strip() for m in re.findall(r'<score>\s*(\d+)\s*</score>', response, re.IGNORECASE)]
+            
+            print(f"[DEBUG] Found {len(reasonings)} reasoning(s) and {len(score_strs)} score(s)")
+            
+            scores = []
+            if len(reasonings) != len(score_strs):
+                 print(f"[DEBUG] Warning: Mismatch between number of reasonings ({len(reasonings)}) and scores ({len(score_strs)}).")
+                 # Attempt to parse scores anyway, matching by index
+                 
+            for i, score_str in enumerate(score_strs):
+                score = None
+                try:
+                    score = int(score_str)
+                    if not (0 <= score <= 100):
+                         print(f"[DEBUG] Warning: Score {score} at index {i} out of range 0-100.")
+                         # Optionally clamp score
+                         score = max(0, min(100, score))
+                except ValueError:
+                    print(f"[DEBUG] Warning: Could not convert score '{score_str}' at index {i} to integer.")
+                scores.append(score)
+                
+            # If no scores found with strict pattern, try more lenient pattern
+            if not scores:
+                print("[DEBUG] Trying lenient score pattern for multiple scores")
+                lenient_score_strs = [m.strip() for m in re.findall(r'<score>.*?(\d+).*?</score>', response, re.DOTALL | re.IGNORECASE)]
+                print(f"[DEBUG] Found {len(lenient_score_strs)} scores with lenient pattern")
+                
+                for i, score_str in enumerate(lenient_score_strs):
+                    score = None
+                    try:
+                        score = int(score_str)
+                        if not (0 <= score <= 100):
+                            score = max(0, min(100, score))
+                    except ValueError:
+                        print(f"[DEBUG] Warning: Could not convert lenient score '{score_str}' at index {i} to integer.")
+                    scores.append(score)
+                
+            # Pad shorter list if mismatch occurred
+            min_len = min(len(reasonings), len(scores))
+            
+            result = {
+                "similarity_scores": scores[:min_len],  # Return scores up to the minimum length
+                "similarity_reasonings": reasonings[:min_len]  # Return reasonings up to the minimum length
+            }
+            print(f"[DEBUG] Final extracted results: {len(result['similarity_scores'])} scores, first score: {result['similarity_scores'][0] if result['similarity_scores'] else None}")
+            return result
+        except Exception as e:
+            print(f"[DEBUG] Error extracting multiple similarity scores/reasonings: {str(e)}")
+            return {
+                "similarity_scores": [],
+                "similarity_reasonings": []
+            }
 
 # Example functions to generate simulated data for testing
 
@@ -925,12 +1192,14 @@ def calculate_evaluation_metrics(eval_df: pd.DataFrame, score_col: str = 'evalua
     
     Args:
         eval_df (pd.DataFrame): DataFrame with evaluation results
-        score_col (str): Column name for evaluation scores (0-5 scale)
+        score_col (str): Column name for evaluation scores (0-5 or 0-100 scale)
         true_score_col (str, optional): Column name for true scores if available
         
     Returns:
         Dict[str, float]: Dictionary with evaluation metrics
     """
+    max_score = eval_df[score_col].max()
+    is_similarity_scale = max_score > 10
     metrics = {
         'mean_score': eval_df[score_col].mean(),
         'median_score': eval_df[score_col].median(),
@@ -938,14 +1207,16 @@ def calculate_evaluation_metrics(eval_df: pd.DataFrame, score_col: str = 'evalua
         'max_score': eval_df[score_col].max(),
         'std_score': eval_df[score_col].std(),
         'count': len(eval_df),
-        'perfect_ratio': (eval_df[score_col] == 5).mean(),
-        'very_good_ratio': (eval_df[score_col] == 4).mean(),
-        'good_ratio': (eval_df[score_col] == 3).mean(),
-        'partial_ratio': (eval_df[score_col] == 2).mean(),
-        'poor_ratio': (eval_df[score_col] == 1).mean(),
-        'nonsensical_ratio': (eval_df[score_col] == 0).mean(),
     }
-    
+    if not is_similarity_scale:
+        metrics.update({
+            'perfect_ratio': (eval_df[score_col] == 5).mean(),
+            'very_good_ratio': (eval_df[score_col] == 4).mean(),
+            'good_ratio': (eval_df[score_col] == 3).mean(),
+            'partial_ratio': (eval_df[score_col] == 2).mean(),
+            'poor_ratio': (eval_df[score_col] == 1).mean(),
+            'nonsensical_ratio': (eval_df[score_col] == 0).mean(),
+        })
     # If true scores are available, calculate correlation and error metrics
     if true_score_col and true_score_col in eval_df.columns:
         metrics.update({
@@ -953,5 +1224,4 @@ def calculate_evaluation_metrics(eval_df: pd.DataFrame, score_col: str = 'evalua
             'mae': np.abs(eval_df[score_col] - eval_df[true_score_col]).mean(),
             'rmse': np.sqrt(((eval_df[score_col] - eval_df[true_score_col]) ** 2).mean()),
         })
-    
     return metrics
