@@ -12,6 +12,10 @@ CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a P
 - Support for marker gene validation
 - Interactive analysis with step-by-step reasoning
 
+## News
+
+- **[2025-04-17]** CASSIA has added a new agent that enables automatic single cell annotation benchmarking. Now, you can evaluate annotation results automatically using LLMs with performance on par with human experts. A benchmark website is coming soon!
+
 ## Installation
 
 
