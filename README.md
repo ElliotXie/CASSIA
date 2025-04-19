@@ -14,7 +14,6 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 
 ## 📰 News
 
-<small>
 > **2025-04-19**  
 > 🔄 **CASSIA adds retry mechanism and optimized report storage!**  
 > The latest update introduces an automatic retry mechanism for failed tasks and optimizes how reports are stored for easier access and management.  
@@ -24,7 +23,6 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 > 🚀 **CASSIA now supports automatic single cell annotation benchmarking!**  
 > The latest update introduces a new function that enables fully automated benchmarking of single cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
 > **A dedicated benchmark website is coming soon—stay tuned!**
-</small>
 
 ### 🏗️ Installation
 
