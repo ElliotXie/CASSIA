@@ -1,4 +1,4 @@
-# CASSIA <img src="CASSIA_python/logo2.png" align="right" width="150" />
+# CASSIA <img src="CASSIA_python/logo2.png" align="right" width="150" style="vertical-align: middle;" />
 
 CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
@@ -19,7 +19,7 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 > The latest update introduces a new function that enables fully automated benchmarking of single cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
 > **A dedicated benchmark website is coming soon—stay tuned!**
 
-### Installation
+### 🛠️ Installation
 
 Option 1: Install from GitHub
 ```R
@@ -65,7 +65,7 @@ setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
     - [OpenRouter API documentatioon](https://openrouter.ai/docs/quick-start)
 
 
-## Example Data
+## 📊 Example Data
 
 CASSIA includes example marker data in two formats:
 ```R
@@ -74,7 +74,7 @@ markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Direct Seurat ou
 markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 ```
 
-## Pipeline Usage
+## 🚀 Pipeline Usage
 
 ```R
 runCASSIA_pipeline(
@@ -94,7 +94,7 @@ runCASSIA_pipeline(
 )
 ```
 
-## Supported Models
+## 🤖 Supported Models
 
 ### OpenAI (Most Common)
 - `gpt-4o` (recommended): Balanced performance and cost
@@ -109,7 +109,7 @@ runCASSIA_pipeline(
 - `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4o
 - `meta-llama/llama-3.2-90b-vision-instruct`: Cost-effective open-source option
 
-## Output
+## 📤 Output
 
 The pipeline generates four key files:
 1. Initial annotation results
@@ -117,38 +117,7 @@ The pipeline generates four key files:
 3. Summary report
 4. Annotation boost report
 
-## Troubleshooting
+## 🧩 Troubleshooting
 
 ### Authentication (Error 401)
-```R
-# Check if API key is set correctly
-key <- Sys.getenv("ANTHROPIC_API_KEY")
-print(key)  # Should not be empty
-
-# Reset API key if needed
-setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 ```
-
-### File Errors
-- Use absolute paths when necessary
-- Check file permissions
-- Ensure files aren't open in other programs
-- Verify sufficient disk space
-
-### Best Practices
-- Keep API keys secure
-- Maintain sufficient API credits
-- Backup data before overwriting files
-- Double-check file paths and permissions
-
-## 🛠️ To-Do List
-
-- [ ] Better integration with Seurat directly  
-- [ ] Integration with Clustering Pipeline  
-- [ ] Marker selection process optimization  
-- [ ] More robust workflow with auto-retry mechanisms  
-- [ ] Improved output file management
-- [x] Automatic benchmarking
-
-Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
