@@ -102,9 +102,7 @@ runCASSIA_pipeline(
 
 ## 🤖 Supported Models
 
-You can select the model you want to use for annotation and scoring. Some classic models are listed below.Most of the current popular models are supported by OpenRouter, though they have not been extensively benchmarked in the CASSIA paper. Feel free to experiment with them for your own use cases.
-
-If you want to use newer models published by OpenAI or Anthropic (Claude), simply change the model name in your configuration to the desired model. CASSIA is designed to be flexible and will work with any supported model as long as you provide the correct model name and provider.
+You can choose any model for annotation and scoring. Some classic models are listed below. Most current popular models are supported by OpenRouter, though they have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.
 
 ### OpenAI (Most Common)
 - `gpt-4o` (recommended): Balanced performance and cost
