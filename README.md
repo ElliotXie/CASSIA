@@ -102,18 +102,23 @@ runCASSIA_pipeline(
 
 ## 🤖 Supported Models
 
+You can select the model you want to use for annotation and scoring. Some classic models are listed below.Most of the current popular models are supported by OpenRouter, though they have not been extensively benchmarked in the CASSIA paper. Feel free to experiment with them for your own use cases.
+
+If you want to use newer models published by OpenAI or Anthropic (Claude), simply change the model name in your configuration to the desired model. CASSIA is designed to be flexible and will work with any supported model as long as you provide the correct model name and provider.
+
 ### OpenAI (Most Common)
 - `gpt-4o` (recommended): Balanced performance and cost
-- `gpt-4o-mini`: Faster, more economical option
 - `o1-mini`: Advanced reasoning capabilities (higher cost)
 
 ### Anthropic
 - `claude-3-5-sonnet-20241022`: High-performance model
+- `claude-3-7-sonnet-latest`: The latest model
 
 ### OpenRouter
 - `anthropic/claude-3.5-sonnet`: High rate limit access to Claude
 - `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4o
 - `meta-llama/llama-3.2-90b-vision-instruct`: Cost-effective open-source option
+- `deepseek/deepseek-chat-v3-0324`: Very cost-effective and comparable to GPT-4o
 
 ## 📤 Output
 
