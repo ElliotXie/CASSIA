@@ -1,4 +1,4 @@
-# CASSIA <img src="https://github.com/ElliotXie/CASSIA/CASSIA_python/logo.png" align="right" width="150" />
+# CASSIA <img src="CASSIA_python/logo.png" align="right" width="150" />
 
 CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
