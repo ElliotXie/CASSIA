@@ -6,7 +6,7 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from .main_function_code import *
+from main_function_code import *
 import requests
 import threading
 import numpy as np
