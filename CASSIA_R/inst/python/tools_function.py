@@ -6,11 +6,11 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from main_function_code import *
+from .main_function_code import *
 import requests
 import threading
 import numpy as np
-from pathlib import Path
+from importlib import resources
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -106,14 +106,6 @@ def get_top_markers(df, n_genes=10, format_type=None):
         return pd.DataFrame(top_markers)
     
     else:  # Seurat format
-        # Convert string 'inf' and '-inf' to numeric values first
-        df['avg_log2FC'] = pd.to_numeric(df['avg_log2FC'].replace({'inf': np.inf, '-inf': -np.inf}), errors='coerce')
-        
-        # Replace inf and -inf values with max and min non-inf values respectively
-        max_non_inf = df['avg_log2FC'].replace([np.inf, -np.inf], np.nan).max()
-        min_non_inf = df['avg_log2FC'].replace([np.inf, -np.inf], np.nan).min()
-        df['avg_log2FC'] = df['avg_log2FC'].replace([np.inf, -np.inf], [max_non_inf, min_non_inf])
-        
         # Filter by adjusted p-value, positive log2FC, and PCT
         df_filtered = df[
             (df['p_val_adj'] < 0.05) & 
@@ -173,26 +165,13 @@ def safe_get(dict_obj, *keys):
 
 
 def write_csv(filename, headers, row_data):
-    """
-    Write data to a CSV file with the specified headers.
-    
-    Args:
-        filename (str): Path to the output CSV file
-        headers (list): List of column headers
-        row_data (list): List of rows, where each row is a list of values
-    """
-    # Create directory if it doesn't exist
-    directory = os.path.dirname(filename)
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-        
-    with open(filename, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
+    with open(filename, 'w', newline='', encoding='utf-8') as csv_file:
+        writer = csv.writer(csv_file)
         writer.writerow(headers)
         writer.writerows(row_data)
 
 
-def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -221,7 +200,7 @@ def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=No
 
 
 
-def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -248,7 +227,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     
     
     # Choose the appropriate analysis function based on provider
-    analysis_function = run_cell_type_analysis_wrapper
+    analysis_function = runCASSIA
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
@@ -302,7 +281,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
                         "iterations": result.get("iterations", 1)
                     }
             except Exception as exc:
-                print(f'{cell_type} generated an exception: {exc}')
+                print(f'{cell_type} failed: {exc}')
     
 
     
@@ -380,12 +359,13 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
-def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
-        result = run_cell_type_analysis_batchrun(
+        result = runCASSIA_batch(
             marker=marker,
             output_name=output_json_name,
             model=model,
@@ -432,7 +412,7 @@ def run_single_analysis(args):
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
-        result = run_cell_type_analysis_wrapper(
+        result = runCASSIA(
             tissue=tissue,
             species=species,
             additional_info=additional_info,
@@ -448,7 +428,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -475,6 +455,7 @@ def run_analysis_n_times(n, tissue, species, additional_info, temperature, marke
     end_time = time.time()
     print(f"All analyses completed in {end_time - start_time:.2f} seconds")
     return results
+
 
 
 
@@ -1101,60 +1082,79 @@ def process_cell_type_results(organized_results, max_workers=10, model="gpt-4o",
 # Update the function call
 def create_and_save_results_dataframe(processed_results, organized_results, output_name='processed_cell_type_results'):
     """
-    Create a DataFrame from processed results and save it to CSV
+    Create a DataFrame from processed results and save it to a CSV file.
     
     Args:
-        processed_results (dict): Dictionary containing processed results
-        organized_results (dict): Dictionary containing organized results
-        output_name (str): Base name for output CSV files
-    """
-    # Create a list to store all results
-    all_results = []
+    processed_results (dict): Dictionary of processed results by cell type.
+    organized_results (dict): Dictionary of original results by cell type.
+    output_name (str): Base name for the output file (without extension)
     
-    for cluster_name, result in processed_results.items():
-        row = {
-            'Cluster': cluster_name,
-            'Consensus Type': result.get('general_celltype_llm', ''),
-            'Consensus Sub-Type': result.get('sub_celltype_llm', ''),
-            'Similarity Score': result.get('similarity_score', 0),
-            'Predictions': str(organized_results.get(cluster_name, {})),
-            'LLM Response': result.get('llm_response', '')
+    Returns:
+    pd.DataFrame: Processed results in a DataFrame.
+    """
+    # Add .csv extension if not present
+    output_csv = output_name if output_name.lower().endswith('.csv') else f"{output_name}.csv"
+    
+    # Create a list to store the data for each row
+    data = []
+    
+    for celltype, result in processed_results.items():
+        row_data = {
+            'Cell Type': celltype,
+            'General Cell Type LLM': result.get('general_celltype_llm', 'Not available'),
+            'Sub Cell Type LLM': result.get('sub_celltype_llm', 'Not available'),
+            'Mixed Cell Types LLM': ', '.join(result.get('mixed_celltypes_llm', [])),
+            'General Cell Type Oncology': result.get('general_celltype_oncology', 'Not available'),
+            'Sub Cell Type Oncology': result.get('sub_celltype_oncology', 'Not available'),
+            'Mixed Cell Types Oncology': ', '.join(result.get('mixed_types_oncology', [])),
+            'Similarity Score LLM': result.get('consensus_score_llm', 'Not available'),
+            'Similarity Score Oncology': result.get('consensus_score_oncology', 'Not available'),
+            'LLM Generated Consensus Score LLM': result.get('llm_generated_consensus_score_llm', 'Not available'),
+            'LLM Generated Consensus Score Oncology': result.get('llm_generated_consensus_score_oncology', 'Not available'),
+            'Count Consensus General Type LLM': result.get('count_consensus_1_llm', 'Not available'),
+            'Count Consensus Sub Type LLM': result.get('count_consensus_2_llm', 'Not available'),
+            'Count Consensus General Type Oncology': result.get('count_consensus_1_oncology', 'Not available'),
+            'Count Consensus Sub Type Oncology': result.get('count_consensus_2_oncology', 'Not available'),
+            'Unified Results LLM': result.get('unified_results_llm', 'Not available'),
+            'Unified Results Oncology': result.get('unified_results_oncology', 'Not available'),
+            'Consensus Result LLM': result.get('result_consensus_from_llm', 'Not available'),
+            'Consensus Result Oncology': result.get('result_consensus_from_oncology', 'Not available'),
+            'Original Non-Unified Results': ','.join([f"result{i+1}:{pred}" for i, pred in enumerate(organized_results.get(celltype, []))])
         }
         
-        # Add possible mixed cell types if available
-        if 'Possible_mixed_celltypes_llm' in result and result['Possible_mixed_celltypes_llm']:
-            row['Possible Mixed Types'] = ', '.join(result['Possible_mixed_celltypes_llm'])
-        else:
-            row['Possible Mixed Types'] = ''
+        # Add original results
+        original_results = organized_results.get(celltype, [])
+        for i, (gen, sub) in enumerate(original_results, 1):
+            row_data[f'Original General Type {i}'] = gen
+            row_data[f'Original Sub Type {i}'] = sub
         
-        all_results.append(row)
-    
-    # Create DataFrame
-    df = pd.DataFrame(all_results)
-    
-    # Ensure output_name has appropriate paths
-    if not output_name.endswith('.csv'):
-        output_name = f"{output_name}.csv"
-    
-    # Create directory if it doesn't exist
-    directory = os.path.dirname(output_name)
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-    
-    # Save to CSV
-    df.to_csv(output_name, index=False)
-    print(f"Results saved to {output_name}")
-    
-    # Create a summary version with minimal columns
-    summary_df = df[['Cluster', 'Consensus Type', 'Consensus Sub-Type', 'Similarity Score', 'Possible Mixed Types']]
-    summary_name = output_name.replace('.csv', '_summary.csv')
-    summary_df.to_csv(summary_name, index=False)
-    print(f"Summary results saved to {summary_name}")
-    
+        data.append(row_data)
+
+    # Create the DataFrame
+    df = pd.DataFrame(data)
+
+    # Reorder columns
+    fixed_columns = ['Cell Type', 
+                     'General Cell Type LLM', 'Sub Cell Type LLM', 'Mixed Cell Types LLM',
+                     'General Cell Type Oncology', 'Sub Cell Type Oncology', 'Mixed Cell Types Oncology',
+                     'Similarity Score LLM', 'Similarity Score Oncology',
+                     'LLM Generated Consensus Score LLM', 'LLM Generated Consensus Score Oncology',
+                     'Count Consensus General Type LLM', 'Count Consensus Sub Type LLM',
+                     'Count Consensus General Type Oncology', 'Count Consensus Sub Type Oncology',
+                     'Unified Results LLM', 'Unified Results Oncology',
+                     'Consensus Result LLM', 'Consensus Result Oncology',
+                     'Original Non-Unified Results']
+    original_columns = [col for col in df.columns if col.startswith('Original') and col != 'Original Non-Unified Results']
+    df = df[fixed_columns + original_columns]
+
+    # Save the DataFrame to a CSV file
+    df.to_csv(output_csv, index=False)
+    print(f"\nResults saved to {output_csv}")
+
     return df
 
 
-def process_and_save_batch_results(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1209,6 +1209,8 @@ def extract_cell_types_from_results_single(results):
         else:
             extracted_results.append(('Failed', 'Failed'))
     return extracted_results
+
+
 
 
 
@@ -1334,7 +1336,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
     '''
 
 
-    results=run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
+    results=runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
 
     results=extract_cell_types_from_results_single(results)
     
@@ -1364,7 +1366,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def process_cell_type_analysis_single_wrapper(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1401,7 +1403,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types
@@ -1520,7 +1522,7 @@ def openai_agent(user_message, model="gpt-4o", temperature=0):
 
 
 
-def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperature=0):
+def openrouter_agent(user_message, model="anthropic/claude-3-sonnet", temperature=0):
     """
     Send a message to OpenRouter API and get the response.
     
@@ -1761,7 +1763,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
     """
     Run scoring with progress updates.
     
@@ -1865,10 +1867,9 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         print(f"Successfully scored: {scored_rows}")
         print(f"Failed/Skipped: {total_rows - scored_rows}")
         
-        return results
         
     except Exception as e:
-        print(f"Error in run_scoring_with_progress: {str(e)}")
+        print(f"Error in runCASSIA_score_batch: {str(e)}")
         raise
 
 
@@ -2447,11 +2448,6 @@ def save_html_report(report, filename):
             filename = filename + '.html'
             
         html_report = generate_html_report2(report)
-        
-        # Create parent directory if it doesn't exist
-        directory = os.path.dirname(filename)
-        if directory:
-            os.makedirs(directory, exist_ok=True)
         
         # Save the HTML to a file
         with open(filename, 'w', encoding='utf-8') as f:
@@ -3360,12 +3356,6 @@ def render_report_to_html(report_content, output_path):
     """
     Renders a markdown-like report to a styled HTML file with high-tech aesthetics.
     """
-    # Convert to Path object to handle directory creation
-    output_path = Path(output_path)
-    
-    # Create parent directories if they don't exist
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    
     # Generate CSS color pairs for 15 phases
     color_pairs = []
     for i in range(15):
@@ -3646,7 +3636,7 @@ def render_report_to_html(report_content, output_path):
 
 
 
-def generate_cell_type_analysis_report_openrouter_additional_task(
+def runCASSIA_annottaionboost_additional_task(
     full_result_path,
     marker,
     cluster_name,
@@ -3775,7 +3765,7 @@ def generate_cell_type_analysis_report_openai(
 
 
 
-def generate_cell_type_analysis_report_wrapper(
+def runCASSIA_annotationboost(
     full_result_path,
     marker,
     cluster_name,
@@ -3841,7 +3831,7 @@ def generate_cell_type_analysis_report_wrapper(
                 model=model
             )
     except Exception as e:
-        print(f"Error in generate_cell_type_analysis_report_wrapper: {str(e)}")
+        print(f"Error in runCASSIA_annotationboost: {str(e)}")
         raise
 
 
@@ -4290,7 +4280,14 @@ def generate_index_page(report_files):
     
     return index_template.format('\n'.join(links))
 
-def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
+def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
+    """
+    Generate HTML reports from a scored CSV file and create an index page.
+    
+    Args:
+        csv_path (str): Path to the CSV file containing the score results
+        index_name (str): Base name for the index file (without .html extension)
+    """
     # Read the CSV file
     report = pd.read_csv(csv_path)
     report_files = []
@@ -4315,10 +4312,6 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
         
         # Save using the first column value as filename in the output folder
         output_path = os.path.join(output_folder, f"report_{filename}.html")
-        
-        # Create parent directory if it doesn't exist
-        os.makedirs(output_folder, exist_ok=True)
-        
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         
@@ -4338,7 +4331,7 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
 
 
 
-def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
+def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
     # Get API key from environment variable
     OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
     if not OPENROUTER_API_KEY:
@@ -4448,6 +4441,7 @@ def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list
 
 
 ####subclustering
+
 
 
 def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperature=0):
@@ -4618,15 +4612,10 @@ def write_results_to_csv(results, output_name='subcluster_results'):
     if not output_name.lower().endswith('.csv'):
         output_name = output_name + '.csv'
     
-    # Create directory if it doesn't exist
-    directory = os.path.dirname(output_name)
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-    
     # Updated regex pattern to capture the reason
     pattern = r"results(\d+)\(([^,]+),\s*([^,]+),\s*([^)]+)\)"
     matches = re.findall(pattern, results)
-    
+
     # Convert matches to a DataFrame with the reason column
     df = pd.DataFrame(matches, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
     
@@ -4707,9 +4696,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
 
 
 
-
-
-def run_cell_analysis_pipeline(
+def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
     species: str,
@@ -4744,16 +4731,29 @@ def run_cell_analysis_pipeline(
         additional_info (str): Additional information for analysis
         max_retries (int): Maximum number of retries for failed analyses
     """
-    # Define derived file names
-    score_file_name = output_file_name + "_scored.csv"
-    report_name = output_file_name + "_report"
-    lowscore_report_name = output_file_name + "_lowscore_report"
+    # Create a folder based on tissue and species for organizing reports
+    folder_name = f"{tissue}_{species}"
+    folder_name = "".join(c for c in folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
+    folder_name = folder_name.replace(' ', '_')
+    
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+        print(f"Created folder: {folder_name}")
+    
+    # Define derived file names with folder paths
+    score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
+    report_name = os.path.join(folder_name, output_file_name + "_report")
+    lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
+    
+    # First annotation output is still in current directory since other parts of code may expect it there
+    annotation_output = output_file_name
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
-    run_cell_type_analysis_batchrun(
+    runCASSIA_batch(
         marker=marker_path,
-        output_name=output_file_name,
+        output_name=annotation_output,
         model=annotation_model,
         tissue=tissue,
         species=species,
@@ -4766,8 +4766,8 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting scoring process ===")
     # Run scoring
-    run_scoring_with_progress(
-        input_file=output_file_name + "_full.csv",
+    runCASSIA_score_batch(
+        input_file=annotation_output + "_full.csv",
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
@@ -4778,7 +4778,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Generating main reports ===")
     # Process reports
-    process_all_reports(
+    runCASSIA_generate_score_report(
         csv_path=score_file_name,
         index_name=report_name
     )
@@ -4791,20 +4791,88 @@ def run_cell_analysis_pipeline(
 
     print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
     print(low_score_clusters)
+    
+    if low_score_clusters:
+        print("\n=== Starting boost annotation for low-scoring clusters ===")
+        full_result_path = annotation_output + "_full.csv"
 
-    # Process each low-scoring cluster
-    for i, cluster in enumerate(low_score_clusters, 1):
-        print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
-        generate_cell_type_analysis_report_wrapper(
-            full_result_path=output_file_name + "_full.csv",
-            marker=marker_path,
-            cluster_name=cluster,
-            major_cluster_info=f"{species} {tissue}",
-            output_name=f"{cluster}_{lowscore_report_name}",
-            num_iterations=5,
-            model=annotationboost_model,
-            provider=annotationboost_provider
-        )
-        print(f"✓ Completed analysis for cluster: {cluster}")
+        for cluster in low_score_clusters:
+            print(f"Processing low score cluster: {cluster}")
+            
+            cluster_name = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+            cluster_info = df[df['True Cell Type'] == cluster].iloc[0].to_dict()
+            
+            # Run annotation boost
+            runCASSIA_annotationboost(
+                full_result_path=full_result_path,
+                marker=marker_path,
+                cluster_name=cluster_name,
+                major_cluster_info=cluster_info,
+                output_name=os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted"),
+                num_iterations=5,
+                model=annotationboost_model,
+                provider=annotationboost_provider
+            )
+        
+        # Also save a copy of the boosted reports index
+        boosted_reports = [
+            os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted.html") 
+            for cluster_name in ["".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip() 
+                              for cluster in low_score_clusters]
+        ]
+        
+        if boosted_reports:
+            index_html = generate_index_page(boosted_reports)
+            index_filename = f"{lowscore_report_name}.html"
+            with open(index_filename, "w", encoding="utf-8") as f:
+                f.write(index_html)
+            print(f"Low score reports index saved to {index_filename}")
+        
+        print("✓ Boost annotation completed")
+    
+    print("\n=== Cell type analysis pipeline completed ===")
+    print(f"All reports have been saved to the '{folder_name}' folder")
 
-    print("\n=== Pipeline completed successfully ===")
+
+def loadmarker(marker_type="processed"):
+    """
+    Load built-in marker files.
+    
+    Args:
+        marker_type (str): Type of markers to load. Options:
+            - "processed": For processed marker data
+            - "unprocessed": For raw unprocessed marker data
+            - "subcluster_results": For subcluster analysis results
+    
+    Returns:
+        pandas.DataFrame: Marker data
+    
+    Raises:
+        ValueError: If marker_type is not recognized
+    """
+    marker_files = {
+        "processed": "processed.csv",
+        "unprocessed": "unprocessed.csv",
+        "subcluster_results": "subcluster_results.csv"
+    }
+    
+    if marker_type not in marker_files:
+        raise ValueError(f"Unknown marker type: {marker_type}. Available types: {list(marker_files.keys())}")
+    
+    filename = marker_files[marker_type]
+    
+    try:
+        # Using importlib.resources for Python 3.7+
+        with resources.path('CASSIA.data', filename) as file_path:
+            return pd.read_csv(file_path)
+    except Exception as e:
+        raise Exception(f"Error loading marker file: {str(e)}")
+
+def list_available_markers():
+    """List all available built-in marker sets."""
+    try:
+        with resources.path('CASSIA.data', '') as data_path:
+            marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+        return [f.replace('.csv', '') for f in marker_files]
+    except Exception as e:
+        raise Exception(f"Error listing marker files: {str(e)}")

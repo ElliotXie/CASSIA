@@ -12,10 +12,10 @@ runCASSIA_generate_score_report(
 \arguments{
 \item{csv_path}{Character string. Path to the CSV file containing scored results.}
 
-\item{index_name}{Character string. Base name for the index file (default: "CASSIA_reports_summary").}
+\item{output_name}{Character string. Base name for the index file (default: "CASSIA_reports_summary").}
 }
 \value{
-None. Files are written to the current directory.
+None. Files are written to the directory containing the input CSV.
 }
 \description{
 This function processes a CSV file containing scored annotation results and generates
@@ -34,6 +34,8 @@ The CSV file should contain columns:
 \item Scoring_Reasoning
 \item Score
 }
+
+Reports will be saved in the same directory as the input CSV file.
 }
 \examples{
 \dontrun{
