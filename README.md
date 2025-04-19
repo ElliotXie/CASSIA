@@ -152,13 +152,14 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ## 🛠️ To-Do List
 
-- [ ] Formally implement the Mixture of Experts (MOE) system as an option in the default CASSIA pipeline and CS score calculation
+- [ ] Imporve the MOE (Mixture of Experts) system
 - [ ] Better integration with Seurat  
-- [ ] Integration with Clustering Pipeline  
-- [ ] Marker selection process optimization  
+- [ ] Integration with clustering pipeline  
+- [ ] Marker selection process optimization
+- [ ] Multiomics integration
 - [x] More robust workflow with auto-retry mechanisms  
 - [x] Improved output file management
-- [x] Automatic benchmarking
+- [x] Automatic evalutate annotation performance
 - [x] Draw the CASSIA logo
 
 Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
