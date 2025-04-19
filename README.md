@@ -152,7 +152,8 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ## 🛠️ To-Do List
 
-- [ ] Better integration with Seurat directly  
+- [ ] Formally implement the Mixture of Experts (MOE) system as an option in the default CASSIA pipeline and CS score calculation
+- [ ] Better integration with Seurat  
 - [ ] Integration with Clustering Pipeline  
 - [ ] Marker selection process optimization  
 - [x] More robust workflow with auto-retry mechanisms  
