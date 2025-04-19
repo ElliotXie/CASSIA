@@ -200,7 +200,7 @@ def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", sp
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai"):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -231,20 +231,36 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
-        result, conversation_history = analysis_function(
-            model=model,
-            temperature=temperature,
-            marker_list=marker_list,
-            tissue=tissue,
-            species=species,
-            additional_info=additional_info,
-            provider=provider
-        )
-        # Add the number of markers and marker list to the result
-        result['num_markers'] = len(marker_list)
-        result['marker_list'] = marker_list
-        print(f"Analysis for {cell_type} completed.\n")
-        return cell_type, result, conversation_history
+        for attempt in range(max_retries + 1):
+            try:
+                result, conversation_history = analysis_function(
+                    model=model,
+                    temperature=temperature,
+                    marker_list=marker_list,
+                    tissue=tissue,
+                    species=species,
+                    additional_info=additional_info,
+                    provider=provider
+                )
+                # Add the number of markers and marker list to the result
+                result['num_markers'] = len(marker_list)
+                result['marker_list'] = marker_list
+                print(f"Analysis for {cell_type} completed.\n")
+                return cell_type, result, conversation_history
+            except Exception as exc:
+                # Don't retry authentication errors
+                if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                    print(f'{cell_type} generated an exception: {exc}')
+                    print(f'This appears to be an API authentication error. Please check your API key.')
+                    raise exc
+                
+                # For other errors, retry if attempts remain
+                if attempt < max_retries:
+                    print(f'{cell_type} generated an exception: {exc}')
+                    print(f'Retrying analysis for {cell_type} (attempt {attempt + 2}/{max_retries + 1})...')
+                else:
+                    print(f'{cell_type} failed after {max_retries + 1} attempts with error: {exc}')
+                    raise exc
 
     results = {}
     
@@ -265,7 +281,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                         "iterations": result.get("iterations", 1)
                     }
             except Exception as exc:
-                print(f'{cell_type} generated an exception: {exc}')
+                print(f'{cell_type} failed: {exc}')
     
 
     
@@ -344,7 +360,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai"):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -360,7 +376,8 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
             celltype_column=celltype_column,
             gene_column_name=gene_column_name,
             max_workers=max_workers,
-            provider=provider
+            provider=provider,
+            max_retries=max_retries
         )
         end_time = time.time()
         print(f"Finished batch run {i+1}/{n} in {end_time - start_time:.2f} seconds")
@@ -1746,7 +1763,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai"):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
     """
     Run scoring with progress updates.
     
@@ -1756,6 +1773,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gp
         max_workers (int): Maximum number of parallel workers
         model (str): Model to use
         provider (str): AI provider to use ('openai' or 'anthropic')
+        max_retries (int): Maximum number of retries for failed analyses
         
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -1792,34 +1810,53 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gp
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
         
+        # Define a function that includes retry logic
+        def process_with_retry(row_data):
+            idx, row = row_data
+            for attempt in range(max_retries + 1):
+                try:
+                    return process_single_row(row_data, model=model, provider=provider)
+                except Exception as exc:
+                    # Don't retry authentication errors
+                    if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                        print(f'Row {idx} generated an authentication exception: {exc}')
+                        print(f'Please check your API key.')
+                        raise exc
+                    
+                    # For other errors, retry if attempts remain
+                    if attempt < max_retries:
+                        print(f'Row {idx} generated an exception: {exc}')
+                        print(f'Retrying row {idx} (attempt {attempt + 2}/{max_retries + 1})...')
+                    else:
+                        print(f'Row {idx} failed after {max_retries + 1} attempts with error: {exc}')
+                        raise exc
+        
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all jobs
             future_to_row = {
-                executor.submit(
-                    process_single_row, 
-                    row_data,
-                    model=model,
-                    provider=provider
-                ): row_data[0] 
+                executor.submit(process_with_retry, row_data): row_data[0] 
                 for row_data in rows_to_process
             }
             
             # Process completed jobs
             for future in as_completed(future_to_row):
-                idx, score, reasoning = future.result()
-                
-                # Safely update DataFrame
-                with df_lock:
-                    results.loc[idx, 'Score'] = score
-                    results.loc[idx, 'Scoring_Reasoning'] = reasoning
+                try:
+                    idx, score, reasoning = future.result()
                     
-                    # Save intermediate results if output file is specified
-                    if output_file:
-                        results.to_csv(output_file, index=False)
-                    else:
-                        output_file = input_file.replace('.csv', '_scored.csv')
-                        results.to_csv(output_file, index=False)
+                    # Safely update DataFrame
+                    with df_lock:
+                        results.loc[idx, 'Score'] = score
+                        results.loc[idx, 'Scoring_Reasoning'] = reasoning
+                        
+                        # Save intermediate results if output file is specified
+                        if output_file:
+                            results.to_csv(output_file, index=False)
+                        else:
+                            output_file = input_file.replace('.csv', '_scored.csv')
+                            results.to_csv(output_file, index=False)
+                except Exception as exc:
+                    print(f"Failed to process row: {exc}")
         
         # Print summary statistics
         total_rows = len(results)
@@ -4244,9 +4281,21 @@ def generate_index_page(report_files):
     return index_template.format('\n'.join(links))
 
 def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
+    """
+    Generate HTML reports from a scored CSV file and create an index page.
+    
+    Args:
+        csv_path (str): Path to the CSV file containing the score results
+        index_name (str): Base name for the index file (without .html extension)
+    """
     # Read the CSV file
     report = pd.read_csv(csv_path)
     report_files = []
+    
+    # Determine output folder (same folder as the CSV file)
+    output_folder = os.path.dirname(csv_path)
+    if not output_folder:
+        output_folder = "."
     
     # Process each row
     for index, row in report.iterrows():
@@ -4261,17 +4310,18 @@ def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary
         # Generate HTML for this row
         html_content = process_single_report(text, score_reasoning, score)
         
-        # Save using the first column value as filename
-        output_path = f"report_{filename}.html"
+        # Save using the first column value as filename in the output folder
+        output_path = os.path.join(output_folder, f"report_{filename}.html")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         
-        report_files.append(output_path)
+        # Store just the filename for the index (not the full path)
+        report_files.append(os.path.basename(output_path))
         print(f"Report saved to {output_path}")
     
-    # Generate and save index page
+    # Generate and save index page in the same folder
     index_html = generate_index_page(report_files)
-    index_filename = f"{index_name}.html"
+    index_filename = os.path.join(output_folder, f"{os.path.basename(index_name)}.html")
     with open(index_filename, "w", encoding="utf-8") as f:
         f.write(index_html)
     print(f"Index page saved to {index_filename}")
@@ -4659,7 +4709,8 @@ def runCASSIA_pipeline(
     annotationboost_model: str = "anthropic/claude-3.5-sonnet",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
-    additional_info: str = "None"
+    additional_info: str = "None",
+    max_retries: int = 1
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4678,33 +4729,50 @@ def runCASSIA_pipeline(
         annotationboost_provider (str): Provider for boosting low-scoring annotations
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
+        max_retries (int): Maximum number of retries for failed analyses
     """
-    # Define derived file names
-    score_file_name = output_file_name + "_scored.csv"
-    report_name = output_file_name + "_report"
-    lowscore_report_name = output_file_name + "_lowscore_report"
+    # Create a folder based on tissue and species for organizing reports
+    folder_name = f"{tissue}_{species}"
+    folder_name = "".join(c for c in folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
+    folder_name = folder_name.replace(' ', '_')
+    
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+        print(f"Created folder: {folder_name}")
+    
+    # Define derived file names with folder paths
+    score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
+    report_name = os.path.join(folder_name, output_file_name + "_report")
+    lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
+    
+    # First annotation output is still in current directory since other parts of code may expect it there
+    annotation_output = output_file_name
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
     runCASSIA_batch(
         marker=marker_path,
-        output_name=output_file_name,
+        output_name=annotation_output,
         model=annotation_model,
         tissue=tissue,
         species=species,
         additional_info=additional_info,
-        provider=annotation_provider
+        provider=annotation_provider,
+        max_workers=max_workers,
+        max_retries=max_retries
     )
     print("✓ Cell type analysis completed")
 
     print("\n=== Starting scoring process ===")
     # Run scoring
     runCASSIA_score_batch(
-        input_file=output_file_name + "_full.csv",
+        input_file=annotation_output + "_full.csv",
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
-        provider=score_provider
+        provider=score_provider,
+        max_retries=max_retries
     )
     print("✓ Scoring process completed")
 
@@ -4723,23 +4791,47 @@ def runCASSIA_pipeline(
 
     print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
     print(low_score_clusters)
+    
+    if low_score_clusters:
+        print("\n=== Starting boost annotation for low-scoring clusters ===")
+        full_result_path = annotation_output + "_full.csv"
 
-    # Process each low-scoring cluster
-    for i, cluster in enumerate(low_score_clusters, 1):
-        print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
-        runCASSIA_annotationboost(
-            full_result_path=output_file_name + "_full.csv",
-            marker=marker_path,
-            cluster_name=cluster,
-            major_cluster_info=f"{species} {tissue}",
-            output_name=f"{cluster}_{lowscore_report_name}",
-            num_iterations=5,
-            model=annotationboost_model,
-            provider=annotationboost_provider
-        )
-        print(f"✓ Completed analysis for cluster: {cluster}")
-
-    print("\n=== Pipeline completed successfully ===")
+        for cluster in low_score_clusters:
+            print(f"Processing low score cluster: {cluster}")
+            
+            cluster_name = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+            cluster_info = df[df['True Cell Type'] == cluster].iloc[0].to_dict()
+            
+            # Run annotation boost
+            runCASSIA_annotationboost(
+                full_result_path=full_result_path,
+                marker=marker_path,
+                cluster_name=cluster_name,
+                major_cluster_info=cluster_info,
+                output_name=os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted"),
+                num_iterations=5,
+                model=annotationboost_model,
+                provider=annotationboost_provider
+            )
+        
+        # Also save a copy of the boosted reports index
+        boosted_reports = [
+            os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted.html") 
+            for cluster_name in ["".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip() 
+                              for cluster in low_score_clusters]
+        ]
+        
+        if boosted_reports:
+            index_html = generate_index_page(boosted_reports)
+            index_filename = f"{lowscore_report_name}.html"
+            with open(index_filename, "w", encoding="utf-8") as f:
+                f.write(index_html)
+            print(f"Low score reports index saved to {index_filename}")
+        
+        print("✓ Boost annotation completed")
+    
+    print("\n=== Cell type analysis pipeline completed ===")
+    print(f"All reports have been saved to the '{folder_name}' folder")
 
 
 def loadmarker(marker_type="processed"):

@@ -68,7 +68,7 @@ setup_cassia_env <- function(conda_env = NULL, python_version = "3.10",
 #' Set API Key for LLM Provider
 #'
 #' @param api_key Character string containing the API key
-#' @param provider Character string specifying the provider ('openai' or 'anthropic')
+#' @param provider Character string specifying the provider ('openai', 'anthropic', or 'openrouter')
 #' @param persist Logical indicating whether to save the key to .Renviron (default: FALSE)
 #' @return Invisible NULL. Called for side effects.
 #' @export
@@ -143,6 +143,12 @@ setAnthropicApiKey <- function(api_key, persist = FALSE) {
 }
 
 
+#' Set OpenRouter API Key
+#'
+#' @param api_key Character string containing the OpenRouter API key
+#' @param persist Logical indicating whether to save the key to .Renviron (default: FALSE)
+#' @return Invisible NULL. Called for side effects.
+#' @export
 setOpenRouterApiKey <- function(api_key, persist = FALSE) {
   setLLMApiKey(api_key, provider = "openrouter", persist = persist)
 }
@@ -157,7 +163,7 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param tissue Character string specifying the tissue type.
 #' @param species Character string specifying the species.
 #' @param additional_info Additional information as a character string.
-#' @param provider AI provider to use ('openai' or 'anthropic', default='openai')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')
 #'
 #' @return A list containing two elements: structured output and conversation history.
 #' @export
@@ -204,7 +210,7 @@ runCASSIA <- function(model, temperature, marker_list, tissue, species, addition
 #' @param marker_list List of marker genes.
 #' @param model Character string specifying the model to use.
 #' @param max_workers Maximum number of workers for parallel processing.
-#' @param provider AI provider to use ('openai' or 'anthropic')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #'
 #' @return A list containing results from multiple runs.
 #' @export
@@ -262,6 +268,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, 
 #' @param model Character string specifying the model to use.
 #' @param max_workers Maximum number of workers for parallel processing.
 #' @param n Number of times to run the analysis.
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
@@ -321,7 +328,9 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param celltype_column Name of the column containing cell types.
 #' @param gene_column_name Name of the column containing gene names.
 #' @param max_workers Maximum number of workers for parallel processing.
-#' @param provider AI provider to use ('openai' or 'anthropic')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param n_genes Number of top genes to use (default: 50)
+#' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -329,7 +338,8 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           model = "gpt-4o", temperature = 0, tissue = "lung", 
                           species = "human", additional_info = NULL, 
                           celltype_column = NULL, gene_column_name = NULL, 
-                          max_workers = 10, provider = "openai", n_genes = 50) {
+                          max_workers = 10, provider = "openai", n_genes = 50,
+                          max_retries = 1) {
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -352,7 +362,8 @@ if (is.data.frame(marker)) {
       gene_column_name = gene_column_name,
       max_workers = as.integer(max_workers),
       provider = provider,
-      n_genes = as.integer(n_genes)
+      n_genes = as.integer(n_genes),
+      max_retries = as.integer(max_retries)
     )
   })
   
@@ -378,7 +389,8 @@ if (is.data.frame(marker)) {
 #' @param gene_column_name Name of the column containing gene names.
 #' @param max_workers Maximum number of workers for parallel processing.
 #' @param batch_max_workers Maximum number of workers for batch processing.
-#' @param provider AI provider to use ('openai' or 'anthropic')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -387,7 +399,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
                                   species = "human", additional_info = NULL, 
                                   celltype_column = NULL, gene_column_name = NULL, 
                                   max_workers = 10, batch_max_workers = 5, 
-                                  provider = "openai") {
+                                  provider = "openai", max_retries = 1) {
 
   if (is.data.frame(marker)) {
   pd <- reticulate::import("pandas")
@@ -402,7 +414,8 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
       py_tools$run_batch_analysis_n_times(
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
-        as.integer(max_workers), as.integer(batch_max_workers), provider
+        as.integer(max_workers), as.integer(batch_max_workers), provider,
+        as.integer(max_retries)
       )
     }, error = function(e) {
       stop(paste("Error in run_batch_analysis_n_times:", e$message))
@@ -423,6 +436,8 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @param output_name Name of the output CSV file.
 #' @param celltype_column Name of the column containing cell types.
 #' @param max_workers Maximum number of workers for parallel processing.
+#' @param model Model to use for processing (default: "gpt-4o")
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param main_weight Weight for the main cell type.
 #' @param sub_weight Weight for the sub cell type.
 #'
@@ -468,7 +483,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
 #' @param model Model to use for analysis (default="gpt-4o")
-#' @param provider AI provider to use ('openai' or 'anthropic')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #'
 #' @return None
 #' @export
@@ -586,7 +601,8 @@ runCASSIA_annottaionboost_additional_task<- function(full_result_path,
 #' @param output_file Path to output CSV file (optional)
 #' @param max_workers Maximum number of parallel workers
 #' @param model Model to use
-#' @param provider AI provider to use ('openai' or 'anthropic')
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #'
 #' @return None
 #' @export
@@ -594,14 +610,16 @@ runCASSIA_score_batch <- function(input_file,
                                     output_file = NULL, 
                                     max_workers = 4, 
                                     model = "gpt-4o",
-                                    provider = "openai") {
+                                    provider = "openai",
+                                    max_retries = 1) {
   tryCatch({
     results <- py_tools$run_scoring_with_progress(
       input_file = input_file,
       output_file = output_file,
       max_workers = as.integer(max_workers),
       model = model,
-      provider = provider
+      provider = provider,
+      max_retries = as.integer(max_retries)
     )
     
     # Convert Python DataFrame to R data.frame if results is not NULL
@@ -672,6 +690,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param annotationboost_provider Provider for boosting low-scoring annotations (default: "openrouter")
 #' @param score_threshold Threshold for identifying low-scoring clusters (default: 75)
 #' @param additional_info Additional information for analysis (default: NULL)
+#' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -688,7 +707,8 @@ runCASSIA_pipeline <- function(
     annotationboost_model = "anthropic/claude-3.5-sonnet",
     annotationboost_provider = "openrouter",
     score_threshold = 75,
-    additional_info = NULL
+    additional_info = NULL,
+    max_retries = 1
 ) {
   # Convert marker data frame if necessary
   if (is.data.frame(marker)) {
@@ -712,7 +732,8 @@ runCASSIA_pipeline <- function(
       annotationboost_model = annotationboost_model,
       annotationboost_provider = annotationboost_provider,
       score_threshold = as.numeric(score_threshold),
-      additional_info = if(is.null(additional_info)) "None" else additional_info
+      additional_info = if(is.null(additional_info)) "None" else additional_info,
+      max_retries = as.integer(max_retries)
     )
   }, error = function(e) {
     error_msg <- paste("Error in run_cell_analysis_pipeline:", e$message, "\n",

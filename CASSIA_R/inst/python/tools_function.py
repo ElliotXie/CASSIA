@@ -4705,7 +4705,8 @@ def run_cell_analysis_pipeline(
     annotationboost_model: str = "anthropic/claude-3.5-sonnet",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
-    additional_info: str = "None"
+    additional_info: str = "None",
+    max_retries: int = 1
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4724,6 +4725,7 @@ def run_cell_analysis_pipeline(
         annotationboost_provider (str): Provider for boosting low-scoring annotations
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
+        max_retries (int): Maximum number of retries for failed analyses
     """
     # Define derived file names
     score_file_name = output_file_name + "_scored.csv"
@@ -4739,7 +4741,8 @@ def run_cell_analysis_pipeline(
         tissue=tissue,
         species=species,
         additional_info=additional_info,
-        provider=annotation_provider
+        provider=annotation_provider,
+        max_retries=max_retries
     )
     print("✓ Cell type analysis completed")
 
@@ -4750,7 +4753,8 @@ def run_cell_analysis_pipeline(
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
-        provider=score_provider
+        provider=score_provider,
+        max_retries=max_retries
     )
     print("✓ Scoring process completed")
 
