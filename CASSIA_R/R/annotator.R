@@ -640,7 +640,7 @@ runCASSIA_score_batch <- function(input_file,
 #' individual HTML reports for each row, along with an index page.
 #'
 #' @param csv_path Character string. Path to the CSV file containing scored results.
-#' @param output_name Character string. Base name for the index file (default: "CASSIA_reports_summary").
+#' @param index_name Character string. Base name for the index file (default: "CASSIA_reports_summary").
 #'
 #' @details 
 #' The function generates:
@@ -652,9 +652,7 @@ runCASSIA_score_batch <- function(input_file,
 #' - Scoring_Reasoning
 #' - Score
 #'
-#' Reports will be saved in the same directory as the input CSV file.
-#'
-#' @return None. Files are written to the directory containing the input CSV.
+#' @return None. Files are written to the current directory.
 #' @export
 #'
 #' @examples
@@ -662,18 +660,12 @@ runCASSIA_score_batch <- function(input_file,
 #' runCASSIA_generate_score_report("path/to/scored_results.csv")
 #' }
 runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_reports_summary") {
-  # Ensure the CSV path is absolute
-  csv_path <- normalizePath(csv_path, mustWork = TRUE)
-  
   tryCatch({
     py_tools$process_all_reports(
       csv_path = csv_path,
       index_name = output_name
     )
-    
-    # Get the output directory (same as CSV file)
-    output_dir <- dirname(csv_path)
-    message("Reports generated successfully. Check directory: ", output_dir)
+    message("Reports generated successfully. Check the current directory for the generated HTML files.")
   }, error = function(e) {
     error_msg <- paste("Error in generating reports:", e$message, "\n",
                       "Python traceback:", reticulate::py_last_error())
@@ -816,9 +808,9 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
     major_cluster_info = major_cluster_info,
     output_name = output_name,
     model = model,
-    temperature = temperature,
+    temperature = as.numeric(temperature),
     provider = provider,
-    n_genes = n_genes
+    n_genes = as.integer(n_genes)
   )
 }
 
@@ -848,6 +840,6 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
     temperature = temperature,
     provider = provider,
     max_workers = as.integer(max_workers),
-    n_genes = n_genes
+    n_genes = as.integer(n_genes)
   )
 }

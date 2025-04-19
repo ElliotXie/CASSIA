@@ -8,7 +8,7 @@ import threading
 import traceback
 from pathlib import Path
 
-openrouter_api_key = "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"
+openrouter_api_key = "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"
 os.environ["OPENROUTER_API_KEY"] = openrouter_api_key
 
 
@@ -20,7 +20,7 @@ from CASSIA_python.CASSIA.tools_function import runCASSIA_pipeline, runCASSIA_ba
 from CASSIA_python.CASSIA.main_function_code import run_cell_type_analysis
 
 # Model and provider configuration for all tests
-MODEL = "deepseek/deepseek-chat-v3-0324"
+MODEL = "deepseek/deepseek-chat-v3-0324:free"
 PROVIDER = "openrouter"
 
 # Set a timeout for operations (in seconds)
@@ -239,7 +239,7 @@ def test_cassia_pipeline():
         
         def run_cassia_pipeline():
             return runCASSIA_pipeline(
-                output_file_name="pipeline_test2",
+                output_file_name="pipeline_test3",
                 tissue="lung",
                 species="human",
                 marker_path=marker_path,

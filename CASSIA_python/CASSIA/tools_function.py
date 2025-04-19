@@ -11,6 +11,7 @@ import requests
 import threading
 import numpy as np
 from importlib import resources
+import datetime
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -1683,13 +1684,28 @@ def process_single_row(row_data, model="gpt-4o", provider="openai"):
         marker = row['Marker List']
         annotation_history = row['Conversation History']
         
-        score, reasoning = score_single_analysis(
-            major_cluster_info, 
-            marker, 
-            annotation_history,
-            model=model,
-            provider=provider
-        )
+        # Try up to 3 times for a valid score if we get None
+        score, reasoning = None, None
+        max_retries_for_none = 3
+        retry_count = 0
+        
+        while score is None and retry_count < max_retries_for_none:
+            if retry_count > 0:
+                print(f"Retry {retry_count}/{max_retries_for_none} for row {idx + 1} due to None score")
+            
+            score, reasoning = score_single_analysis(
+                major_cluster_info, 
+                marker, 
+                annotation_history,
+                model=model,
+                provider=provider
+            )
+            
+            if score is not None:
+                break
+                
+            retry_count += 1
+
         print(f"Processed row {idx + 1}: Score = {score}")
         return (idx, score, reasoning)
         
@@ -4732,9 +4748,13 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
     """
     # Create a folder based on tissue and species for organizing reports
-    folder_name = f"{tissue}_{species}"
+    folder_name = f"CASSIA_{tissue}_{species}"
     folder_name = "".join(c for c in folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
     folder_name = folder_name.replace(' ', '_')
+    
+    # Add timestamp to prevent overwriting existing folders with the same name
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_name = f"{folder_name}_{timestamp}"
     
     # Create the folder if it doesn't exist
     if not os.path.exists(folder_name):
