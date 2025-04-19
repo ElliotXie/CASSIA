@@ -7,7 +7,8 @@
 setup_cassia_env(
   conda_env = NULL,
   python_version = "3.10",
-  pip_packages = c("openai", "pandas", "numpy", "scikit-learn", "requests", "anthropic")
+  pip_packages = c("openai", "pandas", "numpy", "scikit-learn", "requests", "anthropic",
+    "charset-normalizer")
 )
 }
 \arguments{

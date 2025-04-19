@@ -27,7 +27,7 @@ runCASSIA(
 
 \item{additional_info}{Additional information as a character string.}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic', default='openai')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')}
 }
 \value{
 A list containing two elements: structured output and conversation history.

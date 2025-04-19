@@ -33,7 +33,7 @@ runCASSIA_n_times(
 
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 }
 \value{
 A list containing results from multiple runs.

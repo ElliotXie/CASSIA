@@ -19,6 +19,8 @@ runCASSIA_n_subcluster(
 \arguments{
 \item{n}{Number of times to run the analysis}
 
+\item{marker}{Marker data (data frame or file path)}
+
 \item{major_cluster_info}{Description of the major cluster type}
 
 \item{base_output_name}{Base name for output CSV files}
@@ -31,7 +33,7 @@ runCASSIA_n_subcluster(
 
 \item{max_workers}{Maximum number of workers for parallel processing (default: 5)}
 
-\item{csv_file_path}{Path to input CSV file containing marker data}
+\item{n_genes}{Number of top genes to use (default: 50)}
 }
 \value{
 None. This function runs the analysis multiple times and saves results to CSV files.

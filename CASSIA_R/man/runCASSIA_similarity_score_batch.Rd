@@ -27,6 +27,10 @@ runCASSIA_similarity_score_batch(
 
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
+\item{model}{Model to use for processing (default: "gpt-4o")}
+
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
 \item{main_weight}{Weight for the main cell type.}
 
 \item{sub_weight}{Weight for the sub cell type.}

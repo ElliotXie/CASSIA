@@ -9,7 +9,7 @@ setLLMApiKey(api_key, provider = "anthropic", persist = FALSE)
 \arguments{
 \item{api_key}{Character string containing the API key}
 
-\item{provider}{Character string specifying the provider ('openai' or 'anthropic')}
+\item{provider}{Character string specifying the provider ('openai', 'anthropic', or 'openrouter')}
 
 \item{persist}{Logical indicating whether to save the key to .Renviron (default: FALSE)}
 }

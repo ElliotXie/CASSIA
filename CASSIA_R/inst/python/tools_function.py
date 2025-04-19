@@ -207,7 +207,7 @@ def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=No
 
 
 
-def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai"):
+def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -238,20 +238,36 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
-        result, conversation_history = analysis_function(
-            model=model,
-            temperature=temperature,
-            marker_list=marker_list,
-            tissue=tissue,
-            species=species,
-            additional_info=additional_info,
-            provider=provider
-        )
-        # Add the number of markers and marker list to the result
-        result['num_markers'] = len(marker_list)
-        result['marker_list'] = marker_list
-        print(f"Analysis for {cell_type} completed.\n")
-        return cell_type, result, conversation_history
+        for attempt in range(max_retries + 1):
+            try:
+                result, conversation_history = analysis_function(
+                    model=model,
+                    temperature=temperature,
+                    marker_list=marker_list,
+                    tissue=tissue,
+                    species=species,
+                    additional_info=additional_info,
+                    provider=provider
+                )
+                # Add the number of markers and marker list to the result
+                result['num_markers'] = len(marker_list)
+                result['marker_list'] = marker_list
+                print(f"Analysis for {cell_type} completed.\n")
+                return cell_type, result, conversation_history
+            except Exception as exc:
+                # Don't retry authentication errors
+                if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                    print(f'{cell_type} generated an exception: {exc}')
+                    print(f'This appears to be an API authentication error. Please check your API key.')
+                    raise exc
+                
+                # For other errors, retry if attempts remain
+                if attempt < max_retries:
+                    print(f'{cell_type} generated an exception: {exc}')
+                    print(f'Retrying analysis for {cell_type} (attempt {attempt + 2}/{max_retries + 1})...')
+                else:
+                    print(f'{cell_type} failed after {max_retries + 1} attempts with error: {exc}')
+                    raise exc
 
     results = {}
     
@@ -350,7 +366,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
-def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai"):
+def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -366,7 +382,8 @@ def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_result
             celltype_column=celltype_column,
             gene_column_name=gene_column_name,
             max_workers=max_workers,
-            provider=provider
+            provider=provider,
+            max_retries=max_retries
         )
         end_time = time.time()
         print(f"Finished batch run {i+1}/{n} in {end_time - start_time:.2f} seconds")
@@ -1748,9 +1765,9 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai"):
+def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
     """
-    Run scoring with progress updates and retry failed rows once.
+    Run scoring with progress updates.
     
     Args:
         input_file (str): Path to input CSV file (with or without .csv extension)
@@ -1758,6 +1775,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         max_workers (int): Maximum number of parallel workers
         model (str): Model to use
         provider (str): AI provider to use ('openai' or 'anthropic')
+        max_retries (int): Maximum number of retries for failed analyses
         
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -1793,74 +1811,54 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
-        failed_rows = []
+        
+        # Define a function that includes retry logic
+        def process_with_retry(row_data):
+            idx, row = row_data
+            for attempt in range(max_retries + 1):
+                try:
+                    return process_single_row(row_data, model=model, provider=provider)
+                except Exception as exc:
+                    # Don't retry authentication errors
+                    if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                        print(f'Row {idx} generated an authentication exception: {exc}')
+                        print(f'Please check your API key.')
+                        raise exc
+                    
+                    # For other errors, retry if attempts remain
+                    if attempt < max_retries:
+                        print(f'Row {idx} generated an exception: {exc}')
+                        print(f'Retrying row {idx} (attempt {attempt + 2}/{max_retries + 1})...')
+                    else:
+                        print(f'Row {idx} failed after {max_retries + 1} attempts with error: {exc}')
+                        raise exc
         
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all jobs
             future_to_row = {
-                executor.submit(
-                    process_single_row, 
-                    row_data,
-                    model=model,
-                    provider=provider
-                ): row_data[0] 
+                executor.submit(process_with_retry, row_data): row_data[0] 
                 for row_data in rows_to_process
             }
             
             # Process completed jobs
             for future in as_completed(future_to_row):
-                idx, score, reasoning = future.result()
-                
-                # Safely update DataFrame
-                with df_lock:
-                    if score is None:  # Failed row
-                        failed_rows.append((idx, results.loc[idx]))
-                    else:
-                        results.loc[idx, 'Score'] = score
-                        results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                    
-                    # Save intermediate results if output file is specified
-                    if output_file:
-                        results.to_csv(output_file, index=False)
-                    else:
-                        output_file = input_file.replace('.csv', '_scored.csv')
-                        results.to_csv(output_file, index=False)
-        
-        # Retry failed rows
-        if failed_rows:
-            print(f"\nRetrying {len(failed_rows)} failed rows...")
-            
-            with ThreadPoolExecutor(max_workers=max_workers) as retry_executor:
-                # Submit retry jobs
-                retry_futures = {
-                    retry_executor.submit(
-                        process_single_row, 
-                        row_data,
-                        model=model,
-                        provider=provider
-                    ): row_data[0] 
-                    for row_data in failed_rows
-                }
-                
-                # Process retry results
-                for future in as_completed(retry_futures):
+                try:
                     idx, score, reasoning = future.result()
                     
                     # Safely update DataFrame
                     with df_lock:
-                        if score is not None:  # Successfully retried
-                            results.loc[idx, 'Score'] = score
-                            results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                        else:  # Failed again
-                            results.loc[idx, 'Scoring_Reasoning'] = "Failed after retry"
+                        results.loc[idx, 'Score'] = score
+                        results.loc[idx, 'Scoring_Reasoning'] = reasoning
                         
-                        # Save results
+                        # Save intermediate results if output file is specified
                         if output_file:
                             results.to_csv(output_file, index=False)
                         else:
                             output_file = input_file.replace('.csv', '_scored.csv')
                             results.to_csv(output_file, index=False)
+                except Exception as exc:
+                    print(f"Failed to process row: {exc}")
         
         # Print summary statistics
         total_rows = len(results)
@@ -1870,11 +1868,8 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         print(f"Total rows: {total_rows}")
         print(f"Successfully scored: {scored_rows}")
         print(f"Failed/Skipped: {total_rows - scored_rows}")
-        if failed_rows:
-            print(f"Initially failed rows: {len(failed_rows)}")
-            print(f"Successfully retried: {sum(1 for idx, _ in failed_rows if pd.notna(results.loc[idx, 'Score']))}")
         
-        return None
+        return results
         
     except Exception as e:
         print(f"Error in run_scoring_with_progress: {str(e)}")
@@ -4742,6 +4737,7 @@ def run_cell_analysis_pipeline(
         species=species,
         additional_info=additional_info,
         provider=annotation_provider,
+        max_workers=max_workers,
         max_retries=max_retries
     )
     print("✓ Cell type analysis completed")

@@ -17,7 +17,8 @@ runCASSIA_pipeline(
   annotationboost_model = "anthropic/claude-3.5-sonnet",
   annotationboost_provider = "openrouter",
   score_threshold = 75,
-  additional_info = NULL
+  additional_info = NULL,
+  max_retries = 1
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ runCASSIA_pipeline(
 \item{score_threshold}{Threshold for identifying low-scoring clusters (default: 75)}
 
 \item{additional_info}{Additional information for analysis (default: NULL)}
+
+\item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 }
 \value{
 None. Creates output files and generates reports.

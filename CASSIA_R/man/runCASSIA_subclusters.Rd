@@ -15,7 +15,11 @@ runCASSIA_subclusters(
 )
 }
 \arguments{
+\item{marker}{Marker data (data frame or file path)}
+
 \item{major_cluster_info}{Description of the major cluster type}
+
+\item{output_name}{Base name for the output file (will add .csv if not present)}
 
 \item{model}{Model name for Claude API (default: "claude-3-5-sonnet-20241022")}
 
@@ -23,9 +27,7 @@ runCASSIA_subclusters(
 
 \item{provider}{AI provider to use (default: "anthropic")}
 
-\item{csv_file_path}{Path to input CSV file containing marker data}
-
-\item{output_path}{Path where results CSV should be saved}
+\item{n_genes}{Number of top genes to use (default: 50)}
 }
 \value{
 None. This function processes subclusters and saves results to a CSV file.

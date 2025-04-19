@@ -17,7 +17,8 @@ runCASSIA_batch_n_times(
   gene_column_name = NULL,
   max_workers = 10,
   batch_max_workers = 5,
-  provider = "openai"
+  provider = "openai",
+  max_retries = 1
 )
 }
 \arguments{
@@ -45,7 +46,9 @@ runCASSIA_batch_n_times(
 
 \item{batch_max_workers}{Maximum number of workers for batch processing.}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
+\item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 }
 \value{
 None. This function creates output files and prints execution time.

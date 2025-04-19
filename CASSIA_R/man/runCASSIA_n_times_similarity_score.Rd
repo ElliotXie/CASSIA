@@ -32,6 +32,8 @@ runCASSIA_n_times_similarity_score(
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
 \item{n}{Number of times to run the analysis.}
+
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 }
 \value{
 A list containing processed results including variance analysis.

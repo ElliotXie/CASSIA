@@ -9,7 +9,8 @@ runCASSIA_score_batch(
   output_file = NULL,
   max_workers = 4,
   model = "gpt-4o",
-  provider = "openai"
+  provider = "openai",
+  max_retries = 1
 )
 }
 \arguments{
@@ -21,7 +22,9 @@ runCASSIA_score_batch(
 
 \item{model}{Model to use}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
+\item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 }
 \value{
 None

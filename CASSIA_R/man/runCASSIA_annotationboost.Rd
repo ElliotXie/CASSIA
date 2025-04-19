@@ -28,7 +28,7 @@ runCASSIA_annotationboost(
 
 \item{model}{Model to use for analysis (default="gpt-4o")}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 
 \item{marker_path}{Path to the marker genes CSV file}
 }

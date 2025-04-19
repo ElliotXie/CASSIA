@@ -16,7 +16,8 @@ runCASSIA_batch(
   gene_column_name = NULL,
   max_workers = 10,
   provider = "openai",
-  n_genes = 50
+  n_genes = 50,
+  max_retries = 1
 )
 }
 \arguments{
@@ -38,7 +39,11 @@ runCASSIA_batch(
 
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
-\item{provider}{AI provider to use ('openai' or 'anthropic')}
+\item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
+\item{n_genes}{Number of top genes to use (default: 50)}
+
+\item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 
 \item{df_input}{A data frame or path to the CSV file containing marker data.}
 }
