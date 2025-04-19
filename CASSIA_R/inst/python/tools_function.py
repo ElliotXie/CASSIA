@@ -4876,3 +4876,6 @@ def list_available_markers():
         return [f.replace('.csv', '') for f in marker_files]
     except Exception as e:
         raise Exception(f"Error listing marker files: {str(e)}")
+
+# Create an alias for runCASSIA_pipeline to maintain backward compatibility
+run_cell_analysis_pipeline = runCASSIA_pipeline
