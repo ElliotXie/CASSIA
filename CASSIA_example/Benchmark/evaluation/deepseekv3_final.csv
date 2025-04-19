@@ -1,0 +1,816 @@
+True Cell Type,Predicted Sub Cell Types_processed,score,reasoning,Tissue,Species
+Dermis fibroblast,Fetal Dermal Fibroblasts,90,"The predicted cell type is ""Fetal Dermal Fibroblasts"" and the gold standard annotation is ""Dermis fibroblast"". 
+
+1. **Specificity**: The predicted cell type is more specific than the gold standard, as it specifies the developmental stage (fetal) and the exact location within the dermis (dermal). The gold standard is a broader category that encompasses fibroblasts in the dermis without specifying the developmental stage.
+
+2. **Biological Relationship**: Fetal dermal fibroblasts are a subset of dermis fibroblasts. They share the same general function (extracellular matrix production, wound healing, etc.) and lineage (mesenchymal origin). The main difference is the developmental stage, which may confer some unique properties to fetal fibroblasts (e.g., higher proliferative capacity, different ECM composition), but they are fundamentally the same cell type.
+
+3. **Scoring Justification**: Since the predicted cell type is more specific than the gold standard and they share the same general cell type (fibroblasts), the score should be 90 according to the guidelines. This reflects the high similarity while acknowledging the additional specificity of the prediction.",Fetal skin,Human
+Fibroblast_SFPR4 high,Papillary fibroblasts,90,"The predicted cell type is ""Papillary fibroblasts"" and the gold standard annotation is ""Fibroblast_SFPR4 high"". Both cell types are fibroblasts, which are a type of connective tissue cell responsible for producing extracellular matrix and collagen. 
+
+1. **General Cell Type Similarity**: Both ""Papillary fibroblasts"" and ""Fibroblast_SFPR4 high"" are subsets of fibroblasts, indicating they share the same general cell type. This alone warrants a score of at least 50.
+
+2. **Specificity of Predicted Cell Type**: ""Papillary fibroblasts"" are a specific subtype of fibroblasts located in the papillary dermis, known for their role in skin structure and wound healing. ""Fibroblast_SFPR4 high"" refers to fibroblasts expressing high levels of the SFPR4 gene, which may indicate a specific functional or activation state. 
+
+3. **Relationship Between Subtypes**: While both are fibroblasts, ""Papillary fibroblasts"" are defined by their anatomical location and general function, whereas ""Fibroblast_SFPR4 high"" is defined by a specific gene expression profile. These are not identical but are related subsets within the broader fibroblast category. 
+
+4. **Score Justification**: Since the predicted cell type (""Papillary fibroblasts"") is more specific than the gold standard (""Fibroblast""), but both are fibroblasts, the score should be 90. This reflects the high similarity due to shared general cell type and the specificity of the predicted annotation.",Fetal skin,Human
+Osteoblast,Dermal Fibroblasts,20,"Dermal fibroblasts and osteoblasts are both mesenchymal-derived cells, but they are specialized for very different functions and locations within the body. 
+
+1. **Lineage and Development**: Both cell types originate from mesenchymal stem cells, which is a point of similarity. However, dermal fibroblasts are committed to the skin's dermal layer, while osteoblasts are committed to bone formation.
+
+2. **Function**: 
+   - Dermal fibroblasts produce extracellular matrix (ECM) components like collagen and elastin, which provide structural support to the skin.
+   - Osteoblasts are responsible for bone formation, secreting bone matrix proteins like osteocalcin and collagen type I (though collagen type I is also produced by fibroblasts).
+
+3. **Location**: 
+   - Dermal fibroblasts are localized to the dermis of the skin.
+   - Osteoblasts are found in bone tissue, particularly during bone development and remodeling.
+
+4. **Gene Expression and Markers**: 
+   - Dermal fibroblasts express markers like COL1A1, COL3A1, and FSP1 (S100A4).
+   - Osteoblasts express markers like RUNX2, SP7 (osterix), and BGLAP (osteocalcin), which are not typically expressed by fibroblasts.
+
+While they share a mesenchymal origin and some ECM production capabilities, their differentiation pathways, functional roles, and anatomical locations are distinct. They do not share a general cell type beyond the very broad ""mesenchymal cell"" category, which is too general to warrant a high score.
+
+Given these differences, the score is low, but not 0 because they are both mesenchymal-derived.",Fetal skin,Human
+Macrophage,LYVE1+ Macrophages (M2-like,90,"The predicted cell type is ""LYVE1+ Macrophages (M2-like)"", while the gold standard annotation is ""Macrophage"". 
+
+1. **Specificity Consideration**: The predicted cell type is a subset of the gold standard. ""LYVE1+ Macrophages (M2-like)"" is a specific subtype of macrophages that express LYVE1 and exhibit an M2-like phenotype, which is associated with anti-inflammatory and tissue-repair functions. The gold standard ""Macrophage"" is a broader category that includes all macrophages, regardless of subtype or phenotype. 
+
+2. **Biological Relationship**: Since the predicted cell type is a more specific annotation within the same general cell type (macrophage), this indicates a very close biological relationship. The M2-like phenotype is a recognized functional state of macrophages, and LYVE1 is a marker used to identify certain macrophage subsets, particularly in tissues like skin. 
+
+3. **Scoring Guidelines**: According to the provided guidelines, if the predicted cell type is more specific than the gold standard (as in this case), the score should be 90. This reflects the high degree of similarity while acknowledging the additional specificity of the predicted annotation.",Fetal skin,Human
+Neutrophil,Neutrophils (activated or fetal-specific subset),90,"The predicted cell type is ""Neutrophils (activated or fetal-specific subset)"" and the gold standard annotation is ""Neutrophil"". 
+
+1. **General vs. Specific**: The gold standard ""Neutrophil"" is a general term for this cell type, while the predicted cell type specifies a subset (""activated or fetal-specific""). This means the predicted cell type is more specific than the gold standard, falling under the broader category of ""Neutrophil"".
+
+2. **Biological Relationship**: Neutrophils are a type of granulocyte and are part of the innate immune system. Activated or fetal-specific subsets are specialized states or developmental stages of neutrophils, but they retain the core identity and function of neutrophils. 
+
+3. **Scoring Guidance**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""activated or fetal-specific subset"" is a more detailed classification of ""Neutrophil"".
+
+4. **No Conflict**: There is no disagreement in the general cell type, and the predicted cell type is a valid refinement of the gold standard.",Fetal skin,Human
+Fibroblast_EFEMP1 high,Reticular Fibroblasts,80,"The predicted cell type is ""Reticular Fibroblasts"" and the gold standard annotation is ""Fibroblast_EFEMP1 high"". Both cell types are subtypes of fibroblasts, which are a type of connective tissue cell. 
+
+1. **General Cell Type Similarity**: Both ""Reticular Fibroblasts"" and ""Fibroblast_EFEMP1 high"" are fibroblasts, indicating they share the same general cell type. This alone warrants a score of at least 50.
+
+2. **Specificity of Prediction**: The gold standard annotation ""Fibroblast_EFEMP1 high"" is a specific subtype of fibroblast characterized by high expression of EFEMP1. The predicted cell type ""Reticular Fibroblasts"" is also a specific subtype of fibroblast, but it is not explicitly the same as the gold standard. However, reticular fibroblasts are known to be a distinct subset within the fibroblast population, often associated with specific extracellular matrix production and tissue organization. 
+
+3. **Biological Relationship**: While both are fibroblasts, the gold standard specifies a molecular marker (EFEMP1 high), whereas the prediction specifies a functional/morphological subtype (reticular). These are not identical but are related within the broader fibroblast classification. The prediction is not more specific than the gold standard (it does not further subclassify ""Fibroblast_EFEMP1 high""), so the score should not be 90. Instead, the score should reflect the close but not identical relationship.
+
+Given that they are both fibroblasts but not the exact same subtype, the score should be in the upper range of the ""same general cell type"" category but not at the 90 level.",Fetal skin,Human
+Muscle progenitor cell,fetal/developing myocytes,90,"The predicted cell type is ""fetal/developing myocytes"" and the gold standard annotation is ""Muscle progenitor cell"". 
+
+1. Biological Relationship: 
+   - Muscle progenitor cells are precursor cells that can differentiate into myocytes (muscle cells). 
+   - Fetal/developing myocytes are more differentiated cells derived from muscle progenitor cells. 
+   - Thus, the predicted cell type is a more specific (differentiated) version of the gold standard cell type.
+
+2. Hierarchy: 
+   - Muscle progenitor cell → (differentiates into) → fetal/developing myocytes.
+   - The predicted cell type is downstream of the gold standard in the differentiation pathway.
+
+3. Specificity: 
+   - The predicted cell type (""fetal/developing myocytes"") is more specific than the gold standard (""Muscle progenitor cell""), as it specifies the developmental stage (fetal/developing) and the cell type (myocytes).
+
+According to the scoring rules, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""fetal/developing myocytes"" is a more specific version of ""Muscle progenitor cell"".",Fetal skin,Human
+Melanocyte_S100B high,Immature/Non-myelinating Schwann Cells,0,"To evaluate the similarity between ""Immature/Non-myelinating Schwann Cells"" and ""Melanocyte_S100B high"" in human fetal skin, we need to consider their developmental origins, functions, and molecular markers.
+
+1. **Developmental Origin**: 
+   - Schwann cells are derived from the neural crest and are part of the peripheral nervous system, responsible for myelinating or supporting peripheral nerve fibers.
+   - Melanocytes are also neural crest-derived but differentiate into pigment-producing cells in the skin.
+
+2. **Function**:
+   - Immature/Non-myelinating Schwann Cells are involved in nerve fiber support and may later myelinate axons.
+   - Melanocytes produce melanin, which protects the skin from UV radiation and contributes to skin color.
+
+3. **Molecular Markers**:
+   - Both cell types express S100B, a calcium-binding protein, which is why the gold standard annotation highlights ""S100B high"" in melanocytes. However, S100B is not exclusive to either cell type.
+   - Schwann cells typically express markers like SOX10, GFAP, and PLP, while melanocytes express MITF, TYR, and DCT.
+
+4. **Relationship**:
+   - While both cell types are neural crest-derived and share some markers (e.g., S100B), their functions and terminal differentiation pathways are entirely distinct. They do not belong to the same general cell type (e.g., Schwann cells are glial cells, melanocytes are pigment cells).
+
+Given that the two cell types are completely different in function and lineage despite their shared neural crest origin and S100B expression, the score should reflect no meaningful similarity.",Fetal skin,Human
+Erythroid cell,Fetal Erythroblasts (Proerythroblasts/Basophilic Erythroblasts),90,"The predicted cell type is ""Fetal Erythroblasts (Proerythroblasts/Basophilic Erythroblasts)"" and the gold standard annotation is ""Erythroid cell."" 
+
+1. **Hierarchical Relationship**: Erythroblasts (including proerythroblasts and basophilic erythroblasts) are a subset of erythroid cells. Erythroid cells encompass all stages of red blood cell development, from early progenitors to mature erythrocytes. Proerythroblasts and basophilic erythroblasts are early stages in the erythroid lineage.
+
+2. **Specificity**: The predicted cell type is more specific than the gold standard, as it identifies a particular stage (proerythroblasts/basophilic erythroblasts) within the broader category of erythroid cells. 
+
+3. **Biological Relevance**: Both cell types are part of the erythroid lineage and are involved in erythropoiesis. The predicted cell type is a developmental precursor to other erythroid cells, so they are closely related biologically.
+
+Given that the predicted cell type is more specific than the gold standard and both are part of the same lineage, the score should reflect a high degree of similarity with a slight reduction because the gold standard is broader.",Fetal skin,Human
+Melanocyte_MLANA high,Differentiated Melanocytes,90,"The predicted cell type is ""Differentiated Melanocytes"" and the gold standard annotation is ""Melanocyte_MLANA high"". 
+
+1. **General Cell Type Relationship**: Both cell types are melanocytes, which are pigment-producing cells found in the skin. ""Differentiated Melanocytes"" indicates melanocytes that have undergone differentiation, while ""Melanocyte_MLANA high"" specifies melanocytes with high expression of the MLANA gene, a marker often associated with melanocyte differentiation and function.
+
+2. **Specificity Comparison**: The gold standard annotation (""Melanocyte_MLANA high"") is more specific than the predicted cell type (""Differentiated Melanocytes"") because it identifies a molecular marker (MLANA) associated with the cell type. However, ""Differentiated Melanocytes"" is still a correct but broader classification of the same cell type. 
+
+3. **Biological Relevance**: Since both annotations refer to melanocytes and the predicted cell type is a broader but accurate classification of the gold standard, the similarity is very high. The only difference is the level of specificity in the annotation.
+
+Given the rules, since the predicted cell type is less specific than the gold standard but still correct, the score should be 90.",Fetal skin,Human
+Endothelial cell,Capillary or Venous Endothelial Cells,90,"The predicted cell type is ""Capillary or Venous Endothelial Cells,"" which is a more specific subset of the gold standard annotation ""Endothelial cell."" Endothelial cells line the interior surface of blood vessels and lymphatic vessels, and they can be further classified based on the type of vessel they are associated with (e.g., arterial, venous, capillary, etc.). 
+
+Since ""Capillary or Venous Endothelial Cells"" is a subtype of ""Endothelial cell,"" the predicted cell type is more specific than the gold standard. According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. 
+
+Both cell types share the same general cell type (endothelial cells), and the predicted cell type provides additional detail about the specific vascular origin (capillary or venous), which is consistent with the broader category of endothelial cells.",Fetal skin,Human
+Proliferating cell,Cycling basal keratinocyte progenitor,90,"The predicted cell type is ""Cycling basal keratinocyte progenitor,"" while the gold standard annotation is ""Proliferating cell."" 
+
+1. **Specificity**: The predicted cell type is more specific than the gold standard. ""Cycling basal keratinocyte progenitor"" indicates a specific subset of proliferating cells that are keratinocyte progenitors in the basal layer of the skin, which are indeed proliferating cells. This aligns with the gold standard but provides more detail.
+
+2. **Biological Relationship**: Keratinocyte progenitors are a type of proliferating cell, especially in fetal skin where active proliferation and differentiation occur. The gold standard ""Proliferating cell"" is a broad category that includes any cell in the cell cycle, while the predicted cell type narrows it down to a specific lineage (keratinocyte) and state (progenitor).
+
+3. **Contextual Fit**: In fetal skin, basal keratinocyte progenitors are expected to be proliferating, as they are responsible for skin development and maintenance. Thus, the predicted cell type fits well within the broader gold standard category.
+
+Since the predicted cell type is more specific than the gold standard but still falls under the same general category (proliferating cells), the score should be 90.",Fetal skin,Human
+Glomerular endothelium,Arterial endothelial cells,50,"The predicted cell type is ""Arterial endothelial cells"" and the gold standard annotation is ""Glomerular endothelium."" Both cell types are endothelial cells, which means they share a general cell type (endothelial cells). Endothelial cells line the interior surface of blood vessels and lymphatic vessels, and they can specialize based on their location and function within the body.
+
+1. **Shared General Cell Type**: Both arterial endothelial cells and glomerular endothelial cells are subtypes of endothelial cells, which means they share a common origin and basic functions, such as forming a barrier between the blood and surrounding tissues and regulating vascular tone.
+
+2. **Specificity and Location**: 
+   - Arterial endothelial cells are found in arteries and are specialized to withstand higher pressure and regulate blood flow.
+   - Glomerular endothelial cells are a specialized subset of endothelial cells found in the glomerulus of the kidney, where they play a critical role in filtration. They have unique fenestrations (pores) that allow for efficient filtration of blood.
+
+3. **Functional Overlap**: While both are endothelial cells, their specific functions and locations are distinct. Glomerular endothelial cells are highly specialized for filtration, whereas arterial endothelial cells are specialized for high-pressure blood flow regulation.
+
+4. **Hierarchical Relationship**: The predicted cell type (Arterial endothelial cells) is not more specific than the gold standard (Glomerular endothelium), nor is it a direct subtype. They are both specialized endothelial cells but in different vascular contexts.
+
+Given that they share a general cell type (endothelial cells) but are specialized for different functions and locations, the score should reflect this partial similarity. They are not completely different (which would warrant a 0), but they are also not closely related beyond being endothelial cells.",kidney,Human
+Intercalated cell,Type A Intercalated Cells,90,"The predicted cell type ""Type A Intercalated Cells"" is a specific subtype of the broader ""Intercalated cell"" category, which is the gold standard annotation. 
+
+Intercalated cells in the kidney are a type of collecting duct epithelial cell involved in acid-base homeostasis. They are broadly classified into Type A and Type B intercalated cells, which have distinct functional roles: 
+- Type A intercalated cells secrete acid (H⁺) and reabsorb bicarbonate (HCO₃⁻)
+- Type B intercalated cells secrete bicarbonate and reabsorb acid
+
+Since the predicted cell type (Type A) is a more specific annotation that falls perfectly within the gold standard annotation (Intercalated cell), this represents excellent agreement with additional specificity. According to the evaluation guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",kidney,Human
+Connecting tubule,Principal Cells (Collecting Duct),70,"The kidney's collecting duct and connecting tubule are both part of the renal tubule system, but they are distinct segments with different functional roles. 
+
+1. **Principal Cells (Collecting Duct)**: These are specialized epithelial cells found in the collecting duct, which is the final segment of the nephron. They play a key role in water and electrolyte balance, particularly in response to antidiuretic hormone (ADH). 
+
+2. **Connecting Tubule**: This is a short segment that connects the distal convoluted tubule to the collecting duct. It contains a mix of cell types, including intercalated cells and connecting tubule cells, which are involved in fine-tuning electrolyte and acid-base balance.
+
+While both cell types are part of the nephron and contribute to renal function, they are not the same. The connecting tubule is upstream of the collecting duct and has a distinct cellular composition and function. However, they are closely related in terms of their anatomical and functional context within the kidney. 
+
+Given that they share a general cell type (both are epithelial cells of the renal tubule system) but are not identical, the score should reflect this intermediate level of similarity.",kidney,Human
+Descending vasa recta endothelium,Glomerular Endothelial Cells (GECs),70,"The predicted cell type is Glomerular Endothelial Cells (GECs), which are specialized endothelial cells found in the glomerulus of the kidney. These cells are part of the filtration barrier and have unique fenestrations to facilitate filtration. The gold standard annotation is Descending vasa recta endothelium, which refers to the endothelial cells lining the descending vasa recta, a part of the kidney's medullary microcirculation involved in urine concentration. 
+
+Both cell types are endothelial in origin and are located within the kidney, sharing a general endothelial lineage. However, they are distinct in terms of their specific anatomical locations and functional roles. GECs are involved in filtration, while descending vasa recta endothelial cells are involved in maintaining the osmotic gradient in the medulla. 
+
+Since they share a general cell type (endothelial cells) but differ in specific function and location, the score should reflect this partial similarity. The predicted cell type is not more specific than the gold standard (they are at similar levels of specificity but different subtypes), so the score should not be 90. Instead, a score of 70 is appropriate, reflecting their shared endothelial lineage but distinct roles and locations.",kidney,Human
+MNP-b/non-classical monocyte derived,Kidney-resident macrophage,90,"To evaluate the similarity between ""Kidney-resident macrophage"" and ""MNP-b/non-classical monocyte derived,"" we need to consider their biological origins and functions.
+
+1. **Kidney-resident macrophage**: These are specialized macrophages that reside in the kidney tissue. They are part of the mononuclear phagocyte system (MPS) and play roles in immune surveillance, tissue homeostasis, and response to injury. They are typically derived from embryonic precursors and can self-renew locally, though some may also arise from circulating monocytes.
+
+2. **MNP-b/non-classical monocyte derived**: ""MNP-b"" refers to a subset of mononuclear phagocytes, and ""non-classical monocyte derived"" indicates that these cells originate from non-classical monocytes in the blood. Non-classical monocytes are a subset of circulating monocytes that can differentiate into macrophages or dendritic cells upon entering tissues.
+
+**Relationship**:
+- Both cell types are part of the mononuclear phagocyte system (MPS) and share a common lineage as myeloid cells.
+- Kidney-resident macrophages can be derived from embryonic precursors or circulating monocytes, including non-classical monocytes. Thus, the gold standard annotation (""MNP-b/non-classical monocyte derived"") could represent a subset or a developmental origin of kidney-resident macrophages.
+- However, ""Kidney-resident macrophage"" is a more specific and tissue-localized designation, while ""MNP-b/non-classical monocyte derived"" is a broader classification based on origin.
+
+**Scoring**:
+- Since the predicted cell type (""Kidney-resident macrophage"") is more specific than the gold standard (""MNP-b/non-classical monocyte derived""), the score should be 90, as per the note. They share a general cell type (myeloid lineage/phagocytes), and the predicted cell type is a more refined subset.",kidney,Human
+Fibroblast,Cortical Fibroblast,90,"The predicted cell type is ""Cortical Fibroblast,"" which is a specific subtype of fibroblasts located in the kidney cortex. The gold standard annotation is the more general term ""Fibroblast."" 
+
+Since the predicted cell type is a more specific instance of the gold standard (i.e., all cortical fibroblasts are fibroblasts, but not all fibroblasts are cortical fibroblasts), this represents a high degree of similarity. The specificity of the predicted cell type indicates a deeper level of annotation, which is biologically accurate and aligns well with the broader category. 
+
+According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. This reflects the high biological relevance and correctness of the prediction while acknowledging the hierarchical relationship between the terms.",kidney,Human
+CD8 T cell,CD8+ Tissue-Resident Memory T (Trm),90,"The predicted cell type is ""CD8+ Tissue-Resident Memory T (Trm)"" and the gold standard annotation is ""CD8 T cell"". 
+
+1. **Specificity Relationship**: The predicted cell type (""CD8+ Trm"") is a subset of the gold standard (""CD8 T cell""). CD8+ Trm cells are a specialized population of memory T cells that reside in tissues and do not recirculate, while ""CD8 T cell"" is a broader category that includes all CD8+ T cells, whether they are naive, effector, memory, or tissue-resident. 
+
+2. **Biological Similarity**: Both cell types are CD8+ T cells, sharing the same core lineage and function (cytotoxic T cells). The predicted cell type is simply a more specialized version of the gold standard, indicating a high degree of biological similarity.
+
+3. **Scoring Criteria**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""CD8+ Trm"" is a subset of ""CD8 T cell"".
+
+Thus, the score is 90.",kidney,Human
+CD4 T cell,NaÃ¯ve/Memory T cells,90,"The predicted cell type ""Naïve/Memory T cells"" and the gold standard annotation ""CD4 T cell"" are related but represent different levels of specificity in T cell classification. 
+
+1. ""CD4 T cell"" is a broad category of T lymphocytes that express CD4 glycoprotein on their surface. This group includes both naïve and memory subsets, among others.
+
+2. ""Naïve/Memory T cells"" specifically refers to activation/differentiation states within the T cell lineage. While this could apply to either CD4+ or CD8+ T cells, in this context it appears to be referring to CD4+ subsets since the gold standard is CD4 T cell.
+
+3. The prediction is more specific than the gold standard - it identifies not just the CD4 lineage but also activation state (naïve vs memory), which the gold standard does not specify.
+
+4. Both terms clearly refer to T lymphocytes and share the same general cell type, with the prediction providing additional subset information.
+
+Since the predicted cell type is more specific than the gold standard while maintaining correct lineage (both are CD4 T cells), this matches the note that such cases should receive a score of 90.",kidney,Human
+B cell,Class-switched memory B cells / Plasma cell precursors,90,"The predicted cell type, ""Class-switched memory B cells / Plasma cell precursors,"" is a more specific subset of the gold standard annotation, ""B cell."" 
+
+1. **Hierarchical Relationship**: 
+   - All class-switched memory B cells and plasma cell precursors are B cells, as they originate from the B cell lineage. 
+   - The gold standard ""B cell"" is a broad category that includes naive B cells, memory B cells (both class-switched and unswitched), plasma cells, and their precursors. 
+
+2. **Biological Similarity**: 
+   - Class-switched memory B cells and plasma cell precursors are functionally and phenotypically distinct but still retain core B cell markers (e.g., CD19, CD20) and functions (e.g., antibody production). 
+   - The predicted cell type represents a more differentiated state within the B cell lineage, but it is still unequivocally a B cell.
+
+3. **Scoring Justification**: 
+   - Since the predicted cell type is more specific than the gold standard, the score should be 90, as per the note. This reflects the high similarity while acknowledging the additional specificity of the prediction.",kidney,Human
+Epithelial progenitor cell,Injured/Activated Proximal Tubule Epithelial Cells,90,"The predicted cell type is ""Injured/Activated Proximal Tubule Epithelial Cells,"" which is a specific state of proximal tubule epithelial cells in the kidney that have undergone injury or activation. The gold standard annotation is ""Epithelial progenitor cell,"" which is a more general term referring to cells that can differentiate into various epithelial cell types, including proximal tubule epithelial cells.
+
+1. **Hierarchical Relationship**: Both cell types are epithelial in origin and reside in the kidney. Proximal tubule epithelial cells are a differentiated cell type that could arise from epithelial progenitor cells. Thus, they share a general cell type (epithelial cells) and a tissue context (kidney).
+
+2. **Specificity**: The predicted cell type is more specific (a differentiated state of a specific epithelial cell type) compared to the gold standard (a progenitor cell). While they are not the same, the predicted cell type could theoretically be derived from the gold standard cell type under the right conditions.
+
+3. **Biological Context**: Injured/Activated Proximal Tubule Epithelial Cells are a subset of epithelial cells that have responded to damage or stress, whereas epithelial progenitor cells are undifferentiated and multipotent. Despite this difference, they are related in the epithelial cell lineage.
+
+Given that the predicted cell type is more specific than the gold standard and they share a general cell type (epithelial cells), the score should be high but not perfect because they represent different states (progenitor vs. differentiated/injured).",kidney,Human
+MNP-c/dendritic cell,CD1C+ cDC2,90,"The predicted cell type is ""CD1C+ cDC2,"" which is a subset of dendritic cells (DCs) characterized by the expression of CD1C. The gold standard annotation is ""MNP-c/dendritic cell,"" where MNP-c stands for mononuclear phagocyte - conventional dendritic cell. 
+
+1. **Hierarchical Relationship**: CD1C+ cDC2 is a specific subtype of conventional dendritic cells (cDCs), which are part of the broader mononuclear phagocyte system (MNP). The gold standard ""MNP-c/dendritic cell"" is a more general term that encompasses cDCs, including cDC2. 
+
+2. **Specificity**: The predicted cell type (""CD1C+ cDC2"") is more specific than the gold standard (""MNP-c/dendritic cell""), as it identifies a particular subset of cDCs. According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90.
+
+3. **Biological Relevance**: CD1C+ cDC2 cells are well-established as a subset of cDCs, and their classification under ""MNP-c/dendritic cell"" is biologically accurate. There is no disagreement in their lineage or function; the difference is only in the level of specificity.
+
+Thus, the score reflects the high similarity due to the hierarchical relationship, with the predicted cell type being a more specific instance of the gold standard.",kidney,Human
+Ascending vasa recta endothelium,Glomerular Endothelial Cells (GECs),70,"To evaluate the similarity between the predicted cell type ""Glomerular Endothelial Cells (GECs)"" and the gold standard ""Ascending vasa recta endothelium,"" we need to consider their biological and functional characteristics within the kidney.
+
+1. **General Cell Type**: Both cell types are endothelial cells, which line the interior surface of blood vessels. This shared lineage means they originate from the same general cell type, so the score should be at least 50.
+
+2. **Location and Function**:
+   - **Glomerular Endothelial Cells (GECs)**: These are specialized endothelial cells found in the glomerulus, the filtering unit of the kidney. They have fenestrations (pores) that play a critical role in the filtration of blood to form urine.
+   - **Ascending vasa recta endothelium**: These endothelial cells are part of the vasa recta, a network of blood vessels in the kidney medulla that are involved in maintaining the osmotic gradient necessary for urine concentration. They are not fenestrated like GECs.
+
+3. **Specificity**: The predicted cell type (GECs) is not more specific than the gold standard (Ascending vasa recta endothelium). Instead, they represent distinct subsets of endothelial cells within the kidney with different locations and functions.
+
+4. **Biological Relationship**: While both are endothelial cells in the kidney, their roles and locations are distinct. GECs are involved in filtration, while ascending vasa recta endothelium is involved in maintaining the medullary osmotic gradient. They do not share a direct parent-child relationship in terms of specificity.
+
+Given that they are both endothelial cells but serve different functions and are located in different parts of the kidney, the score should reflect their shared general lineage but distinct roles.",kidney,Human
+MNP-d/Tissue macrophage,Tissue-resident macrophage (LYVE1+,90,"The predicted cell type is ""Tissue-resident macrophage (LYVE1+)"" and the gold standard annotation is ""MNP-d/Tissue macrophage"". 
+
+1. **General Cell Type Relationship**: Both cell types are macrophages, which are a subset of myeloid cells involved in immune responses and tissue homeostasis. ""MNP-d"" stands for myeloid-derived mononuclear phagocyte, which is a broader category that includes macrophages. ""Tissue macrophage"" is a general term for macrophages residing in tissues, while ""Tissue-resident macrophage (LYVE1+)"" is a more specific subset of tissue macrophages that express LYVE1, a marker associated with lymphatic endothelial cells and certain macrophage populations.
+
+2. **Specificity**: The predicted cell type is more specific than the gold standard, as it identifies a subset of tissue macrophages (LYVE1+). This fits the note's criterion where the predicted cell type is more specific than the gold standard, warranting a score of 90.
+
+3. **Biological Relevance**: LYVE1+ macrophages are known to be present in tissues like the kidney and are involved in immune surveillance and tissue repair, aligning well with the general ""Tissue macrophage"" annotation. The LYVE1 marker adds specificity but does not contradict the broader classification.
+
+4. **Conclusion**: The two cell types are highly similar, with the predicted cell type being a more specific instance of the gold standard.",kidney,Human
+Neutrophil,Activated Neutrophils,90,"The predicted cell type is ""Activated Neutrophils,"" while the gold standard annotation is ""Neutrophil."" Neutrophils are a type of white blood cell that play a critical role in the immune response, particularly in acute inflammation. Activated neutrophils are a subset or state of neutrophils that have been stimulated to perform their effector functions, such as phagocytosis, degranulation, and neutrophil extracellular trap (NET) formation. 
+
+Since ""Activated Neutrophils"" is a more specific subset of the general ""Neutrophil"" category, this falls under the case where the predicted cell type is more specific than the gold standard. According to the scoring guidelines, this warrants a score of 90.",kidney,Human
+Mast cell,Connective tissue-type mast cells (CTMCs),90,"The predicted cell type, ""Connective tissue-type mast cells (CTMCs)"", is a specific subtype of the more general ""Mast cell"" category provided in the gold standard annotation. Mast cells are a type of immune cell that play a role in inflammatory responses and are found in various tissues, including the kidney. CTMCs are a well-defined subset of mast cells that are typically found in connective tissues and have distinct morphological and functional characteristics compared to other mast cell subtypes (e.g., mucosal mast cells).
+
+Since the predicted cell type is more specific than the gold standard, this indicates a high level of similarity and accuracy in the prediction. The gold standard ""Mast cell"" encompasses all mast cell subtypes, including CTMCs, so the prediction is effectively a refinement of the broader category. This aligns with the scoring guideline that a more specific prediction should receive a score of 90 when the gold standard is the general cell type.",kidney,Human
+MNP-a/classical monocyte derived,Neutrophils,30,"Neutrophils and monocytes are both myeloid cells, which are part of the innate immune system. However, they are distinct cell types with different functions and origins. 
+
+- **Neutrophils** are granulocytes and are the most abundant type of white blood cells. They are primarily involved in acute inflammation and are the first responders to microbial infection. They have a short lifespan and are characterized by their multi-lobed nuclei and granules filled with enzymes.
+
+- **Monocytes** are agranulocytes that can differentiate into macrophages and dendritic cells. The ""MNP-a/classical monocyte derived"" refers to mononuclear phagocytes (MNP) derived from classical monocytes, which are involved in antigen presentation, phagocytosis, and immune regulation. 
+
+While both cell types are part of the myeloid lineage and share some common progenitor cells, their roles, morphology, and differentiation pathways are quite distinct. They do not share a general cell type beyond being myeloid cells, and their functions in the immune response are specialized and non-overlapping. 
+
+Given this, the similarity score is low because they are not the same general cell type (e.g., one is a granulocyte, the other is an agranulocyte), and their functions are not interchangeable.",kidney,Human
+Myofibroblast,Vascular Smooth Muscle Cells (VSMCs),70,"Vascular Smooth Muscle Cells (VSMCs) and Myofibroblasts are both mesenchymal-derived cells and share some functional and phenotypic characteristics, but they are distinct cell types with different roles in tissue homeostasis and disease.
+
+1. **Origin and Function**: 
+   - VSMCs are primarily found in the walls of blood vessels and are responsible for maintaining vascular tone and blood pressure through contraction and relaxation.
+   - Myofibroblasts are typically involved in wound healing and fibrosis, exhibiting contractile properties and producing extracellular matrix components.
+
+2. **Phenotypic Markers**:
+   - VSMCs express markers like α-SMA (alpha-smooth muscle actin), SM22α, and calponin.
+   - Myofibroblasts also express α-SMA but are distinguished by additional markers like vimentin and fibronectin, and they often lack some of the VSMC-specific markers like SM22α.
+
+3. **Context in Kidney**:
+   - In the kidney, VSMCs are present in the vasculature, while myofibroblasts are often activated during injury or fibrosis, playing a key role in scar formation.
+
+4. **Relationship**:
+   - Both cell types can exhibit a contractile phenotype and share some markers, but they are not the same. Myofibroblasts can arise from various precursors, including VSMCs, especially in pathological conditions (e.g., vascular remodeling or fibrosis). However, they are not interchangeable in normal physiology.
+
+Given that both cell types are mesenchymal-derived and share some markers (e.g., α-SMA), they are related but distinct. The predicted cell type (VSMC) is not a more specific version of the gold standard (Myofibroblast), nor are they completely unrelated. They fall under the broader category of contractile mesenchymal cells but serve different functions.
+
+Thus, the score reflects their shared lineage and some overlapping features but acknowledges their distinct identities.",kidney,Human
+NKT cell,CD8+ cytotoxic T cells,50,"CD8+ cytotoxic T cells and NKT (Natural Killer T) cells are both subsets of T cells, which means they share some general characteristics as part of the adaptive immune system. However, they have distinct functional and phenotypic differences:
+
+1. CD8+ cytotoxic T cells are conventional T cells that recognize peptides presented by MHC class I molecules and are specialized for killing infected or malignant cells.
+2. NKT cells are a specialized subset that shares properties of both T cells and natural killer (NK) cells. They recognize lipid antigens presented by CD1d molecules and have roles in immune regulation and rapid cytokine production.
+
+While both cell types are part of the broader T cell lineage, they represent distinct functional subsets with different antigen recognition mechanisms and roles in the immune response. Therefore, they share some general lineage similarity but are not the same or closely related subsets.
+
+The score reflects their shared general lineage (T cells) but acknowledges their distinct identities and functions.",kidney,Human
+Peritubular capillary endothelium,Glomerular Endothelial Cells (GECs),50,"To evaluate the similarity between Glomerular Endothelial Cells (GECs) and Peritubular Capillary Endothelium in the human kidney, we need to consider their anatomical locations, functions, and molecular markers.
+
+1. **Anatomical Location**:
+   - **GECs**: These are specialized endothelial cells lining the glomerular capillaries within the glomerulus, a key structure in the kidney's filtration unit (nephron).
+   - **Peritubular Capillary Endothelium**: These endothelial cells surround the renal tubules and are involved in reabsorption and secretion processes, distinct from the glomerular filtration function.
+
+2. **Functional Differences**:
+   - **GECs**: Play a critical role in the filtration of blood, forming part of the glomerular filtration barrier. They have fenestrations without diaphragms, which are essential for their filtration function.
+   - **Peritubular Capillary Endothelium**: Supports tubular function by facilitating reabsorption and secretion between the tubules and the bloodstream. These capillaries are continuous and lack the specialized fenestrations seen in GECs.
+
+3. **Molecular and Structural Markers**:
+   - While both are endothelial cells, GECs express unique markers like nephrin and podocalyxin, which are not typically found in peritubular capillary endothelium. Peritubular capillaries may express different sets of adhesion molecules and receptors tailored to their role in tubular exchange.
+
+4. **Developmental Origin**:
+   - Both cell types arise from endothelial progenitors, but their differentiation pathways diverge to accommodate their specific roles in the kidney.
+
+**Conclusion**: Both cell types are endothelial in origin and reside in the kidney, but they are highly specialized for distinct functions and locations. They share a general endothelial lineage but differ significantly in their specific roles and molecular profiles. Therefore, they are not the same cell type but are related at a broader endothelial level.",kidney,Human
+Principal cell,Transitional Proximal Tubule-Collecting Duct Hybrid,90,"The predicted cell type is ""Transitional Proximal Tubule-Collecting Duct Hybrid,"" while the gold standard annotation is ""Principal cell."" 
+
+1. **Biological Relationship**: 
+   - Principal cells are a well-defined cell type in the collecting duct of the kidney, primarily involved in water and electrolyte balance (e.g., expressing aquaporin-2 for water reabsorption).
+   - A ""Transitional Proximal Tubule-Collecting Duct Hybrid"" suggests a cell with mixed features of proximal tubule cells (involved in solute reabsorption) and collecting duct cells (including principal cells). This implies the predicted cell type may share some functional or molecular markers with principal cells but also exhibits proximal tubule characteristics.
+
+2. **Hierarchical Specificity**: 
+   - The predicted cell type is more specific than the gold standard ""Principal cell,"" as it describes a hybrid state. However, it is not a strict subclass of ""Principal cell"" but rather a transitional or intermediate state that may include principal cell features. 
+
+3. **Shared Lineage/Function**: 
+   - Both cell types are part of the nephron and share a general epithelial lineage. The hybrid cell likely retains some principal cell functions or markers, even if it is not a pure principal cell.
+
+4. **Score Justification**: 
+   - Since the predicted cell type is more specific and shares some features with the gold standard (but is not a direct subclass), a score of 90 is appropriate. This reflects the partial overlap and the fact that the predicted cell type is a more refined description.",kidney,Human
+Pelvic epithelium,Injured/Activated Proximal Tubule (PT) Cells,50,"The predicted cell type is ""Injured/Activated Proximal Tubule (PT) Cells,"" which are specialized epithelial cells located in the proximal tubule of the kidney nephron. These cells are involved in reabsorption and secretion processes. The gold standard annotation is ""Pelvic epithelium,"" which refers to the epithelial lining of the renal pelvis, a part of the kidney's collecting system. 
+
+While both cell types are epithelial in origin and located within the kidney, they serve distinct functions and are derived from different segments of the kidney's anatomical structure. Proximal tubule cells are part of the nephron and are involved in filtration and reabsorption, whereas pelvic epithelium is part of the urinary drainage system and is not involved in filtration. 
+
+Given that they are both epithelial cells within the kidney, they share a general cell type (epithelial), but their specific functions and locations are quite different. Therefore, they are not completely unrelated but are not closely similar either.",kidney,Human
+Thick ascending limb of Loop of Henle,Classical TAL (cTAL),90,"The predicted cell type ""Classical TAL (cTAL)"" is a specific subset of the ""Thick ascending limb of Loop of Henle"". The thick ascending limb (TAL) of the Loop of Henle is a segment of the nephron in the kidney responsible for reabsorbing ions and water. Within this segment, ""Classical TAL (cTAL)"" refers to a distinct functional or morphological subtype of cells within the TAL. 
+
+Since the predicted cell type is more specific (a subtype) than the gold standard annotation, this falls under the criterion where the score should be 90. The two cell types are strongly related, with the predicted cell type being a more precise classification within the broader gold standard category.",kidney,Human
+NK cell,Cytotoxic CD8+ T Cells,50,"Cytotoxic CD8+ T cells and NK cells are both immune cells involved in cytotoxic responses, but they belong to distinct lineages and have different mechanisms of target recognition and activation. 
+
+1. **Lineage and Function**: 
+   - CD8+ T cells are part of the adaptive immune system, recognizing antigens presented by MHC class I molecules. They are derived from thymocytes and require antigen-specific activation.
+   - NK cells are part of the innate immune system, capable of recognizing and killing target cells without prior sensitization, often through missing or altered MHC class I molecules (""missing self"" recognition).
+
+2. **Shared Features**: 
+   - Both cell types are cytotoxic and can kill infected or malignant cells using perforin and granzyme pathways.
+   - Both can produce cytokines like IFN-γ to modulate immune responses.
+
+3. **Key Differences**: 
+   - CD8+ T cells are antigen-specific and require MHC presentation, while NK cells are antigen-nonspecific and do not require MHC presentation.
+   - CD8+ T cells express the CD8 marker and T cell receptor (TCR), while NK cells express markers like CD56 and CD16 (FcγRIII) and lack TCR.
+
+4. **General Cell Type Relationship**: 
+   - Both are lymphocytes but belong to different branches (T cells vs. innate lymphoid cells). They share a broader ""lymphocyte"" classification but are not closely related beyond that.
+
+Given that they share a general lymphocyte classification but are distinct in lineage and function, the score reflects partial similarity but not high overlap.",kidney,Human
+Plasmacytoid dendritic cell,Resting pDCs,90,"The predicted cell type is ""Resting pDCs"" and the gold standard annotation is ""Plasmacytoid dendritic cell"" (pDC). 
+
+1. **Biological Relationship**: ""Resting pDCs"" is a specific state or subset of ""Plasmacytoid dendritic cells"" (pDCs). pDCs are a specialized subset of dendritic cells known for their ability to produce large amounts of type I interferons in response to viral infections. The term ""resting"" indicates a non-activated state of these cells, which is a more specific annotation than the general ""Plasmacytoid dendritic cell"" label.
+
+2. **Specificity**: The predicted cell type is more specific than the gold standard, as it specifies the activation state (""resting"") of the pDCs. According to the guidelines, this should result in a high score (90) because the predicted cell type is a refinement of the gold standard.
+
+3. **General Cell Type Agreement**: Both annotations clearly refer to the same general cell type (plasmacytoid dendritic cells), so there is no disagreement at the broader biological level.
+
+4. **Contextual Relevance**: The tissue (kidney) and species (human) are consistent and relevant for both cell types, as pDCs are known to be present in human kidney tissue.
+
+Therefore, the score should reflect the high similarity due to the more specific annotation of the predicted cell type.",kidney,Human
+Transitional urothelium,Umbrella Cells (Superficial Urothelium),90,"The predicted cell type, ""Umbrella Cells (Superficial Urothelium),"" is a specific subtype of the ""Transitional urothelium"" cell type. Umbrella cells are the most superficial layer of the transitional epithelium (urothelium) that lines the urinary tract, including parts of the kidney. The gold standard annotation, ""Transitional urothelium,"" is a broader category that includes all layers of the urothelium, including basal, intermediate, and superficial (umbrella) cells. 
+
+Since the predicted cell type is a more specific subset of the gold standard annotation, this indicates a high degree of similarity, but not a perfect match. The specificity of the predicted cell type (focusing only on the superficial layer) compared to the broader gold standard justifies a high score, but not 100, as the gold standard encompasses more than just umbrella cells.
+
+Thus, the score should reflect this hierarchical relationship, where the predicted cell type is a subset of the gold standard.",kidney,Human
+Podocyte,Mature Differentiated Podocytes,90,"The predicted cell type is ""Mature Differentiated Podocytes"" and the gold standard annotation is ""Podocyte."" Podocytes are specialized epithelial cells in the kidney that play a critical role in the filtration of blood in the glomerulus. ""Mature Differentiated Podocytes"" is a more specific subset of the general ""Podocyte"" category, indicating a fully developed and functionally specialized state of these cells. 
+
+Since the predicted cell type is more specific than the gold standard, this falls under the case where the score should be 90. The two cell types are biologically identical in their general classification, with the predicted cell type providing additional detail about the maturity and differentiation state of the podocytes.",kidney,Human
+Proximal tubule,S1/S2 Segment PTEC,90,"The predicted cell type ""S1/S2 Segment PTEC"" (S1/S2 Segment Proximal Tubule Epithelial Cell) is a more specific subtype of the gold standard annotation ""Proximal tubule."" The proximal tubule is a general term for the epithelial cells lining the proximal convoluted tubule and proximal straight tubule in the kidney, which are further divided into S1, S2, and S3 segments based on their functional and morphological characteristics. 
+
+Since ""S1/S2 Segment PTEC"" is a subset of ""Proximal tubule,"" this indicates a high degree of similarity, with the predicted cell type providing additional granularity. According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",kidney,Human
+"cd8-positive, alpha-beta t cell",tissue-resident memory CD8+ T cells (Trm),90,"The predicted cell type is ""tissue-resident memory CD8+ T cells (Trm)"", while the gold standard annotation is ""cd8-positive, alpha-beta t cell"". 
+
+1. **General Cell Type Relationship**: Both cell types are subsets of T cells, specifically CD8+ T cells, which are a type of alpha-beta T cell. This establishes a clear hierarchical relationship where the predicted cell type is a more specialized subset of the gold standard annotation.
+
+2. **Specificity**: The gold standard annotation (""cd8-positive, alpha-beta t cell"") is a broader category that includes all CD8+ alpha-beta T cells, regardless of their functional or residency state. The predicted cell type (""tissue-resident memory CD8+ T cells"") is a highly specialized subset of CD8+ T cells that have memory properties and reside in tissues (in this case, the large intestine). 
+
+3. **Biological Relevance**: The predicted cell type is biologically consistent with the gold standard, as Trm cells are indeed CD8+ alpha-beta T cells. The additional specificity of the predicted cell type (memory, tissue-resident) does not contradict the gold standard but rather refines it.
+
+4. **Scoring Guidance**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""tissue-resident memory CD8+ T cells"" is a subset of ""cd8-positive, alpha-beta t cell"".
+
+Thus, the score is 90, reflecting the high similarity and the fact that the predicted cell type is a more specific version of the gold standard.",large intestine,Human
+intestinal crypt stem cell,Crypt Base Columnar (CBC) Stem Cells,90,"The predicted cell type, ""Crypt Base Columnar (CBC) Stem Cells,"" is a specific subtype of intestinal crypt stem cells. The gold standard annotation, ""intestinal crypt stem cell,"" is a broader category that includes CBC stem cells as well as other potential stem cell populations in the intestinal crypt (e.g., +4 reserve stem cells). 
+
+CBC stem cells are well-characterized as the primary stem cells responsible for maintaining the intestinal epithelium, located at the base of the crypt. They are marked by specific markers like Lgr5 and are actively cycling. The gold standard term encompasses CBC stem cells but does not exclude other less active or reserve stem cell populations. 
+
+Since the predicted cell type is more specific than the gold standard and falls entirely within the broader category, this is a high-confidence match with minor granularity differences. The score reflects this high similarity while acknowledging the slight difference in specificity.",large intestine,Human
+intestinal enteroendocrine cell,L-cells (GLP-1/PYY-secreting),90,"The predicted cell type, L-cells (GLP-1/PYY-secreting), is a specific subtype of intestinal enteroendocrine cells. Enteroendocrine cells are a broad category of hormone-secreting cells found in the gastrointestinal tract, and L-cells are one of the well-characterized subtypes within this group. 
+
+Since the predicted cell type (L-cell) is more specific than the gold standard annotation (intestinal enteroendocrine cell), this falls under the case where the predicted cell type is a subtype of the gold standard. According to the guidelines, this warrants a score of 90. 
+
+Biologically, L-cells are indeed enteroendocrine cells that secrete specific hormones like GLP-1 and PYY, which are involved in glucose metabolism and appetite regulation. Thus, the prediction is correct and more precise than the gold standard.",large intestine,Human
+goblet cell,Classical Colon Goblet Cells,90,"The predicted cell type ""Classical Colon Goblet Cells"" is a specific subtype of the more general ""goblet cell"" category, which is the gold standard annotation. Goblet cells are specialized epithelial cells that secrete mucins to form mucus, and they are found in the lining of the intestines, including the large intestine. ""Classical Colon Goblet Cells"" refers to a well-defined subset of goblet cells that are specifically located in the colon and exhibit classical morphological and functional characteristics. 
+
+Since the predicted cell type is more specific than the gold standard (i.e., it provides additional detail about the subtype and location), this is a case where the predicted cell type is a refinement of the gold standard. According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",large intestine,Human
+mast cell,Mucosal Mast Cells (MMC),90,"The predicted cell type ""Mucosal Mast Cells (MMC)"" is a specific subtype of the gold standard annotation ""mast cell."" Mucosal mast cells are a specialized group of mast cells that are primarily found in mucosal tissues, such as the large intestine. They differ from connective tissue mast cells in terms of their protease content, receptor expression, and functional roles in immune responses. 
+
+Given that MMCs are a subset of mast cells, the predicted cell type is more specific than the gold standard, which warrants a high similarity score. Since the prediction is more specific but still falls under the broader category of the gold standard, the score should be 90, as per the note provided.",large intestine,Human
+gut endothelial cell,Intestinal Capillary/Venule Endothelial Cells,90,"The predicted cell type ""Intestinal Capillary/Venule Endothelial Cells"" is a specific subtype of endothelial cells found in the large intestine, which are part of the broader category ""gut endothelial cell"" (the gold standard annotation). 
+
+1. **Hierarchical Relationship**: The predicted cell type is more specific than the gold standard, as it specifies the vascular compartment (capillary/venule) within the gut endothelial population. This is a classic case of a subtype (predicted) being nested within a broader category (gold standard).
+
+2. **Biological Relevance**: All intestinal capillary/venule endothelial cells are by definition gut endothelial cells, so the predicted cell type fully aligns with the gold standard, just with additional specificity. 
+
+3. **Scoring Criteria**: According to the provided guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. This applies perfectly here.
+
+4. **No Conflict**: There is no biological discrepancy or mismatch; the predicted cell type is simply a refined version of the gold standard.",large intestine,Human
+intestinal crypt stem cell of large intestine,FOXQ1+ subset,90,"The predicted cell type ""FOXQ1+ subset"" and the gold standard ""intestinal crypt stem cell of large intestine"" are both related to the stem cell population in the large intestine. FOXQ1 is a transcription factor that has been identified as a marker for a specific subset of intestinal stem cells, particularly in the large intestine. 
+
+1. **Specificity**: The gold standard is a broad category (""intestinal crypt stem cell""), while the predicted cell type is a more specific subset (""FOXQ1+ subset""). This fits the scenario where the predicted cell type is more specific than the gold standard, which typically warrants a score of 90.
+
+2. **Biological Relationship**: FOXQ1+ cells are a subset of intestinal crypt stem cells, meaning they share the same general cell type (stem cells of the large intestine) but represent a more refined population. This confirms that the predicted cell type is not only related but also a more detailed annotation of the gold standard.
+
+3. **Tissue and Species Context**: Both cell types are from the same tissue (large intestine) and species (human), further supporting their close relationship.
+
+Given these points, the predicted cell type is a valid and more specific annotation of the gold standard, justifying a high score.",large intestine,Human
+large intestine goblet cell,Immature/Progenitor Goblet Cells,90,"The predicted cell type is ""Immature/Progenitor Goblet Cells,"" while the gold standard annotation is ""large intestine goblet cell."" 
+
+1. **Hierarchical Relationship**: Immature/Progenitor Goblet Cells are a subset or developmental precursor of mature goblet cells. This means the predicted cell type is more specific than the gold standard, as it specifies the developmental stage (immature/progenitor) of the goblet cell. 
+
+2. **Biological Similarity**: Both cell types are goblet cells, which are specialized epithelial cells that secrete mucins to form the protective mucus layer in the large intestine. The immature/progenitor form is simply an earlier stage of the same lineage that will differentiate into the mature goblet cell. 
+
+3. **Functional Overlap**: While immature/progenitor goblet cells may not yet be fully functional in mucus secretion, they are committed to the goblet cell lineage and share many molecular and morphological features with mature goblet cells.
+
+Given that the predicted cell type is a more specific version of the gold standard (and they share the same general cell type), the score should be 90, as per the note.",large intestine,Human
+immature enterocyte,Mature Colonocyte (Absorptive Enterocyte),90,"The predicted cell type is ""Mature Colonocyte (Absorptive Enterocyte)"" and the gold standard is ""immature enterocyte."" Both cell types are enterocytes, which are epithelial cells lining the intestine and are involved in nutrient absorption. The key difference lies in their maturation state: ""mature"" versus ""immature."" 
+
+Mature colonocytes are fully differentiated cells specialized for absorption and other functions in the large intestine, while immature enterocytes are less differentiated and may still be in the process of maturing. Despite the difference in maturation state, they share a common lineage and general function, which means they are closely related biologically.
+
+Since the predicted cell type is more specific (mature) than the gold standard (immature), but both are enterocytes, the score should reflect this hierarchical relationship. The predicted cell type is a more refined version of the gold standard, so the score should be high but not perfect.",large intestine,Human
+fibroblast,Subepithelial Fibroblast,90,"The predicted cell type ""Subepithelial Fibroblast"" is a more specific subtype of the gold standard annotation ""fibroblast"". Fibroblasts are a broad category of cells that produce the extracellular matrix and collagen, and are involved in tissue repair and maintenance. Subepithelial fibroblasts are a specialized subset located beneath the epithelial layer, playing specific roles in the microenvironment of the large intestine, such as supporting epithelial function and immune modulation. 
+
+Since the predicted cell type is a more detailed classification within the broader ""fibroblast"" category, it demonstrates a high degree of similarity but with additional specificity. According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",large intestine,Human
+paneth cell of epithelium of large intestine,Mature Colonocytes (KRT20+ Enterocytes),50,"The predicted cell type is ""Mature Colonocytes (KRT20+ Enterocytes)"" while the gold standard annotation is ""Paneth cell of epithelium of large intestine."" 
+
+1. **Biological Relationship**: 
+   - **Mature Colonocytes (KRT20+ Enterocytes)**: These are the primary absorptive cells of the colon, responsible for water and electrolyte absorption. They express KRT20 (Keratin 20), a marker for differentiated epithelial cells in the colon.
+   - **Paneth Cells**: These are specialized secretory cells found primarily in the small intestine (though rare in the large intestine) and are part of the innate immune system. They secrete antimicrobial peptides like lysozyme and defensins.
+
+2. **Lineage and Function**:
+   - Both cell types are epithelial in origin but serve vastly different functions. Colonocytes are absorptive, while Paneth cells are secretory and immunologically active.
+   - They arise from different lineages within the intestinal crypt: colonocytes from the absorptive lineage and Paneth cells from the secretory lineage.
+
+3. **Shared General Cell Type**:
+   - Both are epithelial cells of the large intestine, which is the only shared general cell type. However, their specific roles and markers are entirely distinct.
+
+4. **Specificity**:
+   - The predicted cell type is not a more specific version of the gold standard (Paneth cell), nor do they share a direct lineage or functional overlap beyond being epithelial cells.
+
+Given the lack of functional, lineage, or marker overlap beyond the broad epithelial classification, the similarity is minimal. However, since they are both epithelial cells, the score cannot be 0.",large intestine,Human
+"cd4-positive, alpha-beta t cell",T follicular helper-like (Tfh-like) cells,90,"The predicted cell type is ""T follicular helper-like (Tfh-like) cells,"" while the gold standard annotation is ""CD4-positive, alpha-beta T cell."" 
+
+1. **Hierarchical Relationship**: T follicular helper (Tfh) cells are a subset of CD4+ T cells, which are themselves a subset of alpha-beta T cells. Therefore, Tfh-like cells are a more specialized subtype within the broader category of CD4-positive, alpha-beta T cells.
+
+2. **Biological Similarity**: Tfh-like cells share the core characteristics of CD4+ alpha-beta T cells, including the expression of CD4 and the alpha-beta T cell receptor (TCR). However, Tfh-like cells have additional specialized functions, such as promoting B cell responses in germinal centers, which are not necessarily shared by all CD4+ alpha-beta T cells.
+
+3. **Specificity**: Since the predicted cell type (Tfh-like) is more specific than the gold standard (CD4-positive, alpha-beta T cell), this fits the note's criterion for a score of 90. The gold standard is a broader category that encompasses the predicted cell type.
+
+4. **Contextual Relevance**: In the large intestine, both Tfh-like cells and general CD4+ alpha-beta T cells are present and play roles in immune responses, further supporting their biological relationship.
+
+Thus, the predicted cell type is a specialized subset of the gold standard annotation, warranting a high score.",large intestine,Human
+intestinal tuft cell,Canonical Intestinal Tuft Cell,90,"The predicted cell type is ""Canonical Intestinal Tuft Cell"" and the gold standard annotation is ""intestinal tuft cell"". 
+
+1. Specificity: The term ""Canonical Intestinal Tuft Cell"" is a more specific subset or designation of the broader ""intestinal tuft cell"" category. The word ""canonical"" implies that this is a well-defined, standard, or archetypal form of intestinal tuft cells, which aligns perfectly with the general ""intestinal tuft cell"" classification.
+
+2. Biological relationship: Both terms refer to the same fundamental cell type—tuft cells in the intestine. Tuft cells are a specialized epithelial cell type known for their chemosensory and immune-modulatory roles in the gut. The ""canonical"" designation does not introduce any new or divergent biological features but rather refines the classification within the same cell type.
+
+3. Hierarchy: The predicted cell type is a more precise annotation within the hierarchy of intestinal tuft cells, similar to how ""CD4+ T cell"" is a subset of ""T cell"". This does not represent a disagreement but rather a more detailed annotation.
+
+Given these points, the predicted cell type is a more specific version of the gold standard, warranting a high score.",large intestine,Human
+neutrophil,Inflammatory Macrophages (M1-like),50,"The predicted cell type is ""Inflammatory Macrophages (M1-like)"" and the gold standard annotation is ""neutrophil."" Both cell types are part of the immune system and are involved in inflammatory responses, but they belong to distinct lineages and have different functions and origins.
+
+1. **Lineage and Origin**: 
+   - Macrophages (including M1-like) are derived from monocytes, which originate from myeloid progenitor cells in the bone marrow. They are part of the mononuclear phagocyte system.
+   - Neutrophils are granulocytes and also originate from myeloid progenitor cells, but they follow a different differentiation pathway and are part of the polymorphonuclear leukocyte family.
+
+2. **Function and Role in Inflammation**:
+   - M1-like macrophages are pro-inflammatory and play a role in antigen presentation, phagocytosis, and cytokine production to promote inflammation.
+   - Neutrophils are the first responders to infection or injury and primarily engage in phagocytosis, release of antimicrobial granules, and formation of neutrophil extracellular traps (NETs).
+
+3. **Shared General Cell Type**: 
+   - Both are myeloid-derived immune cells, so they share a broad classification as ""myeloid cells"" or ""innate immune cells."" However, their specific roles and phenotypes are quite distinct.
+
+Given that they share a general cell type (myeloid/innate immune cells) but are not the same or closely related in terms of specific function or lineage, the score should reflect this intermediate relationship.",large intestine,Human
+enterocyte of epithelium of large intestine,PSCA+ Goblet-Enterocyte Hybrid Cells,90,"The predicted cell type is ""PSCA+ Goblet-Enterocyte Hybrid Cells,"" while the gold standard is ""enterocyte of epithelium of large intestine."" 
+
+1. **General Relationship**: Both cell types are epithelial cells of the large intestine, which establishes a foundational similarity. The gold standard is a broad category (enterocyte), while the predicted cell type is a more specific subset (hybrid cells with features of both goblet cells and enterocytes, and expressing PSCA).
+
+2. **Specificity**: The predicted cell type is more specific than the gold standard. It describes a hybrid cell with features of enterocytes (matching the gold standard) but also includes goblet cell characteristics and PSCA expression. This suggests the predicted cell type is a specialized or transitional form within the broader enterocyte category.
+
+3. **Biological Relevance**: Enterocytes are the primary absorptive cells of the intestinal epithelium, while goblet cells are secretory (producing mucus). A hybrid cell would share some functional and morphological features of both, but the gold standard does not account for this hybrid state or PSCA expression. However, the core identity (enterocyte) is preserved.
+
+4. **Scoring Justification**: Since the predicted cell type is more specific and includes the gold standard's identity (enterocyte), the score should be 90, as per the note. The additional features (goblet hybrid, PSCA+) do not contradict the gold standard but refine it.",large intestine,Human
+transit amplifying cell of large intestine,Transit-Amplifying (TA) Cells,100,"The predicted cell type is ""Transit-Amplifying (TA) Cells"" and the gold standard annotation is ""transit amplifying cell of large intestine."" These two labels are essentially identical in meaning, as ""Transit-Amplifying (TA) Cells"" is a common abbreviation for ""transit amplifying cells."" Both terms refer to the same cell type, which is a proliferative intermediate cell population in the intestinal crypt that gives rise to differentiated epithelial cells. The tissue context (large intestine) and species (human) are also consistent between the two labels. Therefore, the similarity is exact.",large intestine,Human
+mature enterocyte,colonocytes,90,"Colonocytes and mature enterocytes are both epithelial cells found in the large intestine (colon) and are involved in absorption and secretion functions. 
+
+1. **General Cell Type**: Both are specialized epithelial cells of the intestinal lining, sharing a common origin and general function (absorption, barrier formation, and secretion). This alone justifies a score of at least 50.
+
+2. **Specificity**: 
+   - ""Mature enterocyte"" is a broad term for fully differentiated absorptive epithelial cells in the intestine, applicable to both the small and large intestine. 
+   - ""Colonocyte"" is a more specific term referring to the mature enterocytes localized specifically to the colon (large intestine). 
+
+Since the predicted cell type (""colonocyte"") is a subset of the gold standard (""mature enterocyte""), this falls under the case where the predicted cell type is more specific than the gold standard. According to the guidelines, this warrants a score of 90.
+
+3. **Functional Overlap**: Both cell types perform similar roles (e.g., water absorption, ion transport, mucus secretion), further supporting their high similarity.
+
+4. **No Major Differences**: There are no fundamental biological differences between the two labels; the distinction is primarily anatomical (colon-specific vs. general intestinal).",large intestine,Human
+plasma cell,IgA+ Plasma Cell,90,"The predicted cell type ""IgA+ Plasma Cell"" is a specific subset of the more general ""plasma cell"" category. Plasma cells are antibody-secreting cells derived from B cells, and IgA+ Plasma Cells specifically produce IgA antibodies, which are particularly important in mucosal immunity, including the large intestine. 
+
+Since the predicted cell type is a more specialized version of the gold standard annotation, this indicates a high degree of similarity. The gold standard ""plasma cell"" could encompass other subtypes (e.g., IgG+, IgM+, IgE+ Plasma Cells), but the predicted cell type falls squarely within this broader category. 
+
+According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. This reflects the high biological relevance and hierarchical relationship between the two terms.",large intestine,Human
+monocyte,Enteric Glial Cells (EGCs),0,"Enteric Glial Cells (EGCs) and monocytes are fundamentally different cell types with distinct origins, functions, and locations within the body, even though both are found in the large intestine.
+
+1. **Cell Lineage and Origin**:
+   - EGCs are part of the peripheral nervous system (PNS) and are derived from neural crest cells. They are specialized glial cells that support the enteric nervous system (ENS) in the gastrointestinal tract.
+   - Monocytes are immune cells derived from the myeloid lineage of hematopoietic stem cells in the bone marrow. They circulate in the blood and can migrate into tissues to differentiate into macrophages or dendritic cells.
+
+2. **Function**:
+   - EGCs play roles in maintaining the integrity of the ENS, modulating gut motility, and participating in gut-brain signaling.
+   - Monocytes are part of the innate immune system, involved in phagocytosis, antigen presentation, and cytokine production.
+
+3. **Location and Tissue Context**:
+   - While both cell types can be found in the large intestine, EGCs are embedded in the ENS, whereas monocytes are transient immune cells that infiltrate tissues during inflammation or infection.
+
+4. **Biological Relationship**:
+   - There is no shared general cell type between EGCs (nervous system glia) and monocytes (immune cells). They belong to entirely different biological systems (nervous vs. hematopoietic/immune).
+
+Given these differences, the two cell types are completely distinct with no overlapping biological classification.",large intestine,Human
+Epithelial cell (club),SCGB1A1+/MUC5B+ secretory hybrid cells,90,"The predicted cell type, ""SCGB1A1+/MUC5B+ secretory hybrid cells,"" is a specific subset of secretory cells found in the lung. SCGB1A1 (Secretoglobin Family 1A Member 1) is a marker traditionally associated with club cells (also known as Clara cells), which are a type of epithelial cell in the respiratory tract. MUC5B is a mucin gene often expressed in goblet cells, another type of secretory epithelial cell. The hybrid nature of these cells indicates they share features of both club and goblet cells, which are both subtypes of epithelial cells in the lung.
+
+The gold standard annotation, ""Epithelial cell (club),"" refers specifically to club cells, a well-defined subset of lung epithelial cells. While the predicted cell type is more specific (a hybrid of club and goblet features), it is still fundamentally an epithelial cell and shares the core identity of the gold standard (club cell). The hybrid nature suggests additional features (MUC5B expression), but the SCGB1A1+ component confirms overlap with the club cell identity. 
+
+Since the predicted cell type is more specific than the gold standard (it includes additional features but retains the core identity), the score should be 90. They are not identical, but the predicted cell type is a refinement or extension of the gold standard.",lung,Human
+Endothelial cell (lymphatic),Mature Lymphatic Endothelial Cells (LECs),90,"The predicted cell type, ""Mature Lymphatic Endothelial Cells (LECs)"", is a specific subtype of the gold standard annotation, ""Endothelial cell (lymphatic)"". 
+
+1. **Hierarchical Relationship**: LECs are a well-defined subset of lymphatic endothelial cells, which are themselves a subset of endothelial cells. The term ""mature"" further specifies the developmental stage, indicating a more differentiated state within the LEC lineage. 
+
+2. **Biological Similarity**: Both terms refer to the same cell lineage (lymphatic endothelial cells), with the predicted cell type providing additional detail about maturity. This specificity does not contradict the gold standard but rather refines it.
+
+3. **Scoring Justification**: Since the predicted cell type is more specific than the gold standard (as per the note), the score should be 90. This reflects a high degree of similarity, with the only difference being the level of detail in the annotation.",lung,Human
+Epithelial cell (alveolar type II),Classical AT2 cells,90,"The predicted cell type is ""Classical AT2 cells"" and the gold standard annotation is ""Epithelial cell (alveolar type II)"". 
+
+1. **General Relationship**: Both cell types are epithelial cells, specifically alveolar type II (AT2) cells, which are a specialized subset of lung epithelial cells responsible for surfactant production and alveolar repair. 
+
+2. **Specificity**: The predicted cell type (""Classical AT2 cells"") is a subset or more specific classification of the gold standard (""Epithelial cell (alveolar type II)""). This indicates that the predicted cell type is a refined annotation within the broader category of AT2 cells. 
+
+3. **Biological Relevance**: The term ""Classical AT2 cells"" likely refers to the canonical or well-characterized population of AT2 cells, which aligns perfectly with the gold standard. There is no discrepancy in biological function or identity here, only a difference in the granularity of annotation.
+
+4. **Scoring Justification**: Since the predicted cell type is more specific than the gold standard but falls entirely within its definition, the score should be 90, as per the given guidelines.",lung,Human
+Immune (B cell),Plasma cells,90,"Plasma cells are a differentiated form of B cells, specifically arising from B cells that have been activated and undergone terminal differentiation to become antibody-secreting cells. Therefore, ""Plasma cells"" and ""B cells"" are directly related in the B cell lineage, with plasma cells representing a more specialized and mature state of B cells. 
+
+Given that the gold standard is ""Immune (B cell)"" (a broad category that includes all B cell types, including plasma cells), the predicted cell type ""Plasma cells"" is more specific than the gold standard. This fits the note's criterion for a score of 90 when the predicted cell type is more specific than the gold standard. 
+
+Additionally, both cell types are part of the immune system and share the same general lineage (B cell lineage), further justifying a high similarity score.",lung,Human
+Endothelial cell (vascular),Continuous capillary endothelial,90,"The predicted cell type is ""Continuous capillary endothelial"" and the gold standard annotation is ""Endothelial cell (vascular)"". 
+
+1. **General vs. Specific**: The gold standard ""Endothelial cell (vascular)"" is a broad category that includes all endothelial cells lining the blood vessels. The predicted ""Continuous capillary endothelial"" is a specific subtype of vascular endothelial cells, specifically those found in capillaries and characterized by their continuous (non-fenestrated) structure. 
+
+2. **Hierarchical Relationship**: ""Continuous capillary endothelial"" is a subset of ""Endothelial cell (vascular)"", meaning the predicted cell type is more specific than the gold standard. 
+
+3. **Biological Relevance**: Both cell types are endothelial in origin and share core functions (e.g., barrier function, nutrient exchange), but the predicted cell type has additional specialized features (e.g., continuous tight junctions, specific localization in capillaries). 
+
+According to the scoring guidelines, if the predicted cell type is more specific than the gold standard, the score should be 90. This is the case here.",lung,Human
+Immune (mast cell),Mucosal Mast Cells (MMC),90,"The predicted cell type is ""Mucosal Mast Cells (MMC)"", which is a specific subtype of mast cells that are primarily found in mucosal tissues, such as the lung. The gold standard annotation is ""Immune (mast cell)"", which is a more general category that includes all mast cells, regardless of their specific subtype or location.
+
+Since the predicted cell type (MMC) is a more specific subtype of the gold standard (mast cell), and both are mast cells (a type of immune cell), the relationship is very close. The specificity of the predicted cell type in relation to the gold standard justifies a high score, but not the maximum, as the gold standard is broader.
+
+According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because MMC is a specific subtype of mast cells, and the gold standard is the general ""mast cell"" category.",lung,Human
+Epithelial cell (alveolar type I),Alveolar Type I (AT1) Cells,100,"The predicted cell type is ""Alveolar Type I (AT1) Cells,"" and the gold standard annotation is ""Epithelial cell (alveolar type I)."" 
+
+1. **Specificity Comparison**: The predicted cell type is highly specific, identifying the exact subtype of epithelial cell (AT1) in the lung. The gold standard is slightly more general but still specifies ""alveolar type I,"" which aligns perfectly with the predicted cell type. 
+
+2. **Biological Relationship**: AT1 cells are a specialized subset of epithelial cells in the lung responsible for gas exchange. The gold standard explicitly mentions ""alveolar type I,"" confirming the same cell type. 
+
+3. **Hierarchical Alignment**: Both annotations refer to the same cell type, with the gold standard providing a slightly broader context (epithelial cell) but still pinpointing the correct subtype. 
+
+Since the predicted cell type is not more specific than the gold standard (both specify ""alveolar type I""), the score should reflect perfect alignment rather than the ""more specific"" rule (which would apply if the gold standard were just ""epithelial cell"" without the subtype).",lung,Human
+Epithelial cell (basal),Classic Basal Progenitors,90,"The predicted cell type ""Classic Basal Progenitors"" is a specific subtype of the gold standard annotation ""Epithelial cell (basal)"". Basal epithelial cells are a general category that includes various progenitor and differentiated cell types within the epithelial layer. ""Classic Basal Progenitors"" refers to a more specialized subset of these cells, likely with progenitor or stem-like properties. 
+
+Since the predicted cell type is more specific than the gold standard (i.e., it falls under the broader category of ""Epithelial cell (basal)""), this meets the criteria for a high score. The two cell types are biologically related, with the predicted cell type being a refined version of the gold standard. There is no disagreement in their lineage or general identity, only in the level of specificity.",lung,Human
+Epithelial cell (ciliated),Bronchial/Tracheal Multiciliated Cells,90,"The predicted cell type ""Bronchial/Tracheal Multiciliated Cells"" is a specific subtype of the gold standard annotation ""Epithelial cell (ciliated)"". 
+
+1. **Hierarchical Relationship**: 
+   - The gold standard ""Epithelial cell (ciliated)"" is a broad category that includes all ciliated epithelial cells in the lung, which could include multiciliated cells from various regions (e.g., bronchial, tracheal, or even smaller airways).
+   - The predicted cell type ""Bronchial/Tracheal Multiciliated Cells"" is a more specific subset of ciliated epithelial cells, explicitly identifying the location (bronchial/tracheal) and the multiciliated nature of the cells.
+
+2. **Biological Similarity**:
+   - Both cell types are ciliated epithelial cells, meaning they share core functions (e.g., mucociliary clearance, barrier function) and express key markers (e.g., FOXJ1, tubulin for cilia).
+   - The predicted cell type is simply more precise in its anatomical origin and cilia arrangement (multiciliated), but it is still fundamentally a ciliated epithelial cell.
+
+3. **Scoring Justification**:
+   - Since the predicted cell type is more specific than the gold standard (a subset of the gold standard), the score should be 90, as per the note in the instructions. This reflects high similarity with additional specificity.",lung,Human
+Fibroblast,Matrix Fibroblast,90,"The predicted cell type ""Matrix Fibroblast"" is a more specific subtype of the gold standard annotation ""Fibroblast"". Fibroblasts are a general cell type involved in the synthesis and maintenance of the extracellular matrix in connective tissues. ""Matrix Fibroblast"" likely refers to a subset of fibroblasts that are particularly active in producing or organizing the extracellular matrix, which is consistent with the broader category of fibroblasts. 
+
+Since the predicted cell type is more specific than the gold standard, this meets the criteria for a high score (90) as per the given instructions. The two cell types are directly related, with the predicted cell type being a specialized version of the gold standard.",lung,Human
+Immune (alveolar macrophage),Alveolar Macrophage (AM),100,"The predicted cell type is ""Alveolar Macrophage (AM)"" and the gold standard annotation is ""Immune (alveolar macrophage)"". 
+
+1. **Specificity Comparison**: The predicted cell type ""Alveolar Macrophage (AM)"" is highly specific and matches the gold standard annotation ""Immune (alveolar macrophage)"" almost exactly. The gold standard annotation includes the term ""Immune,"" which is a broader category, but it also specifies ""alveolar macrophage,"" which is the same as the predicted cell type. 
+
+2. **Biological Relationship**: Alveolar macrophages are a subset of immune cells residing in the lung alveoli, and they are indeed part of the immune system. The gold standard annotation correctly identifies this relationship by labeling it as ""Immune (alveolar macrophage)."" 
+
+3. **Score Justification**: Since the predicted cell type is exactly the same as the specific term in the gold standard annotation (""alveolar macrophage""), and the gold standard also acknowledges the broader immune context, this is a perfect match. The slight difference in phrasing (including ""Immune"" in the gold standard) does not detract from the fact that the specific cell type is identical.
+
+Therefore, the score should be 100, as the predicted cell type and the gold standard annotation refer to the same biological entity.",lung,Human
+Immune (NK cell),Tissue-Resident NK Cells (trNK),90,"The predicted cell type is ""Tissue-Resident NK Cells (trNK)"" and the gold standard annotation is ""Immune (NK cell)"". 
+
+1. **Specificity Relationship**: The predicted cell type ""Tissue-Resident NK Cells (trNK)"" is a subset of the broader ""NK cell"" category. This means the predicted cell type is more specific than the gold standard, as it identifies a specialized population of NK cells that reside in tissues (in this case, the lung). 
+
+2. **Biological Similarity**: Both cell types are NK cells, which are a type of immune cell involved in innate immunity. The trNK cells are a specialized subset with tissue-specific functions, but they retain the core characteristics of NK cells (e.g., cytotoxic activity, cytokine production). 
+
+3. **Contextual Relevance**: Given the tissue is the lung, trNK cells are biologically relevant as they are known to play roles in lung immunity and homeostasis. 
+
+Since the predicted cell type is more specific than the gold standard and both are clearly related as NK cells, the score should reflect this hierarchical relationship.",lung,Human
+Pericyte/SMC,airway smooth muscle cells (ASMCs),75,"The predicted cell type is ""airway smooth muscle cells (ASMCs)"" and the gold standard annotation is ""Pericyte/SMC"". 
+
+1. **Biological Relationship**: 
+   - Both airway smooth muscle cells (ASMCs) and pericytes/smooth muscle cells (SMCs) are part of the broader category of contractile cells derived from the mesenchyme. 
+   - ASMCs are a specialized subset of smooth muscle cells (SMCs) that are specifically located in the airways of the lungs. 
+   - Pericytes are also contractile cells that are closely related to SMCs and are often found surrounding capillaries and small blood vessels. 
+   - While ASMCs and pericytes share some functional and molecular characteristics (e.g., expression of alpha-smooth muscle actin), they are distinct in terms of their anatomical location and specific roles. 
+
+2. **Specificity**: 
+   - The gold standard ""Pericyte/SMC"" is a broader category that includes both pericytes and general smooth muscle cells. 
+   - The predicted ""ASMCs"" is a more specific subset of SMCs, but it is not a subset of pericytes. 
+   - Since ASMCs are a type of SMC, they fall under the broader ""Pericyte/SMC"" category, but they are not pericytes. 
+
+3. **Scoring Justification**: 
+   - The predicted cell type (ASMCs) is more specific than the gold standard (Pericyte/SMC), but it is not a perfect match because ASMCs are not pericytes. 
+   - However, since ASMCs are a subset of SMCs, which is part of the gold standard, the score should reflect this partial overlap. 
+   - Given the guidelines, the score should be at least 50 because they share a general cell type (SMC), but not 90 because ASMCs are not a subset of pericytes. 
+   - A score of 75 is appropriate because the predicted cell type is a specific type of SMC, which is partially covered by the gold standard.",lung,Human
+Immune (DC/macrophage),SPP1+ Macrophages,90,"The predicted cell type is ""SPP1+ Macrophages,"" which is a specific subset of macrophages characterized by the expression of the SPP1 gene (encoding osteopontin). The gold standard annotation is ""Immune (DC/macrophage),"" which is a broader category encompassing dendritic cells (DC) and macrophages. 
+
+Since macrophages are explicitly included in the gold standard annotation, and the predicted cell type is a more specific subset of macrophages, this falls under the case where the predicted cell type is more specific than the gold standard. According to the scoring guidelines, this warrants a score of 90. 
+
+Biologically, SPP1+ macrophages are a specialized population with distinct functional roles (e.g., in inflammation or tissue repair), but they are still unequivocally macrophages and thus part of the broader ""Immune (DC/macrophage)"" category. The gold standard does not exclude macrophages, and the predicted cell type is a refinement of this broader class.",lung,Human
+Immune (T cell),Tissue-resident memory CD8+ T cells (TRM),90,"The predicted cell type, ""Tissue-resident memory CD8+ T cells (TRM)"", is a highly specific subset of T cells that are specialized for long-term residence in tissues like the lung and play a role in localized immune memory. The gold standard annotation, ""Immune (T cell)"", is a broad category that encompasses all T cells, including TRM cells. 
+
+Since the predicted cell type is a more specific subset of the gold standard (TRM cells are a type of T cell), this meets the criteria for a score of 90. The relationship is hierarchical, with TRM cells being a specialized subtype within the broader ""T cell"" category. Both are part of the immune system and share core T cell functions, but TRM cells have additional specialized features (e.g., tissue residency, memory function) that are not captured by the general ""T cell"" label.",lung,Human
+Alveolar type II cell,Classical AT2 Cells,90,"The predicted cell type is ""Classical AT2 Cells"" and the gold standard annotation is ""Alveolar type II cell"" (AT2 cell). 
+
+1. **Specificity Relationship**: ""Classical AT2 Cells"" is a subset or a more specific classification of ""Alveolar type II cell"". AT2 cells are a broad category of cells in the lung that are responsible for surfactant production and alveolar repair. ""Classical AT2 Cells"" likely refers to a well-defined, canonical subset of AT2 cells with specific functional or molecular characteristics. 
+
+2. **Biological Similarity**: Since ""Classical AT2 Cells"" are a subset of AT2 cells, they share all the key biological functions and markers of AT2 cells, such as surfactant production (e.g., expression of SFTPC, SFTPB) and lamellar body formation. The ""classical"" designation may imply a more standardized or prototypical phenotype, but this does not detract from their fundamental identity as AT2 cells.
+
+3. **Scoring Justification**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. Here, ""Classical AT2 Cells"" is indeed more specific than ""Alveolar type II cell"", so the score aligns with this guideline. The two cell types are not identical, but they are very closely related, with the predicted cell type being a refined version of the gold standard.",tissue blind,Mouse Atlas
+Cartilage cell,Hyaline Chondrocyte,90,"The predicted cell type is ""Hyaline Chondrocyte,"" and the gold standard annotation is ""Cartilage cell."" 
+
+1. **Biological Relationship**: Hyaline chondrocytes are a specific subtype of cartilage cells. Cartilage cells (chondrocytes) can be broadly categorized into hyaline, elastic, and fibrocartilage chondrocytes, with hyaline chondrocytes being the most common type found in articular cartilage and other locations. 
+
+2. **Specificity**: The predicted cell type (""Hyaline Chondrocyte"") is more specific than the gold standard (""Cartilage cell""), as it specifies a subset of cartilage cells. This fits the note's criterion where the predicted cell type is more specific than the gold standard.
+
+3. **General Cell Type Shared**: Both ""Hyaline Chondrocyte"" and ""Cartilage cell"" belong to the same general cell type (chondrocytes), so the score should be at least 50. 
+
+Given the note's guidance, the score should be 90 because the predicted cell type is a more specific instance of the gold standard.",tissue blind,Mouse Atlas
+Adipocyte,brown adipocytes (BAT),90,"The predicted cell type is ""brown adipocytes (BAT)"" and the gold standard annotation is ""Adipocyte"". Brown adipocytes (BAT) are a specialized subtype of adipocytes, which are characterized by their multilocular lipid droplets, high mitochondrial content, and ability to generate heat through uncoupled respiration (thermogenesis). The gold standard ""Adipocyte"" is a more general term that encompasses all types of adipocytes, including white adipocytes, brown adipocytes, and beige adipocytes. 
+
+Since the predicted cell type (""brown adipocytes"") is a more specific subtype of the gold standard (""Adipocyte""), this falls under the case where the predicted cell type is more specific than the gold standard. According to the scoring guidelines, this should result in a score of 90. The two cell types are clearly related, with the predicted cell type being a specialized form of the gold standard cell type.",tissue blind,Mouse Atlas
+B cell_1,Pre-B cells,90,"Pre-B cells are a specific developmental stage within the B cell lineage, which is a subset of the broader ""B cell"" category. The gold standard annotation ""B cell_1"" is a general term that encompasses all B cells, including Pre-B cells. Since the predicted cell type (""Pre-B cells"") is more specific than the gold standard (""B cell_1""), this falls under the case where the predicted cell type is a subtype of the gold standard. According to the evaluation criteria, this warrants a score of 90 because the predicted cell type is more specific but still correctly identifies the general lineage (B cell).",tissue blind,Mouse Atlas
+3T3 cell,Hepatocyte,0,"Hepatocytes and 3T3 cells are fundamentally different cell types with distinct origins, functions, and characteristics. 
+
+1. **Hepatocytes** are the primary functional cells of the liver, responsible for a wide range of metabolic processes, including detoxification, protein synthesis, and bile production. They are epithelial in nature and derived from the endoderm during embryonic development.
+
+2. **3T3 cells** are a fibroblast cell line derived from mouse embryonic tissue (specifically, Swiss albino mouse embryos). Fibroblasts are mesenchymal in origin (derived from the mesoderm) and are involved in extracellular matrix production, wound healing, and structural support in connective tissues.
+
+These two cell types do not share a general cell type category (e.g., epithelial vs. mesenchymal), nor do they have overlapping functions or developmental origins. Therefore, they are completely different.",tissue blind,Mouse Atlas
+B cell_2,Mucosal IgA+ Plasma Cell (Lamina Propria/GALT),90,"The predicted cell type is ""Mucosal IgA+ Plasma Cell (Lamina Propria/GALT)"", which is a highly specialized subset of B cells that have differentiated into plasma cells and are specifically producing IgA antibodies, typically found in mucosal tissues like the lamina propria or gut-associated lymphoid tissue (GALT). 
+
+The gold standard annotation is ""B cell_2"", which is a more general classification of B cells, likely representing a subset or state of B cells but not specifying further differentiation into plasma cells or antibody production.
+
+Since the predicted cell type is a more specific subset of the gold standard (all plasma cells, including IgA+ plasma cells, are derived from B cells), this falls under the case where the predicted cell type is more specific than the gold standard. According to the scoring guidelines, this warrants a score of 90. 
+
+The two cell types share the general lineage (B cell origin), and the predicted cell type is a terminal differentiation state of the gold standard. They are not completely different, nor are they at the same level of specificity.",tissue blind,Mouse Atlas
+Cardiac muscle cell,Atrial Cardiomyocyte,90,"The predicted cell type is ""Atrial Cardiomyocyte,"" which is a specific subtype of cardiac muscle cells. The gold standard annotation is ""Cardiac muscle cell,"" which is a more general term encompassing all types of cardiomyocytes, including atrial, ventricular, and others. 
+
+Since the predicted cell type (""Atrial Cardiomyocyte"") is a more specific instance of the gold standard (""Cardiac muscle cell""), this falls under the case where the predicted cell type is more specific than the gold standard. According to the note, this should result in a score of 90. 
+
+Biologically, atrial cardiomyocytes are a subset of cardiac muscle cells, sharing all the fundamental characteristics of cardiac muscle cells (e.g., striated structure, presence of intercalated discs, contractile function) but with additional specialized features specific to the atria (e.g., distinct electrophysiological properties, hormone secretion like atrial natriuretic peptide). Thus, the two cell types are closely related, with the predicted cell type being a specialized version of the gold standard.",tissue blind,Mouse Atlas
+B cell,follicular B cells,90,"The predicted cell type is ""follicular B cells,"" which is a specific subset of B cells. The gold standard annotation is ""B cell,"" which is a more general category that includes follicular B cells along with other B cell subsets (e.g., marginal zone B cells, B-1 cells, etc.). 
+
+Since the predicted cell type is more specific than the gold standard and falls under the broader category of ""B cell,"" this indicates a high degree of similarity. The predicted cell type is a refined classification within the gold standard, which justifies a high score. 
+
+According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",tissue blind,Mouse Atlas
+Chondrocyte,Articular chondrocyte,90,"The predicted cell type is ""Articular chondrocyte,"" which is a specific subtype of the more general ""Chondrocyte"" cell type. Chondrocytes are the cells found in cartilage, and articular chondrocytes specifically reside in the articular cartilage of joints. Since the predicted cell type is more specific than the gold standard annotation, this indicates a high degree of similarity but with additional specificity in the prediction. According to the provided guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90.",tissue blind,Mouse Atlas
+Clara Cell,Club Cells,100,"Club cells and Clara cells are actually the same cell type, but the terminology has evolved over time. Historically, these cells were referred to as ""Clara cells"" in honor of the scientist Max Clara who first described them. However, due to ethical concerns regarding Clara's association with the Nazi regime, the scientific community has largely transitioned to using the term ""club cells"" instead. 
+
+Biologically, these are non-ciliated, secretory cells found in the bronchioles of the lungs. They play important roles in detoxification, secretion of components of the lung surfactant, and serve as progenitor cells for repair of the bronchiolar epithelium. 
+
+Since these are literally the same cell type with different names (one being the modern preferred terminology), they should be considered identical for annotation purposes.",tissue blind,Mouse Atlas
+Chondrocyte_1,Articular Chondrocyte,90,"The predicted cell type is ""Articular Chondrocyte,"" while the gold standard annotation is ""Chondrocyte_1."" 
+
+1. **General Cell Type Relationship**: Both ""Articular Chondrocyte"" and ""Chondrocyte_1"" are subtypes of chondrocytes, which are cells responsible for forming cartilage. Chondrocytes are a well-defined cell type in connective tissues, and their subtypes are distinguished based on their location and specific functions.
+
+2. **Specificity of Predicted Cell Type**: ""Articular Chondrocyte"" is a specific subtype of chondrocyte found in articular cartilage, which is the smooth, white tissue that covers the ends of bones where they come together to form joints. ""Chondrocyte_1"" is a more general annotation, likely representing a broader category of chondrocytes without specifying the exact subtype or location.
+
+3. **Biological Similarity**: Since ""Articular Chondrocyte"" is a more specific annotation than ""Chondrocyte_1,"" the two cell types are highly related, with the predicted cell type falling under the umbrella of the gold standard annotation. The biological functions and characteristics of articular chondrocytes are consistent with those of general chondrocytes, but with additional specialization for joint function.
+
+4. **Scoring Justification**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""Articular Chondrocyte"" is a specific subtype of ""Chondrocyte.""",tissue blind,Mouse Atlas
+Dendritic cell,cDC1 (XCR1+ Batf3-dependent DCs),90,"The predicted cell type ""cDC1 (XCR1+ Batf3-dependent DCs)"" is a specific subset of dendritic cells (DCs). cDC1 is one of the two major conventional dendritic cell subsets (the other being cDC2), characterized by the expression of XCR1 and dependence on the transcription factor Batf3. The gold standard annotation ""Dendritic cell"" is a broader category that encompasses all dendritic cells, including cDC1, cDC2, and other DC subsets.
+
+Since the predicted cell type is a more specific subset of the gold standard annotation, this indicates a high degree of similarity, but the predicted cell type provides additional specificity. According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. This reflects the close biological relationship, with the predicted cell type being a specialized instance of the gold standard.
+
+The two cell types are not completely different (score 0) nor merely sharing a general cell type (score 50), but the predicted cell type is a refined version of the gold standard, justifying the higher score of 90.",tissue blind,Mouse Atlas
+Dendritic cell_2,Tolerogenic DCs (Clec10a+ subset),90,"The predicted cell type is ""Tolerogenic DCs (Clec10a+ subset)"", which is a specific subset of dendritic cells (DCs) characterized by the expression of Clec10a and known for their role in immune tolerance. The gold standard annotation is ""Dendritic cell_2"", which is a broader category of dendritic cells but does not specify the functional subset or marker expression.
+
+Since the predicted cell type is a more specific subset of the gold standard (Dendritic cell_2), this falls under the case where the predicted cell type is more specific than the gold standard. According to the guidelines, this warrants a score of 90. Both cell types are dendritic cells, and the predicted cell type is a specialized subset of the broader category.
+
+The biological relationship is clear: Tolerogenic DCs are a functional subset of dendritic cells, and the Clec10a+ subset further refines this population. The gold standard annotation does not contradict this but simply lacks the specificity.",tissue blind,Mouse Atlas
+Endocrine cell,Mature Î²-cells,90,"The predicted cell type ""Mature β-cells"" is a specific subtype of the gold standard annotation ""Endocrine cell."" Mature β-cells are a well-defined population within the endocrine system, primarily known for their role in insulin production in the pancreas. Endocrine cells, on the other hand, represent a broader category that includes various hormone-producing cells such as α-cells, δ-cells, and others, in addition to β-cells. 
+
+Since the predicted cell type is more specific than the gold standard (i.e., it is a subset of the gold standard), this warrants a high similarity score. The specificity of ""Mature β-cells"" within the ""Endocrine cell"" category indicates a close biological relationship, justifying a score of 90. This aligns with the note that if the predicted cell type is more specific than the gold standard, the score should be 90.",tissue blind,Mouse Atlas
+Endothelial Cell,Liver Sinusoidal Endothelial Cells (LSECs),90,"The predicted cell type, Liver Sinusoidal Endothelial Cells (LSECs), is a specialized subset of endothelial cells that are specifically found in the liver. The gold standard annotation, ""Endothelial Cell,"" is a broader category that encompasses all endothelial cells, including LSECs. 
+
+Since the predicted cell type (LSECs) is a more specific subtype of the gold standard (Endothelial Cell), this falls under the case where the predicted cell type is more specific than the gold standard. According to the note, this should result in a score of 90. 
+
+Biologically, LSECs share all the fundamental characteristics of endothelial cells (e.g., lining blood vessels, regulating vascular permeability, and participating in immune responses) but have additional specialized functions unique to the liver (e.g., scavenging functions, unique fenestrated morphology). Thus, they are highly similar but not identical.",tissue blind,Mouse Atlas
+Decidual stromal cell,Megakaryocytes with immunomodulatory features,0,"Megakaryocytes and decidual stromal cells are fundamentally different cell types with distinct origins, functions, and locations in the body. 
+
+1. **Origin and Lineage**:
+   - Megakaryocytes are derived from the hematopoietic stem cell lineage and are primarily found in the bone marrow. They are responsible for producing platelets.
+   - Decidual stromal cells, on the other hand, are derived from mesenchymal stem cells and are found in the decidua of the uterus during pregnancy. They play a critical role in supporting embryo implantation and maintaining pregnancy.
+
+2. **Function**:
+   - Megakaryocytes are specialized for thrombopoiesis (platelet production) and have recently been recognized for some immunomodulatory roles, but these are secondary to their primary function.
+   - Decidual stromal cells are involved in immune tolerance, vascular remodeling, and secretion of hormones and growth factors to support pregnancy. Their immunomodulatory functions are central to their role.
+
+3. **Tissue Context**:
+   - Megakaryocytes are typically found in bone marrow, while decidual stromal cells are specific to the uterine decidua. There is no overlap in their typical tissue locations.
+
+4. **Shared General Cell Type**:
+   - These cells do not share a general cell type. Megakaryocytes are part of the hematopoietic lineage, while decidual stromal cells are part of the mesenchymal/stromal lineage. They are not even remotely related in terms of developmental or functional hierarchies.
+
+Given these stark differences in origin, function, and location, the two cell types are completely distinct with no meaningful biological overlap.",tissue blind,Mouse Atlas
+Cumulus cell,Mural Granulosa Cells,75,"Mural Granulosa Cells and Cumulus cells are both specialized cell types found within the ovarian follicle, playing distinct but related roles in folliculogenesis and oocyte support. 
+
+1. **Biological Relationship**: 
+   - **Mural Granulosa Cells**: These cells form the outer layer of the granulosa cell compartment in the follicle and are involved in steroidogenesis (primarily estrogen production) and responding to luteinizing hormone (LH) during ovulation.
+   - **Cumulus Cells**: These cells are directly adjacent to the oocyte, forming the cumulus oophorus, and are critical for oocyte maturation and communication. They are a subset of granulosa cells but have distinct gene expression profiles and functions compared to mural granulosa cells.
+
+2. **Shared Lineage**: Both cell types originate from the same precursor population (granulosa cells) and are part of the follicular structure, indicating a close developmental and functional relationship.
+
+3. **Functional Differences**: While they share a general cell type (granulosa cells), their specific roles and locations within the follicle are different. Cumulus cells are more specialized for oocyte interaction, while mural granulosa cells are more involved in hormonal signaling.
+
+4. **Specificity Consideration**: The predicted cell type (""Mural Granulosa Cells"") is not more specific than the gold standard (""Cumulus cell""), as they are sibling subtypes under the broader ""granulosa cell"" category. However, they are closely related and share a general cell type.
+
+Given their shared lineage and general cell type but distinct functional specializations, the score reflects a high but not perfect similarity.",tissue blind,Mouse Atlas
+Astrocyte,Protoplasmic Astrocytes (Gray Matter),90,"The predicted cell type, ""Protoplasmic Astrocytes (Gray Matter)"", is a specific subtype of astrocytes, which are a type of glial cell in the central nervous system. The gold standard annotation, ""Astrocyte"", is a more general term that encompasses all subtypes of astrocytes, including protoplasmic astrocytes, fibrous astrocytes, and others. 
+
+Since the predicted cell type is a more specific instance of the gold standard annotation, this indicates a high degree of similarity. The specificity of the predicted cell type (mentioning ""Gray Matter"") further confirms its identity as a subset of astrocytes, as protoplasmic astrocytes are indeed primarily found in the gray matter of the brain and spinal cord. 
+
+According to the scoring guidelines, when the predicted cell type is more specific than the gold standard, the score should be 90. This reflects the accurate but more detailed classification of the predicted cell type within the broader category of astrocytes.",tissue blind,Mouse Atlas
+Cycling cell,Basophilic erythroblast,90,"The predicted cell type is ""Basophilic erythroblast,"" which is a specific stage in the erythroid lineage, characterized by its basophilic cytoplasm due to high RNA content and active hemoglobin synthesis. The gold standard annotation is ""Cycling cell,"" which is a broad category referring to any cell that is actively proliferating (e.g., in the cell cycle, such as S or G2/M phase). 
+
+While a basophilic erythroblast is indeed a cycling cell (as erythroblasts are proliferative precursors), the gold standard annotation is far more general and does not specify lineage or differentiation stage. The predicted cell type is a specific subset of the gold standard, so the score should reflect this hierarchical relationship. 
+
+Since the predicted cell type is more specific than the gold standard, the score should be 90, as per the given guidelines. They share a general relationship (both are proliferating cells), but the predicted cell type provides additional lineage and differentiation information.",tissue blind,Mouse Atlas
+Endothelial cell_1,fenestrated endothelial cells,90,"The predicted cell type is ""fenestrated endothelial cells,"" while the gold standard annotation is ""Endothelial cell_1."" 
+
+1. **General Cell Type Relationship**: Both cell types are endothelial cells, which line the interior surface of blood vessels and lymphatic vessels. This establishes a clear general relationship.
+2. **Specificity of Predicted Cell Type**: ""Fenestrated endothelial cells"" are a specific subtype of endothelial cells characterized by the presence of fenestrations (small pores) in their plasma membranes. These are typically found in tissues where rapid exchange of substances is required, such as the kidneys, intestines, and endocrine glands. The gold standard annotation ""Endothelial cell_1"" is more general and does not specify the subtype.
+3. **Hierarchical Relationship**: Since the predicted cell type is a more specific subtype of the gold standard, this falls under the case where the predicted cell type is more specific than the gold standard. 
+
+Given these points, the predicted cell type is a specialized version of the gold standard, which warrants a high score but not a perfect match because the gold standard is less specific.",tissue blind,Mouse Atlas
+Epithelial cell,Alveolar Type II (AT2) cells,90,"The predicted cell type is ""Alveolar Type II (AT2) cells,"" which is a specific subtype of epithelial cells found in the lung. The gold standard annotation is the more general ""Epithelial cell."" 
+
+1. **Hierarchical Relationship**: AT2 cells are a specialized subset of epithelial cells, meaning the predicted cell type is more specific than the gold standard. This fits the note's criterion where the predicted cell type is more specific than the gold standard, warranting a high score.
+2. **Biological Relevance**: AT2 cells are a well-defined epithelial cell type with distinct functions (e.g., surfactant production in the lung). While the gold standard is broad, it correctly captures the general lineage (epithelial).
+3. **Scoring Guidance**: The note explicitly states that if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here.
+
+Thus, the score reflects the accurate but more specific prediction.",tissue blind,Mouse Atlas
+Dendritic cell_1,Mature Conventional DC (cDC2),90,"The predicted cell type is ""Mature Conventional DC (cDC2)"" and the gold standard annotation is ""Dendritic cell_1"". 
+
+1. **General Cell Type Relationship**: Both ""Mature Conventional DC (cDC2)"" and ""Dendritic cell_1"" are subsets of dendritic cells (DCs), which are professional antigen-presenting cells involved in immune responses. 
+
+2. **Specificity of Predicted Cell Type**: ""Mature Conventional DC (cDC2)"" is a specific subset of conventional dendritic cells (cDCs), which are further divided into cDC1 and cDC2. The gold standard ""Dendritic cell_1"" is less specific and could refer to any subset of dendritic cells, including cDC1, cDC2, or other DC types. 
+
+3. **Biological Similarity**: Since the predicted cell type is a more specific annotation (cDC2) within the broader category of dendritic cells (gold standard), this represents a high degree of similarity but with the predicted cell type providing more granularity. 
+
+4. **Scoring Justification**: According to the note, if the predicted cell type is more specific than the gold standard, the score should be 90. This applies here because ""Mature Conventional DC (cDC2)"" is a subset of ""Dendritic cell_1"". 
+
+Thus, the score is 90.",tissue blind,Mouse Atlas
+Epithelial cell_1,mammary luminal epithelial cells,90,"The predicted cell type ""mammary luminal epithelial cells"" is a specific subtype of epithelial cells, which falls under the broader category of ""Epithelial cell_1"" as indicated in the gold standard annotation. 
+
+1. **Hierarchical Relationship**: Mammary luminal epithelial cells are a specialized type of epithelial cells found in the mammary gland. The gold standard ""Epithelial cell_1"" is a general term that encompasses all epithelial cells, including mammary luminal epithelial cells. 
+
+2. **Specificity**: The predicted cell type is more specific than the gold standard, as it identifies not only the cell lineage (epithelial) but also the tissue of origin (mammary) and the specific subtype (luminal). 
+
+3. **Biological Relevance**: The mammary luminal epithelial cells share all the fundamental characteristics of epithelial cells, such as polarity, adhesion, and barrier function, but also have additional specialized functions related to mammary gland biology (e.g., milk production). 
+
+Given that the predicted cell type is a more specific instance of the gold standard, the score should be 90, as per the note provided.",tissue blind,Mouse Atlas
+Endothelial cell,Continuous (Non-fenestrated) Vascular Endothelial Cells,90,"The predicted cell type, ""Continuous (Non-fenestrated) Vascular Endothelial Cells,"" is a specific subtype of the broader ""Endothelial cell"" category, which is the gold standard annotation. 
+
+1. **Hierarchical Relationship**: The predicted cell type falls under the umbrella of endothelial cells, which line the interior surface of blood vessels and lymphatic vessels. Continuous (non-fenestrated) endothelial cells are a specialized subtype found in certain tissues (e.g., blood-brain barrier) where tight junctions prevent leakage. This is a more specific classification than the general ""Endothelial cell"" label.
+
+2. **Biological Similarity**: Both terms refer to the same fundamental cell type (endothelial cells), with the predicted label providing additional detail about the structural and functional characteristics (continuous and non-fenestrated). 
+
+3. **Scoring Justification**: Since the predicted cell type is more specific than the gold standard, the score should be 90, as per the note provided. This reflects a high degree of similarity while acknowledging the additional specificity of the predicted label.",tissue blind,Mouse Atlas
+Epithelial cell_2,Kidney Proximal Tubule Cell,90,"The predicted cell type is ""Kidney Proximal Tubule Cell,"" which is a specific type of epithelial cell found in the kidney. The gold standard annotation is ""Epithelial cell_2,"" which is a more general classification of epithelial cells without specifying the tissue or subtype. 
+
+Since the predicted cell type (""Kidney Proximal Tubule Cell"") is a specific subtype of the gold standard (""Epithelial cell_2""), this falls under the case where the predicted cell type is more specific than the gold standard. According to the note, this should result in a score of 90. 
+
+Biologically, proximal tubule cells are a specialized subset of epithelial cells that perform specific functions in the kidney, such as reabsorption and secretion. While the gold standard does not specify the exact subtype, it correctly identifies the broader category (epithelial cells), which includes the predicted cell type. Thus, the two cell types are related, with the predicted one being a more specific instance of the gold standard.",tissue blind,Mouse Atlas
+Eosinophil,Alveolar Macrophage,50,"Alveolar macrophages and eosinophils are both immune cells, but they belong to different lineages and have distinct functions and locations within the body. 
+
+1. **Lineage and Function**:
+   - **Alveolar Macrophage**: These are tissue-resident macrophages found in the alveoli of the lungs. They are part of the mononuclear phagocyte system and play a key role in phagocytosis, immune surveillance, and maintaining lung homeostasis.
+   - **Eosinophil**: These are granulocytes derived from the myeloid lineage, primarily involved in combating multicellular parasites and modulating allergic inflammatory responses. They are not tissue-resident like macrophages but can be recruited to tissues during inflammation.
+
+2. **Biological Roles**:
+   - Macrophages are versatile phagocytes involved in both innate and adaptive immunity, while eosinophils are specialized for attacking parasites and contributing to allergic reactions.
+
+3. **Shared General Cell Type**:
+   - Both are myeloid-derived immune cells, which means they share a common progenitor in the bone marrow. However, their differentiation pathways and functional roles diverge significantly.
+
+Given that they share a general myeloid lineage but have distinct roles and origins, the score should reflect this partial overlap but clear functional divergence.",tissue blind,Mouse Atlas
