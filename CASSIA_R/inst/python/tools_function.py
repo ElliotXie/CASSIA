@@ -10,6 +10,7 @@ from main_function_code import *
 import requests
 import threading
 import numpy as np
+from pathlib import Path
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -172,8 +173,21 @@ def safe_get(dict_obj, *keys):
 
 
 def write_csv(filename, headers, row_data):
-    with open(filename, 'w', newline='', encoding='utf-8') as csv_file:
-        writer = csv.writer(csv_file)
+    """
+    Write data to a CSV file with the specified headers.
+    
+    Args:
+        filename (str): Path to the output CSV file
+        headers (list): List of column headers
+        row_data (list): List of rows, where each row is a list of values
+    """
+    # Create directory if it doesn't exist
+    directory = os.path.dirname(filename)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+        
+    with open(filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(row_data)
 
@@ -1087,74 +1101,56 @@ def process_cell_type_results(organized_results, max_workers=10, model="gpt-4o",
 # Update the function call
 def create_and_save_results_dataframe(processed_results, organized_results, output_name='processed_cell_type_results'):
     """
-    Create a DataFrame from processed results and save it to a CSV file.
+    Create a DataFrame from processed results and save it to CSV
     
     Args:
-    processed_results (dict): Dictionary of processed results by cell type.
-    organized_results (dict): Dictionary of original results by cell type.
-    output_name (str): Base name for the output file (without extension)
-    
-    Returns:
-    pd.DataFrame: Processed results in a DataFrame.
+        processed_results (dict): Dictionary containing processed results
+        organized_results (dict): Dictionary containing organized results
+        output_name (str): Base name for output CSV files
     """
-    # Add .csv extension if not present
-    output_csv = output_name if output_name.lower().endswith('.csv') else f"{output_name}.csv"
+    # Create a list to store all results
+    all_results = []
     
-    # Create a list to store the data for each row
-    data = []
-    
-    for celltype, result in processed_results.items():
-        row_data = {
-            'Cell Type': celltype,
-            'General Cell Type LLM': result.get('general_celltype_llm', 'Not available'),
-            'Sub Cell Type LLM': result.get('sub_celltype_llm', 'Not available'),
-            'Mixed Cell Types LLM': ', '.join(result.get('mixed_celltypes_llm', [])),
-            'General Cell Type Oncology': result.get('general_celltype_oncology', 'Not available'),
-            'Sub Cell Type Oncology': result.get('sub_celltype_oncology', 'Not available'),
-            'Mixed Cell Types Oncology': ', '.join(result.get('mixed_types_oncology', [])),
-            'Similarity Score LLM': result.get('consensus_score_llm', 'Not available'),
-            'Similarity Score Oncology': result.get('consensus_score_oncology', 'Not available'),
-            'LLM Generated Consensus Score LLM': result.get('llm_generated_consensus_score_llm', 'Not available'),
-            'LLM Generated Consensus Score Oncology': result.get('llm_generated_consensus_score_oncology', 'Not available'),
-            'Count Consensus General Type LLM': result.get('count_consensus_1_llm', 'Not available'),
-            'Count Consensus Sub Type LLM': result.get('count_consensus_2_llm', 'Not available'),
-            'Count Consensus General Type Oncology': result.get('count_consensus_1_oncology', 'Not available'),
-            'Count Consensus Sub Type Oncology': result.get('count_consensus_2_oncology', 'Not available'),
-            'Unified Results LLM': result.get('unified_results_llm', 'Not available'),
-            'Unified Results Oncology': result.get('unified_results_oncology', 'Not available'),
-            'Consensus Result LLM': result.get('result_consensus_from_llm', 'Not available'),
-            'Consensus Result Oncology': result.get('result_consensus_from_oncology', 'Not available'),
-            'Original Non-Unified Results': ','.join([f"result{i+1}:{pred}" for i, pred in enumerate(organized_results.get(celltype, []))])
+    for cluster_name, result in processed_results.items():
+        row = {
+            'Cluster': cluster_name,
+            'Consensus Type': result.get('general_celltype_llm', ''),
+            'Consensus Sub-Type': result.get('sub_celltype_llm', ''),
+            'Similarity Score': result.get('similarity_score', 0),
+            'Predictions': str(organized_results.get(cluster_name, {})),
+            'LLM Response': result.get('llm_response', '')
         }
-        # Add original results
-        original_results = organized_results.get(celltype, [])
-        for i, (gen, sub) in enumerate(original_results, 1):
-            row_data[f'Original General Type {i}'] = gen
-            row_data[f'Original Sub Type {i}'] = sub
         
-        data.append(row_data)
-
-    # Create the DataFrame
-    df = pd.DataFrame(data)
-
-    # Reorder columns
-    fixed_columns = ['Cell Type', 
-                     'General Cell Type LLM', 'Sub Cell Type LLM', 'Mixed Cell Types LLM',
-                     'General Cell Type Oncology', 'Sub Cell Type Oncology', 'Mixed Cell Types Oncology',
-                     'Similarity Score LLM', 'Similarity Score Oncology',
-                     'LLM Generated Consensus Score LLM', 'LLM Generated Consensus Score Oncology',
-                     'Count Consensus General Type LLM', 'Count Consensus Sub Type LLM',
-                     'Count Consensus General Type Oncology', 'Count Consensus Sub Type Oncology',
-                     'Unified Results LLM', 'Unified Results Oncology',
-                     'Consensus Result LLM', 'Consensus Result Oncology',
-                     'Original Non-Unified Results']
-    original_columns = [col for col in df.columns if col.startswith('Original') and col != 'Original Non-Unified Results']
-    df = df[fixed_columns + original_columns]
-
-    # Save the DataFrame to a CSV file
-    df.to_csv(output_csv, index=False)
-    print(f"\nResults saved to {output_csv}")
-
+        # Add possible mixed cell types if available
+        if 'Possible_mixed_celltypes_llm' in result and result['Possible_mixed_celltypes_llm']:
+            row['Possible Mixed Types'] = ', '.join(result['Possible_mixed_celltypes_llm'])
+        else:
+            row['Possible Mixed Types'] = ''
+        
+        all_results.append(row)
+    
+    # Create DataFrame
+    df = pd.DataFrame(all_results)
+    
+    # Ensure output_name has appropriate paths
+    if not output_name.endswith('.csv'):
+        output_name = f"{output_name}.csv"
+    
+    # Create directory if it doesn't exist
+    directory = os.path.dirname(output_name)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    
+    # Save to CSV
+    df.to_csv(output_name, index=False)
+    print(f"Results saved to {output_name}")
+    
+    # Create a summary version with minimal columns
+    summary_df = df[['Cluster', 'Consensus Type', 'Consensus Sub-Type', 'Similarity Score', 'Possible Mixed Types']]
+    summary_name = output_name.replace('.csv', '_summary.csv')
+    summary_df.to_csv(summary_name, index=False)
+    print(f"Summary results saved to {summary_name}")
+    
     return df
 
 
@@ -2452,6 +2448,11 @@ def save_html_report(report, filename):
             
         html_report = generate_html_report2(report)
         
+        # Create parent directory if it doesn't exist
+        directory = os.path.dirname(filename)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        
         # Save the HTML to a file
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html_report)
@@ -3359,6 +3360,12 @@ def render_report_to_html(report_content, output_path):
     """
     Renders a markdown-like report to a styled HTML file with high-tech aesthetics.
     """
+    # Convert to Path object to handle directory creation
+    output_path = Path(output_path)
+    
+    # Create parent directories if they don't exist
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
     # Generate CSS color pairs for 15 phases
     color_pairs = []
     for i in range(15):
@@ -4288,6 +4295,11 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
     report = pd.read_csv(csv_path)
     report_files = []
     
+    # Determine output folder (same folder as the CSV file)
+    output_folder = os.path.dirname(csv_path)
+    if not output_folder:
+        output_folder = "."
+    
     # Process each row
     for index, row in report.iterrows():
         # Get the first column value for the filename
@@ -4301,17 +4313,22 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
         # Generate HTML for this row
         html_content = process_single_report(text, score_reasoning, score)
         
-        # Save using the first column value as filename
-        output_path = f"report_{filename}.html"
+        # Save using the first column value as filename in the output folder
+        output_path = os.path.join(output_folder, f"report_{filename}.html")
+        
+        # Create parent directory if it doesn't exist
+        os.makedirs(output_folder, exist_ok=True)
+        
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         
-        report_files.append(output_path)
+        # Store just the filename for the index (not the full path)
+        report_files.append(os.path.basename(output_path))
         print(f"Report saved to {output_path}")
     
-    # Generate and save index page
+    # Generate and save index page in the same folder
     index_html = generate_index_page(report_files)
-    index_filename = f"{index_name}.html"
+    index_filename = os.path.join(output_folder, f"{os.path.basename(index_name)}.html")
     with open(index_filename, "w", encoding="utf-8") as f:
         f.write(index_html)
     print(f"Index page saved to {index_filename}")
@@ -4601,10 +4618,15 @@ def write_results_to_csv(results, output_name='subcluster_results'):
     if not output_name.lower().endswith('.csv'):
         output_name = output_name + '.csv'
     
+    # Create directory if it doesn't exist
+    directory = os.path.dirname(output_name)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    
     # Updated regex pattern to capture the reason
     pattern = r"results(\d+)\(([^,]+),\s*([^,]+),\s*([^)]+)\)"
     matches = re.findall(pattern, results)
-
+    
     # Convert matches to a DataFrame with the reason column
     df = pd.DataFrame(matches, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
     
