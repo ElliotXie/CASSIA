@@ -402,29 +402,19 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
                                   provider = "openai", max_retries = 1) {
 
   if (is.data.frame(marker)) {
-    pd <- reticulate::import("pandas")
-    # Direct conversion with convert=TRUE
-    marker <- reticulate::r_to_py(marker, convert = TRUE)
-  } else if (!is.character(marker)) {
-    stop("marker must be either a data frame or a character vector")
-  }
+  pd <- reticulate::import("pandas")
+  # Direct conversion with convert=TRUE
+  marker <- reticulate::r_to_py(marker, convert = TRUE)
+} else if (!is.character(marker)) {
+  stop("marker must be either a data frame or a character vector")
+}
 
   execution_time <- system.time({
     tryCatch({
       py_tools$run_batch_analysis_n_times(
-        as.integer(n), 
-        marker, 
-        output_name, 
-        model, 
-        temperature, 
-        tissue, 
-        species, 
-        additional_info, 
-        celltype_column, 
-        gene_column_name, 
-        as.integer(max_workers), 
-        as.integer(batch_max_workers), 
-        provider,
+        as.integer(n), marker, output_name, model, temperature, tissue, 
+        species, additional_info, celltype_column, gene_column_name, 
+        as.integer(max_workers), as.integer(batch_max_workers), provider,
         as.integer(max_retries)
       )
     }, error = function(e) {
@@ -728,126 +718,33 @@ runCASSIA_pipeline <- function(
     additional_info = NULL,
     max_retries = 1
 ) {
-  # Create a folder based on tissue and species for organizing reports
-  folder_name <- paste0(tissue, "_", species)
-  # Clean the folder name to ensure it's valid
-  folder_name <- gsub("[^[:alnum:][:space:]_-]", "", folder_name)
-  folder_name <- gsub("[:space:]", "_", folder_name)
-  
-  # Create the folder if it doesn't exist
-  if (!dir.exists(folder_name)) {
-    dir.create(folder_name)
-    message(paste("Created folder:", folder_name))
-  }
-  
-  # Define derived file names with folder paths
-  score_file_name <- file.path(folder_name, paste0(output_file_name, "_scored.csv"))
-  report_name <- file.path(folder_name, paste0(output_file_name, "_report"))
-  lowscore_report_name <- file.path(folder_name, paste0(output_file_name, "_lowscore_report"))
-  
-  # First annotation output is still in current directory since other parts of code may expect it there
-  annotation_output <- output_file_name
-  
   # Convert marker data frame if necessary
-  marker_converted <- marker
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
-    marker_converted <- reticulate::r_to_py(marker, convert = TRUE)
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
   }
 
   tryCatch({
-    message("\n=== Starting cell type analysis ===")
-    # Run initial cell type analysis
-    runCASSIA_batch(
-      marker = marker_converted,
-      output_name = annotation_output,
-      model = annotation_model,
+    py_tools$run_cell_analysis_pipeline(
+      output_file_name = output_file_name,
       tissue = tissue,
       species = species,
-      additional_info = additional_info,
-      provider = annotation_provider,
+      marker_path = marker,
       max_workers = as.integer(max_workers),
+      annotation_model = annotation_model,
+      annotation_provider = annotation_provider,
+      score_model = score_model,
+      score_provider = score_provider,
+      annotationboost_model = annotationboost_model,
+      annotationboost_provider = annotationboost_provider,
+      score_threshold = as.numeric(score_threshold),
+      additional_info = if(is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries)
     )
-    message("✓ Cell type analysis completed")
-    
-    message("\n=== Starting scoring process ===")
-    # Run scoring
-    runCASSIA_score_batch(
-      input_file = paste0(annotation_output, "_full.csv"),
-      output_file = score_file_name,
-      max_workers = as.integer(max_workers),
-      model = score_model,
-      provider = score_provider,
-      max_retries = as.integer(max_retries)
-    )
-    message("✓ Scoring process completed")
-    
-    message("\n=== Generating main reports ===")
-    # Process reports
-    runCASSIA_generate_score_report(
-      csv_path = score_file_name,
-      output_name = report_name
-    )
-    message("✓ Main reports generated")
-    
-    message("\n=== Analyzing low-scoring clusters ===")
-    # Handle low-scoring clusters
-    df <- read.csv(score_file_name)
-    low_score_clusters <- df$True.Cell.Type[df$Score < score_threshold]
-    
-    message(paste("Found", length(low_score_clusters), "clusters with scores below", score_threshold, ":"))
-    print(low_score_clusters)
-    
-    if (length(low_score_clusters) > 0) {
-      message("\n=== Starting boost annotation for low-scoring clusters ===")
-      full_result_path <- paste0(annotation_output, "_full.csv")
-      
-      boosted_reports <- c()
-      
-      for (cluster in low_score_clusters) {
-        message(paste("Processing low score cluster:", cluster))
-        
-        # Clean cluster name for file path
-        cluster_name <- gsub("[^[:alnum:][:space:]_-]", "", cluster)
-        cluster_name <- gsub("[:space:]", "_", cluster_name)
-        
-        # Get cluster info
-        cluster_info <- as.list(df[df$True.Cell.Type == cluster, ][1, ])
-        
-        # Run annotation boost
-        runCASSIA_annotationboost(
-          full_result_path = full_result_path,
-          marker = marker_converted,
-          cluster_name = cluster_name,
-          major_cluster_info = cluster_info,
-          output_name = file.path(folder_name, paste0(output_file_name, "_", cluster_name, "_boosted")),
-          num_iterations = 5,
-          model = annotationboost_model,
-          provider = annotationboost_provider
-        )
-        
-        # Add to boosted reports list
-        boosted_reports <- c(boosted_reports, file.path(folder_name, paste0(output_file_name, "_", cluster_name, "_boosted.html")))
-      }
-      
-      # Generate index for boosted reports
-      if (length(boosted_reports) > 0) {
-        index_html <- py_tools$generate_index_page(boosted_reports)
-        index_filename <- paste0(lowscore_report_name, ".html")
-        writeLines(index_html, index_filename, useBytes = TRUE)
-        message(paste("Low score reports index saved to", index_filename))
-      }
-      
-      message("✓ Boost annotation completed")
-    }
-    
-    message("\n=== Cell type analysis pipeline completed ===")
-    message(paste("All reports have been saved to the", folder_name, "folder"))
   }, error = function(e) {
-    error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",
+    error_msg <- paste("Error in run_cell_analysis_pipeline:", e$message, "\n",
                       "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
