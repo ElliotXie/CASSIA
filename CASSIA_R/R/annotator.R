@@ -749,9 +749,10 @@ runCASSIA_pipeline <- function(
   annotation_output <- output_file_name
   
   # Convert marker data frame if necessary
+  marker_converted <- marker
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
-    marker <- reticulate::r_to_py(marker, convert = TRUE)
+    marker_converted <- reticulate::r_to_py(marker, convert = TRUE)
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
   }
@@ -760,7 +761,7 @@ runCASSIA_pipeline <- function(
     message("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
     runCASSIA_batch(
-      marker = marker,
+      marker = marker_converted,
       output_name = annotation_output,
       model = annotation_model,
       tissue = tissue,
@@ -819,7 +820,7 @@ runCASSIA_pipeline <- function(
         # Run annotation boost
         runCASSIA_annotationboost(
           full_result_path = full_result_path,
-          marker = marker,
+          marker = marker_converted,
           cluster_name = cluster_name,
           major_cluster_info = cluster_info,
           output_name = file.path(folder_name, paste0(output_file_name, "_", cluster_name, "_boosted")),
