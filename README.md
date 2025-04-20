@@ -6,9 +6,9 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
  
 📖 [Original preprint (v1, historical)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
-📝 [Example R workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
-
 📚 [Complete R Documentation](https://cassia-true-final-4.vercel.app/)
+
+📝 [Example R workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
 📝 [Example Python workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
