@@ -1,33 +1,75 @@
 # CASSIA
 
-CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
+**CASSIA** is a Python and R package designed for **automated, accurate, and interpretable single-cell RNA-seq cell type annotation** using a modular **multi-agent LLM framework**. CASSIA provides comprehensive annotation workflows that incorporate reasoning, validation, quality scoring, and reporting—alongside optional agents for refinement, uncertainty quantification, and retrieval-augmented generation (RAG).
 
-## Features
+## Highlights
 
-- Automated cell type annotation using multiple LLM providers (OpenAI, Anthropic, OpenRouter)
-- Support for batch processing of multiple clusters
-- Variance analysis for annotation reliability
-- Detailed HTML report generation
-- Score-based annotation quality assessment
-- Support for marker gene validation
-- Interactive analysis with step-by-step reasoning
+- 🔬 **Reference-free and interpretable** LLM-based cell type annotation  
+- 🧠 Multi-agent architecture with dedicated agents for annotation, validation, formatting, quality scoring, and reporting  
+- 📈 **Quality scores (0–100)** and optional consensus scoring to quantify annotation reliability  
+- 📊 Detailed **HTML reports** with reasoning and marker validation  
+- 💬 Supports OpenAI, Anthropic, OpenRouter APIs and open-source models (e.g., LLaMA 3.2 90B)  
+- 🧬 Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)  
+- 🚀 Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification  
+- 🌎 Cross-species annotation capabilities, validated across human, mouse, and non-model organisms  
+- 🧪 Web UI also available: [https://www.cassiacell.com](https://www.cassiacell.com)
 
 ## Installation
 
+Install the core CASSIA framework:
+
 ```bash
-#Install CASSIA
 pip install CASSIA
-pip install CASSIA_rag  # optional for the RAG agent
 ```
+
+To enable optional RAG functionality:
+
+```bash
+pip install CASSIA_rag
+```
+
+**Note**: For R users, see the R package on [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation).
+
+## Quick Start
+
+```python
+# Run the CASSIA pipeline in fast mode
+CASSIA.runCASSIA_pipeline(
+    output_file_name = "FastAnalysisResults",
+    tissue = "large intestine",
+    species = "human",
+    marker_path = unprocessed_markers,
+    max_workers = 6,  # Matches the number of clusters in dataset
+    annotation_model = "openai/gpt-4o-2024-11-20", #openai/gpt-4o-2024-11-20
+    annotation_provider = "openrouter",
+    score_model = "anthropic/claude-3.5-sonnet",
+    score_provider = "openrouter",
+    score_threshold = 75,
+    annotationboost_model="anthropic/claude-3.5-sonnet",
+    annotationboost_provider="openrouter"
+)
+```
+
+For detailed workflows and agent customization, see the [Example](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb).
+
+## Citation
+
+If you use CASSIA in your work, please cite:
+
+**Xie et al.**, *CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data*. Nature Communications (2025). [Link Pending]
 
 ## Contributing
 
-We welcome contributions! Please feel free to submit pull requests or open issues on our GitHub repository.
+We welcome contributions! Please submit pull requests or open issues via [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation/issues).
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License © 2024 Elliot Xie and contributors.
 
 ## Support
 
-For support, please open an issue on our [GitHub repository](https://github.com/elliotxe/CASSIA/issues).
+Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation/issues) or visit [CASSIAcell.com](https://www.cassiacell.com) for help.
+
+---
+
+Let me know if you'd like a badge set (e.g. PyPI version, license, docs, citations) or auto-gen Jupyter examples to go with it.
