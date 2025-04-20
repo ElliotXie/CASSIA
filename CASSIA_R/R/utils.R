@@ -110,46 +110,91 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
     seurat_norm <- normalize_text(seurat_clusters_unique)
     cassia_norm <- normalize_text(cassia_clusters_unique)
     
-    # Check if normalized versions match
-    cluster_map <- data.frame(
-      seurat_cluster = seurat_clusters_unique,
-      cassia_cluster = NA_character_,
+    # Using a functional approach to match clusters
+    # First create data frames for both normalized sets
+    seurat_df <- data.frame(
+      id = seurat_norm,
+      seurat = seurat_clusters_unique,
       stringsAsFactors = FALSE
     )
     
-    # Direct match after normalization
-    for (i in seq_along(seurat_norm)) {
-      matches <- which(cassia_norm == seurat_norm[i])
-      if (length(matches) == 1) {
-        cluster_map$cassia_cluster[i] <- cassia_clusters_unique[matches]
+    cassia_df <- data.frame(
+      id = cassia_norm,
+      cassia = cassia_clusters_unique,
+      stringsAsFactors = FALSE
+    )
+    
+    # First, do exact matches
+    exact_matches <- merge(seurat_df, cassia_df, by = "id", all = TRUE)
+    
+    # Define a function to find the first matching pattern
+    find_first_match <- function(pattern, target_vector) {
+      matches <- vapply(target_vector, function(x) 
+        grepl(pattern, x) || grepl(x, pattern), logical(1))
+      
+      if (any(matches)) {
+        return(target_vector[which(matches)[1]])
+      } else {
+        return(NA_character_)
       }
     }
     
-    # For remaining unmatched clusters, try substring matching
-    for (i in which(is.na(cluster_map$cassia_cluster))) {
-      for (j in seq_along(cassia_norm)) {
-        if (grepl(seurat_norm[i], cassia_norm[j]) || grepl(cassia_norm[j], seurat_norm[i])) {
-          cluster_map$cassia_cluster[i] <- cassia_clusters_unique[j]
-          break
+    # For unmatched Seurat clusters, find matching CASSIA clusters
+    missing_seurat_idx <- which(is.na(exact_matches$cassia))
+    if (length(missing_seurat_idx) > 0) {
+      exact_matches$cassia[missing_seurat_idx] <- sapply(
+        exact_matches$id[missing_seurat_idx],
+        find_first_match,
+        target_vector = cassia_norm
+      )
+      
+      # Replace the index values with actual CASSIA cluster names
+      for (i in missing_seurat_idx) {
+        if (!is.na(exact_matches$cassia[i])) {
+          match_idx <- which(cassia_norm == exact_matches$cassia[i])[1]
+          exact_matches$cassia[i] <- cassia_clusters_unique[match_idx]
         }
       }
     }
+    
+    # For unmatched CASSIA clusters, find matching Seurat clusters
+    # (Less important but included for completeness)
+    missing_cassia_idx <- which(is.na(exact_matches$seurat))
+    if (length(missing_cassia_idx) > 0) {
+      exact_matches$seurat[missing_cassia_idx] <- sapply(
+        exact_matches$id[missing_cassia_idx],
+        find_first_match,
+        target_vector = seurat_norm
+      )
+      
+      # Replace the index values with actual Seurat cluster names
+      for (i in missing_cassia_idx) {
+        if (!is.na(exact_matches$seurat[i])) {
+          match_idx <- which(seurat_norm == exact_matches$seurat[i])[1]
+          exact_matches$seurat[i] <- seurat_clusters_unique[match_idx]
+        }
+      }
+    }
+    
+    # Create final cluster mapping
+    cluster_map <- exact_matches[, c("seurat", "cassia")]
     
     # Print the mapping if any clusters were mapped
-    if (any(!is.na(cluster_map$cassia_cluster))) {
+    mapped_clusters <- cluster_map[!is.na(cluster_map$cassia) & 
+                                    !is.na(cluster_map$seurat) & 
+                                    cluster_map$seurat != cluster_map$cassia, ]
+    
+    if (nrow(mapped_clusters) > 0) {
       message("Created mapping between Seurat clusters and CASSIA clusters:")
-      for (i in which(!is.na(cluster_map$cassia_cluster))) {
-        if (cluster_map$seurat_cluster[i] != cluster_map$cassia_cluster[i]) {
-          message("  '", cluster_map$seurat_cluster[i], "' -> '", cluster_map$cassia_cluster[i], "'")
-        }
-      }
+      mapply(function(s, c) message("  '", s, "' -> '", c, "'"), 
+             mapped_clusters$seurat, mapped_clusters$cassia)
     }
     
     # Check for any unmatched clusters
-    unmatched <- which(is.na(cluster_map$cassia_cluster))
+    unmatched <- cluster_map$seurat[is.na(cluster_map$cassia)]
     if (length(unmatched) > 0) {
       warning("Could not find matches for these Seurat clusters: ", 
-              paste(cluster_map$seurat_cluster[unmatched], collapse = ", "))
+              paste(unmatched, collapse = ", "))
     }
   }
   
@@ -172,127 +217,163 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
     sub_celltype_3 = NULL          # Least likely
   )
   
-  for (anno_type in names(column_mapping)) {
+  # Process each annotation type at once
+  lookup_tables <- lapply(names(column_mapping), function(anno_type) {
     col_candidates <- column_mapping[[anno_type]]
     found_col <- col_candidates[col_candidates %in% colnames(cassia_results)]
     
     if (length(found_col) > 0) {
       col_name <- found_col[1]
       
-      # Special handling for sub cell types - keep the original column but also split it
-      if (anno_type == "sub_celltype") {
-        # Store the original values
-        sub_types_full <- cassia_results[[col_name]]
-        lookup_tables_split$sub_celltype_all <- setNames(
-          sub_types_full,
-          cassia_results[[cassia_cluster_col]]
-        )
-        
-        # Split the comma-separated values into individual entries
-        split_sub_types <- lapply(sub_types_full, function(x) {
-          if (is.na(x) || x == "") {
-            return(c(NA_character_, NA_character_, NA_character_))
-          }
-          
-          # Remove any brackets, clean up the string
-          clean_x <- gsub("^\\s*\\[?\\s*|\\s*\\]?\\s*$", "", x)
-          
-          # Split by comma and trim whitespace
-          parts <- trimws(strsplit(clean_x, ",")[[1]])
-          
-          # Return three parts (padded with NA if fewer)
-          if (length(parts) >= 3) {
-            return(parts[1:3])
-          } else {
-            return(c(parts, rep(NA_character_, 3 - length(parts))))
-          }
-        })
-        
-        # Create lookup tables for each position
-        lookup_tables_split$sub_celltype_1 <- setNames(
-          sapply(split_sub_types, function(x) x[1]),
-          cassia_results[[cassia_cluster_col]]
-        )
-        
-        lookup_tables_split$sub_celltype_2 <- setNames(
-          sapply(split_sub_types, function(x) x[2]),
-          cassia_results[[cassia_cluster_col]]
-        )
-        
-        lookup_tables_split$sub_celltype_3 <- setNames(
-          sapply(split_sub_types, function(x) x[3]),
-          cassia_results[[cassia_cluster_col]]
-        )
-        
-        # For the regular lookup table, just use the first (most likely) subtype
-        lookup_tables[[anno_type]] <- lookup_tables_split$sub_celltype_1
-      } else {
-        # For other annotation types, just use as is
-        lookup_tables[[anno_type]] <- setNames(
+      # For annotation types other than sub_celltype, return a simple named vector
+      if (anno_type != "sub_celltype") {
+        return(setNames(
           cassia_results[[col_name]],
           cassia_results[[cassia_cluster_col]]
-        )
+        ))
       }
+      
+      # For sub_celltype, return NULL (handled separately)
+      return(NULL)
     }
+    return(NULL)
+  })
+  names(lookup_tables) <- names(column_mapping)
+  
+  # Special handling for sub cell types
+  if (any(sapply(column_mapping$sub_celltype, function(x) x %in% colnames(cassia_results)))) {
+    col_name <- column_mapping$sub_celltype[column_mapping$sub_celltype %in% colnames(cassia_results)][1]
+    
+    # Store the original values
+    sub_types_full <- cassia_results[[col_name]]
+    lookup_tables_split$sub_celltype_all <- setNames(
+      sub_types_full,
+      cassia_results[[cassia_cluster_col]]
+    )
+    
+    # Process all subtypes with a single lapply call
+    split_results <- lapply(sub_types_full, function(x) {
+      if (is.na(x) || x == "") {
+        return(c(NA_character_, NA_character_, NA_character_))
+      }
+      
+      # Remove any brackets, clean up the string
+      clean_x <- gsub("^\\s*\\[?\\s*|\\s*\\]?\\s*$", "", x)
+      
+      # Split by comma and trim whitespace
+      parts <- trimws(strsplit(clean_x, ",")[[1]])
+      
+      # Return three parts (padded with NA if fewer)
+      if (length(parts) >= 3) {
+        return(parts[1:3])
+      } else {
+        return(c(parts, rep(NA_character_, 3 - length(parts))))
+      }
+    })
+    
+    # Extract each position into a separate lookup table
+    lookup_tables_split$sub_celltype_1 <- setNames(
+      sapply(split_results, `[`, 1),
+      cassia_results[[cassia_cluster_col]]
+    )
+    
+    lookup_tables_split$sub_celltype_2 <- setNames(
+      sapply(split_results, `[`, 2),
+      cassia_results[[cassia_cluster_col]]
+    )
+    
+    lookup_tables_split$sub_celltype_3 <- setNames(
+      sapply(split_results, `[`, 3),
+      cassia_results[[cassia_cluster_col]]
+    )
+    
+    # Set the main sub_celltype to the most likely one
+    lookup_tables$sub_celltype <- lookup_tables_split$sub_celltype_1
   }
+  
+  # Filter out NULL entries from lookup_tables
+  lookup_tables <- lookup_tables[!sapply(lookup_tables, is.null)]
   
   # Get cluster IDs from Seurat object
   seurat_clusters <- as.character(seurat_obj@meta.data[[cluster_col]])
   
   # Apply cluster mapping if it exists
-  if (!is.null(cluster_map) && any(!is.na(cluster_map$cassia_cluster))) {
-    # Create a mapping function
-    map_cluster <- function(x) {
-      idx <- match(x, cluster_map$seurat_cluster)
-      if (is.na(idx) || is.na(cluster_map$cassia_cluster[idx])) {
-        return(x)
-      } else {
-        return(cluster_map$cassia_cluster[idx])
-      }
-    }
+  seurat_clusters_mapped <- if (!is.null(cluster_map) && any(!is.na(cluster_map$cassia))) {
+    # Use vectorized match operation instead of sapply with function
+    matched_indices <- match(seurat_clusters, cluster_map$seurat)
+    matched_cassia <- cluster_map$cassia[matched_indices]
     
-    # Map the clusters
-    seurat_clusters_mapped <- sapply(seurat_clusters, map_cluster)
+    # Where there's no match, use the original value
+    ifelse(is.na(matched_cassia), seurat_clusters, matched_cassia)
   } else {
-    seurat_clusters_mapped <- seurat_clusters
+    seurat_clusters
   }
   
   # Create a new data frame for metadata
   new_metadata <- data.frame(row.names = colnames(seurat_obj))
   
-  # For each annotation type, map cluster IDs to annotations
-  for (anno_type in names(lookup_tables)) {
-    # Get the lookup table
+  # For each annotation type, map cluster IDs to annotations (vectorized)
+  new_metadata <- lapply(names(lookup_tables), function(anno_type) {
     lookup <- lookup_tables[[anno_type]]
-    
-    # Map cluster IDs to annotations
     annotations <- lookup[seurat_clusters_mapped]
     
-    # Add to the new metadata data frame
     meta_col_name <- paste0(prefix, anno_type)
-    new_metadata[[meta_col_name]] <- annotations
+    result <- data.frame(col = annotations, stringsAsFactors = FALSE)
+    names(result) <- meta_col_name
     
-    # Optionally replace existing annotations
+    # Handle replacement of existing annotations
     if (replace_existing && anno_type == "general_celltype") {
       if ("cell_type" %in% colnames(seurat_obj@meta.data)) {
         message("Replacing 'cell_type' column with CASSIA annotations")
         seurat_obj$cell_type <- annotations
       }
     }
-  }
+    
+    return(result)
+  }) %>% do.call(cbind, .)
+  rownames(new_metadata) <- colnames(seurat_obj)
   
   # For sub cell types, add all the split versions
-  for (split_type in names(lookup_tables_split)) {
-    if (!is.null(lookup_tables_split[[split_type]])) {
-      lookup <- lookup_tables_split[[split_type]]
-      
-      # Map cluster IDs to annotations
-      annotations <- lookup[seurat_clusters_mapped]
-      
-      # Add to the metadata
-      meta_col_name <- paste0(prefix, split_type)
-      new_metadata[[meta_col_name]] <- annotations
+  sub_metadata <- lapply(names(lookup_tables_split), function(split_type) {
+    lookup <- lookup_tables_split[[split_type]]
+    if (is.null(lookup)) return(NULL)
+    
+    annotations <- lookup[seurat_clusters_mapped]
+    meta_col_name <- paste0(prefix, split_type)
+    result <- data.frame(col = annotations, stringsAsFactors = FALSE)
+    names(result) <- meta_col_name
+    return(result)
+  })
+  sub_metadata <- Filter(Negate(is.null), sub_metadata)
+  
+  if (length(sub_metadata) > 0) {
+    sub_metadata <- do.call(cbind, sub_metadata)
+    rownames(sub_metadata) <- colnames(seurat_obj)
+    new_metadata <- cbind(new_metadata, sub_metadata)
+  }
+  
+  # Add combined general celltype + first subcelltype column
+  if (paste0(prefix, "general_celltype") %in% names(new_metadata) && 
+      paste0(prefix, "sub_celltype_1") %in% names(new_metadata)) {
+    
+    general_col <- paste0(prefix, "general_celltype")
+    sub_col <- paste0(prefix, "sub_celltype_1")
+    combined_col <- paste0(prefix, "combined_celltype")
+    
+    # Create combined column with vectorized operation - using a more visible separator
+    new_metadata[[combined_col]] <- paste(
+      new_metadata[[general_col]],
+      new_metadata[[sub_col]],
+      sep = " :: "
+    )
+    
+    # Handle cases where subcelltype is NA
+    na_idx <- which(is.na(new_metadata[[sub_col]]))
+    if (length(na_idx) > 0) {
+      new_metadata[[combined_col]][na_idx] <- new_metadata[[general_col]][na_idx]
     }
+    
+    message("Added combined cell type column: ", combined_col)
   }
   
   # Add all metadata columns at once
