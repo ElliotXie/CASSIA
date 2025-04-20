@@ -2,7 +2,8 @@
 
 CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
-📖 [Read our paper](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1) for detailed methodology and benchmarking results.
+📖 [Read our preprint (v2, latest)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)   
+📖 [Original preprint (v1, historical)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
 📝 [Example R workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
@@ -18,14 +19,14 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 > 🔄 **CASSIA adds retry mechanism and optimized report storage!**  
 > The latest update introduces an automatic retry mechanism for failed tasks and optimizes how reports are stored for easier access and management.  
 > 🎨 **The CASSIA logo has been drawn and added to the project!**
->
+
 > **2025-04-17**  
 > 🚀 **CASSIA now supports automatic single cell annotation benchmarking!**  
 > The latest update introduces a new function that enables fully automated benchmarking of single cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
 > **A dedicated benchmark website is coming soon—stay tuned!**
 
 
-## 🏗️ Installation
+## 🏗️ Installation (R)
 
 Option 1: Install from GitHub
 ```R
