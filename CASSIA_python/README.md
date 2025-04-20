@@ -52,15 +52,9 @@ CASSIA.runCASSIA_pipeline(
 
 For detailed workflows and agent customization, see the [Example](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb).
 
-## Citation
-
-If you use CASSIA in your work, please cite:
-
-**Xie et al.**, *CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data*. Nature Communications (2025). [Link Pending]
-
 ## Contributing
 
-We welcome contributions! Please submit pull requests or open issues via [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation/issues).
+We welcome contributions! Please submit pull requests or open issues via [GitHub](https://github.com/ElliotXie/CASSIA/issues).
 
 ## License
 
@@ -68,8 +62,4 @@ MIT License © 2024 Elliot Xie and contributors.
 
 ## Support
 
-Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation/issues) or visit [CASSIAcell.com](https://www.cassiacell.com) for help.
-
----
-
-Let me know if you'd like a badge set (e.g. PyPI version, license, docs, citations) or auto-gen Jupyter examples to go with it.
+Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA/issues) or visit [CASSIAcell.com](https://www.cassiacell.com) for help.
