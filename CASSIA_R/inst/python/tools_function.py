@@ -173,6 +173,13 @@ def safe_get(dict_obj, *keys):
 
 
 def write_csv(filename, headers, row_data):
+    import os
+    
+    # Make sure the directory exists
+    output_dir = os.path.dirname(filename)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        
     with open(filename, 'w', newline='', encoding='utf-8') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(headers)
@@ -344,6 +351,11 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     full_csv_name = f"{base_name}_full.csv"
     summary_csv_name = f"{base_name}_summary.csv"
 
+    # Make sure the output directory exists
+    output_dir = os.path.dirname(full_csv_name)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
     # Write the full data CSV with updated headers
     write_csv(full_csv_name, 
               ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types', 
@@ -369,7 +381,12 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
     def single_batch_run(i):
-        output_json_name = f"{output_name}_{i}.json"
+        # For each run, use the same base output name but with an index
+        # If output_name already includes a folder path, maintain it
+        base_dir = os.path.dirname(output_name)
+        base_name = os.path.basename(output_name)
+        output_json_name = os.path.join(base_dir, f"{base_name}_{i}.json") if base_dir else f"{base_name}_{i}.json"
+        
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
         result = run_cell_type_analysis_batchrun(
@@ -2471,10 +2488,16 @@ def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, mar
 
 
 def save_html_report(report, filename):
+    import os
     try:
         # Add .html suffix if not present
         if not filename.lower().endswith('.html'):
             filename = filename + '.html'
+            
+        # Make sure the directory exists
+        output_dir = os.path.dirname(filename)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
             
         html_report = generate_html_report2(report)
         
@@ -2604,6 +2627,7 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
     Returns:
         str: Path to the saved HTML file
     """
+    import os  # Ensure we have os imported
     
     def parse_check_genes(text):
         """Extract gene lists from check_genes tags"""
@@ -2803,6 +2827,11 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
         
         # Save the HTML file
         try:
+            # Make sure the directory exists
+            output_dir = os.path.dirname(output_filename)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
             with open(output_filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             print(f"Report successfully saved as '{output_filename}'")
@@ -2822,6 +2851,11 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
         
         # Still try to save the error report
         try:
+            # Make sure the directory exists
+            output_dir = os.path.dirname(output_filename)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
             with open(output_filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             print(f"Error report saved as '{output_filename}'")
@@ -2842,6 +2876,7 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
     Returns:
         str: Path to the saved HTML file
     """
+    import os  # Ensure we have os imported
     
     def parse_check_genes(text):
         """Extract gene lists from check_genes tags"""
@@ -3041,6 +3076,11 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         
         # Save the HTML file
         try:
+            # Make sure the directory exists
+            output_dir = os.path.dirname(output_filename)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
             with open(output_filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             print(f"Report successfully saved as '{output_filename}'")
@@ -3060,6 +3100,11 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         
         # Still try to save the error report
         try:
+            # Make sure the directory exists
+            output_dir = os.path.dirname(output_filename)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
             with open(output_filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             print(f"Error report saved as '{output_filename}'")
@@ -3262,11 +3307,18 @@ def generate_cell_type_analysis_report(
         # Step 4: Generate and save HTML report
         report = claude_agent(report_generator(messages), model=model)
         
+        # Ensure output_name doesn't have invalid path characters
+        report_file = output_name.replace('\\', '/')
+        
         save_html_report(
-            filename=output_name,
+            filename=report_file,
             report=report
         )
-        generate_raw_cell_annotation_report(messages, f'{output_name}_raw.html')
+        
+        # Use os.path.join for raw report path to ensure proper path handling
+        raw_report_path = f"{report_file}_raw.html"
+        
+        generate_raw_cell_annotation_report(messages, raw_report_path)
         print(f"Analysis completed successfully. Report saved as {output_name}")
         return None
         
@@ -3327,11 +3379,18 @@ def generate_cell_type_analysis_report_openrouter(
         # Step 4: Generate and save HTML report
         report = openrouter_agent(report_generator(messages), model=model)
         
+        # Ensure output_name doesn't have invalid path characters
+        report_file = output_name.replace('\\', '/')
+        
         save_html_report(
-            filename=output_name,
+            filename=report_file,
             report=report
         )
-        generate_raw_cell_annotation_report(messages, f'{output_name}_raw.html')
+        
+        # Use os.path.join for raw report path to ensure proper path handling
+        raw_report_path = f"{report_file}_raw.html"
+        
+        generate_raw_cell_annotation_report(messages, raw_report_path)
         print(f"Analysis completed successfully. Report saved as {output_name}")
         return None
         
@@ -3783,10 +3842,25 @@ def generate_cell_type_analysis_report_openai(
         # Step 4: Generate and save HTML report
         report = openai_agent(report_generator(messages),model=model)
         
+        # Ensure output_name doesn't have invalid path characters
+        report_file = output_name.replace('\\', '/')
+        
+        # Get the directory from the report file path
+        report_dir = os.path.dirname(report_file)
+        if report_dir and not os.path.exists(report_dir):
+            os.makedirs(report_dir, exist_ok=True)
+            
         save_html_report(
-            filename=output_name,
+            filename=report_file,
             report=report
         )
+        
+        # Generate and save raw report
+        raw_report_path = os.path.join(os.path.dirname(report_file), f"{os.path.basename(report_file)}_raw.html")
+        generate_raw_cell_annotation_report(messages, raw_report_path)
+        
+        print(f"\nAnalysis completed. Report saved as {output_name}")
+        return analysis_result
         
     except Exception as e:
         print(f"Error generating analysis report: {str(e)}")
@@ -4784,18 +4858,17 @@ def run_cell_analysis_pipeline(
         print(f"Created folder: {folder_name}")
         
     # Define derived file names with folder paths
+    annotation_output = os.path.join(folder_name, output_file_name)
+    annotation_full_file = os.path.join(folder_name, output_file_name + "_full.csv")
     score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
     report_name = os.path.join(folder_name, output_file_name + "_report")
     lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
-    
-    # First annotation output is still in current directory since other parts of code may expect it there
-    annotation_output = output_file_name
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
     run_cell_type_analysis_batchrun(
         marker=marker_path,
-        output_name=output_file_name,
+        output_name=annotation_output,
         model=annotation_model,
         tissue=tissue,
         species=species,
@@ -4808,7 +4881,7 @@ def run_cell_analysis_pipeline(
     print("\n=== Starting scoring process ===")
     # Run scoring
     run_scoring_with_progress(
-        input_file=output_file_name + "_full.csv",
+        input_file=annotation_full_file,
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
@@ -4836,12 +4909,19 @@ def run_cell_analysis_pipeline(
     # Process each low-scoring cluster
     for i, cluster in enumerate(low_score_clusters, 1):
         print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
+        # Sanitize cluster name for file system use
+        sanitized_cluster = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+        sanitized_cluster = sanitized_cluster.replace(' ', '_')
+        
+        # Create proper output filename in the folder
+        cluster_output_name = os.path.join(folder_name, f"{sanitized_cluster}_{output_file_name}_lowscore_report")
+        
         generate_cell_type_analysis_report_wrapper(
-            full_result_path=output_file_name + "_full.csv",
+            full_result_path=annotation_full_file,
             marker=marker_path,
             cluster_name=cluster,
             major_cluster_info=f"{species} {tissue}",
-            output_name=f"{cluster}_{lowscore_report_name}",
+            output_name=cluster_output_name,
             num_iterations=5,
             model=annotationboost_model,
             provider=annotationboost_provider
