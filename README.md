@@ -155,10 +155,13 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 ## 🛠️ To-Do List
 
 - [ ] Imporve the MOE (Mixture of Experts) system
-- [ ] Better integration with Seurat  
+- [ ] Demo video
+- [x] Better integration with Seurat
+- [ ] Better integration with Scanpy
 - [ ] Integration with clustering pipeline  
 - [ ] Marker selection process optimization
 - [ ] Multiomics integration
+- [ ] Laucnch the benchmark website
 - [x] More robust workflow with auto-retry mechanisms  
 - [x] Improved output file management
 - [x] Automatic evalutate annotation performance
