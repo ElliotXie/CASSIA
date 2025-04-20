@@ -1,6 +1,6 @@
 # CASSIA <img src="CASSIA_python/logo2.png" align="right" width="150" style="vertical-align: middle;" />
 
-CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
+CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
 📖 [Read our preprint (v2, latest)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
  
@@ -17,19 +17,19 @@ CASSIA (Collaborative Agent System for Single cell Interpretable Annotation) is 
 ## 📰 News
 
 > **2025-04-19**  
-> 🔄 **CASSIA adds retry mechanism and optimized report storage!**  
+> 🔄 **CASSIA adds a retry mechanism and optimized report storage!**  
 > The latest update introduces an automatic retry mechanism for failed tasks and optimizes how reports are stored for easier access and management.  
 > 🎨 **The CASSIA logo has been drawn and added to the project!**
 
 > **2025-04-17**  
-> 🚀 **CASSIA now supports automatic single cell annotation benchmarking!**  
-> The latest update introduces a new function that enables fully automated benchmarking of single cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
+> 🚀 **CASSIA now supports automatic single-cell annotation benchmarking!**  
+> The latest update introduces a new function that enables fully automated benchmarking of single-cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
 > **A dedicated benchmark website is coming soon—stay tuned!**
 
 
 ## 🏗️ Installation (R)
 
-Option 1: Install from GitHub
+Install from GitHub
 ```R
 # Install dependencies
 install.packages("devtools")
@@ -37,13 +37,6 @@ install.packages("reticulate")
 
 # Install CASSIA
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
-```
-
-Option 2: Install from source
-```R
-install.packages("reticulate")
-install.packages("remotes")
-remotes::install_url("https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source_R/CASSIA_0.1.0.tar.gz")
 ```
 
 ### 🔑 Set Up API Keys
@@ -154,17 +147,17 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ## 🛠️ To-Do List
 
-- [ ] Imporve the MOE (Mixture of Experts) system
+- [ ] Improve the MOE (Mixture of Experts) system
 - [ ] Demo video
 - [x] Better integration with Seurat
 - [ ] Better integration with Scanpy
 - [ ] Integration with clustering pipeline  
 - [ ] Marker selection process optimization
 - [ ] Multiomics integration
-- [ ] Laucnch the benchmark website
+- [ ] Launch the benchmark website
 - [x] More robust workflow with auto-retry mechanisms  
 - [x] Improved output file management
-- [x] Automatic evalutate annotation performance
+- [x] Automatically evaluate annotation performance
 - [x] Draw the CASSIA logo
 
 Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
