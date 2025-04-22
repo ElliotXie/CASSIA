@@ -155,3 +155,8 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
 Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
 bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476 
+
+## 📬 联系方式
+
+如有任何问题或需要帮助，欢迎随时邮件联系我，我会尽力协助：
+**xie227@wisc.edu** 
