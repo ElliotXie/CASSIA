@@ -1,6 +1,5 @@
 <div align="center">
 
-# CASSIA
 <img src="CASSIA_python/logo2.png" width="150" style="vertical-align: middle;" />
 
 [English](README.md) | [中文](README_CN.md)
