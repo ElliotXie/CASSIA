@@ -46,6 +46,8 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 ### 🔑 Set Up API Keys
 
+This step will take about 2 minutes.
+
 We recommend starting with OpenRouter since it provides access to most models through a single API key. While slightly more expensive and occasionally unstable, it offers greater convenience. For production use, direct access via OpenAI or Anthropic provides better stability.
 
 Note that in certain countries, OpenAI and Anthropic may be banned. In these cases, users can use OpenRouter instead.
