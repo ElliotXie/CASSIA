@@ -32,9 +32,8 @@
 > **A dedicated benchmark website is coming soon—stay tuned!**
 
 
-## 🏗️ Installation (R)
+## 🏗️ Installation (R, for python tutorial please visit [here](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
 
-Install from GitHub
 ```R
 # Install dependencies
 install.packages("devtools")
