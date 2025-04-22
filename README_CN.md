@@ -1,6 +1,11 @@
-# CASSIA <img src="CASSIA_python/logo2.png" align="right" width="150" style="vertical-align: middle;" />
+<div align="center">
+
+# CASSIA
+<img src="CASSIA_python/logo2.png" width="150" style="vertical-align: middle;" />
 
 [English](README.md) | [中文](README_CN.md)
+
+</div>
 
 CASSIA 是一种基于multi-agent多智能体的大型语言模型（LLMs）工具，用于高效自动化进行单细胞RNA测序数据的可解释细胞类型注释。
 
