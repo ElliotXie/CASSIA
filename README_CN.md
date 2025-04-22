@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-CASSIA (用于单细胞可解释注释的协作智能体系统) 是一种利用多智能体大型语言模型（LLMs）增强细胞类型注释的工具。
+CASSIA 是一种基于multi-agent多智能体的大型语言模型（LLMs）工具，用于高效自动化进行单细胞RNA测序数据的可解释细胞类型注释。
 
-🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 基础 CASSIA 功能的网络界面
+🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 提供最基础的CASSIA功能
 
 📝 [R 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
@@ -30,9 +30,9 @@ CASSIA (用于单细胞可解释注释的协作智能体系统) 是一种利用�
 > **专门的基准测试网站即将推出—敬请期待！**
 
 
-## 🏗️ 安装 (R)
+## 🏗️ 安装 (R 语言)
 
-从 GitHub 安装
+GitHub 安装
 ```R
 # 安装依赖
 install.packages("devtools")
@@ -42,9 +42,9 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ```
 
-### 🔑 设置 API 密钥
+### 🔑 设置 API
 
-我们建议从 OpenRouter 开始，因为它可以通过单个 API 密钥访问大多数模型。虽然价格略贵且偶尔不稳定，但它提供了更大的便利性。对于生产用途，通过 OpenAI 或 Anthropic 直接访问提供了更好的稳定性。
+设置api大概需要2分钟时间，我们建议从 OpenRouter 开始，因为它可以通过单个 API 访问大多数模型，提供了更大的便利性。大规模应用则推荐使用 OpenAI 或 Anthropic 直接访问更加稳定。
 
 请注意，在某些国家，OpenAI 和 Anthropic 可能被禁止。在这些情况下，用户可以使用 OpenRouter 代替。
 
@@ -74,11 +74,11 @@ setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 CASSIA 包含两种格式的示例标记数据：
 ```R
 # 加载示例数据
-markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # 直接 Seurat 输出
-markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式
+markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Seurat findallmarkers 输出文件
+markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式，包含两列数据：cluster_name 和 gene_list
 ```
 
-## ⚙️ 流程使用
+## ⚙️ 快速一键使用
 
 ```R
 runCASSIA_pipeline(
@@ -86,7 +86,7 @@ runCASSIA_pipeline(
     tissue,               # 组织类型（例如，"brain"）
     species,              # 物种（例如，"human"）
     marker,               # 来自 findallmarker 的标记数据
-    max_workers = 4,      # 并行工作者数量
+    max_workers = 4,      # 并行工作者数量 (根据电脑cpu核心数调整)
     annotation_model = "gpt-4o",                    # 注释模型
     annotation_provider = "openai",                 # 注释提供商
     score_model = "anthropic/claude-3.5-sonnet",    # 评分模型
@@ -94,35 +94,35 @@ runCASSIA_pipeline(
     annotationboost_model="anthropic/claude-3.5-sonnet", # 注释增强模型
     annotationboost_provider="openrouter", # 注释增强提供商
     score_threshold = 75,                          # 最低可接受分数
-    additional_info = NULL                         # 可选上下文信息
+    additional_info = NULL                         # 额外需要添加的细胞类型信息
 )
 ```
 
 ## 🤖 支持的模型
 
-您可以为注释和评分选择任何模型。下面列出了一些经典模型。大多数当前流行的模型都被 OpenRouter 支持，尽管它们还没有在 CASSIA 论文中进行广泛的基准测试——随时尝试它们。
+用户可以为注释和评分选择任何模型。下面列出了一些经典模型。大多数当前流行的模型都可以通过 OpenRouter 调用。
 
-### OpenAI（最常见）
+
+### OpenRouter
+- `deepseek/deepseek-chat-v3-0324`：非常经济实惠且与 GPT-4o 相当，推荐使用
+- `anthropic/claude-3.5-sonnet`：可以绕过claude的访问限制
+- `openai/gpt-4o-2024-11-20`：可以绕过openai的访问限制
+
+### OpenAI
 - `gpt-4o`（推荐）：性能和成本平衡
 - `o1-mini`：高级推理能力（成本更高）
 
 ### Anthropic
-- `claude-3-5-sonnet-20241022`：高性能模型
+- `claude-3-5-sonnet-20241022`：高性能模型 （在论文测试中效果最佳）
 - `claude-3-7-sonnet-latest`：最新模型
-
-### OpenRouter
-- `anthropic/claude-3.5-sonnet`：高访问限制的 Claude 访问
-- `openai/gpt-4o-2024-11-20`：GPT-4o 的替代访问
-- `meta-llama/llama-3.2-90b-vision-instruct`：经济实惠的开源选项
-- `deepseek/deepseek-chat-v3-0324`：非常经济实惠且与 GPT-4o 相当
 
 ## 📤 输出
 
 流程生成四个关键文件：
 1. 初始注释结果
 2. 带推理的质量评分
-3. 摘要报告
-4. 注释增强报告
+3. 详细报告
+4. 注释增强报告 （如果有任何评分低于75分则会生成注释增强报告）
 
 ## 🧰 故障排除
 
@@ -144,8 +144,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ### 最佳实践
 - 保持 API 密钥安全
-- 维持足够的 API 积分
-- 在覆盖文件之前备份数据
+- 维持足够的 API Credit
 - 仔细检查文件路径和权限
 
 注意：此 README 涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
