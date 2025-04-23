@@ -6,9 +6,9 @@
 
 </div>
 
-CASSIA 是一种基于multi-agent多智能体的大型语言模型（LLMs）工具，用于高效自动化进行单细胞RNA测序数据的可解释细胞类型注释。
+CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释类型注释。
 
-🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 提供最基础的CASSIA功能
+🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 仅提供最基础的CASSIA功能
 
 📝 [R 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
@@ -28,7 +28,7 @@ CASSIA 是一种基于multi-agent多智能体的大型语言模型（LLMs）工�
 > **2025-04-19**  
 > 🔄 **CASSIA 添加了重试机制和优化的报告存储！**  
 > 最新更新引入了失败任务的自动重试机制，并优化了报告的存储方式，使访问和管理更加便捷。  
-> 🎨 **CASSIA 标志已经设计并添加到项目中！**
+> 🎨 **完成CASSIA标志设计！**
 
 > **2025-04-17**  
 > 🚀 **CASSIA 现在支持自动单细胞注释基准测试！**  
@@ -50,7 +50,7 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 ### 🔑 设置 API
 
-设置api大概需要2分钟时间，我们建议从 OpenRouter 开始，因为它可以通过单个 API 访问大多数模型，提供了更大的便利性。大规模应用则推荐使用 OpenAI 或 Anthropic 直接访问更加稳定。
+设置api大概需要2分钟时间，我们建议从 OpenRouter 开始，因为它可以仅通过单个 API 就访问市面上大多数大模型。大规模应用则推荐使用 OpenAI 或 Anthropic 直接访问更加稳定。
 
 请注意，在某些国家，OpenAI 和 Anthropic 可能被禁止。在这些情况下，用户可以使用 OpenRouter 代替。
 
@@ -110,7 +110,7 @@ runCASSIA_pipeline(
 
 
 ### OpenRouter
-- `deepseek/deepseek-chat-v3-0324`：非常经济实惠且与 GPT-4o 相当，推荐使用
+- `deepseek/deepseek-chat-v3-0324`：非常经济实惠且表现与 GPT-4o 相当，最推荐使用
 - `anthropic/claude-3.5-sonnet`：可以绕过claude的访问限制
 - `openai/gpt-4o-2024-11-20`：可以绕过openai的访问限制
 
@@ -120,15 +120,15 @@ runCASSIA_pipeline(
 
 ### Anthropic
 - `claude-3-5-sonnet-20241022`：高性能模型 （在论文测试中效果最佳）
-- `claude-3-7-sonnet-latest`：最新模型
+- `claude-3-7-sonnet-latest`：最新高性能模型模型
 
 ## 📤 输出
 
 流程生成四个关键文件：
 1. 初始注释结果
 2. 带推理的质量评分
-3. 详细报告
-4. 注释增强报告 （如果有任何评分低于75分则会生成注释增强报告）
+3. 详细注释报告
+4. 注释增强报告 （如果有任何评分低于75分的注释，则会自动生成注释增强报告）
 
 ## 🧰 故障排除
 
@@ -136,7 +136,7 @@ runCASSIA_pipeline(
 ```R
 # 检查 API 密钥是否正确设置
 key <- Sys.getenv("ANTHROPIC_API_KEY")
-print(key)  # 不应该为空
+print(key)  # 输出结果不应该为空
 
 # 如果需要，重置 API 密钥
 setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
@@ -146,14 +146,12 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 - 必要时使用绝对路径
 - 检查文件权限
 - 确保文件未在其他程序中打开
-- 验证磁盘空间是否充足
 
 ### 最佳实践
 - 保持 API 密钥安全
 - 维持足够的 API Credit
-- 仔细检查文件路径和权限
 
-注意：此 README 涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
+注意：此 README 仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
 [CASSIA 完整教程](https://cassia-true-final-4.vercel.app/)。
 
 ## 📖 引用
