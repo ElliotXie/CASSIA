@@ -166,5 +166,6 @@ bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476
 
 ## 📬 Contact
 
-If you have any questions or need help, feel free to email us, we are always happy to help:
+If you have any questions or need help, feel free to email us. We are always happy to help:
 **xie227@wisc.edu**
+If you find this project helpful, please share it with your friend, and give this repo a star ⭐. Many thanks!
