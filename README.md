@@ -107,21 +107,20 @@ runCASSIA_pipeline(
 
 ## 🤖 Supported Models
 
-You can choose any model for annotation and scoring. Some classic models are listed below. Most current popular models are supported by OpenRouter, though they have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.
+You can choose any model for annotation and scoring. Some classic models are listed below. OpenRouter supports most of the current popular models, although some have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.
 
-### OpenAI (Most Common)
+### OpenAI
 - `gpt-4o` (recommended): Balanced performance and cost
-- `o1-mini`: Advanced reasoning capabilities (higher cost)
 
 ### Anthropic
 - `claude-3-5-sonnet-20241022`: High-performance model
-- `claude-3-7-sonnet-latest`: The latest model
+- `claude-3-7-sonnet-latest`: The latest High-performance model
 
 ### OpenRouter
 - `anthropic/claude-3.5-sonnet`: High rate limit access to Claude
 - `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4o
-- `meta-llama/llama-3.2-90b-vision-instruct`: Cost-effective open-source option
-- `deepseek/deepseek-chat-v3-0324`: Very cost-effective and comparable to GPT-4o
+- `deepseek/deepseek-chat-v3-0324`: almost free and comparable to GPT-4o (highly recommended)
+- `deepseek/deepseek-chat-v3-0324:free`: literally free but slower (recommended)
 
 ## 📤 Output
 
@@ -147,15 +146,13 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 - Use absolute paths when necessary
 - Check file permissions
 - Ensure files aren't open in other programs
-- Verify sufficient disk space
 
 ### Best Practices
 - Keep API keys secure
 - Maintain sufficient API credits
-- Backup data before overwriting files
-- Double-check file paths and permissions
 
-Note: This README covers basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
+
+Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
 [CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
 
 ## 📖 Citation
