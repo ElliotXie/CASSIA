@@ -36,7 +36,7 @@
 > **A dedicated benchmark website is coming soon—stay tuned!**
 
 
-## 🏗️ Installation (R, for python tutorial please visit [here](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
+## 🏗️ Installation (R, for Python tutorial please visit [here](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
 
 ```R
 # Install dependencies
@@ -49,9 +49,9 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 ### 🔑 Set Up API Keys
 
-This step will take about 2 minutes.
+It should take about 3 minutes to get your API key.
 
-We recommend starting with OpenRouter since it provides access to most models through a single API key. While slightly more expensive and occasionally unstable, it offers greater convenience. For production use, direct access via OpenAI or Anthropic provides better stability.
+We recommend starting with OpenRouter since it provides access to most models through a single API key.
 
 Note that in certain countries, OpenAI and Anthropic may be banned. In these cases, users can use OpenRouter instead.
 
@@ -157,7 +157,7 @@ Note: This README covers only basic CASSIA functionality. For a complete tutoria
 
 ## 📖 Citation
 
-CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
+CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
 Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
 bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476
 
