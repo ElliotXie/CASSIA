@@ -12,7 +12,7 @@ CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用�
 
 📝 [R 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
-📚 [完整 R 文档/英文版](documentationeng.vercel.app)
+📚 [完整 R 文档/英文版](https://documentationeng.vercel.app/)
 
 📚 [完整 R 文档/中文版](https://cassia-documentation-cn.vercel.app/)
 
