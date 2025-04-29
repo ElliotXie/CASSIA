@@ -857,7 +857,7 @@ def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, s
     You are a formatting assistant for single-cell analysis results. Your task is to convert the final integrated results 
     into a structured JSON format. Follow these guidelines:
 
-    1. Extract the main cell type and the three most likely sub-cell types identified from step 4 and step 5. Even the main cell type is the same as the sub-cell types, you still need to list it as a sub-cell type. Strictly follow the order of the sub-cell types.
+    1. Extract the main cell type and the three most likely sub-cell types identified from step 4 and step 5 of the Final Annotation Agent response. Even the main cell type is the same as the sub-cell types, you still need to list it as a sub-cell type. Strictly follow the order of the sub-cell types.
     2. Include only information explicitly stated in the input.
     3. If there are possible mixed cell types highlighted, list them.
 
