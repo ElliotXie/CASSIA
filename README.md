@@ -14,7 +14,7 @@
 
 📝 [Example R workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
-📚 [Complete R Documentation](https://cassia-true-final-4.vercel.app/)
+📚 [Complete R Documentation](https://documentationeng.vercel.app/)
 
 📝 [Example Python workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
