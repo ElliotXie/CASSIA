@@ -131,9 +131,9 @@ runCASSIA_pipeline(
 
 ## 🧰 故障排除
 
-### 身份验证（错误 401）
+### 身份验证（错误 401 或者 Chocie Error）
 ```R
-# 检查 API 密钥是否正确设置
+# 检查 API 密钥是否正确设置，检查API是否已失效，检查钱是否已经用完
 key <- Sys.getenv("ANTHROPIC_API_KEY")
 print(key)  # 输出结果不应该为空
 
@@ -143,15 +143,10 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ### 文件错误
 - 必要时使用绝对路径
-- 检查文件权限
 - 确保文件未在其他程序中打开
 
-### 最佳实践
-- 保持 API 密钥安全
-- 维持足够的 API Credit
-
 注意：此 README 仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
-[CASSIA 完整教程](https://cassia-true-final-4.vercel.app/)。
+[CASSIA 完整教程](https://cassia-documentation-cn.vercel.app/)。
 
 ## 📖 引用
 
