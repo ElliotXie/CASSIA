@@ -18,9 +18,8 @@ CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用�
 
 📝 [Python 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
-📖 [最新预印本 (v2, 最新版)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
- 
-📖 [原始预印本 (v1, 历史版本)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
+🤖 [模型注释能力排行榜](https://sc-llm-benchmark.com/methods/cassia)
+
 
 
 ## 📰 更新
@@ -155,6 +154,10 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 [CASSIA 完整教程](https://cassia-true-final-4.vercel.app/)。
 
 ## 📖 引用
+
+📖 [最新预印本 (v2, 最新版)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
+ 
+📖 [原始预印本 (v1, 历史版本)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
 CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
 Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
