@@ -18,7 +18,7 @@
 
 📝 [Example Python workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
-🤖[LLM Benchmark](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [LLMs Benchmark](https://sc-llm-benchmark.com/methods/cassia)
 
 
 
