@@ -20,9 +20,6 @@
 
 🤖[LLM Benchmark](https://sc-llm-benchmark.com/methods/cassia)
 
-📖 [Read our preprint (v2, latest)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
- 
-📖 [Original preprint (v1, historical)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
 
 ## 📰 News
@@ -158,6 +155,10 @@ Note: This README covers only basic CASSIA functionality. For a complete tutoria
 [CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
 
 ## 📖 Citation
+
+📖 [Read our preprint (v2, latest)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
+ 
+📖 [Original preprint (v1, historical)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
 CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
 Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
