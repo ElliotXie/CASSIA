@@ -18,7 +18,7 @@
 
 📝 [Example Python workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
-🤖 [LLMs Benchmark](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.com/methods/cassia)
 
 
 
