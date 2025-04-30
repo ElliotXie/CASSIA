@@ -6,7 +6,7 @@
 
 </div>
 
-CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释类型注释。
+CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释分群注释。
 
 🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 仅提供最基础的CASSIA功能
 
