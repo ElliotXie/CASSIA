@@ -12,11 +12,11 @@
 
 🌐 [Try CASSIA Web UI](https://cassiacell.com/) - A web interface for basic CASSIA functionality
 
-📝 [Example R workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
+📝 [Example R workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
 
 📚 [Complete R Documentation](https://documentationeng.vercel.app/)
 
-📝 [Example Python workflow](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
+📝 [Example Python workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
 🤖 [LLMs Benchmark](https://sc-llm-benchmark.com/methods/cassia)
 
