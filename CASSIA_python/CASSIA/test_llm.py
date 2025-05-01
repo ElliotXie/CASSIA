@@ -11,7 +11,6 @@ from merging_annotation import call_llm
 # Load environment variables from .env file if it exists
 load_dotenv()
 
-os.environ["ANTHROPIC_API_KEY"] = "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"
 
 def test_openai():
     """Test OpenAI API call."""
