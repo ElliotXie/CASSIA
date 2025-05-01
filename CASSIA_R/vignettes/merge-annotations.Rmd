@@ -1,0 +1,197 @@
+---
+title: "Merging Cell Type Annotations with LLM"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Merging Cell Type Annotations with LLM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE  # Don't run any code since it requires API keys
+)
+```
+
+## Introduction
+
+The `merge_annotations` function uses large language models (LLMs) to analyze and group cell type annotations from single-cell RNA sequencing datasets. This vignette demonstrates how to use this function to merge annotations at different levels of detail.
+
+## Setup
+
+First, load the CASSIA package:
+
+```{r setup}
+library(CASSIA)
+```
+
+### Python Dependencies
+
+The function requires several Python packages to be installed. You can check if they are available and optionally install them:
+
+```{r check-deps}
+# Check for required Python packages and optionally install them
+test_python_dependencies(install = TRUE)
+```
+
+### API Keys
+
+To use the LLM services, you need to set your API key. CASSIA supports OpenAI, Anthropic, and OpenRouter. Here's how to set your API key:
+
+```{r set-api-key}
+# Set your API key
+set_llm_api_key("your_api_key_here", provider = "openrouter")
+```
+
+## Basic Usage
+
+The `merge_annotations` function reads a CSV file containing cell cluster annotations and generates suggested groupings at different levels of detail.
+
+### Input Data Format
+
+Your CSV should contain at least these columns:
+- `True Cell Type`: Column containing cluster IDs
+- `Predicted Main Cell Type`: General cell type annotations
+- `Predicted Sub Cell Types`: More detailed subtype annotations (can be comma-separated)
+
+Here's an example of creating a sample dataset:
+
+```{r create-data}
+# Create a sample CSV with test data
+create_test_data <- function() {
+  data <- data.frame(
+    "True Cell Type" = 1:8,
+    "Predicted Main Cell Type" = c(
+      "macrophage", 
+      "CD4 T cell", 
+      "B cell", 
+      "dendritic cell", 
+      "CD8 T cell", 
+      "NK cell", 
+      "epithelial cell", 
+      "fibroblast"
+    ),
+    "Predicted Sub Cell Types" = c(
+      "inflammatory macrophage, resident macrophage", 
+      "naive CD4 T cell, memory CD4 T cell", 
+      "memory B cell, plasma cell", 
+      "plasmacytoid dendritic cell, conventional dendritic cell", 
+      "cytotoxic CD8 T cell, exhausted CD8 T cell", 
+      "CD56bright NK cell, CD56dim NK cell", 
+      "type II pneumocyte, type I pneumocyte", 
+      "activated fibroblast, quiescent fibroblast"
+    ),
+    stringsAsFactors = FALSE
+  )
+  
+  write.csv(data, "test_clusters.csv", row.names = FALSE)
+  return(data)
+}
+
+# Create the test data
+create_test_data()
+```
+
+### Single Detail Level
+
+To process annotations at a single detail level:
+
+```{r single-level}
+# Additional context to help with annotations
+additional_context <- "
+Cell type reference information:
+- Macrophages and dendritic cells are types of myeloid cells
+- CD4 and CD8 T cells belong to T lymphocyte lineage
+- B cells are part of the B lymphocyte lineage
+- NK cells are natural killer cells and considered part of innate lymphoid cells
+- Epithelial cells form the tissue lining organs
+- Fibroblasts are connective tissue cells
+"
+
+# Process with detailed level
+result_df <- merge_annotations(
+  csv_path = "test_clusters.csv",
+  output_path = "detailed_groupings.csv",
+  provider = "openrouter",
+  model = "deepseek/deepseek-chat-v3-0324",
+  additional_context = additional_context,
+  batch_size = 8,
+  detail_level = "detailed"  # Options: "broad", "detailed", "very_detailed"
+)
+
+# Display results
+head(result_df)
+```
+
+### Detail Levels
+
+CASSIA supports three levels of detail:
+
+1. **Broad (`detail_level = "broad"`)**: Most general cell lineage categories
+   - Example: "macrophage" → "Myeloid cells"
+   - Example: "CD4 T cell" → "T cells"
+
+2. **Detailed (`detail_level = "detailed"`)**: Intermediate-level groupings
+   - Example: "macrophage" → "Macrophages"
+   - Example: "CD4 T cell" → "CD4 T cells"
+
+3. **Very Detailed (`detail_level = "very_detailed"`)**: Most specific with standardized naming
+   - Example: "inflammatory macrophage" → "Inflammatory macrophages"
+   - Example: "naive CD4 T cell" → "Naive CD4+ T cells"
+
+### Processing All Levels in Parallel
+
+To process all three detail levels simultaneously:
+
+```{r all-levels}
+# Process all detail levels in parallel
+all_results_df <- merge_annotations(
+  csv_path = "test_clusters.csv",
+  output_path = "all_groupings.csv",
+  provider = "openrouter",
+  model = "deepseek/deepseek-chat-v3-0324",
+  additional_context = additional_context,
+  batch_size = 8,
+  process_all = TRUE  # Process all three detail levels in parallel
+)
+
+# Display results
+head(all_results_df)
+```
+
+This will use parallel processing to handle all three detail levels simultaneously and return a data frame with three new columns:
+- `Merged_Grouping_1`: Broad groupings
+- `Merged_Grouping_2`: Detailed groupings
+- `Merged_Grouping_3`: Very detailed groupings
+
+## Supported LLM Providers
+
+CASSIA supports three LLM providers:
+
+1. **OpenAI** (`provider = "openai"`)
+   - Default model: "gpt-3.5-turbo"
+   - Requires: `OPENAI_API_KEY`
+
+2. **Anthropic** (`provider = "anthropic"`)
+   - Default model: "claude-3-sonnet-20240229"
+   - Requires: `ANTHROPIC_API_KEY`
+
+3. **OpenRouter** (`provider = "openrouter"`)
+   - Default model: "openai/gpt-3.5-turbo"
+   - Allows access to many models including "deepseek/deepseek-chat-v3-0324"
+   - Requires: `OPENROUTER_API_KEY`
+
+## Clean Up
+
+```{r cleanup}
+# Clean up test files
+unlink("test_clusters.csv")
+unlink("detailed_groupings.csv")
+unlink("all_groupings.csv")
+```
+
+## Conclusion
+
+The `merge_annotations` function provides a powerful way to standardize and categorize cell type annotations at different levels of granularity. By leveraging large language models, it can suggest biologically relevant groupings that maintain appropriate levels of specificity for different analysis needs. 
