@@ -6,7 +6,7 @@
 
 </div>
 
-CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释类型注释。
+CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释分群注释。
 
 🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 仅提供最基础的CASSIA功能
 
@@ -18,9 +18,8 @@ CASSIA 是一个基于multi-agent多智能体的大型语言模型工具，用�
 
 📝 [Python 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
-📖 [最新预印本 (v2, 最新版)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
- 
-📖 [原始预印本 (v1, 历史版本)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
+🤖 [模型注释能力排行榜](https://sc-llm-benchmark.com/methods/cassia)
+
 
 
 ## 📰 更新
@@ -132,9 +131,9 @@ runCASSIA_pipeline(
 
 ## 🧰 故障排除
 
-### 身份验证（错误 401）
+### 身份验证（错误 401 或者 Chocie Error）
 ```R
-# 检查 API 密钥是否正确设置
+# 检查 API 密钥是否正确设置，检查API是否已失效，检查钱是否已经用完
 key <- Sys.getenv("ANTHROPIC_API_KEY")
 print(key)  # 输出结果不应该为空
 
@@ -144,17 +143,16 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 ### 文件错误
 - 必要时使用绝对路径
-- 检查文件权限
 - 确保文件未在其他程序中打开
 
-### 最佳实践
-- 保持 API 密钥安全
-- 维持足够的 API Credit
-
 注意：此 README 仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
-[CASSIA 完整教程](https://cassia-true-final-4.vercel.app/)。
+[CASSIA 完整教程](https://cassia-documentation-cn.vercel.app/)。
 
 ## 📖 引用
+
+📖 [最新预印本 (v2, 最新版)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
+ 
+📖 [原始预印本 (v1, 历史版本)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
 
 CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
 Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
