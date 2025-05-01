@@ -51,8 +51,10 @@ def process_multiple_files(file_model_pairs, output_txt_path):
 # Example usage:
 file_model_list = [
     ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/o4mini/combined_scores_o4mini_evaluation.csv", "O4Mini"),
-    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/gemini-2.5pro/combined_scores_gemini-2.5pro_evaluation.csv", "Gemini-2.5pro"),
-    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/gemini2.5flash/combined_scores_gemini2.5flash_evaluation.csv", "Gemini2.5flash")
+    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/Gemini2.5pro_2/combined_scores_gemini-2.5pro2_evaluation.csv", "Gemini-2.5pro"),
+    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/gemini2.5flash/combined_scores_gemini2.5flash_evaluation.csv", "Gemini2.5flash"),
+    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/GPT4.1/combined_scores_GPT4.1_evaluation.csv", "GPT4.1"),
+    ("C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/claude3.7/combined_scores_claude3.7_evaluation.csv", "claude3.7")
 ]
 process_multiple_files(file_model_list, "C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/combined_results.txt")
 

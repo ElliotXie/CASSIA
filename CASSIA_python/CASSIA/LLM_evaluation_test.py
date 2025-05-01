@@ -540,16 +540,16 @@ def main():
     #test_metrics()
     # Example usage in main (commented out):
     test_external_dataset(
-        file_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/o4mini/combined_scores_o4mini.csv",
+        file_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/allresults/QWEN3-235b/combined_csv_QWEN3-235b.csv",
         gold_col="True Cell Type",
         pred_col="Predicted Sub Cell Types",
         tissue_col="Tissue",
         species_col="Species",
-        save_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/o4mini/combined_scores_o4mini_evaluation.csv",
+        save_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/allresults/QWEN3-235b/combined_scores_QWEN3-235b_evaluation.csv",
         visualize=True,
         n=1,                # or n=5, n=10, etc.
         max_workers=10,     # number of parallel workers
-        html_report_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/o4mini/combined_scores_o4mini_evaluation.html",
+        html_report_path="C:/Users/ellio/OneDrive - UW-Madison/CASSIA+/allresults/QWEN3-235b/combined_scores_QWEN3-235b_evaluation.html",
         model="deepseek/deepseek-chat-v3-0324",
         cassia_format=True,
         scoring_mode="similarity",
