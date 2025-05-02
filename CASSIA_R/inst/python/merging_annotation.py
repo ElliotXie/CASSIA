@@ -281,6 +281,9 @@ def merge_annotations(
     if output_path:
         df.to_csv(output_path, index=False)
         print(f"Results saved to {output_path}")
+    
+    # Always return the DataFrame
+    return df
 
 def _create_annotation_prompt(
     batch: pd.DataFrame, 
@@ -453,7 +456,7 @@ def merge_annotations_all(
     batch_size: int = 20
 ) -> pd.DataFrame:
     """
-    Process all three detail levels in parallel and return a combined DataFrame.
+    Process all three detail levels sequentially and return a combined DataFrame.
     
     Args:
         csv_path: Path to the CSV file containing cluster annotations
@@ -467,69 +470,65 @@ def merge_annotations_all(
     Returns:
         DataFrame with original annotations and all three levels of suggested cell groupings
     """
-    print("Processing all three detail levels in parallel...")
+    print("Processing all three detail levels sequentially...")
     
-    # Create a partial function with common arguments
-    merge_func = partial(
-        merge_annotations,
-        csv_path=csv_path,
-        output_path=None,  # We'll save the combined result at the end
-        provider=provider,
-        model=model,
-        api_key=api_key,
-        additional_context=additional_context,
-        batch_size=batch_size
-    )
+    # Create partial function with common arguments
+    common_args = {
+        "csv_path": csv_path,
+        "provider": provider,
+        "model": model,
+        "api_key": api_key,
+        "additional_context": additional_context,
+        "batch_size": batch_size
+    }
+    
+    # Read original DataFrame first to start with
+    try:
+        combined_df = pd.read_csv(csv_path)
+        print(f"Successfully read CSV file with {len(combined_df)} rows.")
+    except Exception as e:
+        raise ValueError(f"Error reading CSV file: {str(e)}")
     
     # Define the detail levels to process
     detail_levels = ["broad", "detailed", "very_detailed"]
+    column_map = {
+        "broad": "Merged_Grouping_1",
+        "detailed": "Merged_Grouping_2", 
+        "very_detailed": "Merged_Grouping_3"
+    }
     
-    # Use ProcessPoolExecutor to run in parallel with 3 cores
-    results = {}
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
-        # Submit all tasks
-        future_to_level = {
-            executor.submit(merge_func, detail_level=level): level
-            for level in detail_levels
-        }
-        
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(future_to_level):
-            level = future_to_level[future]
-            try:
-                df = future.result()
-                results[level] = df
-                print(f"Completed processing for {level} detail level")
-            except Exception as e:
-                print(f"Error processing {level} detail level: {str(e)}")
+    # Process each detail level sequentially
+    for level in detail_levels:
+        print(f"Processing {level} detail level...")
+        try:
+            # Process this detail level - don't save to file yet, just process
+            args = common_args.copy()
+            args["detail_level"] = level
+            args["output_path"] = None  # Don't save intermediate results
+            
+            # Call merge_annotations function for this level
+            result_df = merge_annotations(**args)
+            
+            # Get the result column for this level
+            result_column = column_map[level]
+            
+            # Add the result column to the combined DataFrame
+            if result_column in result_df.columns:
+                combined_df[result_column] = result_df[result_column]
+                print(f"Added {result_column} to combined results")
+            else:
+                print(f"Warning: Result column {result_column} not found in output")
+                
+        except Exception as e:
+            print(f"Error processing {level} detail level: {str(e)}")
+            # Continue with other levels even if one fails
     
-    # If we have results, combine them
-    if results:
-        # Start with the first detail level's DataFrame
-        combined_df = None
-        for level in detail_levels:
-            if level in results:
-                if combined_df is None:
-                    combined_df = results[level].copy()
-                else:
-                    # Get the column name for this level
-                    result_column_map = {
-                        "broad": "Merged_Grouping_1",
-                        "detailed": "Merged_Grouping_2",
-                        "very_detailed": "Merged_Grouping_3"
-                    }
-                    result_column = result_column_map[level]
-                    
-                    # Add this level's results to the combined DataFrame
-                    combined_df[result_column] = results[level][result_column]
-        
-        # Save combined results if output path is provided
-        if output_path and combined_df is not None:
-            combined_df.to_csv(output_path, index=False)
-            print(f"Combined results saved to {output_path}")
-        
-    else:
-        raise ValueError("All parallel processing tasks failed. Check logs for details.")
+    # Save combined results if output path is provided
+    if output_path:
+        combined_df.to_csv(output_path, index=False)
+        print(f"Combined results saved to {output_path}")
+    
+    return combined_df
 
 
 
