@@ -21,7 +21,7 @@
 runCASSIA_merge_annotations <- function(csv_path,
                              output_path = NULL,
                              provider = "openrouter",
-                             model = NULL,
+                             model = "deepseek/deepseek-chat-v3-0324",
                              additional_context = NULL,
                              batch_size = 20,
                              detail_level = "broad",
