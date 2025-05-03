@@ -692,7 +692,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param score_threshold Threshold for identifying low-scoring clusters (default: 75)
 #' @param additional_info Additional information for analysis (default: NULL)
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
-#' @param merge_annotations Whether to run the merging annotations step (default: TRUE)
+#' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
 #'
 #' @return None. Creates output files and generates reports.
@@ -712,7 +712,7 @@ runCASSIA_pipeline <- function(
     score_threshold = 75,
     additional_info = NULL,
     max_retries = 1,
-    merge_annotations = TRUE,
+    do_merge_annotations = TRUE,
     merge_model = "deepseek/deepseek-chat-v3-0324"
 ) {
   # Convert marker data frame if necessary
@@ -739,7 +739,7 @@ runCASSIA_pipeline <- function(
       score_threshold = as.numeric(score_threshold),
       additional_info = if(is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
-      merge_annotations = merge_annotations,
+      do_merge_annotations = do_merge_annotations,
       merge_model = merge_model
     )
   }, error = function(e) {
