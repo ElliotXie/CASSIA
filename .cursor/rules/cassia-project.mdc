@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+This project (CASSIA) is a single-cell annotation tool based on a large language model. It is mostly implemented in Python and uses Reticulate to call Python code in order to create an R package as well.

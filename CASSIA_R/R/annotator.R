@@ -683,15 +683,17 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param species Species being analyzed
 #' @param marker Marker data (data frame or file path)
 #' @param max_workers Maximum number of concurrent workers (default: 4)
-#' @param annotation_model Model to use for initial annotation (default: "gpt-4o")
-#' @param annotation_provider Provider for initial annotation (default: "openai")
-#' @param score_model Model to use for scoring (default: "anthropic/claude-3.5-sonnet")
+#' @param annotation_model Model to use for initial annotation (default: "meta-llama/llama-4-maverick")
+#' @param annotation_provider Provider for initial annotation (default: "openrouter")
+#' @param score_model Model to use for scoring (default: "google/gemini-2.5-pro-preview-03-25")
 #' @param score_provider Provider for scoring (default: "openrouter")
-#' @param annotationboost_model Model to use for boosting low-scoring annotations (default: "anthropic/claude-3.5-sonnet")
+#' @param annotationboost_model Model to use for boosting low-scoring annotations (default: "google/gemini-2.5-flash-preview")
 #' @param annotationboost_provider Provider for boosting low-scoring annotations (default: "openrouter")
 #' @param score_threshold Threshold for identifying low-scoring clusters (default: 75)
 #' @param additional_info Additional information for analysis (default: NULL)
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
+#' @param merge_annotations Whether to run the merging annotations step (default: TRUE)
+#' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -701,15 +703,17 @@ runCASSIA_pipeline <- function(
     species,
     marker,
     max_workers = 4,
-    annotation_model = "gpt-4o",
-    annotation_provider = "openai",
-    score_model = "anthropic/claude-3.5-sonnet",
+    annotation_model = "meta-llama/llama-4-maverick",
+    annotation_provider = "openrouter",
+    score_model = "google/gemini-2.5-pro-preview-03-25",
     score_provider = "openrouter",
-    annotationboost_model = "anthropic/claude-3.5-sonnet",
+    annotationboost_model = "google/gemini-2.5-flash-preview",
     annotationboost_provider = "openrouter",
     score_threshold = 75,
     additional_info = NULL,
-    max_retries = 1
+    max_retries = 1,
+    merge_annotations = TRUE,
+    merge_model = "deepseek/deepseek-chat-v3-0324"
 ) {
   # Convert marker data frame if necessary
   if (is.data.frame(marker)) {
@@ -734,7 +738,9 @@ runCASSIA_pipeline <- function(
       annotationboost_provider = annotationboost_provider,
       score_threshold = as.numeric(score_threshold),
       additional_info = if(is.null(additional_info)) "None" else additional_info,
-      max_retries = as.integer(max_retries)
+      max_retries = as.integer(max_retries),
+      merge_annotations = merge_annotations,
+      merge_model = merge_model
     )
   }, error = function(e) {
     error_msg <- paste("Error in run_cell_analysis_pipeline:", e$message, "\n",

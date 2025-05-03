@@ -38,9 +38,9 @@ def call_llm(
     
     # Default models for each provider if not specified
     default_models = {
-        "openai": "gpt-3.5-turbo",
-        "anthropic": "claude-3-sonnet-20240229",
-        "openrouter": "openai/gpt-3.5-turbo",
+        "openai": "gpt-4.1-2025-04-14",
+        "anthropic": "claude-3-5-haiku-latest",
+        "openrouter": "deepseek/deepseek-chat-v3-0324",
     }
     
     # Use default model if not specified
@@ -169,13 +169,13 @@ def merge_annotations(
     additional_context: Optional[str] = None,
     batch_size: int = 20,
     detail_level: str = "broad"  # New parameter for controlling grouping granularity
-) -> pd.DataFrame:
+) -> None:
     """
     Agent function that reads a CSV file with cell cluster annotations and merges/groups them.
     
     Args:
         csv_path: Path to the CSV file containing cluster annotations
-        output_path: Path to save the results (if None, returns DataFrame without saving)
+        output_path: Path to save the results (if None, saves back to input CSV file)
         provider: LLM provider to use ("openai", "anthropic", or "openrouter")
         model: Specific model to use (if None, uses default for provider)
         api_key: API key for the provider (if None, gets from environment)
@@ -187,7 +187,7 @@ def merge_annotations(
                      - "very_detailed": Most specific groupings with normalized and consistent naming
         
     Returns:
-        DataFrame with original annotations and suggested cell groupings
+        None
     """
     # Validate detail_level parameter
     if detail_level not in ["broad", "detailed", "very_detailed"]:
@@ -278,12 +278,20 @@ def merge_annotations(
     df[result_column] = working_df[result_column]
     
     # Save results if output path is provided
-    if output_path:
-        df.to_csv(output_path, index=False)
-        print(f"Results saved to {output_path}")
+    output_file = output_path if output_path else csv_path
+    try:
+        df.to_csv(output_file, index=False)
+        print(f"Results saved to {output_file}")
+    except PermissionError:
+        error_msg = f"Permission denied when saving to {output_file}. Please close the file if it's open in another program, or specify a different output path."
+        print(f"ERROR: {error_msg}")
+        raise PermissionError(error_msg)
+    except Exception as e:
+        print(f"Error saving results: {str(e)}")
+        raise
     
-    # Always return the DataFrame
-    return df
+    # Don't return anything
+    return None
 
 def _create_annotation_prompt(
     batch: pd.DataFrame, 
@@ -428,21 +436,27 @@ def _parse_llm_response(response: str, indices: pd.Index) -> Dict[int, str]:
             parsed = json.loads(json_str)
             
             # Map the parsed results to DataFrame indices
+            # Convert indices to string first to avoid deprecation warning
+            indices_list = indices.tolist()
             for i, (cluster_id, grouping) in enumerate(parsed.items()):
-                if i < len(indices):
-                    groupings[indices[i]] = grouping
+                if i < len(indices_list):
+                    groupings[indices_list[i]] = grouping
+                # Don't try to access indices beyond what's available
         else:
             # Fallback: Try parsing line by line
             lines = [line.strip() for line in response.split('\n') if line.strip()]
+            indices_list = indices.tolist()
             for i, line in enumerate(lines):
-                if i < len(indices):
+                if i < len(indices_list):
                     if ':' in line:
-                        groupings[indices[i]] = line.split(':', 1)[1].strip()
+                        groupings[indices_list[i]] = line.split(':', 1)[1].strip()
     except Exception as e:
         print(f"Error parsing LLM response: {str(e)}")
         # Fallback: Use the raw response
-        for i, idx in enumerate(indices):
-            groupings[idx] = "Error parsing response"
+        indices_list = indices.tolist()
+        for i, idx in enumerate(indices_list):
+            if i < len(indices_list):
+                groupings[idx] = "Error parsing response"
     
     return groupings
 
@@ -454,13 +468,13 @@ def merge_annotations_all(
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
     batch_size: int = 20
-) -> pd.DataFrame:
+) -> None:
     """
-    Process all three detail levels sequentially and return a combined DataFrame.
+    Process all three detail levels sequentially and save the results to a CSV file.
     
     Args:
         csv_path: Path to the CSV file containing cluster annotations
-        output_path: Path to save the results (if None, returns DataFrame without saving)
+        output_path: Path to save the results (if None, saves back to input CSV file)
         provider: LLM provider to use ("openai", "anthropic", or "openrouter")
         model: Specific model to use (if None, uses default for provider)
         api_key: API key for the provider (if None, gets from environment)
@@ -468,7 +482,7 @@ def merge_annotations_all(
         batch_size: Number of clusters to process in each LLM call (for efficiency)
         
     Returns:
-        DataFrame with original annotations and all three levels of suggested cell groupings
+        None
     """
     print("Processing all three detail levels sequentially...")
     
@@ -507,13 +521,13 @@ def merge_annotations_all(
             args["output_path"] = None  # Don't save intermediate results
             
             # Call merge_annotations function for this level
-            result_df = merge_annotations(**args)
+            merge_annotations(**args)
             
             # Get the result column for this level
             result_column = column_map[level]
             
             # Add the result column to the combined DataFrame
-            if result_column in result_df.columns:
+            if result_column in combined_df.columns:
                 combined_df[result_column] = result_df[result_column]
                 print(f"Added {result_column} to combined results")
             else:
@@ -524,11 +538,20 @@ def merge_annotations_all(
             # Continue with other levels even if one fails
     
     # Save combined results if output path is provided
-    if output_path:
-        combined_df.to_csv(output_path, index=False)
-        print(f"Combined results saved to {output_path}")
+    output_file = output_path if output_path else csv_path
+    try:
+        combined_df.to_csv(output_file, index=False)
+        print(f"Combined results saved to {output_file}")
+    except PermissionError:
+        error_msg = f"Permission denied when saving to {output_file}. Please close the file if it's open in another program, or specify a different output path."
+        print(f"ERROR: {error_msg}")
+        raise PermissionError(error_msg)
+    except Exception as e:
+        print(f"Error saving results: {str(e)}")
+        raise
     
-    return combined_df
+    # Don't return anything
+    return None
 
 
 

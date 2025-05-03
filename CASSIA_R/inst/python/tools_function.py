@@ -4808,15 +4808,17 @@ def run_cell_analysis_pipeline(
     species: str,
     marker_path: str,
     max_workers: int = 4,
-    annotation_model: str = "gpt-4o",
-    annotation_provider: str = "openai",
-    score_model: str = "anthropic/claude-3.5-sonnet",
+    annotation_model: str = "meta-llama/llama-4-maverick",
+    annotation_provider: str = "openrouter",
+    score_model: str = "google/gemini-2.5-pro-preview-03-25",
     score_provider: str = "openrouter",
-    annotationboost_model: str = "anthropic/claude-3.5-sonnet",
+    annotationboost_model: str = "google/gemini-2.5-flash-preview",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
     additional_info: str = "None",
-    max_retries: int = 1
+    max_retries: int = 1,
+    merge_annotations: bool = True,
+    merge_model: str = "deepseek/deepseek-chat-v3-0324"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4836,6 +4838,8 @@ def run_cell_analysis_pipeline(
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
         max_retries (int): Maximum number of retries for failed analyses
+        merge_annotations (bool): Whether to run the merging annotations step
+        merge_model (str): Model to use for merging annotations
     """
     # Define derived file names
     max_workers = int(max_workers)
@@ -4863,6 +4867,7 @@ def run_cell_analysis_pipeline(
     score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
     report_name = os.path.join(folder_name, output_file_name + "_report")
     lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
+    merged_file_name = os.path.join(folder_name, output_file_name + "_merged.csv")
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
@@ -4877,6 +4882,30 @@ def run_cell_analysis_pipeline(
         max_retries=max_retries
     )
     print("✓ Cell type analysis completed")
+
+    # Merge annotations if requested
+    if merge_annotations:
+        print("\n=== Starting annotation merging process ===")
+        try:
+            # Import the merging_annotation module
+            from merging_annotation import merge_annotations_all
+            
+            # Run the merging process on the full annotation file
+            merge_annotations_all(
+                csv_path=annotation_full_file,
+                output_path=merged_file_name,
+                provider="openrouter",
+                model=merge_model
+            )
+            # If merging is successful, use the merged file for scoring
+            if os.path.exists(merged_file_name):
+                annotation_full_file = merged_file_name
+                print("✓ Annotation merging completed")
+            else:
+                print("! Annotation merging failed, continuing with original annotations")
+        except Exception as e:
+            print(f"! Error during annotation merging: {str(e)}")
+            print("! Continuing with original annotations")
 
     print("\n=== Starting scoring process ===")
     # Run scoring

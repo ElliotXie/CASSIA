@@ -4718,15 +4718,17 @@ def runCASSIA_pipeline(
     species: str,
     marker_path: str,
     max_workers: int = 4,
-    annotation_model: str = "gpt-4o",
-    annotation_provider: str = "openai",
-    score_model: str = "anthropic/claude-3.5-sonnet",
+    annotation_model: str = "meta-llama/llama-4-maverick",
+    annotation_provider: str = "openrouter",
+    score_model: str = "google/gemini-2.5-pro-preview-03-25",
     score_provider: str = "openrouter",
-    annotationboost_model: str = "anthropic/claude-3.5-sonnet",
+    annotationboost_model: str = "google/gemini-2.5-flash-preview",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
     additional_info: str = "None",
-    max_retries: int = 1
+    max_retries: int = 1,
+    merge_annotations: bool = True,
+    merge_model: str = "deepseek/deepseek-chat-v3-0324"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4746,6 +4748,8 @@ def runCASSIA_pipeline(
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
         max_retries (int): Maximum number of retries for failed analyses
+        merge_annotations (bool): Whether to merge annotations from LLM
+        merge_model (str): Model to use for merging annotations
     """
     # Create a folder based on tissue and species for organizing reports
     folder_name = f"CASSIA_{tissue}_{species}"
@@ -4765,6 +4769,7 @@ def runCASSIA_pipeline(
     score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
     report_name = os.path.join(folder_name, output_file_name + "_report")
     lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
+    merged_annotation_file = os.path.join(folder_name, output_file_name + "_merged.csv")
     
     # First annotation output is still in current directory since other parts of code may expect it there
     annotation_output = output_file_name
@@ -4784,6 +4789,27 @@ def runCASSIA_pipeline(
     )
     print("✓ Cell type analysis completed")
 
+    # Merge annotations if requested
+    if merge_annotations:
+        print("\n=== Starting annotation merging ===")
+        summary_csv = annotation_output + "_summary.csv"
+        
+        # Import the merge_annotations function dynamically
+        try:
+            from .merging_annotation import merge_annotations_all
+            
+            # Run the merging process
+            merge_annotations_all(
+                csv_path=summary_csv,
+                output_path=merged_annotation_file,
+                provider=annotation_provider,
+                model=merge_model,
+                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
+            )
+            print(f"✓ Annotations merged and saved to {merged_annotation_file}")
+        except Exception as e:
+            print(f"! Error during annotation merging: {str(e)}")
+    
     print("\n=== Starting scoring process ===")
     # Run scoring
     runCASSIA_score_batch(
