@@ -21,7 +21,7 @@ py_determinator <- NULL  # Add this line
     # Import Python modules
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-    py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
+    py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
   }, error = function(e) {
     warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
   })

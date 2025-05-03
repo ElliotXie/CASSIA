@@ -7,7 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 from main_function_code import *
-from merging_annotation import *
+from merging_annotation_code import *
 import requests
 import threading
 import numpy as np
@@ -4818,7 +4818,7 @@ def run_cell_analysis_pipeline(
     score_threshold: float = 75,
     additional_info: str = "None",
     max_retries: int = 1,
-    merge_annotations: bool = True,
+    do_merge_annotations: bool = True,
     merge_model: str = "deepseek/deepseek-chat-v3-0324"
 ):
     """
@@ -4839,7 +4839,7 @@ def run_cell_analysis_pipeline(
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
         max_retries (int): Maximum number of retries for failed analyses
-        merge_annotations (bool): Whether to run the merging annotations step
+        do_merge_annotations (bool): Whether to run the merging annotations step
         merge_model (str): Model to use for merging annotations
     """
     # Convert parameters to the appropriate types
@@ -4884,7 +4884,7 @@ def run_cell_analysis_pipeline(
     print("✓ Cell type analysis completed")
 
     # Merge annotations if requested
-    if merge_annotations:
+    if do_merge_annotations:
         print("\n=== Starting annotation merging process ===")
         try:
             merge_annotations_all(

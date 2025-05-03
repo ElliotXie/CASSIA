@@ -530,8 +530,6 @@ def merge_annotations_all(
             if result_column in result_df.columns:
                 combined_df[result_column] = result_df[result_column]
                 print(f"Added {result_column} to combined results")
-            else:
-                print(f"Warning: Result column {result_column} not found in output")
                 
         except Exception as e:
             print(f"Error processing {level} detail level: {str(e)}")

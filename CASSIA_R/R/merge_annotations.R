@@ -85,7 +85,7 @@ runCASSIA_merge_annotations <- function(csv_path,
     }
     
     # Source the Python file directly instead of importing it
-    py_file_path <- file.path(py_module_path, "merging_annotation.py")
+    py_file_path <- file.path(py_module_path, "merging_annotation_code.py")
     if (!file.exists(py_file_path)) {
       stop("Python module file not found: ", py_file_path)
     }
