@@ -169,7 +169,7 @@ def merge_annotations(
     additional_context: Optional[str] = None,
     batch_size: int = 20,
     detail_level: str = "broad"  # New parameter for controlling grouping granularity
-) -> None:
+) -> pd.DataFrame:
     """
     Agent function that reads a CSV file with cell cluster annotations and merges/groups them.
     
@@ -187,7 +187,7 @@ def merge_annotations(
                      - "very_detailed": Most specific groupings with normalized and consistent naming
         
     Returns:
-        None
+        pd.DataFrame: The processed DataFrame with merged annotations
     """
     # Validate detail_level parameter
     if detail_level not in ["broad", "detailed", "very_detailed"]:
@@ -290,8 +290,8 @@ def merge_annotations(
         print(f"Error saving results: {str(e)}")
         raise
     
-    # Don't return anything
-    return None
+    # Return the processed DataFrame
+    return df
 
 def _create_annotation_prompt(
     batch: pd.DataFrame, 
@@ -520,14 +520,14 @@ def merge_annotations_all(
             args["detail_level"] = level
             args["output_path"] = None  # Don't save intermediate results
             
-            # Call merge_annotations function for this level
-            merge_annotations(**args)
+            # Call merge_annotations function for this level and capture the result
+            result_df = merge_annotations(**args)
             
             # Get the result column for this level
             result_column = column_map[level]
             
             # Add the result column to the combined DataFrame
-            if result_column in combined_df.columns:
+            if result_column in result_df.columns:
                 combined_df[result_column] = result_df[result_column]
                 print(f"Added {result_column} to combined results")
             else:

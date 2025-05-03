@@ -7,6 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 from main_function_code import *
+from merging_annotation import *
 import requests
 import threading
 import numpy as np
@@ -4841,7 +4842,7 @@ def run_cell_analysis_pipeline(
         merge_annotations (bool): Whether to run the merging annotations step
         merge_model (str): Model to use for merging annotations
     """
-    # Define derived file names
+    # Convert parameters to the appropriate types
     max_workers = int(max_workers)
     max_retries = int(max_retries)
     score_threshold = float(score_threshold)
@@ -4867,7 +4868,6 @@ def run_cell_analysis_pipeline(
     score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
     report_name = os.path.join(folder_name, output_file_name + "_report")
     lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
-    merged_file_name = os.path.join(folder_name, output_file_name + "_merged.csv")
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
@@ -4887,22 +4887,12 @@ def run_cell_analysis_pipeline(
     if merge_annotations:
         print("\n=== Starting annotation merging process ===")
         try:
-            # Import the merging_annotation module
-            from merging_annotation import merge_annotations_all
-            
-            # Run the merging process on the full annotation file
             merge_annotations_all(
                 csv_path=annotation_full_file,
-                output_path=merged_file_name,
                 provider="openrouter",
                 model=merge_model
             )
-            # If merging is successful, use the merged file for scoring
-            if os.path.exists(merged_file_name):
-                annotation_full_file = merged_file_name
-                print("✓ Annotation merging completed")
-            else:
-                print("! Annotation merging failed, continuing with original annotations")
+            print("✓ Annotation merging completed")
         except Exception as e:
             print(f"! Error during annotation merging: {str(e)}")
             print("! Continuing with original annotations")
@@ -4933,28 +4923,32 @@ def run_cell_analysis_pipeline(
     low_score_clusters = df[df['Score'] < score_threshold]['True Cell Type'].tolist()
 
     print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
-    print(low_score_clusters)
+    if low_score_clusters:
+        print(low_score_clusters)
 
-    # Process each low-scoring cluster
-    for i, cluster in enumerate(low_score_clusters, 1):
-        print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
-        # Sanitize cluster name for file system use
-        sanitized_cluster = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
-        sanitized_cluster = sanitized_cluster.replace(' ', '_')
-        
-        # Create proper output filename in the folder
-        cluster_output_name = os.path.join(folder_name, f"{sanitized_cluster}_{output_file_name}_lowscore_report")
-        
-        generate_cell_type_analysis_report_wrapper(
-            full_result_path=annotation_full_file,
-            marker=marker_path,
-            cluster_name=cluster,
-            major_cluster_info=f"{species} {tissue}",
-            output_name=cluster_output_name,
-            num_iterations=5,
-            model=annotationboost_model,
-            provider=annotationboost_provider
-        )
-        print(f"✓ Completed analysis for cluster: {cluster}")
+        # Process each low-scoring cluster
+        for i, cluster in enumerate(low_score_clusters, 1):
+            print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
+            # Sanitize cluster name for file system use
+            sanitized_cluster = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+            sanitized_cluster = sanitized_cluster.replace(' ', '_')
+            
+            # Create proper output filename in the folder
+            cluster_output_name = os.path.join(folder_name, f"{sanitized_cluster}_boost_report")
+            
+            generate_cell_type_analysis_report_wrapper(
+                full_result_path=annotation_full_file,
+                marker=marker_path,
+                cluster_name=cluster,
+                major_cluster_info=f"{species} {tissue}",
+                output_name=cluster_output_name,
+                num_iterations=5,
+                model=annotationboost_model,
+                provider=annotationboost_provider
+            )
+            print(f"✓ Completed analysis for cluster: {cluster}")
+    else:
+        print("No clusters found below the threshold score.")
 
     print("\n=== Pipeline completed successfully ===")
+    return f"Analysis complete. Results saved in {folder_name}"
