@@ -4887,8 +4887,18 @@ def run_cell_analysis_pipeline(
     if do_merge_annotations:
         print("\n=== Starting annotation merging process ===")
         try:
+            # Sort the annotation file by True Cell Type to ensure consistent ordering
+            print("Sorting annotation file by True Cell Type...")
+            sorted_annotation_file = os.path.join(folder_name, output_file_name + "_sorted_full.csv")
+            df = pd.read_csv(annotation_full_file)
+            df.sort_values('True Cell Type', inplace=True)
+            df.to_csv(sorted_annotation_file, index=False)
+            print(f"Sorted annotation file saved to {sorted_annotation_file}")
+            
+            # Run merging on the sorted file
             merge_annotations_all(
-                csv_path=annotation_full_file,
+                csv_path=sorted_annotation_file,
+                output_path=annotation_full_file,  # Save the merged result back to the original full file
                 provider="openrouter",
                 model=merge_model
             )
