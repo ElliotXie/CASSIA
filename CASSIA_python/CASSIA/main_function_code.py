@@ -5,8 +5,80 @@ import os
 import anthropic
 import requests
 
-def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info):
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Store custom base URLs and API keys
+_custom_base_urls = {}
+_custom_api_keys = {}
+
+def set_custom_base_url(provider, base_url):
+    """
+    Set a custom base URL for a provider.
+    
+    Args:
+        provider (str): Provider identifier
+        base_url (str): Base URL for the API
+    """
+    _custom_base_urls[provider.lower()] = base_url
+
+def get_custom_base_url(provider):
+    """
+    Get the custom base URL for a provider if it exists.
+    
+    Args:
+        provider (str): Provider identifier
+        
+    Returns:
+        str or None: The custom base URL if set, otherwise None
+    """
+    return _custom_base_urls.get(provider.lower())
+
+def set_custom_api_key(provider, api_key):
+    """
+    Set a custom API key for a provider.
+    
+    Args:
+        provider (str): Provider identifier
+        api_key (str): API key for the provider
+    """
+    _custom_api_keys[provider.lower()] = api_key
+
+def get_custom_api_key(provider):
+    """
+    Get the custom API key for a provider if it exists.
+    
+    Args:
+        provider (str): Provider identifier
+        
+    Returns:
+        str or None: The custom API key if set, otherwise None
+    """
+    return _custom_api_keys.get(provider.lower())
+
+def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, provider="openai", base_url=None):
+    # Determine API key and base URL based on provider
+    if provider.lower() == "openai":
+        # Use OpenAI's standard setup
+        api_key = os.environ.get("OPENAI_API_KEY")
+        client_options = {"api_key": api_key}
+        if base_url:
+            client_options["base_url"] = base_url
+    else:
+        # Check for custom provider
+        api_key = get_custom_api_key(provider)
+        stored_base_url = get_custom_base_url(provider)
+        
+        # Use provided base_url if available, otherwise use stored one
+        actual_base_url = base_url if base_url else stored_base_url
+        
+        # If no custom provider is found, fall back to OpenAI
+        if not api_key:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        
+        client_options = {"api_key": api_key}
+        if actual_base_url:
+            client_options["base_url"] = actual_base_url
+    
+    # Create the client with the appropriate options
+    client = OpenAI(**client_options)
 
     class Agent:
         def __init__(self, system="", human_input_mode="never", model="gpt-4o", temperature=0):

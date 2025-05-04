@@ -6,7 +6,15 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from .main_function_code import *
+from .main_function_code import (
+    run_cell_type_analysis, 
+    run_cell_type_analysis_claude, 
+    run_cell_type_analysis_openrouter,
+    set_custom_base_url,
+    get_custom_base_url,
+    set_custom_api_key,
+    get_custom_api_key
+)
 import requests
 import threading
 import numpy as np
@@ -23,16 +31,18 @@ def set_anthropic_api_key(api_key):
 def set_openrouter_api_key(api_key):
     os.environ["OPENROUTER_API_KEY"] = api_key
 
-def set_api_key(api_key, provider="openai"):
+# Remove the duplicate custom base URLs and API keys functions and variables
+def set_api_key(api_key, provider="openai", base_url=None):
     """
     Set the API key for the specified provider in environment variables.
     
     Args:
         api_key (str): The API key to set
-        provider (str): The provider to set the key for ('openai' or 'anthropic')
+        provider (str): The provider to set the key for ('openai', 'anthropic', 'openrouter', or custom)
+        base_url (str, optional): Base URL for custom API providers
     
     Raises:
-        ValueError: If provider is not 'openai' or 'anthropic'
+        ValueError: If provider is not recognized and base_url is not provided
     """
     if provider.lower() == "openai":
         os.environ["OPENAI_API_KEY"] = api_key
@@ -41,8 +51,14 @@ def set_api_key(api_key, provider="openai"):
     elif provider.lower() == "openrouter":
         os.environ["OPENROUTER_API_KEY"] = api_key
     else:
-        raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
-    
+        # For custom providers, store the API key and base URL
+        set_custom_api_key(provider, api_key)
+        if base_url:
+            set_custom_base_url(provider, base_url)
+        else:
+            # If this is a custom provider but no base URL is provided, raise an error
+            raise ValueError(f"Custom provider '{provider}' requires a base_url")
+
 def split_markers(marker_string):
     # First, try splitting by comma and space
     markers = re.split(r',\s*', marker_string)
@@ -172,7 +188,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai", base_url=None):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -183,25 +199,36 @@ def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", sp
         tissue (str): Tissue type
         species (str): Species type
         additional_info (str): Additional information for the analysis
-        provider (str): AI provider to use ('openai' or 'anthropic')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
     
     Returns:
         tuple: (analysis_result, conversation_history)
     """
+    # Handle custom providers
+    if provider.lower() != "openai" and provider.lower() != "anthropic" and provider.lower() != "openrouter":
+        # Check if we have a stored base URL for this provider
+        stored_base_url = get_custom_base_url(provider)
+        if stored_base_url and base_url is None:
+            base_url = stored_base_url
+        # Use OpenAI-compatible client with custom base URL
+        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, provider, base_url)
+    
+    # Standard providers
     if provider.lower() == "openai":
-        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info)
+        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, provider, base_url)
     elif provider.lower() == "anthropic":
         return run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info)
     elif provider.lower() == "openrouter":
         return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info)
     else:
-        raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
+        raise ValueError("Provider must be one of: 'openai', 'anthropic', 'openrouter', or a custom provider with base_url")
 
 
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1, base_url=None):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -241,7 +268,8 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                     tissue=tissue,
                     species=species,
                     additional_info=additional_info,
-                    provider=provider
+                    provider=provider,
+                    base_url=base_url
                 )
                 # Add the number of markers and marker list to the result
                 result['num_markers'] = len(marker_list)
@@ -361,7 +389,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1, base_url=None):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -378,7 +406,8 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
             gene_column_name=gene_column_name,
             max_workers=max_workers,
             provider=provider,
-            max_retries=max_retries
+            max_retries=max_retries,
+            base_url=base_url
         )
         end_time = time.time()
         print(f"Finished batch run {i+1}/{n} in {end_time - start_time:.2f} seconds")
@@ -404,12 +433,10 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
 
     return None
 
-    #return all_results
-
 
 
 def run_single_analysis(args):
-    index, tissue, species, additional_info, temperature, marker_list, model, provider = args
+    index, tissue, species, additional_info, temperature, marker_list, model, provider, base_url = args
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
@@ -420,7 +447,8 @@ def run_single_analysis(args):
             temperature=temperature,
             marker_list=marker_list,
             model=model,
-            provider=provider
+            provider=provider,
+            base_url=base_url
         )
         end_time = time.time()
         print(f"Finished analysis {index+1} in {end_time - start_time:.2f} seconds")
@@ -429,7 +457,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai", base_url=None):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -440,7 +468,7 @@ def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_l
         future_to_index = {
             executor.submit(
                 run_single_analysis, 
-                (i, tissue, species, additional_info, temperature, marker_list, model, provider)
+                (i, tissue, species, additional_info, temperature, marker_list, model, provider, base_url)
             ): i for i in range(n)
         }
         
@@ -1367,7 +1395,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai", main_weight=0.5, sub_weight=0.5, base_url=None):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1380,7 +1408,10 @@ def runCASSIA_n_times_similarity_score(tissue, species, additional_info, tempera
         model (str): Model name to use
         max_workers (int): Maximum number of parallel workers
         n (int): Number of analysis iterations
-        provider (str): AI provider to use ('openai' or 'anthropic')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
+        main_weight (float): Weight for main cell type in similarity calculation
+        sub_weight (float): Weight for sub cell type in similarity calculation
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
     
     Returns:
         dict: Analysis results including consensus types, cell types, and scores
@@ -1404,14 +1435,14 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider, base_url=base_url)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types
     standardized_results = standardize_cell_types_single(results)
     
     # Get consensus judgment based on provider
-    if provider.lower() == "openai":
+    if provider.lower() == "openai" or base_url is not None:
         result_consensus = agent_judgement_single(
             prompt=standardized_results, 
             system_prompt=system_prompt,
@@ -1423,10 +1454,10 @@ Output in JSON format:
             model=model
         )
     else:
-        raise ValueError("Provider must be either 'openai' or 'anthropic'")
+        raise ValueError("Provider must be one of: 'openai', 'anthropic', 'openrouter', or a custom provider with base_url")
     
     # Extract consensus celltypes
-    if provider.lower() == "openai":
+    if provider.lower() == "openai" or base_url is not None:
         general_celltype, sub_celltype, mixed_types, consensus_score_llm = extract_celltypes_from_llm_single(result_consensus)
     else:
         general_celltype, sub_celltype, mixed_types, consensus_score_llm = extract_celltypes_from_llm_claude(result_consensus)
@@ -1501,24 +1532,59 @@ Remember, the focus is on correctness and the ability to see the general picture
     return prompt
 
 
-def openai_agent(user_message, model="gpt-4o", temperature=0):
-    client = OpenAI()  # Will use OPENAI_API_KEY from environment variables
-
-    message = client.chat.completions.create(
-        model=model,
-        temperature=temperature,
-        max_tokens=7000,
-        messages=[
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ]
-    )
+def openai_agent(user_message, model="gpt-4o", temperature=0, provider="openai", base_url=None):
+    """
+    Send a message to the OpenAI API or a custom API with the same format.
     
-    # Extract the text from the response
-    if message.choices and len(message.choices) > 0:
-        return message.choices[0].message.content
+    Args:
+        user_message (str): The message to send to the model
+        model (str): Model identifier (default: "gpt-4o")
+        temperature (float): Temperature parameter for text generation
+        provider (str): Provider name (for custom base_url lookup)
+        base_url (str, optional): Custom base URL for API
+        
+    Returns:
+        str: Model's response text or empty string if request fails
+    """
+    # Determine API key based on provider
+    if provider.lower() == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+    else:
+        api_key = get_custom_api_key(provider)
+        if not api_key:
+            api_key = os.environ.get("OPENAI_API_KEY")
+    
+    client_options = {"api_key": api_key}
+    
+    # Apply base_url if explicitly provided or look up from stored custom providers
+    if base_url:
+        client_options["base_url"] = base_url
+    elif provider.lower() != "openai":
+        stored_base_url = get_custom_base_url(provider)
+        if stored_base_url:
+            client_options["base_url"] = stored_base_url
+
+    client = OpenAI(**client_options)
+
+    try:
+        message = client.chat.completions.create(
+            model=model,
+            temperature=temperature,
+            max_tokens=7000,
+            messages=[
+                {
+                    "role": "user",
+                    "content": user_message
+                }
+            ]
+        )
+        
+        # Extract the text from the response
+        if message.choices and len(message.choices) > 0:
+            return message.choices[0].message.content
+    except Exception as e:
+        print(f"Error in openai_agent: {str(e)}")
+    
     return ''
 
 
@@ -1636,7 +1702,7 @@ def extract_score_and_reasoning(text):
         print(f"Error extracting data: {str(e)}")
         return None, None
 
-def score_single_analysis(major_cluster_info, marker, annotation_history, model="gpt-4o", provider="openai"):
+def score_single_analysis(major_cluster_info, marker, annotation_history, model="gpt-4o", provider="openai", base_url=None):
     """
     Score a single cell type annotation analysis.
     
@@ -1645,35 +1711,37 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         marker (str): Comma-separated list of marker genes
         annotation_history (str): History of annotation conversation
         model (str): Model to use (e.g., "gpt-4" for OpenAI or "claude-3-5-sonnet-20241022" for Anthropic)
-        provider (str): AI provider to use ('openai' or 'anthropic')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
         
     Returns:
         tuple: (score, reasoning) where score is int and reasoning is str
     """
     prompt = prompt_creator_score(major_cluster_info, marker, annotation_history)
     
-    if provider.lower() == "openai":
-        response = openai_agent(prompt, model=model)
+    if provider.lower() == "openai" or get_custom_base_url(provider) or base_url:
+        response = openai_agent(prompt, model=model, provider=provider, base_url=base_url)
     elif provider.lower() == "anthropic":
         response = claude_agent(prompt, model=model)
     elif provider.lower() == "openrouter":
         response = openrouter_agent(prompt, model=model)
     else:
-        raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
+        raise ValueError("Provider must be one of: 'openai', 'anthropic', 'openrouter', or a custom provider with base_url")
         
     score, reasoning = extract_score_and_reasoning(response)
     return score, reasoning
 
 
 
-def process_single_row(row_data, model="gpt-4o", provider="openai"):
+def process_single_row(row_data, model="gpt-4o", provider="openai", base_url=None):
     """
     Process a single row of data.
     
     Args:
         row_data (tuple): (idx, row) containing index and row data
         model (str): Model to use
-        provider (str): AI provider to use ('openai' or 'anthropic')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
         
     Returns:
         tuple: (idx, score, reasoning)
@@ -1698,7 +1766,8 @@ def process_single_row(row_data, model="gpt-4o", provider="openai"):
                 marker, 
                 annotation_history,
                 model=model,
-                provider=provider
+                provider=provider,
+                base_url=base_url
             )
             
             if score is not None:
@@ -1779,7 +1848,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1, base_url=None):
     """
     Run scoring with progress updates.
     
@@ -1788,8 +1857,9 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gp
         output_file (str, optional): Path to output CSV file (with or without .csv extension)
         max_workers (int): Maximum number of parallel workers
         model (str): Model to use
-        provider (str): AI provider to use ('openai' or 'anthropic')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
         max_retries (int): Maximum number of retries for failed analyses
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
         
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -1831,7 +1901,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gp
             idx, row = row_data
             for attempt in range(max_retries + 1):
                 try:
-                    return process_single_row(row_data, model=model, provider=provider)
+                    return process_single_row(row_data, model=model, provider=provider, base_url=base_url)
                 except Exception as exc:
                     # Don't retry authentication errors
                     if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
@@ -4728,7 +4798,11 @@ def runCASSIA_pipeline(
     additional_info: str = "None",
     max_retries: int = 1,
     merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324"
+    merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    annotation_base_url: str = None,
+    score_base_url: str = None,
+    annotationboost_base_url: str = None,
+    merge_base_url: str = None
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4750,6 +4824,10 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         merge_annotations (bool): Whether to merge annotations from LLM
         merge_model (str): Model to use for merging annotations
+        annotation_base_url (str, optional): Base URL for custom annotation provider
+        score_base_url (str, optional): Base URL for custom scoring provider
+        annotationboost_base_url (str, optional): Base URL for custom annotation boost provider
+        merge_base_url (str, optional): Base URL for custom merging provider
     """
     # Create a folder based on tissue and species for organizing reports
     folder_name = f"CASSIA_{tissue}_{species}"
@@ -4785,7 +4863,8 @@ def runCASSIA_pipeline(
         additional_info=additional_info,
         provider=annotation_provider,
         max_workers=max_workers,
-        max_retries=max_retries
+        max_retries=max_retries,
+        base_url=annotation_base_url
     )
     print("✓ Cell type analysis completed")
 
@@ -4804,7 +4883,8 @@ def runCASSIA_pipeline(
                 output_path=merged_annotation_file,
                 provider=annotation_provider,
                 model=merge_model,
-                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
+                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}",
+                base_url=merge_base_url
             )
             print(f"✓ Annotations merged and saved to {merged_annotation_file}")
         except Exception as e:
@@ -4818,7 +4898,8 @@ def runCASSIA_pipeline(
         max_workers=max_workers,
         model=score_model,
         provider=score_provider,
-        max_retries=max_retries
+        max_retries=max_retries,
+        base_url=score_base_url
     )
     print("✓ Scoring process completed")
 
@@ -4857,7 +4938,8 @@ def runCASSIA_pipeline(
                 output_name=os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted"),
                 num_iterations=5,
                 model=annotationboost_model,
-                provider=annotationboost_provider
+                provider=annotationboost_provider,
+                base_url=annotationboost_base_url
             )
         
         # Also save a copy of the boosted reports index
@@ -4922,3 +5004,53 @@ def list_available_markers():
         return [f.replace('.csv', '') for f in marker_files]
     except Exception as e:
         raise Exception(f"Error listing marker files: {str(e)}")
+
+
+def set_custom_provider(api_key, provider_name, base_url):
+    """
+    Set up a custom provider that uses the OpenAI-compatible API format.
+    This is a convenience function that sets both the API key and base URL.
+    
+    Args:
+        api_key (str): The API key for the provider
+        provider_name (str): A name for the custom provider
+        base_url (str): The base URL for the API
+        
+    Example:
+        set_custom_provider(
+            "your-api-key", 
+            "deepseek", 
+            "https://api.deepseek.com"
+        )
+        
+        # Then you can use it like:
+        runCASSIA(
+            model="deepseek-chat",
+            provider="deepseek",
+            marker_list=["GENE1", "GENE2", ...],
+            tissue="lung",
+            species="human"
+        )
+    """
+    # Store the API key and base URL directly in the dictionaries
+    set_custom_api_key(provider_name, api_key)
+    set_custom_base_url(provider_name, base_url)
+    return f"Custom provider '{provider_name}' successfully configured with base URL: {base_url}"
+
+def list_custom_providers():
+    """
+    List all custom providers that have been configured.
+    
+    Returns:
+        dict: A dictionary of provider names and their base URLs
+    
+    Example:
+        >>> list_custom_providers()
+        {
+            'deepseek': 'https://api.deepseek.com',
+            'anthropic_proxy': 'https://my-anthropic-proxy.example.com'
+        }
+    """
+    # Import the functions from main_function_code to access the provider information
+    from .main_function_code import _custom_api_keys, _custom_base_urls
+    return {provider: _custom_base_urls[provider] for provider in _custom_api_keys if provider in _custom_base_urls}

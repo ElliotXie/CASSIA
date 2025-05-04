@@ -1,0 +1,37 @@
+{
+  "cluster_1": {
+    "main_cell_type": "T cell",
+    "sub_cell_types": ["CD4+ Naive T cell", "Central Memory CD4+ T cell", "Effector Memory CD4+ T cell"],
+    "possible_mixed_cell_types": [],
+    "num_markers": 7,
+    "iterations": 1
+  },
+  "cluster_2": {
+    "main_cell_type": "B cell",
+    "sub_cell_types": ["Naive B cell", "Memory B cell", "Plasma cell"],
+    "possible_mixed_cell_types": [],
+    "num_markers": 6,
+    "iterations": 1
+  },
+  "cluster_3": {
+    "main_cell_type": "Monocyte",
+    "sub_cell_types": ["Classical Monocyte", "Non-classical Monocyte", "Intermediate Monocyte"],
+    "possible_mixed_cell_types": [],
+    "num_markers": 6,
+    "iterations": 1
+  },
+  "cluster_4": {
+    "main_cell_type": "NK cell",
+    "sub_cell_types": ["CD56dim NK cell", "CD56bright NK cell", "Cytotoxic NK cell"],
+    "possible_mixed_cell_types": [],
+    "num_markers": 6,
+    "iterations": 1
+  },
+  "cluster_5": {
+    "main_cell_type": "Platelet",
+    "sub_cell_types": ["Megakaryocyte", "Resting Platelet", "Activated Platelet"],
+    "possible_mixed_cell_types": [],
+    "num_markers": 5,
+    "iterations": 1
+  }
+} 
