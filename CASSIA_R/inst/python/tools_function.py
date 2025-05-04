@@ -357,6 +357,10 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
+    # Sort the data by True Cell Type to ensure consistent ordering
+    full_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
+    summary_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
+
     # Write the full data CSV with updated headers
     write_csv(full_csv_name, 
               ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types', 

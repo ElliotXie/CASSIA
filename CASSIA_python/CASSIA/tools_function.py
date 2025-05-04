@@ -337,6 +337,10 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     full_csv_name = f"{base_name}_full.csv"
     summary_csv_name = f"{base_name}_summary.csv"
 
+    # Sort the data by True Cell Type to ensure consistent ordering
+    full_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
+    summary_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
+
     # Write the full data CSV with updated headers
     write_csv(full_csv_name, 
               ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types', 
@@ -4798,9 +4802,17 @@ def runCASSIA_pipeline(
         try:
             from .merging_annotation import merge_annotations_all
             
-            # Run the merging process
+            # Sort the CSV file by True Cell Type before merging to ensure consistent order
+            print("Sorting CSV by True Cell Type before merging...")
+            full_csv = annotation_output + "_full.csv"
+            df = pd.read_csv(full_csv)
+            df = df.sort_values(by=['True Cell Type'])
+            sorted_csv = annotation_output + "_sorted_full.csv"
+            df.to_csv(sorted_csv, index=False)
+            
+            # Run the merging process on the sorted CSV
             merge_annotations_all(
-                csv_path=summary_csv,
+                csv_path=sorted_csv,
                 output_path=merged_annotation_file,
                 provider=annotation_provider,
                 model=merge_model,
