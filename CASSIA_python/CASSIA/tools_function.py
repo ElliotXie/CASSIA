@@ -20,6 +20,7 @@ import threading
 import numpy as np
 from importlib import resources
 import datetime
+import anthropic
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -2219,10 +2220,19 @@ def get_marker_info(gene_list, marker):
 
 
 
-
-def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2,model="gpt-4o"):
+def iterative_marker_analysis(
+    major_cluster_info, 
+    marker, 
+    comma_separated_genes, 
+    annotation_history, 
+    num_iterations=2,
+    model="gpt-4o",
+    provider="openai",
+    additional_task=None,
+    base_url=None
+):
     """
-    Perform iterative marker analysis using OpenAI's GPT-4 model.
+    Perform iterative marker analysis using the specified provider (OpenAI, Claude, or OpenRouter).
     
     Args:
         major_cluster_info (str): General information about the dataset
@@ -2230,297 +2240,278 @@ def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated
         comma_separated_genes (str): List of genes as comma-separated string
         annotation_history (str): Previous annotation history
         num_iterations (int): Maximum number of iterations
+        model (str): Model name to use (default depends on provider)
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or custom)
+        additional_task (str, optional): Additional task for specialized analysis
+        base_url (str, optional): Base URL for custom providers that use OpenAI-compatible API
         
     Returns:
         tuple: (final_response_text, messages)
     """
-    # Initialize OpenAI client
-    client = OpenAI()
+    # Set default model based on provider if not specified
+    if model is None:
+        if provider.lower() == "openai":
+            model = "gpt-4o"
+        elif provider.lower() == "anthropic":
+            model = "claude-3-5-sonnet-20241022"
+        elif provider.lower() == "openrouter":
+            model = "anthropic/claude-3.5-sonnet"
+            
+    # Choose the appropriate prompt based on whether we have an additional task
+    if additional_task:
+        prompt = prompt_hypothesis_generator3_additional_task(
+            major_cluster_info, 
+            comma_separated_genes, 
+            annotation_history,
+            additional_task
+        )
+        completion_marker = "FINAL ANALYSIS COMPLETED"
+    else:
+        # Use different prompt generators based on provider
+        if provider.lower() == "openai":
+            prompt = prompt_hypothesis_generator_openai(major_cluster_info, comma_separated_genes, annotation_history)
+        else:
+            prompt = prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)
+        completion_marker = "FINAL ANNOTATION COMPLETED"
     
-    # Initialize messages list with system and first user message
-    messages = [
-        {"role": "user", "content": prompt_hypothesis_generator_openai(major_cluster_info, comma_separated_genes, annotation_history)}
-    ]
-
+    # Initialize messages for conversation
+    messages = [{"role": "user", "content": prompt}]
+    
+    # Run the iterative analysis
     for iteration in range(num_iterations):
-        # Make API call to OpenAI
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0,
-            max_tokens=5000
-        )
-        
-        conversation = response.choices[0].message.content
-
-        # Check for completion
-        if "FINAL ANNOTATION COMPLETED" in conversation:
-            print(f"Final annotation completed in iteration {iteration + 1}.")
-            return conversation, messages
-
-        # Extract gene lists and get marker info
-        gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
-        unique_genes = sorted(set(all_genes))
-
-        retrived_marker_info = get_marker_info(unique_genes, marker)
-        
-        # Append messages
-        messages.append({"role": "assistant", "content": conversation})
-        messages.append({"role": "user", "content": retrived_marker_info})
-
-        print(f"Iteration {iteration + 1} completed.")
-
+        try:
+            # Make the API call using the appropriate agent function
+            if provider.lower() == "openai" or get_custom_base_url(provider) or base_url:
+                # Create a client directly for more control over the API call
+                if provider.lower() == "openai":
+                    api_key = os.environ.get("OPENAI_API_KEY")
+                else:
+                    api_key = get_custom_api_key(provider)
+                    if not api_key:
+                        api_key = os.environ.get("OPENAI_API_KEY")
+                
+                client_options = {"api_key": api_key}
+                
+                # Apply base_url if provided or look up from stored custom providers
+                if base_url:
+                    client_options["base_url"] = base_url
+                elif provider.lower() != "openai":
+                    stored_base_url = get_custom_base_url(provider)
+                    if stored_base_url:
+                        client_options["base_url"] = stored_base_url
+                
+                client = OpenAI(**client_options)
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=0,
+                    max_tokens=5000
+                )
+                response_text = response.choices[0].message.content
+            elif provider.lower() == "anthropic":
+                # For Claude, we need to handle the content format differently
+                response = anthropic.Anthropic().messages.create(
+                    model=model,
+                    max_tokens=7000,
+                    temperature=0,
+                    system="",
+                    messages=messages
+                )
+                response_text = response.content[0].text
+            elif provider.lower() == "openrouter":
+                # Use HTTP request directly for OpenRouter
+                response = requests.post(
+                    url="https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                        "HTTP-Referer": "https://localhost:5000",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": model,
+                        "temperature": 0,
+                        "max_tokens": 7000,
+                        "messages": messages
+                    }
+                )
+                
+                if response.status_code == 200:
+                    response_data = response.json()
+                    response_text = response_data['choices'][0]['message']['content']
+                else:
+                    print(f"Error: OpenRouter API returned status code {response.status_code}")
+                    print(f"Response: {response.text}")
+                    return '', messages
+            else:
+                raise ValueError("Provider must be one of: 'openai', 'anthropic', 'openrouter', or a custom provider with base_url")
+            
+            # Check for completion
+            if completion_marker in response_text:
+                print(f"Final annotation completed in iteration {iteration + 1}.")
+                return response_text, messages
+            
+            # Extract gene lists and get marker info
+            gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', response_text, re.DOTALL)
+            all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+            unique_genes = sorted(set(all_genes))
+            
+            retrieved_marker_info = get_marker_info(unique_genes, marker)
+            
+            # Append messages for the next iteration
+            if provider.lower() == "anthropic":
+                messages.append({"role": "assistant", "content": response_text})
+            else:
+                messages.append({"role": "assistant", "content": response_text})
+            
+            messages.append({"role": "user", "content": retrieved_marker_info})
+            
+            print(f"Iteration {iteration + 1} completed.")
+            
+        except Exception as e:
+            print(f"Error in iteration {iteration + 1}: {str(e)}")
+            # Return empty result on error for OpenRouter to maintain compatibility
+            if provider.lower() == "openrouter":
+                return '', messages
+            raise
+    
     # Final response if max iterations reached
-    final_response = client.chat.completions.create(
+    try:
+        if provider.lower() == "openai" or get_custom_base_url(provider) or base_url:
+            # Create a client directly for more control over the API call
+            if provider.lower() == "openai":
+                api_key = os.environ.get("OPENAI_API_KEY")
+            else:
+                api_key = get_custom_api_key(provider)
+                if not api_key:
+                    api_key = os.environ.get("OPENAI_API_KEY")
+            
+            client_options = {"api_key": api_key}
+            
+            # Apply base_url if provided or look up from stored custom providers
+            if base_url:
+                client_options["base_url"] = base_url
+            elif provider.lower() != "openai":
+                stored_base_url = get_custom_base_url(provider)
+                if stored_base_url:
+                    client_options["base_url"] = stored_base_url
+            
+            client = OpenAI(**client_options)
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0,
+                max_tokens=5000
+            )
+            final_response = response.choices[0].message.content
+            print("Maximum iterations reached, returning final response.")
+            return final_response, messages
+        elif provider.lower() == "anthropic":
+            final_response = anthropic.Anthropic().messages.create(
+                model=model,
+                max_tokens=7000,
+                temperature=0,
+                system="",
+                messages=messages
+            )
+            print("Maximum iterations reached, returning final response.")
+            return final_response.content[0].text, messages
+        elif provider.lower() == "openrouter":
+            # Use HTTP request directly for OpenRouter
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                    "HTTP-Referer": "https://localhost:5000",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "temperature": 0,
+                    "max_tokens": 7000,
+                    "messages": messages
+                }
+            )
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                final_response = response_data['choices'][0]['message']['content']
+                print("Maximum iterations reached, returning final response.")
+                return final_response, messages
+            else:
+                print(f"Error getting final response: {response.status_code}")
+                print(f"Response: {response.text}")
+                return '', messages
+    except Exception as e:
+        print(f"Error in final response: {str(e)}")
+        # Return empty result on error for OpenRouter to maintain compatibility
+        if provider.lower() == "openrouter":
+            return '', messages
+        raise
+
+# For backward compatibility
+def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="gpt-4o"):
+    """
+    Legacy function that calls the unified iterative_marker_analysis with OpenAI provider.
+    Maintained for backward compatibility.
+    """
+    return iterative_marker_analysis(
+        major_cluster_info=major_cluster_info,
+        marker=marker,
+        comma_separated_genes=comma_separated_genes,
+        annotation_history=annotation_history,
+        num_iterations=num_iterations,
         model=model,
-        messages=messages,
-        temperature=0,
-        max_tokens=4000
+        provider="openai"
     )
-    print("Final response can not be generated within the maximum number of iterations")
 
-    return final_response.choices[0].message.content, messages
-
-import re
-from anthropic import Anthropic
-
-def iterative_marker_analysis(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2,model="claude-3-5-sonnet-20241022"):
-    client = Anthropic()
-
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)}]
-
-    for iteration in range(num_iterations):
-        response = client.messages.create(
-            model=model,
-            max_tokens=7000,
-            temperature=0,
-            system="",
-            messages=messages
-        )
-
-        conversation = response.content[0].text
-
-        # Check if "FINAL ANNOTATION COMPLETED" is in the response
-        if "FINAL ANNOTATION COMPLETED" in conversation:
-            print(f"Final annotation completed in iteration {iteration + 1}.")
-            return conversation, messages
-
-        gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
-        unique_genes = sorted(set(all_genes))
-
-        retrived_marker_info = get_marker_info(unique_genes, marker)
-        
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": retrived_marker_info})
-
-        print(f"Iteration {iteration + 1} completed.")
-
-    final_response = client.messages.create(
+# Update Claude-specific function for backward compatibility
+def iterative_marker_analysis_claude(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="claude-3-5-sonnet-20241022"):
+    """
+    Legacy function that calls the unified iterative_marker_analysis with Anthropic provider.
+    Maintained for backward compatibility.
+    """
+    return iterative_marker_analysis(
+        major_cluster_info=major_cluster_info,
+        marker=marker,
+        comma_separated_genes=comma_separated_genes,
+        annotation_history=annotation_history,
+        num_iterations=num_iterations,
         model=model,
-        max_tokens=7000,
-        temperature=0,
-        system="",
-        messages=messages
+        provider="anthropic"
     )
 
-    return final_response.content[0].text, messages
-
-
-
-
+# Update OpenRouter function for backward compatibility
 def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet"):
     """
-    Perform iterative marker analysis using OpenRouter API.
-    
-    Args:
-        major_cluster_info (str): Information about the cluster
-        marker (DataFrame): Marker gene expression data
-        comma_separated_genes (str): List of genes as comma-separated string
-        annotation_history (str): Previous annotation history
-        num_iterations (int): Maximum number of iterations
-        model (str): OpenRouter model identifier
-        
-    Returns:
-        tuple: (final_response_text, messages)
+    Legacy function that calls the unified iterative_marker_analysis with OpenRouter provider.
+    Maintained for backward compatibility.
     """
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)}]
+    return iterative_marker_analysis(
+        major_cluster_info=major_cluster_info,
+        marker=marker,
+        comma_separated_genes=comma_separated_genes,
+        annotation_history=annotation_history,
+        num_iterations=num_iterations,
+        model=model,
+        provider="openrouter"
+    )
 
-    for iteration in range(num_iterations):
-        try:
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://localhost:5000",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "temperature": 0,
-                    "max_tokens": 7000,
-                    "messages": messages
-                }
-            )
-            
-            # Check if request was successful
-            if response.status_code == 200:
-                response_data = response.json()
-                conversation = response_data['choices'][0]['message']['content']
-
-                # Check for completion
-                if "FINAL ANNOTATION COMPLETED" in conversation:
-                    print(f"Final annotation completed in iteration {iteration + 1}.")
-                    return conversation, messages
-
-                # Extract gene lists and get marker info
-                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
-                unique_genes = sorted(set(all_genes))
-
-                retrived_marker_info = get_marker_info(unique_genes, marker)
-                
-                # Append messages
-                messages.append({"role": "assistant", "content": conversation})
-                messages.append({"role": "user", "content": retrived_marker_info})
-
-                print(f"Iteration {iteration + 1} completed.")
-            else:
-                print(f"Error: OpenRouter API returned status code {response.status_code}")
-                print(f"Response: {response.text}")
-                return '', messages
-
-        except Exception as e:
-            print(f"Error in iteration {iteration + 1}: {str(e)}")
-            return '', messages
-
-    # Final response if max iterations reached
-    try:
-        final_response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model,
-                "temperature": 0,
-                "max_tokens": 7000,
-                "messages": messages
-            }
-        )
-        
-        if final_response.status_code == 200:
-            final_data = final_response.json()
-            return final_data['choices'][0]['message']['content'], messages
-        else:
-            print(f"Error getting final response: {final_response.status_code}")
-            print(f"Response: {final_response.text}")
-            return '', messages
-            
-    except Exception as e:
-        print(f"Error in final response: {str(e)}")
-        return '', messages
-
-
-
-
-def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet",additional_task="check if this is a cancer cluster"):
+# Update OpenRouter additional task function for backward compatibility
+def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet", additional_task="check if this is a cancer cluster"):
     """
-    Perform iterative marker analysis using OpenRouter API.
-    
-    Args:
-        major_cluster_info (str): Information about the cluster
-        marker (DataFrame): Marker gene expression data
-        comma_separated_genes (str): List of genes as comma-separated string
-        annotation_history (str): Previous annotation history
-        num_iterations (int): Maximum number of iterations
-        model (str): OpenRouter model identifier
-        additional_task (str): Additional task to be performed
-
-    Returns:
-        tuple: (final_response_text, messages)
+    Legacy function that calls the unified iterative_marker_analysis with OpenRouter provider and additional task.
+    Maintained for backward compatibility.
     """
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3_additional_task(major_cluster_info, comma_separated_genes, annotation_history,additional_task)}]
-
-    for iteration in range(num_iterations):
-        try:
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://localhost:5000",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "temperature": 0,
-                    "max_tokens": 7000,
-                    "messages": messages
-                }
-            )
-            
-            # Check if request was successful
-            if response.status_code == 200:
-                response_data = response.json()
-                conversation = response_data['choices'][0]['message']['content']
-
-                # Check for completion
-                if "FINAL ANALYSIS COMPLETED" in conversation:
-                    print(f"Final annotation completed in iteration {iteration + 1}.")
-                    return conversation, messages
-
-                # Extract gene lists and get marker info
-                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
-                unique_genes = sorted(set(all_genes))
-
-                retrived_marker_info = get_marker_info(unique_genes, marker)
-                
-                # Append messages
-                messages.append({"role": "assistant", "content": conversation})
-                messages.append({"role": "user", "content": retrived_marker_info})
-
-                print(f"Iteration {iteration + 1} completed.")
-            else:
-                print(f"Error: OpenRouter API returned status code {response.status_code}")
-                print(f"Response: {response.text}")
-                return '', messages
-
-        except Exception as e:
-            print(f"Error in iteration {iteration + 1}: {str(e)}")
-            return '', messages
-
-    # Final response if max iterations reached
-    try:
-        final_response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model,
-                "temperature": 0,
-                "max_tokens": 7000,
-                "messages": messages
-            }
-        )
-        
-        if final_response.status_code == 200:
-            final_data = final_response.json()
-            return final_data['choices'][0]['message']['content'], messages
-        else:
-            print(f"Error getting final response: {final_response.status_code}")
-            print(f"Response: {final_response.text}")
-            return '', messages
-            
-    except Exception as e:
-        print(f"Error in final response: {str(e)}")
-        return '', messages
+    return iterative_marker_analysis(
+        major_cluster_info=major_cluster_info,
+        marker=marker,
+        comma_separated_genes=comma_separated_genes,
+        annotation_history=annotation_history,
+        num_iterations=num_iterations,
+        model=model,
+        provider="openrouter",
+        additional_task=additional_task
+    )
 
 
 
