@@ -4944,7 +4944,7 @@ def run_cell_analysis_pipeline(
         for i, cluster in enumerate(low_score_clusters, 1):
             print(f"\nProcessing low-score cluster {i}/{len(low_score_clusters)}: {cluster}")
             # Sanitize cluster name for file system use
-            sanitized_cluster = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+            sanitized_cluster = "".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip()
             sanitized_cluster = sanitized_cluster.replace(' ', '_')
             
             # Create proper output filename in the folder
