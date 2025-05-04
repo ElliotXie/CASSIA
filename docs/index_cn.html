@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA - 基于多智能体大型语言模型的单细胞注释工具</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo-container">
+                <img src="CASSIA_python/logo2.png" alt="CASSIA Logo" class="logo">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#about">关于</a></li>
+                    <li><a href="#news">更新</a></li>
+                    <li><a href="#installation">安装</a></li>
+                    <li><a href="#usage">使用</a></li>
+                    <li><a href="#models">模型</a></li>
+                    <li><a href="#citation">引用</a></li>
+                    <li><a href="#contact">联系</a></li>
+                    <li class="language-switch"><a href="#" id="en-switch">English</a> | <a href="#" id="zh-switch" class="active">中文</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>CASSIA</h1>
+            <p class="subtitle">基于多智能体大型语言模型的单细胞注释工具</p>
+            <p>一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释分群注释。</p>
+            <div class="cta-buttons">
+                <a href="https://cassiacell.com/" class="btn primary" target="_blank">体验 CASSIA 网页界面</a>
+                <a href="https://github.com/ElliotXie/CASSIA" class="btn secondary" target="_blank">GitHub 仓库</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="links" class="content-section">
+        <div class="container">
+            <div class="card-container">
+                <div class="card">
+                    <i class="fas fa-globe"></i>
+                    <h3>网页界面</h3>
+                    <p>仅提供最基础的CASSIA功能</p>
+                    <a href="https://cassiacell.com/" target="_blank">访问网站</a>
+                </div>
+                <div class="card">
+                    <i class="fas fa-file-code"></i>
+                    <h3>R 工作流示例</h3>
+                    <p>R语言工作流程示例教程</p>
+                    <a href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd" target="_blank">查看教程</a>
+                </div>
+                <div class="card">
+                    <i class="fas fa-book"></i>
+                    <h3>R 文档</h3>
+                    <p>完整 R 文档/中文版</p>
+                    <a href="https://cassia-documentation-cn.vercel.app/" target="_blank">阅读文档</a>
+                </div>
+                <div class="card">
+                    <i class="fas fa-file-code"></i>
+                    <h3>Python 工作流</h3>
+                    <p>Python 工作流示例</p>
+                    <a href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank">查看教程</a>
+                </div>
+                <div class="card">
+                    <i class="fas fa-robot"></i>
+                    <h3>模型排行榜</h3>
+                    <p>模型注释能力排行榜</p>
+                    <a href="https://sc-llm-benchmark.com/methods/cassia" target="_blank">查看排行榜</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="news" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-newspaper"></i> 更新</h2>
+            <div class="news-container">
+                <div class="news-item">
+                    <div class="news-date">2025-04-19</div>
+                    <div class="news-content">
+                        <h3>🔄 CASSIA 添加了重试机制和优化的报告存储！</h3>
+                        <p>最新更新引入了失败任务的自动重试机制，并优化了报告的存储方式，使访问和管理更加便捷。</p>
+                        <p>🎨 完成CASSIA标志设计！</p>
+                    </div>
+                </div>
+                <div class="news-item">
+                    <div class="news-date">2025-04-17</div>
+                    <div class="news-content">
+                        <h3>🚀 CASSIA 现在支持自动单细胞注释基准测试！</h3>
+                        <p>最新更新引入了一个新功能，可以实现完全自动化的单细胞注释基准测试。结果由 LLMs 自动评估，性能与人类专家相当。</p>
+                        <p><strong>专门的基准测试网站即将推出—敬请期待！</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="installation" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-download"></i> 安装</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="r-installation">R 安装</button>
+                <button class="tab-btn" data-tab="python-installation">Python 安装</button>
+            </div>
+            
+            <div id="r-installation" class="tab-content active">
+                <div class="code-block">
+                    <pre><code># 安装依赖
+install.packages("devtools")
+install.packages("reticulate")
+
+# 安装 CASSIA
+devtools::install_github("ElliotXie/CASSIA/CASSIA_R")</code></pre>
+                </div>
+
+                <h3>🔑 设置 API</h3>
+                <p>设置api大概需要2分钟时间，我们建议从 OpenRouter 开始，因为它可以仅通过单个 API 就访问市面上大多数大模型。大规模应用则推荐使用 OpenAI 或 Anthropic 直接访问更加稳定。</p>
+                <p>请注意，在某些国家，OpenAI 和 Anthropic 可能被禁止。在这些情况下，用户可以使用 OpenRouter 代替。</p>
+
+                <div class="code-block">
+                    <pre><code># 对于 OpenAI
+setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
+
+# 对于 Anthropic
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
+
+# 对于 OpenRouter
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)</code></pre>
+                </div>
+
+                <h4>API 提供商指南:</h4>
+                <ul>
+                    <li><a href="https://platform.openai.com/api-keys" target="_blank">如何获取 OpenAI API 密钥</a></li>
+                    <li><a href="https://console.anthropic.com/settings/keys" target="_blank">如何获取 Anthropic API 密钥</a></li>
+                    <li><a href="https://openrouter.ai/settings/keys" target="_blank">如何获取 OpenRouter API 密钥</a></li>
+                    <li><a href="https://beta.openai.com/docs/" target="_blank">OpenAI API 文档</a></li>
+                    <li><a href="https://docs.anthropic.com/" target="_blank">Anthropic API 文档</a></li>
+                    <li><a href="https://openrouter.ai/docs/quick-start" target="_blank">OpenRouter API 文档</a></li>
+                </ul>
+            </div>
+            
+            <div id="python-installation" class="tab-content">
+                <p>有关 Python 教程，请访问 <a href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank">此处</a>。</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="usage" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-cogs"></i> 快速一键使用</h2>
+            
+            <h3>🧬 示例数据</h3>
+            <p>CASSIA 包含两种格式的示例标记数据：</p>
+            <div class="code-block">
+                <pre><code># 加载示例数据
+markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Seurat findallmarkers 输出文件
+markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式，包含两列数据：cluster_name 和 gene_list</code></pre>
+            </div>
+
+            <h3>⚙️ R 流程</h3>
+            <div class="code-block">
+                <pre><code>runCASSIA_pipeline(
+    output_file_name,     # 输出文件的基本名称
+    tissue,               # 组织类型（例如，"brain"）
+    species,              # 物种（例如，"human"）
+    marker,               # 来自 findallmarker 的标记数据
+    max_workers = 4,      # 并行工作者数量 (根据电脑cpu核心数调整)
+    annotation_model = "gpt-4o",                    # 注释模型
+    annotation_provider = "openai",                 # 注释提供商
+    score_model = "anthropic/claude-3.5-sonnet",    # 评分模型
+    score_provider = "openrouter",                  # 评分提供商
+    annotationboost_model="anthropic/claude-3.5-sonnet", # 注释增强模型
+    annotationboost_provider="openrouter", # 注释增强提供商
+    score_threshold = 75,                          # 最低可接受分数
+    additional_info = NULL                         # 额外需要添加的细胞类型信息
+)</code></pre>
+            </div>
+
+            <h3>📤 输出</h3>
+            <p>流程生成四个关键文件：</p>
+            <ol>
+                <li>初始注释结果</li>
+                <li>带推理的质量评分</li>
+                <li>详细注释报告</li>
+                <li>注释增强报告 （如果有任何评分低于75分的注释，则会自动生成注释增强报告）</li>
+            </ol>
+        </div>
+    </section>
+
+    <section id="models" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-robot"></i> 支持的模型</h2>
+            <p>用户可以为注释和评分选择任何模型。下面列出了一些经典模型。大多数当前流行的模型都可以通过 OpenRouter 调用。</p>
+
+            <div class="model-cards">
+                <div class="model-card">
+                    <h3>OpenRouter</h3>
+                    <ul>
+                        <li><strong>deepseek/deepseek-chat-v3-0324</strong>：非常经济实惠且表现与 GPT-4o 相当，最推荐使用</li>
+                        <li><strong>anthropic/claude-3.5-sonnet</strong>：可以绕过claude的访问限制</li>
+                        <li><strong>openai/gpt-4o-2024-11-20</strong>：可以绕过openai的访问限制</li>
+                    </ul>
+                </div>
+                
+                <div class="model-card">
+                    <h3>OpenAI</h3>
+                    <ul>
+                        <li><strong>gpt-4o</strong>（推荐）：性能和成本平衡</li>
+                        <li><strong>o1-mini</strong>：高级推理能力（成本更高）</li>
+                    </ul>
+                </div>
+                
+                <div class="model-card">
+                    <h3>Anthropic</h3>
+                    <ul>
+                        <li><strong>claude-3-5-sonnet-20241022</strong>：高性能模型 （在论文测试中效果最佳）</li>
+                        <li><strong>claude-3-7-sonnet-latest</strong>：最新高性能模型模型</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="troubleshooting" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-wrench"></i> 故障排除</h2>
+
+            <h3>身份验证（错误 401 或者 Chocie Error）</h3>
+            <div class="code-block">
+                <pre><code># 检查 API 密钥是否正确设置，检查API是否已失效，检查钱是否已经用完
+key <- Sys.getenv("ANTHROPIC_API_KEY")
+print(key)  # 输出结果不应该为空
+
+# 如果需要，重置 API 密钥
+setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre>
+            </div>
+
+            <h3>文件错误</h3>
+            <ul>
+                <li>必要时使用绝对路径</li>
+                <li>确保文件未在其他程序中打开</li>
+            </ul>
+
+            <p><strong>注意：</strong>此网站仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：<a href="https://cassia-documentation-cn.vercel.app/" target="_blank">CASSIA 完整教程</a>。</p>
+        </div>
+    </section>
+
+    <section id="citation" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-book"></i> 引用</h2>
+            <div class="citation-links">
+                <a href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" class="citation-link">
+                    <i class="fas fa-file-alt"></i> 最新预印本 (v2, 最新版)
+                </a>
+                <a href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1" target="_blank" class="citation-link">
+                    <i class="fas fa-file-alt"></i> 原始预印本 (v1, 历史版本)
+                </a>
+            </div>
+            
+            <div class="citation-text">
+                <p>CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data<br>
+                Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski<br>
+                bioRxiv 2024.12.04.626476; doi: <a href="https://doi.org/10.1101/2024.12.04.626476" target="_blank">https://doi.org/10.1101/2024.12.04.626476</a></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="content-section">
+        <div class="container">
+            <h2><i class="fas fa-envelope"></i> 联系方式</h2>
+            <p>如有任何问题或需要帮助，欢迎随时邮件联系我们，我们一定会尽力协助：</p>
+            <p class="email"><a href="mailto:xie227@wisc.edu">xie227@wisc.edu</a></p>
+            <p>如果您觉得我们的项目对您有帮助，请留下一个⭐~ 或者将项目分享给你的朋友，感激不尽！</p>
+            <div class="github-button">
+                <a href="https://github.com/ElliotXie/CASSIA" target="_blank" class="btn secondary">
+                    <i class="fab fa-github"></i> 在 GitHub 上点赞
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 CASSIA 项目。保留所有权利。</p>
+            <div class="footer-links">
+                <a href="https://github.com/ElliotXie/CASSIA" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                <a href="mailto:xie227@wisc.edu"><i class="fas fa-envelope"></i> 联系</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 
