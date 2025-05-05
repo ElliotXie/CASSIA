@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://elliotxie.github.io/CASSIA/sitemap.xml 
