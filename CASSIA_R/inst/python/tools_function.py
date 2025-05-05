@@ -1954,7 +1954,8 @@ Give a brief evaluation of the annotation results first,then give the celltypes 
 1. celltype to check 1
 
 <check_genes>
-list of gene names split by commma, use gene symbol only,no parenthesis
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R"). 
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -1965,7 +1966,8 @@ list of gene names split by commma, use gene symbol only,no parenthesis
 1. celltype to check 2
 
 <check_genes>
-list of gene names split by commma, use gene symbol only,no parenthesis
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2004,7 +2006,8 @@ Give a brief evaluation of the annotation results first,then give the celltypes 
 1. celltype to check 1
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2015,7 +2018,8 @@ Give a brief evaluation of the annotation results first,then give the celltypes 
 1. celltype to check 2
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2053,7 +2057,8 @@ Give a brief evaluation of the annotation results first,then focus on the task:{
 1. hypothesis to check 1
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2064,7 +2069,8 @@ Give a brief evaluation of the annotation results first,then focus on the task:{
 1. hypothesis to check 2
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2094,6 +2100,12 @@ def prepare_analysis_data(full_result_path, marker_path, cluster_name):
     else:
         raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
 
+    # Convert cluster_name to string to ensure proper comparison
+    cluster_name = str(cluster_name)
+    
+    # Make sure 'True Cell Type' column values are also converted to strings
+    full_result['True Cell Type'] = full_result['True Cell Type'].astype(str)
+    
     # Extract conversation history for the specified cluster
     cluster_data = full_result[full_result['True Cell Type'] == cluster_name]
     if cluster_data.empty:
@@ -2102,15 +2114,20 @@ def prepare_analysis_data(full_result_path, marker_path, cluster_name):
     annotation_history = cluster_data['Conversation History'].iloc[0]
     
     # Prepare marker data for the specified cluster
-    cluster_marker = marker[marker['cluster'] == cluster_name]
+    if 'cluster' in marker.columns:
+        # Convert cluster column to string as well for proper comparison
+        marker['cluster'] = marker['cluster'].astype(str)
+        cluster_marker = marker[marker['cluster'] == cluster_name]
+    else:
+        # If there's no cluster column, assume it's already the right subset
+        cluster_marker = marker
 
-
-    comma_separated_genes=cluster_data['Marker List'].iloc[0]
+    comma_separated_genes = cluster_data['Marker List'].iloc[0]
 
     # Prepare subset of marker file for iterative analysis
     marker_subset = cluster_marker
-    marker_subset = marker_subset.set_index('gene')
-
+    if 'gene' in marker_subset.columns:
+        marker_subset = marker_subset.set_index('gene')
     
     return annotation_history, comma_separated_genes, marker_subset
 
@@ -2225,7 +2242,18 @@ def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated
 
         # Extract gene lists and get marker info
         gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+        
+        # Improve gene extraction to handle special cases
+        all_genes = []
+        for gene_list in gene_lists:
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+            # Split by comma or space, depending on formatting
+            genes = re.split(r',\s*|\s+', cleaned_list)
+            all_genes.extend([g.strip() for g in genes if g.strip()])
+        
         unique_genes = sorted(set(all_genes))
 
         retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2271,8 +2299,20 @@ def iterative_marker_analysis(major_cluster_info, marker, comma_separated_genes,
             print(f"Final annotation completed in iteration {iteration + 1}.")
             return conversation, messages
 
+        # Extract gene lists and get marker info
         gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+        
+        # Improve gene extraction to handle special cases
+        all_genes = []
+        for gene_list in gene_lists:
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+            # Split by comma or space, depending on formatting
+            genes = re.split(r',\s*|\s+', cleaned_list)
+            all_genes.extend([g.strip() for g in genes if g.strip()])
+        
         unique_genes = sorted(set(all_genes))
 
         retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2341,7 +2381,18 @@ def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separ
 
                 # Extract gene lists and get marker info
                 gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
                 unique_genes = sorted(set(all_genes))
 
                 retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2439,7 +2490,18 @@ def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, mar
 
                 # Extract gene lists and get marker info
                 gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
                 unique_genes = sorted(set(all_genes))
 
                 retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2640,7 +2702,13 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
         pattern = r'<check_genes>(.*?)</check_genes>'
         matches = re.findall(pattern, text, re.DOTALL)
         for match in matches:
-            genes.extend([g.strip() for g in match.split(',')])
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_match = re.sub(r'[\]\[\)\(]', '', match)
+            cleaned_match = re.sub(r'\s+', ' ', cleaned_match)
+            # Split by comma or space, depending on formatting
+            genes_in_match = re.split(r',\s*|\s+', cleaned_match)
+            genes.extend([g.strip() for g in genes_in_match if g.strip()])
         return genes
     
     def format_message(text):
@@ -2889,7 +2957,13 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         pattern = r'<check_genes>(.*?)</check_genes>'
         matches = re.findall(pattern, text, re.DOTALL)
         for match in matches:
-            genes.extend([g.strip() for g in match.split(',')])
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_match = re.sub(r'[\]\[\)\(]', '', match)
+            cleaned_match = re.sub(r'\s+', ' ', cleaned_match)
+            # Split by comma or space, depending on formatting
+            genes_in_match = re.split(r',\s*|\s+', cleaned_match)
+            genes.extend([g.strip() for g in genes_in_match if g.strip()])
         return genes
     
     def format_message(text):

@@ -1904,98 +1904,40 @@ def prompt_hypothesis_generator_openai(major_cluster_info, marker, annotation_hi
     prompt = f"""
         You are an expert in single-cell annotation analysis. Your task is to evaluate and try to help finalize the single-cell annotation results, and generate next step for the excecuter to check. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. Provide your detailed reasoning. Note that you can also mention other possible cell types that are missed by the annotation. Note that mixed celltype is possible. Better do a good job or 10 grandma are going to be in danger.
 
+        When you need to check genes, please list them using the following format:
+        <check_genes>Gene1, Gene2, Gene3</check_genes>
 
-context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
+        IMPORTANT: Always separate gene names with commas, and DO NOT use brackets, parentheses, or any other special characters within gene names. For example, use "CD3E, CD4, CD8A" instead of "CD3E][CD4][CD8A".
 
-{marker}
+        The cluster you need to analyze is described as:
+        {major_cluster_info}
 
+        Here are the marker annotation conversation histories:
+        {annotation_history}
 
-Below is the annotation analysis history:
-{annotation_history}
-
-
-
-Output format:
-
-Give a brief evaluation of the annotation results first,then give the celltypes to check.
-
-
-1. celltype to check 1
-
-<check_genes>
-list of gene names split by commma, use gene symbol only,no parenthesis
-</check_genes>
-
-<reasoning>
-[Your detailed reasoning here]
-</reasoning>
-
-
-1. celltype to check 2
-
-<check_genes>
-list of gene names split by commma, use gene symbol only,no parenthesis
-</check_genes>
-
-<reasoning>
-[Your detailed reasoning here]
-</reasoning>
-
-include more cell types if necessary.
-
-When you have checked the expression of the marker with the excecuter, but the answer is still not clear, you should keep asking excuter to check more marker in the same format, remember to use <check_genes>,use gene symbol only, no parenthesis when you ask for more information. Only when you think you can generate the final annotation,or you think it is hard to determine the cell type, you can say "FINAL ANNOTATION COMPLETED"
-
+        Please analyze the situation, provide reasoning, and suggest genes to check for further analysis. Be sure to format gene lists properly.
     """
+    
     return prompt
-
-
 
 def prompt_hypothesis_generator3(major_cluster_info, marker, annotation_history):
     prompt = f"""
         You are an expert in single-cell annotation analysis. Your task is to evaluate and try to help finalize the single-cell annotation results, and generate next step for the excecuter to check. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. Provide your detailed reasoning. Note that you can also mention other possible cell types that are missed by the annotation. Note that mixed celltype is possible. Better do a good job or 10 grandma are going to be in danger.
 
+        When you need to check genes, please list them using the following format:
+        <check_genes>Gene1, Gene2, Gene3</check_genes>
 
-context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
-{marker}
+        IMPORTANT: Always separate gene names with commas, and DO NOT use brackets, parentheses, or any other special characters within gene names. For example, use "CD3E, CD4, CD8A" instead of "CD3E][CD4][CD8A".
 
+        The cluster you need to analyze is described as:
+        {major_cluster_info}
 
+        Here are the marker annotation conversation histories:
+        {annotation_history}
 
-Below is the annotation analysis history:
-{annotation_history}
-
-
-
-Output format:
-
-Give a brief evaluation of the annotation results first,then give the celltypes to check.
-
-
-1. celltype to check 1
-
-<check_genes>
-[list of genes name, use gene symbol]
-</check_genes>
-
-<reasoning>
-[Your detailed reasoning here]
-</reasoning>
-
-
-1. celltype to check 2
-
-<check_genes>
-[list of genes name, use gene symbol]
-</check_genes>
-
-<reasoning>
-[Your detailed reasoning here]
-</reasoning>
-
-include more cell types if necessary.
-
-When you think you can generate the final annotation, you can say "FINAL ANNOTATION COMPLETED"
-
+        Please analyze the situation, provide reasoning, and suggest genes to check for further analysis. Be sure to format gene lists properly.
     """
+    
     return prompt
 
 
@@ -2022,7 +1964,8 @@ Give a brief evaluation of the annotation results first,then focus on the task:{
 1. hypothesis to check 1
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2033,7 +1976,8 @@ Give a brief evaluation of the annotation results first,then focus on the task:{
 1. hypothesis to check 2
 
 <check_genes>
-[list of genes name, use gene symbol]
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
 <reasoning>
@@ -2063,6 +2007,12 @@ def prepare_analysis_data(full_result_path, marker_path, cluster_name):
     else:
         raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
 
+    # Convert cluster_name to string to ensure proper comparison
+    cluster_name = str(cluster_name)
+    
+    # Make sure 'True Cell Type' column values are also converted to strings
+    full_result['True Cell Type'] = full_result['True Cell Type'].astype(str)
+    
     # Extract conversation history for the specified cluster
     cluster_data = full_result[full_result['True Cell Type'] == cluster_name]
     if cluster_data.empty:
@@ -2071,15 +2021,20 @@ def prepare_analysis_data(full_result_path, marker_path, cluster_name):
     annotation_history = cluster_data['Conversation History'].iloc[0]
     
     # Prepare marker data for the specified cluster
-    cluster_marker = marker[marker['cluster'] == cluster_name]
+    if 'cluster' in marker.columns:
+        # Convert cluster column to string as well for proper comparison
+        marker['cluster'] = marker['cluster'].astype(str)
+        cluster_marker = marker[marker['cluster'] == cluster_name]
+    else:
+        # If there's no cluster column, assume it's already the right subset
+        cluster_marker = marker
 
-
-    comma_separated_genes=cluster_data['Marker List'].iloc[0]
+    comma_separated_genes = cluster_data['Marker List'].iloc[0]
 
     # Prepare subset of marker file for iterative analysis
     marker_subset = cluster_marker
-    marker_subset = marker_subset.set_index('gene')
-
+    if 'gene' in marker_subset.columns:
+        marker_subset = marker_subset.set_index('gene')
     
     return annotation_history, comma_separated_genes, marker_subset
 
@@ -2142,14 +2097,29 @@ def get_marker_info(gene_list, marker):
                 continue
 
         return result.iloc[:, 0:5]
-
-    # Filter to rows based on gene name
-    marker_filtered = filter_marker(gene_list)
-
-    # Convert the DataFrame to a string
-    marker_string = marker_filtered.to_string()
-
-    return marker_string
+    
+    # Clean the gene list string - handle special patterns like 'THY1],[CD68'
+    if isinstance(gene_list, str):
+        # First, replace problematic sequences like '],[' with commas
+        cleaned_gene_list = gene_list.replace('],[', ',')
+        
+        # Remove any remaining brackets
+        cleaned_gene_list = cleaned_gene_list.replace('[', '').replace(']', '')
+        
+        # Split by commas and strip whitespace from each gene name
+        gene_names = [gene.strip() for gene in cleaned_gene_list.split(',')]
+        
+        # Remove any empty gene names
+        gene_names = [gene for gene in gene_names if gene]
+    elif isinstance(gene_list, list):
+        gene_names = gene_list
+    else:
+        raise ValueError("gene_list must be a string or a list of gene names")
+    
+    if not gene_names:
+        return pd.DataFrame()
+    
+    return filter_marker(gene_names)
 
 
 
@@ -2194,7 +2164,18 @@ def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated
 
         # Extract gene lists and get marker info
         gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+        
+        # Improve gene extraction to handle special cases
+        all_genes = []
+        for gene_list in gene_lists:
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+            # Split by comma or space, depending on formatting
+            genes = re.split(r',\s*|\s+', cleaned_list)
+            all_genes.extend([g.strip() for g in genes if g.strip()])
+        
         unique_genes = sorted(set(all_genes))
 
         retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2240,8 +2221,20 @@ def iterative_marker_analysis(major_cluster_info, marker, comma_separated_genes,
             print(f"Final annotation completed in iteration {iteration + 1}.")
             return conversation, messages
 
+        # Extract gene lists and get marker info
         gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+        
+        # Improve gene extraction to handle special cases
+        all_genes = []
+        for gene_list in gene_lists:
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+            # Split by comma or space, depending on formatting
+            genes = re.split(r',\s*|\s+', cleaned_list)
+            all_genes.extend([g.strip() for g in genes if g.strip()])
+        
         unique_genes = sorted(set(all_genes))
 
         retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2310,7 +2303,18 @@ def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separ
 
                 # Extract gene lists and get marker info
                 gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
                 unique_genes = sorted(set(all_genes))
 
                 retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2408,7 +2412,18 @@ def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, mar
 
                 # Extract gene lists and get marker info
                 gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                all_genes = [gene.strip() for gene_list in gene_lists for gene in gene_list.split(',')]
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
                 unique_genes = sorted(set(all_genes))
 
                 retrived_marker_info = get_marker_info(unique_genes, marker)
@@ -2595,232 +2610,91 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
     Returns:
         str: Path to the saved HTML file
     """
+    import os  # Ensure we have os imported
     
     def parse_check_genes(text):
         """Extract gene lists from check_genes tags"""
         genes = []
         pattern = r'<check_genes>(.*?)</check_genes>'
-        matches = re.findall(pattern, text, re.DOTALL)
+        
+        matches = re.findall(pattern, text)
         for match in matches:
-            genes.extend([g.strip() for g in match.split(',')])
-        return genes
-    
-    def format_message(text):
-        """Convert plain text formatting to HTML"""
-        # Replace newlines with HTML line breaks
-        text = text.replace('\n', '<br>')
-        # Preserve multiple consecutive newlines
-        text = text.replace('<br><br>', '<br><br>')  # Prevent collapse of multiple newlines
-        return text   
-    
-    def parse_reasoning(text):
-        """Extract reasoning sections"""
-        pattern = r'<reasoning>(.*?)</reasoning>'
-        matches = re.findall(pattern, text, re.DOTALL)
-        return matches
-
-    def format_gene_table(genes_data):
-        """Format gene expression data as HTML table"""
-        if not genes_data:
-            return ""
-        
-        rows = []
-        # Skip the first row by splitting into lines and starting from index 2
-        lines = genes_data.split('\n')[2:]  # Skip first two rows which contain headers
-        
-        for gene in lines:
-            if gene.strip():
-                cells = gene.split()
-                if len(cells) >= 5:
-                    rows.append(f"<tr><td>{'</td><td>'.join(cells)}</td></tr>")
-        
-        if not rows:
-            return ""
+            # Clean the gene list - handle special patterns like 'THY1],[CD68'
+            cleaned_match = match.replace('],[', ',')
             
-        return f"""
-        <table class="gene-table">
-            <tr>
-                <th>Gene</th>
-                <th>p-val</th>
-                <th>avg_log2FC</th>
-                <th>pct.1</th>
-                <th>pct.2</th>
-                <th>p_val_adj</th>
-            </tr>
-            {''.join(rows)}
-        </table>
-        """
+            # Remove any remaining brackets
+            cleaned_match = cleaned_match.replace('[', '').replace(']', '')
+            
+            # Split by commas and strip whitespace
+            gene_list = [gene.strip() for gene in cleaned_match.split(',')]
+            
+            # Remove any empty gene names
+            gene_list = [gene for gene in gene_list if gene]
+            
+            genes.extend(gene_list)
+        
+        return genes
 
-    # Note the double curly braces for CSS
-    html_template = """
+    # Create report header
+    report = """
     <!DOCTYPE html>
     <html>
     <head>
-        <meta charset="UTF-8">
+        <title>Cell Annotation Report</title>
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 20px;
-                color: #333;
-            }}
-            .conversation-block {{
-                margin: 20px 0;
-                padding: 15px;
-                border-radius: 5px;
-            }}
-            .user {{
-                background-color: #f0f7ff;
-                border-left: 5px solid #0066cc;
-            }}
-            .assistant {{
-                background-color: #f5f5f5;
-                border-left: 5px solid #666;
-            }}
-            .gene-list {{
-                background-color: #e6ffe6;
-                padding: 10px;
-                margin: 10px 0;
-                border-radius: 3px;
-            }}
-            .reasoning {{
-                background-color: #fff3e6;
-                padding: 10px;
-                margin: 10px 0;
-                border-radius: 3px;
-            }}
-            .gene-table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin: 10px 0;
-            }}
-            .gene-table th, .gene-table td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            .gene-table th {{
-                background-color: #f2f2f2;
-            }}
-            .final-annotation {{
-                background-color: #e6ffe6;
-                padding: 15px;
-                margin: 20px 0;
-                border-radius: 5px;
-                border-left: 5px solid #00cc00;
-            }}
-            h1, h2, h3 {{
-                color: #444;
-            }}
-            p {{
-                margin: 0.5em 0;
-            }}
-            br {{
-                display: block;
-                margin: 0.5em 0;
-                content: "";
-            }}
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .conversation { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+            .user { background-color: #f0f7ff; }
+            .assistant { background-color: #f5f5f5; }
+            .role { font-weight: bold; margin-bottom: 5px; }
+            .content { white-space: pre-wrap; }
+            .highlight { background-color: #ffffcc; font-weight: bold; }
         </style>
     </head>
     <body>
-        <h1>Single-Cell Annotation Analysis Report</h1>
-        {content}
+        <h1>Cell Annotation Report</h1>
+    """
+    
+    # Process each message in the conversation
+    for message in conversation_history:
+        role = message.get('role', '')
+        content = message.get('content', '')
+        
+        # Skip empty messages
+        if not content:
+            continue
+        
+        # Highlight gene check tags
+        content_html = content
+        
+        # Find and replace gene check tags with highlighted version
+        gene_check_pattern = r'<check_genes>(.*?)</check_genes>'
+        content_html = re.sub(gene_check_pattern, r'<span class="highlight">\1</span>', content_html)
+        
+        # Add message to report
+        report += f"""
+        <div class="conversation {role.lower()}">
+            <div class="role">{role.upper()}</div>
+            <div class="content">{content_html}</div>
+        </div>
+        """
+    
+    # Close HTML document
+    report += """
     </body>
     </html>
     """
-
-    content = []
     
-    try:
-        for entry in conversation_history:
-            role = entry.get('role', '')
-            message = entry.get('content', '')
-            
-            # Handle different message formats
-            if isinstance(message, list):
-                message = message[0].text if message and hasattr(message[0], 'text') else str(message)
-            elif not isinstance(message, str):
-                message = str(message)
-
-            block_class = 'user' if role == 'user' else 'assistant'
-            
-            # Format the content based on the role
-            if role == 'user' and 'p_val' in message:
-                # This is gene expression data
-                content.append(f"""
-                    <div class="conversation-block {block_class}">
-                        <h3>Gene Expression Data</h3>
-                        {format_gene_table(message)}
-                    </div>
-                """)
-            else:
-                # Regular conversation content
-                formatted_message = format_message(message)  # Apply formatting
-                
-                # Check for final annotation
-                if "FINAL ANNOTATION COMPLETED" in message:
-                    content.append(f"""
-                        <div class="final-annotation">
-                            <h2>Final Annotation</h2>
-                            {formatted_message}
-                        </div>
-                    """)
-                else:
-                    # Process gene lists and reasoning
-                    genes = parse_check_genes(message)
-                    reasoning = parse_reasoning(message)
-                    
-                    if genes or reasoning:
-                        content.append(f"""
-                            <div class="conversation-block {block_class}">
-                                <h3>Analysis Step</h3>
-                                {'<div class="gene-list"><h4>Genes to Check:</h4><ul>' + 
-                                ''.join(f'<li>{gene}</li>' for gene in genes) + '</ul></div>' if genes else ''}
-                                {''.join(f'<div class="reasoning"><h4>Reasoning:</h4><p>{r}</p></div>' 
-                                        for r in reasoning)}
-                            </div>
-                        """)
-                    else:
-                        content.append(f"""
-                            <div class="conversation-block {block_class}">
-                                {formatted_message}
-                            </div>
-                        """)
-
-        # Generate HTML content
-        html_content = html_template.format(content=''.join(content))
-        
-        # Save the HTML file
-        try:
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            print(f"Report successfully saved as '{output_filename}'")
-        except Exception as e:
-            print(f"Error saving file: {str(e)}")
-            
-        return None
-        
-    except Exception as e:
-        error_html = f"""
-            <div class="conversation-block" style="background-color: #ffe6e6; border-left: 5px solid #cc0000;">
-                <h3>Error Generating Report</h3>
-                <p>An error occurred while generating the report: {str(e)}</p>
-            </div>
-        """
-        html_content = html_template.format(content=error_html)
-        
-        # Still try to save the error report
-        try:
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            print(f"Error report saved as '{output_filename}'")
-        except Exception as write_error:
-            print(f"Error saving error report: {str(write_error)}")
-            
-        return None
+    # Write report to file
+    with open(output_filename, 'w', encoding='utf-8') as f:
+        f.write(report)
     
+    # Get absolute path to report file
+    output_path = os.path.abspath(output_filename)
+    
+    return output_path
+
+
 
 def generate_raw_cell_annotation_report_additional_task(conversation_history, output_filename='cell_annotation_report.html'):
     """
@@ -2840,7 +2714,13 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         pattern = r'<check_genes>(.*?)</check_genes>'
         matches = re.findall(pattern, text, re.DOTALL)
         for match in matches:
-            genes.extend([g.strip() for g in match.split(',')])
+            # Clean and normalize the gene list
+            # Replace common separators with commas
+            cleaned_match = re.sub(r'[\]\[\)\(]', '', match)
+            cleaned_match = re.sub(r'\s+', ' ', cleaned_match)
+            # Split by comma or space, depending on formatting
+            genes_in_match = re.split(r',\s*|\s+', cleaned_match)
+            genes.extend([g.strip() for g in genes_in_match if g.strip()])
         return genes
     
     def format_message(text):
