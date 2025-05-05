@@ -4857,7 +4857,8 @@ def runCASSIA_pipeline(
         for cluster in low_score_clusters:
             print(f"Processing low score cluster: {cluster}")
             
-            cluster_name = "".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip()
+            # Convert cluster to string before sanitizing
+            cluster_name = "".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip()
             cluster_info = df[df['True Cell Type'] == cluster].iloc[0].to_dict()
             
             # Run annotation boost
@@ -4875,7 +4876,7 @@ def runCASSIA_pipeline(
         # Also save a copy of the boosted reports index
         boosted_reports = [
             os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted.html") 
-            for cluster_name in ["".join(c for c in cluster if c.isalnum() or c in (' ', '-', '_')).strip() 
+            for cluster_name in ["".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip() 
                               for cluster in low_score_clusters]
         ]
         
