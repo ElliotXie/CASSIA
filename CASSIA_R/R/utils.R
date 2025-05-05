@@ -43,6 +43,7 @@ set_python_env <- function(conda_env) {
 #' @param prefix Prefix to add to the new metadata columns (default: "CASSIA_")
 #' @param replace_existing Whether to replace existing annotations (default: FALSE)
 #' @param fuzzy_match Whether to perform fuzzy matching on cluster names (default: TRUE)
+#' @param columns_to_include Level of columns to include: 1 for only merged groupings, 2 for all metrics (default: 2)
 #'
 #' @return A Seurat object with CASSIA annotations added as metadata columns
 #' @importFrom utils read.csv
@@ -50,7 +51,8 @@ set_python_env <- function(conda_env) {
 #' @export
 add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = "seurat_clusters", 
                                 cassia_cluster_col = "True Cell Type", prefix = "CASSIA_", 
-                                replace_existing = FALSE, fuzzy_match = TRUE) {
+                                replace_existing = FALSE, fuzzy_match = TRUE,
+                                columns_to_include = 1) {
   # Check if required packages are installed
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     stop("The Seurat package is required. Please install it with 'install.packages(\"Seurat\")'")
@@ -59,6 +61,12 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
   # Check if file exists
   if (!file.exists(cassia_results_path)) {
     stop("CASSIA results file not found at: ", cassia_results_path)
+  }
+  
+  # Validate columns_to_include parameter
+  if (!columns_to_include %in% c(1, 2)) {
+    warning("Invalid value for columns_to_include. Using default value 2 (all metrics).")
+    columns_to_include <- 2
   }
   
   # Check if the specified cluster column exists in the Seurat object
@@ -206,6 +214,13 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
     score = c("Score", "Consensus Score", "Consensus_Score")
   )
   
+  # Add merged grouping columns to the mapping
+  merged_grouping_mapping <- list(
+    merged_grouping_1 = c("Merged Grouping 1", "Merged_Grouping_1"),
+    merged_grouping_2 = c("Merged Grouping 2", "Merged_Grouping_2"),
+    merged_grouping_3 = c("Merged Grouping 3", "Merged_Grouping_3")
+  )
+  
   # Create a lookup table from CASSIA clusters to annotations
   lookup_tables <- list()
   
@@ -217,31 +232,66 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
     sub_celltype_3 = NULL          # Least likely
   )
   
-  # Process each annotation type at once
-  lookup_tables <- lapply(names(column_mapping), function(anno_type) {
-    col_candidates <- column_mapping[[anno_type]]
+  # Check which merged grouping columns exist in the results
+  available_merged_groups <- list()
+  for (group_name in names(merged_grouping_mapping)) {
+    col_candidates <- merged_grouping_mapping[[group_name]]
     found_col <- col_candidates[col_candidates %in% colnames(cassia_results)]
     
     if (length(found_col) > 0) {
       col_name <- found_col[1]
-      
-      # For annotation types other than sub_celltype, return a simple named vector
-      if (anno_type != "sub_celltype") {
-        return(setNames(
-          cassia_results[[col_name]],
-          cassia_results[[cassia_cluster_col]]
-        ))
-      }
-      
-      # For sub_celltype, return NULL (handled separately)
-      return(NULL)
+      available_merged_groups[[group_name]] <- setNames(
+        cassia_results[[col_name]],
+        cassia_results[[cassia_cluster_col]]
+      )
     }
-    return(NULL)
-  })
-  names(lookup_tables) <- names(column_mapping)
+  }
   
-  # Special handling for sub cell types
-  if (any(sapply(column_mapping$sub_celltype, function(x) x %in% colnames(cassia_results)))) {
+  # If columns_to_include is 1, only include merged groupings
+  if (columns_to_include == 1) {
+    if (length(available_merged_groups) == 0) {
+      warning("No merged grouping columns found in CASSIA results. Will include standard metrics instead.")
+      columns_to_include <- 2
+    } else {
+      lookup_tables <- available_merged_groups
+    }
+  }
+  
+  # If columns_to_include is 2 or no merged groupings were found, include all metrics
+  if (columns_to_include == 2) {
+    # Process standard metrics
+    std_lookup_tables <- lapply(names(column_mapping), function(anno_type) {
+      col_candidates <- column_mapping[[anno_type]]
+      found_col <- col_candidates[col_candidates %in% colnames(cassia_results)]
+      
+      if (length(found_col) > 0) {
+        col_name <- found_col[1]
+        
+        # For annotation types other than sub_celltype, return a simple named vector
+        if (anno_type != "sub_celltype") {
+          return(setNames(
+            cassia_results[[col_name]],
+            cassia_results[[cassia_cluster_col]]
+          ))
+        }
+        
+        # For sub_celltype, return NULL (handled separately)
+        return(NULL)
+      }
+      return(NULL)
+    })
+    names(std_lookup_tables) <- names(column_mapping)
+    
+    # Filter out NULL entries
+    std_lookup_tables <- std_lookup_tables[!sapply(std_lookup_tables, is.null)]
+    
+    # Combine with merged groupings if available
+    lookup_tables <- c(std_lookup_tables, available_merged_groups)
+  }
+  
+  # Special handling for sub cell types (only for columns_to_include == 2)
+  if (columns_to_include == 2 && 
+      any(sapply(column_mapping$sub_celltype, function(x) x %in% colnames(cassia_results)))) {
     col_name <- column_mapping$sub_celltype[column_mapping$sub_celltype %in% colnames(cassia_results)][1]
     
     # Store the original values
@@ -333,47 +383,49 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
   }) %>% do.call(cbind, .)
   rownames(new_metadata) <- colnames(seurat_obj)
   
-  # For sub cell types, add all the split versions
-  sub_metadata <- lapply(names(lookup_tables_split), function(split_type) {
-    lookup <- lookup_tables_split[[split_type]]
-    if (is.null(lookup)) return(NULL)
+  # For sub cell types, add all the split versions (only for columns_to_include == 2)
+  if (columns_to_include == 2) {
+    sub_metadata <- lapply(names(lookup_tables_split), function(split_type) {
+      lookup <- lookup_tables_split[[split_type]]
+      if (is.null(lookup)) return(NULL)
+      
+      annotations <- lookup[seurat_clusters_mapped]
+      meta_col_name <- paste0(prefix, split_type)
+      result <- data.frame(col = annotations, stringsAsFactors = FALSE)
+      names(result) <- meta_col_name
+      return(result)
+    })
+    sub_metadata <- Filter(Negate(is.null), sub_metadata)
     
-    annotations <- lookup[seurat_clusters_mapped]
-    meta_col_name <- paste0(prefix, split_type)
-    result <- data.frame(col = annotations, stringsAsFactors = FALSE)
-    names(result) <- meta_col_name
-    return(result)
-  })
-  sub_metadata <- Filter(Negate(is.null), sub_metadata)
-  
-  if (length(sub_metadata) > 0) {
-    sub_metadata <- do.call(cbind, sub_metadata)
-    rownames(sub_metadata) <- colnames(seurat_obj)
-    new_metadata <- cbind(new_metadata, sub_metadata)
-  }
-  
-  # Add combined general celltype + first subcelltype column
-  if (paste0(prefix, "general_celltype") %in% names(new_metadata) && 
-      paste0(prefix, "sub_celltype_1") %in% names(new_metadata)) {
-    
-    general_col <- paste0(prefix, "general_celltype")
-    sub_col <- paste0(prefix, "sub_celltype_1")
-    combined_col <- paste0(prefix, "combined_celltype")
-    
-    # Create combined column with vectorized operation - using a more visible separator
-    new_metadata[[combined_col]] <- paste(
-      new_metadata[[general_col]],
-      new_metadata[[sub_col]],
-      sep = " :: "
-    )
-    
-    # Handle cases where subcelltype is NA
-    na_idx <- which(is.na(new_metadata[[sub_col]]))
-    if (length(na_idx) > 0) {
-      new_metadata[[combined_col]][na_idx] <- new_metadata[[general_col]][na_idx]
+    if (length(sub_metadata) > 0) {
+      sub_metadata <- do.call(cbind, sub_metadata)
+      rownames(sub_metadata) <- colnames(seurat_obj)
+      new_metadata <- cbind(new_metadata, sub_metadata)
     }
     
-    message("Added combined cell type column: ", combined_col)
+    # Add combined general celltype + first subcelltype column
+    if (paste0(prefix, "general_celltype") %in% names(new_metadata) && 
+        paste0(prefix, "sub_celltype_1") %in% names(new_metadata)) {
+      
+      general_col <- paste0(prefix, "general_celltype")
+      sub_col <- paste0(prefix, "sub_celltype_1")
+      combined_col <- paste0(prefix, "combined_celltype")
+      
+      # Create combined column with vectorized operation - using a more visible separator
+      new_metadata[[combined_col]] <- paste(
+        new_metadata[[general_col]],
+        new_metadata[[sub_col]],
+        sep = " :: "
+      )
+      
+      # Handle cases where subcelltype is NA
+      na_idx <- which(is.na(new_metadata[[sub_col]]))
+      if (length(na_idx) > 0) {
+        new_metadata[[combined_col]][na_idx] <- new_metadata[[general_col]][na_idx]
+      }
+      
+      message("Added combined cell type column: ", combined_col)
+    }
   }
   
   # Add all metadata columns at once
