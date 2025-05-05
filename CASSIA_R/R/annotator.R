@@ -4,30 +4,77 @@
 py_main <- NULL
 py_tools <- NULL
 py_determinator <- NULL  # Add this line
+py_merging <- NULL
 
-.onLoad <- function(libname, pkgname) {
-  # Get the conda environment name from the package configuration
-  conda_env <- getOption("CASSIA.conda_env", default = "cassia_env")
-  
-  # Set up the Python environment
+# Internal function to set up CASSIA with system Python
+.setup_cassia_with_system_python <- function(pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
+                                                             "requests", "anthropic", "charset-normalizer")) {
   tryCatch({
-    # Check if the environment exists, if not create it
-    if (!conda_env %in% reticulate::conda_list()$name) {
-      setup_cassia_env(conda_env)
-    }
+    # Find existing Python installation
+    python_path <- reticulate::py_discover_config()$python
     
-    reticulate::use_condaenv(conda_env, required = TRUE)
+    # Use the existing Python installation
+    reticulate::use_python(python_path, required = TRUE)
     
-    # Import Python modules
-    py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
-    py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-    py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+    # Install required packages
+    reticulate::py_install(pip_packages)
+    
+    # Import CASSIA Python modules
+    py_main <<- reticulate::import_from_path("main_function_code", 
+                                           path = system.file("python", package = "CASSIA"))
+    py_tools <<- reticulate::import_from_path("tools_function", 
+                                            path = system.file("python", package = "CASSIA"))
+    py_merging <<- reticulate::import_from_path("merging_annotation_code", 
+                                              path = system.file("python", package = "CASSIA"))
+    
+    message("CASSIA is using your system Python installation.")
+    return(TRUE)
   }, error = function(e) {
-    warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
+    warning("Failed to set up CASSIA with system Python: ", e$message)
+    return(FALSE)
   })
 }
 
-
+.onLoad <- function(libname, pkgname) {
+  # Try conda environment first
+  conda_setup_success <- tryCatch({
+    # Check if conda is available
+    if (reticulate::conda_available()) {
+      # Get the conda environment name from the package configuration
+      conda_env <- getOption("CASSIA.conda_env", default = "cassia_env")
+      
+      # Check if the environment exists, if not create it
+      if (!conda_env %in% reticulate::conda_list()$name) {
+        setup_cassia_env(conda_env)
+      }
+      
+      reticulate::use_condaenv(conda_env, required = TRUE)
+      
+      # Import Python modules
+      py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
+      py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
+      py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+      
+      message("CASSIA is using conda environment: ", conda_env)
+      return(TRUE)
+    } else {
+      # Conda not available
+      return(FALSE)
+    }
+  }, error = function(e) {
+    # Error with conda setup
+    return(FALSE)
+  })
+  
+  # If conda setup failed, try using system Python
+  if (!conda_setup_success) {
+    system_python_success <- .setup_cassia_with_system_python()
+    
+    if (!system_python_success) {
+      warning("Failed to set up Python environment. Please run setup_cassia_env() manually, or install Python and required packages.")
+    }
+  }
+}
 
 #' Set up CASSIA Python Environment
 #'
@@ -65,6 +112,26 @@ setup_cassia_env <- function(conda_env = NULL, python_version = "3.10",
   invisible(NULL)
 }
 
+#' Set up CASSIA with System Python
+#'
+#' This function sets up CASSIA to use the system Python installation
+#' instead of a conda environment. It's useful for users who don't have
+#' Anaconda/Miniconda installed.
+#'
+#' @param pip_packages A character vector of pip packages to install.
+#'
+#' @return Invisible NULL. Called for side effects.
+#' @export
+setup_cassia_with_system_python <- function(pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
+                                                            "requests", "anthropic", "charset-normalizer")) {
+  success <- .setup_cassia_with_system_python(pip_packages)
+  
+  if (!success) {
+    stop("Failed to set up CASSIA with system Python. Please ensure Python is installed and accessible.")
+  }
+  
+  invisible(NULL)
+}
 
 #' Set API Key for LLM Provider
 #'
