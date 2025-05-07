@@ -99,7 +99,7 @@
                     <li><a href="#about">关于</a></li>
                     <li><a href="#news">更新</a></li>
                     <li><a href="#installation">安装</a></li>
-                    <li><a href="#usage">使用</a></li>
+                    <li><a href="#usage">快速开始</a></li>
                     <li><a href="#models">模型</a></li>
                     <li><a href="#citation">引用</a></li>
                     <li><a href="#contact">联系</a></li>
@@ -117,7 +117,7 @@
                 <p>一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释分群注释。</p>
                 <div class="cta-buttons">
                     <a href="https://github.com/ElliotXie/CASSIA" class="btn primary" target="_blank" rel="noopener">GitHub 仓库</a>
-                    <a href="https://cassia-documentation-cn.vercel.app/" class="btn secondary" target="_blank" rel="noopener">R 文档</a>
+                    <a href="https://cassia-documentation-cn-new.vercel.app/" class="btn secondary" target="_blank" rel="noopener">R 文档</a>
                 </div>
             </div>
         </section>
@@ -127,22 +127,10 @@
                 <h2 class="section-title">主要资源</h2>
                 <div class="card-container">
                     <div class="card">
-                        <i class="fab fa-github"></i>
-                        <h3>GitHub 仓库</h3>
-                        <p>源代码和完整项目文件</p>
-                        <a href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener">访问 GitHub</a>
-                    </div>
-                    <div class="card">
                         <i class="fas fa-book"></i>
                         <h3>R 文档</h3>
-                        <p>完整 R 文档/中文版</p>
-                        <a href="https://cassia-documentation-cn.vercel.app/" target="_blank" rel="noopener">阅读文档</a>
-                    </div>
-                    <div class="card">
-                        <i class="fas fa-file-code"></i>
-                        <h3>R 工作流示例</h3>
-                        <p>R语言工作流程示例教程</p>
-                        <a href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd" target="_blank" rel="noopener">查看教程</a>
+                        <p>完整的R文档和示例工作流</p>
+                        <a href="https://cassia-documentation-cn-new.vercel.app/" target="_blank" rel="noopener">阅读文档</a>
                     </div>
                     <div class="card">
                         <i class="fas fa-file-code"></i>
@@ -259,7 +247,7 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)</
 
         <section id="usage" class="content-section">
             <div class="container">
-                <h2><i class="fas fa-cogs"></i> 流程使用</h2>
+                <h2><i class="fas fa-cogs"></i> 快速开始</h2>
                 
                 <h3>🧬 示例数据</h3>
                 <p>CASSIA 包含两种格式的示例标记数据：</p>
@@ -283,13 +271,27 @@ runCASSIA_pipeline(
                 </div>
 
                 <h3>📤 输出</h3>
-                <p>流程生成四个关键文件：</p>
-                <ol>
-                    <li>初始注释结果</li>
-                    <li>带推理的质量评分</li>
-                    <li>摘要报告</li>
-                    <li>注释增强报告</li>
-                </ol>
+                <p>流程生成以下文件：</p>
+                
+                <div class="output-cards">
+                    <div class="output-card">
+                        <i class="fas fa-file-csv"></i>
+                        <h4>注释结果</h4>
+                        <p>包含每个聚类细胞类型注释的CSV文件</p>
+                    </div>
+                    
+                    <div class="output-card">
+                        <i class="fas fa-file-code"></i>
+                        <h4>注释报告</h4>
+                        <p>包含详细注释推理过程的交互式HTML报告</p>
+                    </div>
+                    
+                    <div class="output-card">
+                        <i class="fas fa-arrow-up"></i>
+                        <h4>注释增强报告</h4>
+                        <p>优化注释的HTML报告</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -302,8 +304,8 @@ runCASSIA_pipeline(
                     <div class="model-card">
                         <h3>OpenRouter</h3>
                         <ul>
-                            <li><strong>google/gemini-2.5-flash-preview</strong>：高速率限制访问Claude（最推荐）</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>：几乎免费且可与GPT-4o相媲美（推荐）</li>
+                            <li><strong>google/gemini-2.5-flash-preview</strong>：最佳低成本模型之一，性能可与gpt-4o相媲美（最推荐）</li>
+                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>：表现最佳的开源模型之一，通常会提供非常详细的注释（推荐）</li>
                             <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>：免费但速度较慢</li>
                         </ul>
                     </div>
