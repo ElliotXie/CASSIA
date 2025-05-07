@@ -12,9 +12,7 @@
 
 🌐 [Try CASSIA Web UI](https://cassiacell.com/) - A web interface for basic CASSIA functionality
 
-📝 [Example R workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
-
-📚 [Complete R Documentation](https://documentationeng.vercel.app/)
+📚 [Complete R Documentation/Vignette](https://cassia-documentation-en-new.vercel.app/)
 
 📝 [Example Python workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
 
@@ -120,8 +118,8 @@ You can choose any model for annotation and scoring. Some classic models are lis
 
 
 ### OpenRouter
-- `google/gemini-2.5-flash-preview`: High rate limit access to Claude (Most recommended)
-- `deepseek/deepseek-chat-v3-0324`: Almost free and comparable to GPT-4o (Highly recommended)
+- `google/gemini-2.5-flash-preview`: One of the best-performed low-cost models, comparable with models like gpt-4o (Most recommended)
+- `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, turns to gives very detailed annotations (Recommended)
 - `deepseek/deepseek-chat-v3-0324:free`: Free but slower
 
 ### OpenAI
