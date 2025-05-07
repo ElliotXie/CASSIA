@@ -623,15 +623,6 @@ runCASSIA_score_batch <- function(input_file,
       max_retries = as.integer(max_retries)
     )
     
-    # Convert Python DataFrame to R data.frame if results is not NULL
-    if (!is.null(results)) {
-      results <- reticulate::py_to_r(results)
-    }
-    
-    
-  }, error = function(e) {
-    error_msg <- paste("Error in run_scoring_with_progress:", e$message)
-    stop(error_msg)
   })
 }
 
