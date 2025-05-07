@@ -306,7 +306,8 @@ Please provide your evaluation with individual scores (0-5) and explanations, fo
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
-                    "HTTP-Referer": "https://localhost:5000",  # Required for OpenRouter
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
                     "Content-Type": "application/json"
                 },
                 json={

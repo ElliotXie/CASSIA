@@ -663,7 +663,8 @@ def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, s
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://localhost:5000",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
                     "Content-Type": "application/json"
                 },
                 json={

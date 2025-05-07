@@ -1533,7 +1533,7 @@ def openai_agent(user_message, model="gpt-4o", temperature=0):
 
 
 
-def openrouter_agent(user_message, model="anthropic/claude-3-sonnet", temperature=0):
+def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperature=0):
     """
     Send a message to OpenRouter API and get the response.
     
@@ -1550,7 +1550,8 @@ def openrouter_agent(user_message, model="anthropic/claude-3-sonnet", temperatur
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",  # Required for OpenRouter
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
@@ -2286,7 +2287,8 @@ def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separ
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://localhost:5000",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
                     "Content-Type": "application/json"
                 },
                 json={
@@ -2345,7 +2347,8 @@ def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separ
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
@@ -2395,7 +2398,8 @@ def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, mar
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://localhost:5000",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
                     "Content-Type": "application/json"
                 },
                 json={
@@ -2454,7 +2458,8 @@ def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, mar
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
@@ -4279,7 +4284,8 @@ def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                    "HTTP-Referer": "https://localhost:5000",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
                     "Content-Type": "application/json"
                 },
                 json={
@@ -4367,7 +4373,8 @@ def openrouter_agent(user_message, model="anthropic/claude-3.5-sonnet", temperat
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",  # Required for OpenRouter
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
@@ -4860,7 +4867,8 @@ result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoie
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
@@ -4919,7 +4927,8 @@ Output in JSON format without any tags:
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://localhost:5000",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
                 "Content-Type": "application/json"
             },
             json={
