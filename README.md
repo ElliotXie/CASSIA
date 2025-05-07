@@ -118,8 +118,8 @@ You can choose any model for annotation and scoring. Some classic models are lis
 
 
 ### OpenRouter
-- `google/gemini-2.5-flash-preview`: High rate limit access to Claude (Most recommended)
-- `deepseek/deepseek-chat-v3-0324`: Almost free and comparable to GPT-4o (Highly recommended)
+- `google/gemini-2.5-flash-preview`: One of the best-performed open-source models, comparable with models like gpt-4o (Most recommended)
+- `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, turns to give very detailed annotation (Recommended)
 - `deepseek/deepseek-chat-v3-0324:free`: Free but slower
 
 ### OpenAI
