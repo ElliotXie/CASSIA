@@ -957,6 +957,10 @@ def extract_celltypes_from_llm_claude(llm_response):
     # First try to extract JSON from <json> tags
     json_match = re.search(r'<json>(.*?)</json>', llm_response, re.DOTALL)
     
+    # If no <json> tags, try json> format
+    if not json_match:
+        json_match = re.search(r'json>(.*?)</json>', llm_response, re.DOTALL)
+
     # If no <json> tags, try markdown code blocks
     if not json_match:
         json_match = re.search(r'```json\n(.*?)\n```', llm_response, re.DOTALL)
@@ -968,7 +972,17 @@ def extract_celltypes_from_llm_claude(llm_response):
     if json_match:
         try:
             # Clean up the matched string and parse JSON
-            json_str = json_match.group(1) if ('<json>' in llm_response or '```' in llm_response) else json_match.group(0)
+            json_str = json_match.group(1) if ('<json>' in llm_response or 'json>' in llm_response or '```' in llm_response) else json_match.group(0)
+            
+            # Try to clean up any malformed JSON
+            json_str = json_str.strip()
+            
+            # Remove any unexpected characters at the beginning or end
+            if not json_str.startswith('{'):
+                json_str = '{' + json_str.split('{', 1)[1]
+            if not json_str.endswith('}'):
+                json_str = json_str.rsplit('}', 1)[0] + '}'
+                
             data = json.loads(json_str)
             
             final_results = data.get("final_results", [])
@@ -979,14 +993,14 @@ def extract_celltypes_from_llm_claude(llm_response):
             sub_celltype = final_results[1] if len(final_results) > 1 else "Not found"
             
             return general_celltype, sub_celltype, mixed_celltypes, consensus_score
-        except json.JSONDecodeError:
-            print("Error decoding JSON from LLM response")
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from LLM response: {e}")
             print(f"Attempted to parse: {json_str}")
     else:
         print("No JSON data found in the LLM response")
         print(f"Full response: {llm_response}")
         
-    return "Not found", "Not found", []
+    return "Not found", "Not found", [], "Not found"
 
 
 
@@ -1063,7 +1077,7 @@ def process_cell_type_variance_analysis_batch_claude(results, model="claude-3-5-
 
 
 
-def process_cell_type_results(organized_results, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def process_cell_type_results(organized_results, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
     processed_results = {}
     
     def process_single_celltype(celltype, predictions):
@@ -1089,8 +1103,10 @@ def process_cell_type_results(organized_results, max_workers=10, model="gpt-4o",
             result = process_cell_type_variance_analysis_batch(formatted_string, model=model, main_weight=main_weight, sub_weight=sub_weight)
         elif provider.lower() == "anthropic":
             result = process_cell_type_variance_analysis_batch_claude(formatted_string, model=model, main_weight=main_weight, sub_weight=sub_weight)
+        elif provider.lower() == "openrouter":
+            result = process_cell_type_variance_analysis_batch_openrouter(formatted_string, model=model, main_weight=main_weight, sub_weight=sub_weight)
         else:
-            raise ValueError("Provider must be either 'openai' or 'anthropic'")
+            raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
             
         print(f"Processing successful for {celltype}")
         return celltype, result
@@ -5040,3 +5056,204 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Pipeline completed successfully ===")
     return f"Analysis complete. Results saved in {folder_name}"
+
+def agent_unification_openrouter(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis.You will be given a series results from a celltype annotator. 
+your task is to unify all the celltypes name, so that same celltype have the same name. The final format the first letter for each word will be capital and other will be small case. Remove plural. Some words like stem and progenitor and immature means the same thing should be unified.
+                  
+An example below:
+                  
+Input format：      
+result1:(immune cell, t cell),result2:(Immune cells,t cell),result3:(T cell, cd8+ t cell)
+                  
+Output format:
+<results>result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)</results>
+
+Another example:
+                      
+Input format：      
+result1:(Hematopoietic stem/progenitor cells (HSPCs), T cell progenitors),result2:(Hematopoietic Progenitor cells,t cell),result3:(Hematopoietic progenitor cells, T cell)
+                  
+Output format:
+<results>result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)</results>
+''', model="google/gemini-2.5-flash-preview", temperature=0):
+    
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://localhost:5000",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": temperature,
+                "max_tokens": 7000,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ]
+            }
+        )
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            response_text = response_data['choices'][0]['message']['content'].strip()
+            
+            # Extract content between <results> tags
+            import re
+            match = re.search(r'<results>(.*?)</results>', response_text, re.DOTALL)
+            if match:
+                return match.group(1).strip()
+            else:
+                # If no tags found, return the original response
+                return response_text
+        else:
+            print(f"Error: OpenRouter API returned status code {response.status_code}")
+            print(f"Response: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return None
+
+
+def agent_judgement_openrouter(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis. You will be given a series of results from a cell type annotator.
+Your task is to determine the consensus cell type. The first entry of each result is the general cell type and the second entry is the subtype. You should provide the final general cell type and the subtype. Considering all results, if you think there is very strong evidence of mixed cell types, please also list them. Please give your step-by-step reasoning and the final answer. We also want to know how robust our reuslts are, please give a consensus score ranging from 0 to 100 to show how similar the results are from different runs. $10,000 will be rewarded for the correct answer.
+                           
+Output in JSON format:
+{
+"final_results": [
+"General cell type here",
+"Sub cell type here"
+],
+"possible_mixed_celltypes": [
+"Mixed cell type 1 here",
+"Mixed cell type 2 here"
+],
+"consensus_score": 0-100
+}
+''', model="google/gemini-2.5-flash-preview", temperature=0):
+    
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://localhost:5000",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": temperature,
+                "max_tokens": 7000,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ]
+            }
+        )
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            raw_response = response_data['choices'][0]['message']['content'].strip()
+            
+            # Clean up the response to remove any XML/JSON tags
+            # First, try to extract content from <json> tags
+            json_match = re.search(r'<json>(.*?)</json>', raw_response, re.DOTALL)
+            if json_match:
+                return json_match.group(1).strip()
+                
+            # If not found, try json> format
+            json_match = re.search(r'json>(.*?)</json>', raw_response, re.DOTALL)
+            if json_match:
+                return json_match.group(1).strip()
+            
+            # If not found, try to extract from markdown code blocks
+            json_match = re.search(r'```json\n(.*?)\n```', raw_response, re.DOTALL)
+            if json_match:
+                return json_match.group(1).strip()
+            
+            # If no special formatting, return as is
+            return raw_response
+        else:
+            print(f"Error: OpenRouter API returned status code {response.status_code}")
+            print(f"Response: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return None
+
+
+def process_cell_type_variance_analysis_batch_openrouter(results, model="google/gemini-2.5-flash-preview", temperature=0, main_weight=0.5, sub_weight=0.5):
+
+    print("Starting the process of cell type batch variance analysis...")
+    # Extract and format results
+    results_unification_llm = agent_unification_openrouter(results, model=model, temperature=temperature)
+    print(results_unification_llm)
+
+    results_depluar = agent_unification_deplural(results)
+
+    result_unified_oncology = standardize_cell_types(results_depluar)
+
+    # Consensus judgment
+    result_consensus_from_llm = agent_judgement_openrouter(
+        prompt=results_unification_llm,
+        model=model,
+        temperature=temperature
+    )
+    print(result_consensus_from_llm)
+
+    result_consensus_from_oncology = agent_judgement_openrouter(
+        prompt=result_unified_oncology,
+        model=model,
+        temperature=temperature
+    )
+    
+    # Extract consensus celltypes
+    general_celltype, sub_celltype, mixed_types, llm_generated_consensus_score_llm = extract_celltypes_from_llm_claude(result_consensus_from_llm)
+    
+    print(llm_generated_consensus_score_llm)
+
+    general_celltype_oncology, sub_celltype_oncology, mixed_types_oncology, llm_generated_consensus_score_oncology = extract_celltypes_from_llm_claude(result_consensus_from_oncology)
+    
+    print(f"General celltype: {general_celltype}")
+    print(f"Sub celltype: {sub_celltype}")
+    print(f"Mixed types: {mixed_types}")
+    print(f"General celltype oncology: {general_celltype_oncology}")
+    print(f"Sub celltype oncology: {sub_celltype_oncology}")
+    print(f"Mixed types oncology: {mixed_types_oncology}")
+
+    # Calculate similarity score
+    parsed_results_oncology = parse_results_to_dict(result_unified_oncology)
+    parsed_results_llm = parse_results_to_dict(results_unification_llm)
+
+    consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_flexible(parsed_results_oncology, main_weight=main_weight, sub_weight=sub_weight)
+    consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_flexible(parsed_results_llm, main_weight=main_weight, sub_weight=sub_weight)
+
+    print(f"Consensus score (Oncology): {consensus_score_oncology}")
+    print(f"Consensus score (LLM): {consensus_score_llm}")
+    print(f"LLM generated consensus score llm: {llm_generated_consensus_score_llm}")
+    print(f"LLM generated consensus score oncology: {llm_generated_consensus_score_oncology}")
+
+    return {
+        'general_celltype_llm': general_celltype,
+        'sub_celltype_llm': sub_celltype,
+        'mixed_celltypes_llm': mixed_types,
+        'general_celltype_oncology': general_celltype_oncology,
+        'sub_celltype_oncology': sub_celltype_oncology,
+        'mixed_types_oncology': mixed_types_oncology,
+        'consensus_score_llm': consensus_score_llm,
+        'consensus_score_oncology': consensus_score_oncology,
+        'llm_generated_consensus_score_llm': llm_generated_consensus_score_llm,
+        'llm_generated_consensus_score_oncology': llm_generated_consensus_score_oncology,
+        'count_consensus_1_llm': consensus_1_llm,
+        'count_consensus_2_llm': consensus_2_llm,
+        'count_consensus_1_oncology': consensus_1_oncology,
+        'count_consensus_2_oncology': consensus_2_oncology,
+        'unified_results_llm': results_unification_llm,
+        'unified_results_oncology': result_unified_oncology,
+        'result_consensus_from_llm': result_consensus_from_llm,
+        'result_consensus_from_oncology': result_consensus_from_oncology
+    }
