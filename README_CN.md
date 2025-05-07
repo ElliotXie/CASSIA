@@ -114,8 +114,8 @@ runCASSIA_pipeline(
 
 
 ### OpenRouter
-- `google/gemini-2.5-flash-preview`: 高速率限制访问Claude（最推荐）
-- `deepseek/deepseek-chat-v3-0324`: 几乎免费且可与GPT-4o相媲美（推荐）
+- `google/gemini-2.5-flash-preview`: 最好的低费率大模型之一（最推荐）
+- `deepseek/deepseek-chat-v3-0324`: 最好的开源大模型之一，经常给出非常详细的注释（推荐）
 - `deepseek/deepseek-chat-v3-0324:free`: 免费但速度较慢
 s
 ### OpenAI
