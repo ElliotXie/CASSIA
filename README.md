@@ -53,6 +53,14 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ```
 
+***note if enviroment is not setting up correctly the first time, please restart R and run the code below***
+
+```R
+library(CASSIA)
+setup_cassia_env()
+```
+
+
 
 ### 🔑 Set Up API Keys
 
