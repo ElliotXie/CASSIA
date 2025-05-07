@@ -53,23 +53,23 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ```
 
+
 ### 🔑 Set Up API Keys
 
 It should take about 3 minutes to get your API key.
 
 We recommend starting with OpenRouter since it provides access to most models through a single API key.
 
-Note that in certain countries, OpenAI and Anthropic may be banned. In these cases, users can use OpenRouter instead.
-
 ```R
+# For OpenRouter
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
+
 # For OpenAI
 setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
 
 # For Anthropic
 setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
-# For OpenRouter
-setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 ```
 
 
@@ -93,21 +93,16 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 
 ## ⚙️ Pipeline Usage
 
+
 ```R
+# The default provider is set to OpenRouter.
+
 runCASSIA_pipeline(
     output_file_name,     # Base name for output files
     tissue,               # Tissue type (e.g., "brain")
     species,              # Species (e.g., "human")
     marker,               # Marker data from findallmarker
-    max_workers = 4,      # Number of parallel workers
-    annotation_model = "gpt-4o",                    # Model for annotation
-    annotation_provider = "openai",                 # Provider for annotation
-    score_model = "anthropic/claude-3.5-sonnet",    # Model for scoring
-    score_provider = "openrouter",                  # Provider for scoring
-    annotationboost_model="anthropic/claude-3.5-sonnet", #model for annotation boost
-    annotationboost_provider="openrouter", #provider for annotation boost
-    score_threshold = 75,                          # Minimum acceptable score
-    additional_info = NULL                         # Optional context information
+    max_workers = 4      # Number of parallel workers
 )
 ```
 
@@ -115,18 +110,17 @@ runCASSIA_pipeline(
 
 You can choose any model for annotation and scoring. Some classic models are listed below. OpenRouter supports most of the current popular models, although some have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.
 
-### OpenAI
-- `gpt-4o` (recommended): Balanced performance and cost
-
-### Anthropic
-- `claude-3-5-sonnet-20241022`: High-performance model
-- `claude-3-7-sonnet-latest`: The latest High-performance model
 
 ### OpenRouter
-- `anthropic/claude-3.5-sonnet`: High rate limit access to Claude
-- `openai/gpt-4o-2024-11-20`: Alternative access to GPT-4o
-- `deepseek/deepseek-chat-v3-0324`: almost free and comparable to GPT-4o (highly recommended)
-- `deepseek/deepseek-chat-v3-0324:free`: literally free but slower (recommended)
+- `google/gemini-2.5-flash-preview`: High rate limit access to Claude (Most recommended)
+- `deepseek/deepseek-chat-v3-0324`: Almost free and comparable to GPT-4o (Highly recommended)
+- `deepseek/deepseek-chat-v3-0324:free`: Free but slower
+
+### OpenAI
+- `gpt-4o`: Used in the benchmark
+
+### Anthropic
+- `claude-3-7-sonnet-latest`: The latest High-performance model
 
 ## 📤 Output
 
