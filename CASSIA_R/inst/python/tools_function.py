@@ -4555,9 +4555,9 @@ def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list
     # Use default models if none provided
     if model_list is None:
         model_list = [
-            "anthropic/claude-3.5-sonnet",
-            "openai/o1-mini",
-            "google/gemini-pro-1.5"
+            "anthropic/claude-3.7-sonnet",
+            "openai/o4-mini-high",
+            "google/gemini-2.5-pro-preview"
         ]
     
     # Construct prompt with dynamic cell type comparison, species, and marker set

@@ -171,6 +171,16 @@
                 <h2><i class="fas fa-newspaper"></i> 更新</h2>
                 <div class="news-container">
                     <div class="news-item">
+                        <div class="news-date">2025-05-05</div>
+                        <div class="news-content">
+                            <h3>📊 CASSIA注释基准测试平台现已上线！</h3>
+                            <p>本次更新推出了一个全新的基准测试平台，用于评估不同大型语言模型在单细胞注释任务中的表现与成本。</p>
+                            <p><strong>LLaMA4 Maverick、Gemini 2.5 Flash 和 DeepSeekV3 是目前性能与成本最均衡的模型，且几乎免费使用！</strong></p>
+                            <p>🔧 新增"自动合并功能"，可统一输出不同层级的细胞类型标签，大幅简化子聚类分析流程。</p>
+                            <p>🐛 修复了注释增强代理中的一个错误，提高了低质量注释的优化效果。</p>
+                        </div>
+                    </div>
+                    <div class="news-item">
                         <div class="news-date">2025-04-19</div>
                         <div class="news-content">
                             <h3>🔄 CASSIA 添加了重试机制和优化的报告存储！</h3>
@@ -208,19 +218,26 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")</code></pre>
                     </div>
 
-                    <h3>🔑 设置 API</h3>
-                    <p>设置api大概需要2分钟时间，我们建议从 OpenRouter 开始，因为它可以仅通过单个 API 就访问市面上大多数大模型。大规模应用则推荐使用 OpenAI 或 Anthropic 直接访问更加稳定。</p>
-                    <p>请注意，在某些国家，OpenAI 和 Anthropic 可能被禁止。在这些情况下，用户可以使用 OpenRouter 代替。</p>
+                    <p><strong>注意：如果环境第一次没有正确设置，请重启R并运行以下代码</strong></p>
+                    
+                    <div class="code-block">
+                        <pre><code>library(CASSIA)
+setup_cassia_env()</code></pre>
+                    </div>
+
+                    <h3>🔑 设置 API 密钥</h3>
+                    <p>获取API密钥大约需要3分钟时间。</p>
+                    <p>我们建议从 OpenRouter 开始，因为它可以通过单个 API 密钥访问大多数模型。</p>
 
                     <div class="code-block">
-                        <pre><code># 对于 OpenAI
+                        <pre><code># 对于 OpenRouter
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
+
+# 对于 OpenAI
 setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
 
 # 对于 Anthropic
-setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
-
-# 对于 OpenRouter
-setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)</code></pre>
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)</code></pre>
                     </div>
 
                     <h4>API 提供商指南:</h4>
@@ -242,32 +259,26 @@ setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
 
         <section id="usage" class="content-section">
             <div class="container">
-                <h2><i class="fas fa-cogs"></i> 快速一键使用</h2>
+                <h2><i class="fas fa-cogs"></i> 流程使用</h2>
                 
                 <h3>🧬 示例数据</h3>
                 <p>CASSIA 包含两种格式的示例标记数据：</p>
                 <div class="code-block">
                     <pre><code># 加载示例数据
 markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Seurat findallmarkers 输出文件
-markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式，包含两列数据：cluster_name 和 gene_list</code></pre>
+markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式</code></pre>
                 </div>
 
                 <h3>⚙️ R 流程</h3>
                 <div class="code-block">
-                    <pre><code>runCASSIA_pipeline(
+                    <pre><code># 默认提供商设置为OpenRouter
+
+runCASSIA_pipeline(
     output_file_name,     # 输出文件的基本名称
     tissue,               # 组织类型（例如，"brain"）
     species,              # 物种（例如，"human"）
     marker,               # 来自 findallmarker 的标记数据
-    max_workers = 4,      # 并行工作者数量 (根据电脑cpu核心数调整)
-    annotation_model = "gpt-4o",                    # 注释模型
-    annotation_provider = "openai",                 # 注释提供商
-    score_model = "anthropic/claude-3.5-sonnet",    # 评分模型
-    score_provider = "openrouter",                  # 评分提供商
-    annotationboost_model="anthropic/claude-3.5-sonnet", # 注释增强模型
-    annotationboost_provider="openrouter", # 注释增强提供商
-    score_threshold = 75,                          # 最低可接受分数
-    additional_info = NULL                         # 额外需要添加的细胞类型信息
+    max_workers = 4       # 并行工作者数量
 )</code></pre>
                 </div>
 
@@ -276,8 +287,8 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式�
                 <ol>
                     <li>初始注释结果</li>
                     <li>带推理的质量评分</li>
-                    <li>详细注释报告</li>
-                    <li>注释增强报告 （如果有任何评分低于75分的注释，则会自动生成注释增强报告）</li>
+                    <li>摘要报告</li>
+                    <li>注释增强报告</li>
                 </ol>
             </div>
         </section>
@@ -291,25 +302,23 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式�
                     <div class="model-card">
                         <h3>OpenRouter</h3>
                         <ul>
-                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>：非常经济实惠且表现与 GPT-4o 相当，最推荐使用</li>
-                            <li><strong>anthropic/claude-3.5-sonnet</strong>：可以绕过claude的访问限制</li>
-                            <li><strong>openai/gpt-4o-2024-11-20</strong>：可以绕过openai的访问限制</li>
+                            <li><strong>google/gemini-2.5-flash-preview</strong>：高速率限制访问Claude（最推荐）</li>
+                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>：几乎免费且可与GPT-4o相媲美（推荐）</li>
+                            <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>：免费但速度较慢</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>OpenAI</h3>
                         <ul>
-                            <li><strong>gpt-4o</strong>（推荐）：性能和成本平衡</li>
-                            <li><strong>o1-mini</strong>：高级推理能力（成本更高）</li>
+                            <li><strong>gpt-4o</strong>：用于文章的基准测试</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>Anthropic</h3>
                         <ul>
-                            <li><strong>claude-3-5-sonnet-20241022</strong>：高性能模型 （在论文测试中效果最佳）</li>
-                            <li><strong>claude-3-7-sonnet-latest</strong>：最新高性能模型模型</li>
+                            <li><strong>claude-3-7-sonnet-latest</strong>：最新的高性能模型</li>
                         </ul>
                     </div>
                 </div>
@@ -320,9 +329,9 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式�
             <div class="container">
                 <h2><i class="fas fa-wrench"></i> 故障排除</h2>
 
-                <h3>身份验证（错误 401 或者 Chocie Error）</h3>
+                <h3>身份验证（错误 401）</h3>
                 <div class="code-block">
-                    <pre><code># 检查 API 密钥是否正确设置，检查API是否已失效，检查钱是否已经用完
+                    <pre><code># 检查 API 密钥是否正确设置
 key <- Sys.getenv("ANTHROPIC_API_KEY")
 print(key)  # 输出结果不应该为空
 
@@ -333,7 +342,14 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
                 <h3>文件错误</h3>
                 <ul>
                     <li>必要时使用绝对路径</li>
+                    <li>检查文件权限</li>
                     <li>确保文件未在其他程序中打开</li>
+                </ul>
+
+                <h3>最佳实践</h3>
+                <ul>
+                    <li>保持API密钥安全</li>
+                    <li>维持足够的API额度</li>
                 </ul>
 
                 <p><strong>注意：</strong>此网站仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：<a href="https://cassia-documentation-cn.vercel.app/" target="_blank" rel="noopener">CASSIA 完整教程</a>。</p>
@@ -345,7 +361,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
                 <h2><i class="fas fa-book"></i> 引用</h2>
                 <div class="citation-links">
                     <a href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" rel="noopener" class="citation-link">
-                        <i class="fas fa-file-alt"></i> 最新预印本 (v2, 最新版)
+                        <i class="fas fa-file-alt"></i> 阅读我们的预印本 (v2, 最新版)
                     </a>
                     <a href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1" target="_blank" rel="noopener" class="citation-link">
                         <i class="fas fa-file-alt"></i> 原始预印本 (v1, 历史版本)
@@ -353,7 +369,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
                 </div>
                 
                 <div class="citation-text">
-                    <p>CASSIA: a multi-agent large language model for reference free, interpretable, and automated cell annotation of single-cell RNA-sequencing data<br>
+                    <p>CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data<br>
                     Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski<br>
                     bioRxiv 2024.12.04.626476; doi: <a href="https://doi.org/10.1101/2024.12.04.626476" target="_blank" rel="noopener">https://doi.org/10.1101/2024.12.04.626476</a></p>
                 </div>
@@ -365,7 +381,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
                 <h2><i class="fas fa-envelope"></i> 联系方式</h2>
                 <p>如有任何问题或需要帮助，欢迎随时邮件联系我们，我们一定会尽力协助：</p>
                 <p class="email"><a href="mailto:xie227@wisc.edu">xie227@wisc.edu</a></p>
-                <p>如果您觉得我们的项目对您有帮助，请留下一个⭐~ 或者将项目分享给你的朋友，感激不尽！</p>
+                <p>如果您觉得我们的项目对您有帮助，请留下一个⭐或者将项目分享给你的朋友，感激不尽！</p>
                 <div class="github-button">
                     <a href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener" class="btn secondary">
                         <i class="fab fa-github"></i> 在 GitHub 上点赞

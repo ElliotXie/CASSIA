@@ -169,6 +169,16 @@
                 <h2><i class="fas fa-newspaper"></i> News</h2>
                 <div class="news-container">
                     <div class="news-item">
+                        <div class="news-date">2025-05-05</div>
+                        <div class="news-content">
+                            <h3>📊 CASSIA annotation benchmark is now online!</h3>
+                            <p>The latest update introduces a new benchmarking platform that evaluates how different LLMs perform on single-cell annotation tasks, including accuracy and cost.</p>
+                            <p><strong>LLaMA4 Maverick, Gemini 2.5 Flash, and DeepSeekV3 are the top three most balanced options—nearly free!</strong></p>
+                            <p>🔧 A new <strong>auto-merge</strong> function unifies CASSIA output across different levels, making subclustering much easier.</p>
+                            <p>🐛 Fixed a bug in the annotation boost agent to improve downstream refinement.</p>
+                        </div>
+                    </div>
+                    <div class="news-item">
                         <div class="news-date">2025-04-19</div>
                         <div class="news-content">
                             <h3>🔄 CASSIA adds a retry mechanism and optimized report storage!</h3>
@@ -206,20 +216,26 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")</code></pre>
                     </div>
 
+                    <p><strong>Note: If the environment is not set up correctly the first time, please restart R and run the code below</strong></p>
+                    
+                    <div class="code-block">
+                        <pre><code>library(CASSIA)
+setup_cassia_env()</code></pre>
+                    </div>
+
                     <h3>🔑 Set Up API Keys</h3>
                     <p>It should take about 3 minutes to get your API key.</p>
                     <p>We recommend starting with OpenRouter since it provides access to most models through a single API key.</p>
-                    <p>Note that in certain countries, OpenAI and Anthropic may be banned. In these cases, users can use OpenRouter instead.</p>
 
                     <div class="code-block">
-                        <pre><code># For OpenAI
+                        <pre><code># For OpenRouter
+setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
+
+# For OpenAI
 setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
 
 # For Anthropic
-setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
-
-# For OpenRouter
-setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)</code></pre>
+setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)</code></pre>
                     </div>
 
                     <h4>API Provider Guides:</h4>
@@ -253,20 +269,14 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 
                 <h3>⚙️ R Pipeline</h3>
                 <div class="code-block">
-                    <pre><code>runCASSIA_pipeline(
+                    <pre><code># The default provider is set to OpenRouter.
+
+runCASSIA_pipeline(
     output_file_name,     # Base name for output files
     tissue,               # Tissue type (e.g., "brain")
     species,              # Species (e.g., "human")
     marker,               # Marker data from findallmarker
-    max_workers = 4,      # Number of parallel workers
-    annotation_model = "gpt-4o",                    # Model for annotation
-    annotation_provider = "openai",                 # Provider for annotation
-    score_model = "anthropic/claude-3.5-sonnet",    # Model for scoring
-    score_provider = "openrouter",                  # Provider for scoring
-    annotationboost_model="anthropic/claude-3.5-sonnet", #model for annotation boost
-    annotationboost_provider="openrouter", #provider for annotation boost
-    score_threshold = 75,                          # Minimum acceptable score
-    additional_info = NULL                         # Optional context information
+    max_workers = 4       # Number of parallel workers
 )</code></pre>
                 </div>
 
@@ -288,27 +298,25 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 
                 <div class="model-cards">
                     <div class="model-card">
+                        <h3>OpenRouter</h3>
+                        <ul>
+                            <li><strong>google/gemini-2.5-flash-preview</strong>: High rate limit access to Claude (Most recommended)</li>
+                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>: Almost free and comparable to GPT-4o (Highly recommended)</li>
+                            <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>: Free but slower</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="model-card">
                         <h3>OpenAI</h3>
                         <ul>
-                            <li><strong>gpt-4o</strong> (recommended): Balanced performance and cost</li>
+                            <li><strong>gpt-4o</strong>: Used in the benchmark</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>Anthropic</h3>
                         <ul>
-                            <li><strong>claude-3-5-sonnet-20241022</strong>: High-performance model</li>
                             <li><strong>claude-3-7-sonnet-latest</strong>: The latest High-performance model</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="model-card">
-                        <h3>OpenRouter</h3>
-                        <ul>
-                            <li><strong>anthropic/claude-3.5-sonnet</strong>: High rate limit access to Claude</li>
-                            <li><strong>openai/gpt-4o-2024-11-20</strong>: Alternative access to GPT-4o</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>: almost free and comparable to GPT-4o (highly recommended)</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>: literally free but slower (recommended)</li>
                         </ul>
                     </div>
                 </div>
