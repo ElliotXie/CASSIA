@@ -172,7 +172,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -201,7 +201,7 @@ def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", sp
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -365,7 +365,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1):
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -433,7 +433,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -1040,7 +1040,7 @@ def process_cell_type_variance_analysis_batch_claude(results, model="claude-3-5-
 
 
 
-def process_cell_type_results(organized_results, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def process_cell_type_results(organized_results, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
     processed_results = {}
     
     def process_single_celltype(celltype, predictions):
@@ -1159,7 +1159,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1371,7 +1371,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1640,7 +1640,7 @@ def extract_score_and_reasoning(text):
         print(f"Error extracting data: {str(e)}")
         return None, None
 
-def score_single_analysis(major_cluster_info, marker, annotation_history, model="gpt-4o", provider="openai"):
+def score_single_analysis(major_cluster_info, marker, annotation_history, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
     """
     Score a single cell type annotation analysis.
     
@@ -1670,7 +1670,7 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
 
 
 
-def process_single_row(row_data, model="gpt-4o", provider="openai"):
+def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
     """
     Process a single row of data.
     
@@ -1718,7 +1718,7 @@ def process_single_row(row_data, model="gpt-4o", provider="openai"):
         return (idx, None, f"Error: {str(e)}")
 
 
-def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="gpt-4o", provider="openai"):
+def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
     """
     Process and score all rows in a results CSV file in parallel.
     
@@ -1783,7 +1783,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
     """
     Run scoring with progress updates.
     
@@ -3672,8 +3672,8 @@ def runCASSIA_annotationboost(
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="gpt-4o",
-    provider="openai"
+    model="google/gemini-2.5-flash-preview",
+    provider="openrouter"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -4528,7 +4528,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
-                       model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
+                       model="google/gemini-2.5-flash-preview", temperature=0, provider="openrouter",n_genes=50):
     """
     Process subclusters from a CSV file and generate annotated results
     
@@ -4554,8 +4554,8 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
 
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
-                                         model="claude-3-5-sonnet-20241022", temperature=0, 
-                                         provider="anthropic", max_workers=5,n_genes=50):       
+                                         model="google/gemini-2.5-flash-preview", temperature=0, 
+                                         provider="openrouter", max_workers=5,n_genes=50):       
     def run_single_analysis(i):
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info, 
