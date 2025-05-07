@@ -10,9 +10,7 @@
 
 🌐 [体验 CASSIA 网页界面](https://cassiacell.com/) - 仅提供最基础的CASSIA功能
 
-📝 [R 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_tutorial_final.Rmd)
-
-📚 [完整 R 文档/英文版](https://documentationeng.vercel.app/)
+📚 [完整 R 文档及示例/英文版/最新](https://cassia-documentation-en-new.vercel.app/)
 
 📚 [完整 R 文档/中文版](https://cassia-documentation-cn.vercel.app/)
 
