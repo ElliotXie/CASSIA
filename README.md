@@ -131,10 +131,9 @@ You can choose any model for annotation and scoring. Some classic models are lis
 ## 📤 Output
 
 The pipeline generates four key files:
-1. Initial annotation results
-2. Quality scores with reasoning
-3. Summary report
-4. Annotation boost report
+1. Complete Annotation Results CSV File
+2. Annotation Summary HTML Report
+3. Annotation Boost Agent Report for Low Quality Annotation
 
 ## 🧰 Troubleshooting
 
