@@ -159,7 +159,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 
 Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://cassia-true-final-4.vercel.app/).
+[CASSIA Complete Tutorial](https://cassia-documentation-en-new.vercel.app/).
 
 ## 📖 Citation
 
