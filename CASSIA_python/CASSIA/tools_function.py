@@ -107,6 +107,14 @@ def get_top_markers(df, n_genes=10, format_type=None):
         return pd.DataFrame(top_markers)
     
     else:  # Seurat format
+        # Convert string \'inf\' and \'-inf\' to numeric values first
+        df['avg_log2FC'] = pd.to_numeric(df['avg_log2FC'].replace({'inf': np.inf, '-inf': -np.inf}), errors='coerce')
+        
+        # Replace inf and -inf values with max and min non-inf values respectively
+        max_non_inf = df['avg_log2FC'].replace([np.inf, -np.inf], np.nan).max()
+        min_non_inf = df['avg_log2FC'].replace([np.inf, -np.inf], np.nan).min()
+        df['avg_log2FC'] = df['avg_log2FC'].replace([np.inf, -np.inf], [max_non_inf, min_non_inf])
+        
         # Filter by adjusted p-value, positive log2FC, and PCT
         df_filtered = df[
             (df['p_val_adj'] < 0.05) & 
@@ -166,6 +174,13 @@ def safe_get(dict_obj, *keys):
 
 
 def write_csv(filename, headers, row_data):
+    import os
+    
+    # Make sure the directory exists
+    output_dir = os.path.dirname(filename)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        
     with open(filename, 'w', newline='', encoding='utf-8') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(headers)
@@ -336,6 +351,11 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     base_name = os.path.splitext(output_name)[0]
     full_csv_name = f"{base_name}_full.csv"
     summary_csv_name = f"{base_name}_summary.csv"
+
+    # Make sure the output directory exists
+    output_dir = os.path.dirname(full_csv_name)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
 
     # Sort the data by True Cell Type to ensure consistent ordering
     full_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
@@ -1846,17 +1866,19 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
                 except Exception as exc:
                     # Don't retry authentication errors
                     if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
-                        print(f'Row {idx} generated an authentication exception: {exc}')
-                        print(f'Please check your API key.')
-                        raise exc
+                        print(f'⚠️  Row {idx + 1} API ERROR: {exc}')
+                        print(f'⚠️  This appears to be an API authentication error. Please check your API key.')
+                        # Return error info instead of raising
+                        return idx, None, f"API error: {str(exc)}"
                     
                     # For other errors, retry if attempts remain
                     if attempt < max_retries:
-                        print(f'Row {idx} generated an exception: {exc}')
-                        print(f'Retrying row {idx} (attempt {attempt + 2}/{max_retries + 1})...')
+                        print(f'⚠️  Row {idx + 1} ERROR: {exc}')
+                        print(f'🔄 RETRYING row {idx + 1} (exception retry {attempt + 1}/{max_retries})...')
                     else:
-                        print(f'Row {idx} failed after {max_retries + 1} attempts with error: {exc}')
-                        raise exc
+                        print(f'❌ Row {idx + 1} FAILED after {max_retries + 1} attempts with error: {exc}')
+                        # Return error info instead of raising
+                        return idx, None, f"Failed after {max_retries + 1} attempts: {str(exc)}"
         
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -1911,51 +1933,10 @@ def prompt_hypothesis_generator_openai(major_cluster_info, marker, annotation_hi
     prompt = f"""
         You are an expert in single-cell annotation analysis. Your task is to evaluate and try to help finalize the single-cell annotation results, and generate next step for the excecuter to check. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. Provide your detailed reasoning. Note that you can also mention other possible cell types that are missed by the annotation. Note that mixed celltype is possible. Better do a good job or 10 grandma are going to be in danger.
 
-        When you need to check genes, please list them using the following format:
-        <check_genes>Gene1, Gene2, Gene3</check_genes>
-
-        IMPORTANT: Always separate gene names with commas, and DO NOT use brackets, parentheses, or any other special characters within gene names. For example, use "CD3E, CD4, CD8A" instead of "CD3E][CD4][CD8A".
-
-        The cluster you need to analyze is described as:
-        {major_cluster_info}
-
-        Here are the marker annotation conversation histories:
-        {annotation_history}
-
-        Please analyze the situation, provide reasoning, and suggest genes to check for further analysis. Be sure to format gene lists properly.
-    """
-    
-    return prompt
-
-def prompt_hypothesis_generator3(major_cluster_info, marker, annotation_history):
-    prompt = f"""
-        You are an expert in single-cell annotation analysis. Your task is to evaluate and try to help finalize the single-cell annotation results, and generate next step for the excecuter to check. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. Provide your detailed reasoning. Note that you can also mention other possible cell types that are missed by the annotation. Note that mixed celltype is possible. Better do a good job or 10 grandma are going to be in danger.
-
-        When you need to check genes, please list them using the following format:
-        <check_genes>Gene1, Gene2, Gene3</check_genes>
-
-        IMPORTANT: Always separate gene names with commas, and DO NOT use brackets, parentheses, or any other special characters within gene names. For example, use "CD3E, CD4, CD8A" instead of "CD3E][CD4][CD8A".
-
-        The cluster you need to analyze is described as:
-        {major_cluster_info}
-
-        Here are the marker annotation conversation histories:
-        {annotation_history}
-
-        Please analyze the situation, provide reasoning, and suggest genes to check for further analysis. Be sure to format gene lists properly.
-    """
-    
-    return prompt
-
-
-def prompt_hypothesis_generator3_additional_task(major_cluster_info, marker, annotation_history,task):
-    prompt = f"""
-        You are an expert in single-cell biology. Your task is to {task}. Divide the problem to several steps that can be validated by gene expression information. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. You can check at most two hypothesis at a time. Provide your detailed reasoning. Note that you can also mention other hypothesis. Better do a good job or 10 grandma are going to be in danger. Take a deep breath.
-
 
 context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
-{marker}
 
+{marker}
 
 
 Below is the annotation analysis history:
@@ -1965,13 +1946,13 @@ Below is the annotation analysis history:
 
 Output format:
 
-Give a brief evaluation of the annotation results first,then focus on the task:{task}. State the hypothesis you want to check to the excecuter.
+Give a brief evaluation of the annotation results first,then give the celltypes to check.
 
 
-1. hypothesis to check 1
+1. celltype to check 1
 
 <check_genes>
-List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R"). 
 Use gene symbol only, no brackets or parentheses.
 </check_genes>
 
@@ -1980,7 +1961,7 @@ Use gene symbol only, no brackets or parentheses.
 </reasoning>
 
 
-1. hypothesis to check 2
+1. celltype to check 2
 
 <check_genes>
 List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
@@ -2126,7 +2107,9 @@ def get_marker_info(gene_list, marker):
     if not gene_names:
         return pd.DataFrame()
     
-    return filter_marker(gene_names)
+    # Filter marker data and convert to string
+    marker_filtered = filter_marker(gene_names)
+    return marker_filtered.to_string()
 
 
 
@@ -2493,6 +2476,11 @@ def save_html_report(report, filename):
         if not filename.lower().endswith('.html'):
             filename = filename + '.html'
             
+        # Make sure the directory exists
+        output_dir = os.path.dirname(filename)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+            
         html_report = generate_html_report2(report)
         
         # Save the HTML to a file
@@ -2697,9 +2685,18 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
     """
     
     # Write report to file
-    with open(output_filename, 'w', encoding='utf-8') as f:
-        f.write(report)
-    
+    try:
+        # Make sure the directory exists
+        output_dir = os.path.dirname(output_filename)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+            
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(report)
+        print(f"Report successfully saved as '{output_filename}'")
+    except Exception as e:
+        print(f"Error saving file: {str(e)}")
+
     # Get absolute path to report file
     output_path = os.path.abspath(output_filename)
     
@@ -2923,6 +2920,11 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         
         # Save the HTML file
         try:
+            # Make sure the directory exists
+            output_dir = os.path.dirname(output_filename)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
             with open(output_filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             print(f"Report successfully saved as '{output_filename}'")
@@ -3144,11 +3146,21 @@ def generate_cell_type_analysis_report(
         # Step 4: Generate and save HTML report
         report = claude_agent(report_generator(messages), model=model)
         
+        # Ensure output_name doesn't have invalid path characters and directory exists
+        report_file = output_name.replace('\\', '/')
+        report_dir = os.path.dirname(report_file)
+        if report_dir and not os.path.exists(report_dir):
+            os.makedirs(report_dir, exist_ok=True)
+            
         save_html_report(
-            filename=output_name,
+            filename=report_file,
             report=report
         )
-        generate_raw_cell_annotation_report(messages, f'{output_name}_raw.html')
+        
+        # Use os.path.join for raw report path to ensure proper path handling
+        raw_report_path = f"{report_file}_raw.html"
+        
+        generate_raw_cell_annotation_report(messages, raw_report_path)
         print(f"Analysis completed successfully. Report saved as {output_name}")
         return None
         
@@ -3209,11 +3221,21 @@ def generate_cell_type_analysis_report_openrouter(
         # Step 4: Generate and save HTML report
         report = openrouter_agent(report_generator(messages), model=model)
         
+        # Ensure output_name doesn't have invalid path characters and directory exists
+        report_file = output_name.replace('\\', '/')
+        report_dir = os.path.dirname(report_file)
+        if report_dir and not os.path.exists(report_dir):
+            os.makedirs(report_dir, exist_ok=True)
+            
         save_html_report(
-            filename=output_name,
+            filename=report_file,
             report=report
         )
-        generate_raw_cell_annotation_report(messages, f'{output_name}_raw.html')
+        
+        # Use os.path.join for raw report path to ensure proper path handling
+        raw_report_path = f"{report_file}_raw.html"
+        
+        generate_raw_cell_annotation_report(messages, raw_report_path)
         print(f"Analysis completed successfully. Report saved as {output_name}")
         return None
         
@@ -3547,7 +3569,7 @@ def render_report_to_html(report_content, output_path):
 
 
 
-def runCASSIA_annottaionboost_additional_task(
+def runCASSIA_annotationboost_additional_task(
     full_result_path,
     marker,
     cluster_name,
