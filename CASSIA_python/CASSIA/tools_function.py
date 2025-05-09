@@ -6,12 +6,13 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from .main_function_code import *
+from main_function_code import *
 import requests
 import threading
 import numpy as np
 from importlib import resources
 import datetime
+import shutil
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -1980,490 +1981,117 @@ When you think you can generate the final answer to the task, you can say "FINAL
     return prompt
 
 
+def prompt_hypothesis_generator3(major_cluster_info, marker, annotation_history):
+    prompt = f"""
+        You are an expert in single-cell annotation analysis. Your task is to evaluate and try to help finalize the single-cell annotation results, and generate next step for the excecuter to check. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. Provide your detailed reasoning. Note that you can also mention other possible cell types that are missed by the annotation. Note that mixed celltype is possible. Better do a good job or 10 grandma are going to be in danger.
+
+
+context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
+{marker}
+
+
+
+Below is the annotation analysis history:
+{annotation_history}
 
 
 
 
-def prepare_analysis_data(full_result_path, marker_path, cluster_name):
-    # Load the full results and marker files
-    full_result = pd.read_csv(full_result_path)
-    
-    if isinstance(marker_path, pd.DataFrame):
-        marker = marker_path.copy()
-    elif isinstance(marker_path, str):
-        marker = pd.read_csv(marker_path)
-    else:
-        raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
+Give a brief evaluation of the annotation results first,then give the celltypes or hypothesis to check.
 
-    # Convert cluster_name to string to ensure proper comparison
-    cluster_name = str(cluster_name)
-    
-    # Make sure 'True Cell Type' column values are also converted to strings
-    full_result['True Cell Type'] = full_result['True Cell Type'].astype(str)
-    
-    # Extract conversation history for the specified cluster
-    cluster_data = full_result[full_result['True Cell Type'] == cluster_name]
-    if cluster_data.empty:
-        raise ValueError(f"No data found for cluster: {cluster_name}")
-    
-    annotation_history = cluster_data['Conversation History'].iloc[0]
-    
-    # Prepare marker data for the specified cluster
-    if 'cluster' in marker.columns:
-        # Convert cluster column to string as well for proper comparison
-        marker['cluster'] = marker['cluster'].astype(str)
-        cluster_marker = marker[marker['cluster'] == cluster_name]
-    else:
-        # If there's no cluster column, assume it's already the right subset
-        cluster_marker = marker
+Output format example:
 
-    comma_separated_genes = cluster_data['Marker List'].iloc[0]
+celltype to check 1
 
-    # Prepare subset of marker file for iterative analysis
-    marker_subset = cluster_marker
-    if 'gene' in marker_subset.columns:
-        marker_subset = marker_subset.set_index('gene')
-    
-    return annotation_history, comma_separated_genes, marker_subset
+<check_genes>
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+Use gene symbol only, no brackets or parentheses.
+</check_genes>
+
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
 
 
-import anthropic
+celltype to check 2
 
-def claude_agent(user_message,model="claude-3-5-sonnet-20241022",temperature=0):
-    client = anthropic.Anthropic()
+<check_genes>
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
+</check_genes>
 
-    message = client.messages.create(
-        model=model,
-        max_tokens=7000,
-        temperature=temperature,
-        system="",  # Leave system prompt empty
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": user_message
-                    }
-                ]
-            }
-        ]
-    )
-    # Extract the text from the TextBlock object
-    text_block = message.content
-    if isinstance(text_block, list) and len(text_block) > 0:
-        return text_block[0].text  # Directly access the 'text' attribute
-    return ''
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
 
+Hypothesis to check 1
 
+<check_genes>
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
+</check_genes>
 
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
 
-def get_marker_info(gene_list, marker):
-    def filter_marker(gene_names):
-        # Convert marker to pandas DataFrame if it's not already
-        if not isinstance(marker, pd.DataFrame):
-            marker_df = pd.DataFrame(marker)
-        else:
-            marker_df = marker.copy()
+include at most 3 cell types or hypothesis in total at a time.
 
-        # Create result DataFrame with same columns as input
-        result = pd.DataFrame(index=gene_names, columns=marker_df.columns)
+When you think you can generate the final annotation, you can say "FINAL ANNOTATION COMPLETED"
 
-        # Fill data
-        for gene in gene_names:
-            if gene in marker_df.index:
-                result.loc[gene] = marker_df.loc[gene]
-            else:
-                result.loc[gene] = pd.Series('NA', index=marker_df.columns)
-
-        # Only try to format numeric columns that exist
-        numeric_cols = result.select_dtypes(include=[np.number]).columns
-        for col in numeric_cols:
-            try:
-                result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
-            except:
-                continue
-
-        return result.iloc[:, 0:5]
-    
-    # Clean the gene list string - handle special patterns like 'THY1],[CD68'
-    if isinstance(gene_list, str):
-        # First, replace problematic sequences like '],[' with commas
-        cleaned_gene_list = gene_list.replace('],[', ',')
-        
-        # Remove any remaining brackets
-        cleaned_gene_list = cleaned_gene_list.replace('[', '').replace(']', '')
-        
-        # Split by commas and strip whitespace from each gene name
-        gene_names = [gene.strip() for gene in cleaned_gene_list.split(',')]
-        
-        # Remove any empty gene names
-        gene_names = [gene for gene in gene_names if gene]
-    elif isinstance(gene_list, list):
-        gene_names = gene_list
-    else:
-        raise ValueError("gene_list must be a string or a list of gene names")
-    
-    if not gene_names:
-        return pd.DataFrame()
-    
-    # Filter marker data and convert to string
-    marker_filtered = filter_marker(gene_names)
-    return marker_filtered.to_string()
-
-
-
-
-def iterative_marker_analysis_openai(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2,model="gpt-4o"):
     """
-    Perform iterative marker analysis using OpenAI's GPT-4 model.
-    
-    Args:
-        major_cluster_info (str): General information about the dataset
-        marker (DataFrame): Marker gene expression data
-        comma_separated_genes (str): List of genes as comma-separated string
-        annotation_history (str): Previous annotation history
-        num_iterations (int): Maximum number of iterations
-        
-    Returns:
-        tuple: (final_response_text, messages)
+    return prompt
+
+
+def prompt_hypothesis_generator3_additional_task(major_cluster_info, marker, annotation_history, task):
+    prompt = f"""
+        You are an expert in single-cell biology. Your task is to {task}. Divide the problem to several steps that can be validated by gene expression information. You can ask the excecuter to check certain group of genes expression, you can check for positive marker or negative marker. You can check at most two hypothesis at a time. Provide your detailed reasoning. Note that you can also mention other hypothesis. Better do a good job or 10 grandma are going to be in danger. Take a deep breath.
+
+
+context: the analylized cluster is from {major_cluster_info}, and has the following highly expressed markers:
+{marker}
+
+
+
+Below is the annotation analysis history:
+{annotation_history}
+
+
+
+Output format:
+
+Give a brief evaluation of the annotation results first,then focus on the task:{task}. State the hypothesis you want to check to the excecuter.
+
+
+1. hypothesis to check 1
+
+<check_genes>
+List gene names separated by commas (e.g., "CD4, CD8A, IL7R").
+Use gene symbol only, no brackets or parentheses.
+</check_genes>
+
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
+
+
+1. hypothesis to check 2
+
+<check_genes>
+List gene names separated by commas (e.g., "FOXP3, IL2RA, CTLA4").
+Use gene symbol only, no brackets or parentheses.
+</check_genes>
+
+<reasoning>
+[Your detailed reasoning here]
+</reasoning>
+
+include more hypothesis if necessary.
+
+When you think you can generate the final answer to the task, you can say "FINAL ANALYSIS COMPLETED"
+
     """
-    # Initialize OpenAI client
-    client = OpenAI()
-    
-    # Initialize messages list with system and first user message
-    messages = [
-        {"role": "user", "content": prompt_hypothesis_generator_openai(major_cluster_info, comma_separated_genes, annotation_history)}
-    ]
-
-    for iteration in range(num_iterations):
-        # Make API call to OpenAI
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0,
-            max_tokens=5000
-        )
-        
-        conversation = response.choices[0].message.content
-
-        # Check for completion
-        if "FINAL ANNOTATION COMPLETED" in conversation:
-            print(f"Final annotation completed in iteration {iteration + 1}.")
-            return conversation, messages
-
-        # Extract gene lists and get marker info
-        gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        
-        # Improve gene extraction to handle special cases
-        all_genes = []
-        for gene_list in gene_lists:
-            # Clean and normalize the gene list
-            # Replace common separators with commas
-            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
-            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
-            # Split by comma or space, depending on formatting
-            genes = re.split(r',\s*|\s+', cleaned_list)
-            all_genes.extend([g.strip() for g in genes if g.strip()])
-        
-        unique_genes = sorted(set(all_genes))
-
-        retrived_marker_info = get_marker_info(unique_genes, marker)
-        
-        # Append messages
-        messages.append({"role": "assistant", "content": conversation})
-        messages.append({"role": "user", "content": retrived_marker_info})
-
-        print(f"Iteration {iteration + 1} completed.")
-
-    # Final response if max iterations reached
-    final_response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0,
-        max_tokens=4000
-    )
-    print("Final response can not be generated within the maximum number of iterations")
-
-    return final_response.choices[0].message.content, messages
-
-import re
-from anthropic import Anthropic
-
-def iterative_marker_analysis(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2,model="claude-3-5-sonnet-20241022"):
-    client = Anthropic()
-
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)}]
-
-    for iteration in range(num_iterations):
-        response = client.messages.create(
-            model=model,
-            max_tokens=7000,
-            temperature=0,
-            system="",
-            messages=messages
-        )
-
-        conversation = response.content[0].text
-
-        # Check if "FINAL ANNOTATION COMPLETED" is in the response
-        if "FINAL ANNOTATION COMPLETED" in conversation:
-            print(f"Final annotation completed in iteration {iteration + 1}.")
-            return conversation, messages
-
-        # Extract gene lists and get marker info
-        gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-        
-        # Improve gene extraction to handle special cases
-        all_genes = []
-        for gene_list in gene_lists:
-            # Clean and normalize the gene list
-            # Replace common separators with commas
-            cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
-            cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
-            # Split by comma or space, depending on formatting
-            genes = re.split(r',\s*|\s+', cleaned_list)
-            all_genes.extend([g.strip() for g in genes if g.strip()])
-        
-        unique_genes = sorted(set(all_genes))
-
-        retrived_marker_info = get_marker_info(unique_genes, marker)
-        
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": retrived_marker_info})
-
-        print(f"Iteration {iteration + 1} completed.")
-
-    final_response = client.messages.create(
-        model=model,
-        max_tokens=7000,
-        temperature=0,
-        system="",
-        messages=messages
-    )
-
-    return final_response.content[0].text, messages
-
-
-
-
-def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet"):
-    """
-    Perform iterative marker analysis using OpenRouter API.
-    
-    Args:
-        major_cluster_info (str): Information about the cluster
-        marker (DataFrame): Marker gene expression data
-        comma_separated_genes (str): List of genes as comma-separated string
-        annotation_history (str): Previous annotation history
-        num_iterations (int): Maximum number of iterations
-        model (str): OpenRouter model identifier
-        
-    Returns:
-        tuple: (final_response_text, messages)
-    """
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)}]
-
-    for iteration in range(num_iterations):
-        try:
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                    "X-Title": "CASSIA",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "temperature": 0,
-                    "max_tokens": 7000,
-                    "messages": messages
-                }
-            )
-            
-            # Check if request was successful
-            if response.status_code == 200:
-                response_data = response.json()
-                conversation = response_data['choices'][0]['message']['content']
-
-                # Check for completion
-                if "FINAL ANNOTATION COMPLETED" in conversation:
-                    print(f"Final annotation completed in iteration {iteration + 1}.")
-                    return conversation, messages
-
-                # Extract gene lists and get marker info
-                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                
-                # Improve gene extraction to handle special cases
-                all_genes = []
-                for gene_list in gene_lists:
-                    # Clean and normalize the gene list
-                    # Replace common separators with commas
-                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
-                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
-                    # Split by comma or space, depending on formatting
-                    genes = re.split(r',\s*|\s+', cleaned_list)
-                    all_genes.extend([g.strip() for g in genes if g.strip()])
-                
-                unique_genes = sorted(set(all_genes))
-
-                retrived_marker_info = get_marker_info(unique_genes, marker)
-                
-                # Append messages
-                messages.append({"role": "assistant", "content": conversation})
-                messages.append({"role": "user", "content": retrived_marker_info})
-
-                print(f"Iteration {iteration + 1} completed.")
-            else:
-                print(f"Error: OpenRouter API returned status code {response.status_code}")
-                print(f"Response: {response.text}")
-                return '', messages
-
-        except Exception as e:
-            print(f"Error in iteration {iteration + 1}: {str(e)}")
-            return '', messages
-
-    # Final response if max iterations reached
-    try:
-        final_response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                "X-Title": "CASSIA",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model,
-                "temperature": 0,
-                "max_tokens": 7000,
-                "messages": messages
-            }
-        )
-        
-        if final_response.status_code == 200:
-            final_data = final_response.json()
-            return final_data['choices'][0]['message']['content'], messages
-        else:
-            print(f"Error getting final response: {final_response.status_code}")
-            print(f"Response: {final_response.text}")
-            return '', messages
-            
-    except Exception as e:
-        print(f"Error in final response: {str(e)}")
-        return '', messages
-
-
-
-
-def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet",additional_task="check if this is a cancer cluster"):
-    """
-    Perform iterative marker analysis using OpenRouter API.
-    
-    Args:
-        major_cluster_info (str): Information about the cluster
-        marker (DataFrame): Marker gene expression data
-        comma_separated_genes (str): List of genes as comma-separated string
-        annotation_history (str): Previous annotation history
-        num_iterations (int): Maximum number of iterations
-        model (str): OpenRouter model identifier
-        additional_task (str): Additional task to be performed
-
-    Returns:
-        tuple: (final_response_text, messages)
-    """
-    messages = [{"role": "user", "content": prompt_hypothesis_generator3_additional_task(major_cluster_info, comma_separated_genes, annotation_history,additional_task)}]
-
-    for iteration in range(num_iterations):
-        try:
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                    "X-Title": "CASSIA",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "temperature": 0,
-                    "max_tokens": 7000,
-                    "messages": messages
-                }
-            )
-            
-            # Check if request was successful
-            if response.status_code == 200:
-                response_data = response.json()
-                conversation = response_data['choices'][0]['message']['content']
-
-                # Check for completion
-                if "FINAL ANALYSIS COMPLETED" in conversation:
-                    print(f"Final annotation completed in iteration {iteration + 1}.")
-                    return conversation, messages
-
-                # Extract gene lists and get marker info
-                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-                
-                # Improve gene extraction to handle special cases
-                all_genes = []
-                for gene_list in gene_lists:
-                    # Clean and normalize the gene list
-                    # Replace common separators with commas
-                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
-                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
-                    # Split by comma or space, depending on formatting
-                    genes = re.split(r',\s*|\s+', cleaned_list)
-                    all_genes.extend([g.strip() for g in genes if g.strip()])
-                
-                unique_genes = sorted(set(all_genes))
-
-                retrived_marker_info = get_marker_info(unique_genes, marker)
-                
-                # Append messages
-                messages.append({"role": "assistant", "content": conversation})
-                messages.append({"role": "user", "content": retrived_marker_info})
-
-                print(f"Iteration {iteration + 1} completed.")
-            else:
-                print(f"Error: OpenRouter API returned status code {response.status_code}")
-                print(f"Response: {response.text}")
-                return '', messages
-
-        except Exception as e:
-            print(f"Error in iteration {iteration + 1}: {str(e)}")
-            return '', messages
-
-    # Final response if max iterations reached
-    try:
-        final_response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                "X-Title": "CASSIA",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model,
-                "temperature": 0,
-                "max_tokens": 7000,
-                "messages": messages
-            }
-        )
-        
-        if final_response.status_code == 200:
-            final_data = final_response.json()
-            return final_data['choices'][0]['message']['content'], messages
-        else:
-            print(f"Error getting final response: {final_response.status_code}")
-            print(f"Response: {final_response.text}")
-            return '', messages
-            
-    except Exception as e:
-        print(f"Error in final response: {str(e)}")
-        return '', messages
+    return prompt
 
 
 
@@ -2639,19 +2267,204 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Cell Annotation Report</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CASSIA Cell Annotation Report</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .conversation { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
-            .user { background-color: #f0f7ff; }
-            .assistant { background-color: #f5f5f5; }
-            .role { font-weight: bold; margin-bottom: 5px; }
-            .content { white-space: pre-wrap; }
-            .highlight { background-color: #ffffcc; font-weight: bold; }
+            :root {
+                --user-bg: #f0f8ff;
+                --user-border: #4a86e8;
+                --assistant-bg: #f9f9f9;
+                --assistant-border: #5f6368;
+                --highlight-bg: #fffacd;
+                --highlight-text: #d14836;
+                --header-bg: linear-gradient(135deg, #4a86e8, #6c5ce7);
+                --body-bg: #f5f7fa;
+                --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                --text-primary: #2d3748;
+                --text-secondary: #4a5568;
+                --border-radius: 8px;
+                --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                line-height: 1.6;
+                color: var(--text-primary);
+                background-color: var(--body-bg);
+                padding: 30px;
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+
+            .header {
+                background: var(--header-bg);
+                color: white;
+                padding: 20px 30px;
+                border-radius: var(--border-radius);
+                margin-bottom: 30px;
+                box-shadow: var(--card-shadow);
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+
+            .header p {
+                font-size: 16px;
+                opacity: 0.9;
+            }
+
+            .conversation-container {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .conversation {
+                border-radius: var(--border-radius);
+                padding: 20px;
+                box-shadow: var(--card-shadow);
+                overflow: hidden;
+                border-left: 4px solid transparent;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .conversation:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
+            }
+
+            .user {
+                background-color: var(--user-bg);
+                border-left-color: var(--user-border);
+            }
+
+            .assistant {
+                background-color: var(--assistant-bg);
+                border-left-color: var(--assistant-border);
+            }
+
+            .role {
+                font-weight: 600;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: var(--text-secondary);
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }
+
+            .user .role {
+                color: var(--user-border);
+            }
+
+            .assistant .role {
+                color: var(--assistant-border);
+            }
+
+            .content {
+                white-space: pre-wrap;
+                font-size: 15px;
+                line-height: 1.7;
+            }
+
+            .highlight {
+                background-color: var(--highlight-bg);
+                color: var(--highlight-text);
+                font-weight: 600;
+                padding: 4px 8px;
+                border-radius: 4px;
+                display: inline-block;
+                margin: 4px 0;
+                font-family: var(--font-mono);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            code, pre {
+                font-family: var(--font-mono);
+                background-color: rgba(0, 0, 0, 0.05);
+                border-radius: 4px;
+                padding: 0.2em 0.4em;
+                font-size: 14px;
+            }
+
+            pre {
+                padding: 16px;
+                margin: 16px 0;
+                overflow-x: auto;
+            }
+
+            .tag {
+                color: #4a86e8;
+                font-weight: 600;
+            }
+
+            .reasoning-block {
+                border-left: 3px solid #6c5ce7;
+                padding-left: 15px;
+                margin: 15px 0;
+                background-color: rgba(108, 92, 231, 0.05);
+                padding: 15px;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .gene-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 10px 0;
+            }
+
+            .gene {
+                background-color: rgba(74, 134, 232, 0.1);
+                border: 1px solid rgba(74, 134, 232, 0.3);
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .timestamp {
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-top: 10px;
+                text-align: right;
+            }
+
+            @media (max-width: 768px) {
+                body {
+                    padding: 15px;
+                }
+                
+                .header {
+                    padding: 15px;
+                }
+                
+                .conversation {
+                    padding: 15px;
+                }
+            }
         </style>
     </head>
     <body>
-        <h1>Cell Annotation Report</h1>
+        <div class="header">
+            <h1>CASSIA Cell Annotation Report</h1>
+            <p>Detailed analysis of cell type annotation based on gene expression data</p>
+        </div>
+        <div class="conversation-container">
     """
     
     # Process each message in the conversation
@@ -2663,12 +2476,33 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
         if not content:
             continue
         
-        # Highlight gene check tags
-        content_html = content
+        # Properly escape HTML
+        content_html = content.replace('<', '&lt;').replace('>', '&gt;')
         
-        # Find and replace gene check tags with highlighted version
-        gene_check_pattern = r'<check_genes>(.*?)</check_genes>'
-        content_html = re.sub(gene_check_pattern, r'<span class="highlight">\1</span>', content_html)
+        # Highlight tags by replacing escaped HTML first then converting back
+        content_html = content_html.replace('&lt;check_genes&gt;', '<span class="tag">&lt;check_genes&gt;</span>')
+        content_html = content_html.replace('&lt;/check_genes&gt;', '<span class="tag">&lt;/check_genes&gt;</span>')
+        content_html = content_html.replace('&lt;reasoning&gt;', '<span class="tag">&lt;reasoning&gt;</span>')
+        content_html = content_html.replace('&lt;/reasoning&gt;', '<span class="tag">&lt;/reasoning&gt;</span>')
+        
+        # Extract and format gene lists
+        gene_lists = parse_check_genes(content)
+        if gene_lists:
+            gene_html = '<div class="gene-list">' + ''.join([f'<span class="gene">{gene}</span>' for gene in gene_lists]) + '</div>'
+            # Add gene list after check_genes tags
+            content_html = re.sub(
+                r'<span class="tag">&lt;/check_genes&gt;</span>', 
+                r'<span class="tag">&lt;/check_genes&gt;</span>' + gene_html, 
+                content_html
+            )
+        
+        # Format reasoning blocks
+        content_html = re.sub(
+            r'<span class="tag">&lt;reasoning&gt;</span>(.*?)<span class="tag">&lt;/reasoning&gt;</span>', 
+            r'<div class="reasoning-block"><span class="tag">&lt;reasoning&gt;</span>\1<span class="tag">&lt;/reasoning&gt;</span></div>',
+            content_html,
+            flags=re.DOTALL
+        )
         
         # Add message to report
         report += f"""
@@ -2680,6 +2514,7 @@ def generate_raw_cell_annotation_report(conversation_history, output_filename='c
     
     # Close HTML document
     report += """
+        </div>
     </body>
     </html>
     """
@@ -2765,6 +2600,7 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
             
         return f"""
         <table class="gene-table">
+            <thead>
             <tr>
                 <th>Gene</th>
                 <th>p-val</th>
@@ -2773,7 +2609,10 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
                 <th>pct.2</th>
                 <th>p_val_adj</th>
             </tr>
+            </thead>
+            <tbody>
             {''.join(rows)}
+            </tbody>
         </table>
         """
 
@@ -2783,76 +2622,281 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
     <html>
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CASSIA Cell Analysis Report</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
+            :root {
+                --user-bg: #f0f8ff;
+                --user-border: #4a86e8;
+                --assistant-bg: #f9f9f9;
+                --assistant-border: #5f6368;
+                --highlight-bg: #fffacd;
+                --highlight-text: #d14836;
+                --header-bg: linear-gradient(135deg, #4a86e8, #6c5ce7);
+                --body-bg: #f5f7fa;
+                --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                --text-primary: #2d3748;
+                --text-secondary: #4a5568;
+                --border-radius: 8px;
+                --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+                --success-bg: #e6fffa;
+                --success-border: #38b2ac;
+                --gene-list-bg: #e6ffe6;
+                --reasoning-bg: #fff3e6;
+                --table-header-bg: #f2f2f2;
+                --table-border: #ddd;
+                --table-hover: #f5f5f5;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
             body {{
-                font-family: Arial, sans-serif;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 line-height: 1.6;
                 max-width: 1200px;
                 margin: 0 auto;
-                padding: 20px;
-                color: #333;
+                padding: 30px;
+                color: var(--text-primary);
+                background-color: var(--body-bg);
             }}
+            
+            .header {{
+                background: var(--header-bg);
+                color: white;
+                padding: 20px 30px;
+                border-radius: var(--border-radius);
+                margin-bottom: 30px;
+                box-shadow: var(--card-shadow);
+                text-align: center;
+            }}
+            
+            h1 {{
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }}
+            
+            .header p {{
+                font-size: 16px;
+                opacity: 0.9;
+            }}
+            
+            .conversation-container {{
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }}
+            
             .conversation-block {{
-                margin: 20px 0;
-                padding: 15px;
-                border-radius: 5px;
+                margin: 0;
+                padding: 25px;
+                border-radius: var(--border-radius);
+                box-shadow: var(--card-shadow);
+                border-left: 4px solid transparent;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
             }}
+            
+            .conversation-block:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            }}
+            
             .user {{
-                background-color: #f0f7ff;
-                border-left: 5px solid #0066cc;
+                background-color: var(--user-bg);
+                border-left-color: var(--user-border);
             }}
+            
             .assistant {{
-                background-color: #f5f5f5;
-                border-left: 5px solid #666;
+                background-color: var(--assistant-bg);
+                border-left-color: var(--assistant-border);
             }}
+            
+            h2, h3, h4 {{
+                color: var(--text-primary);
+                margin: 0 0 15px 0;
+            }}
+            
+            h2 {{
+                font-size: 20px;
+                font-weight: 600;
+                padding-bottom: 10px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }}
+            
+            h3 {{
+                font-size: 18px;
+                font-weight: 600;
+            }}
+            
+            .user h3 {{
+                color: var(--user-border);
+            }}
+            
+            .assistant h3 {{
+                color: var(--assistant-border);
+            }}
+            
             .gene-list {{
-                background-color: #e6ffe6;
-                padding: 10px;
-                margin: 10px 0;
-                border-radius: 3px;
+                background-color: var(--gene-list-bg);
+                padding: 16px;
+                margin: 16px 0;
+                border-radius: var(--border-radius);
+                border-left: 3px solid #32a852;
             }}
+            
+            .gene-list h4 {{
+                margin-top: 0;
+                color: #32a852;
+                font-size: 16px;
+            }}
+            
+            .gene-list ul {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                list-style-type: none;
+                padding: 0;
+                margin: 10px 0 0 0;
+            }}
+            
+            .gene-list li {{
+                background-color: white;
+                border: 1px solid rgba(50, 168, 82, 0.3);
+                padding: 5px 12px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            
             .reasoning {{
-                background-color: #fff3e6;
-                padding: 10px;
-                margin: 10px 0;
-                border-radius: 3px;
+                background-color: var(--reasoning-bg);
+                padding: 16px;
+                margin: 16px 0;
+                border-radius: var(--border-radius);
+                border-left: 3px solid #e67e22;
             }}
+            
+            .reasoning h4 {{
+                margin-top: 0;
+                color: #e67e22;
+                font-size: 16px;
+            }}
+            
             .gene-table {{
                 width: 100%;
                 border-collapse: collapse;
-                margin: 10px 0;
+                margin: 16px 0;
+                font-size: 14px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                border-radius: var(--border-radius);
+                overflow: hidden;
             }}
+            
             .gene-table th, .gene-table td {{
-                border: 1px solid #ddd;
-                padding: 8px;
+                border: 1px solid var(--table-border);
+                padding: 10px;
                 text-align: left;
             }}
+            
             .gene-table th {{
-                background-color: #f2f2f2;
+                background-color: var(--table-header-bg);
+                font-weight: 600;
+                position: sticky;
+                top: 0;
             }}
+            
+            .gene-table tr:nth-child(even) {{
+                background-color: rgba(0, 0, 0, 0.02);
+            }}
+            
+            .gene-table tr:hover {{
+                background-color: var(--table-hover);
+            }}
+            
             .final-annotation {{
-                background-color: #e6ffe6;
-                padding: 15px;
-                margin: 20px 0;
-                border-radius: 5px;
-                border-left: 5px solid #00cc00;
+                background-color: var(--success-bg);
+                padding: 25px;
+                margin: 0;
+                border-radius: var(--border-radius);
+                border-left: 4px solid var(--success-border);
+                box-shadow: var(--card-shadow);
             }}
-            h1, h2, h3 {{
-                color: #444;
+            
+            .final-annotation h2 {{
+                color: var(--success-border);
+                border-bottom-color: rgba(56, 178, 172, 0.3);
             }}
+            
             p {{
-                margin: 0.5em 0;
+                margin: 12px 0;
             }}
+            
             br {{
                 display: block;
-                margin: 0.5em 0;
+                margin: 6px 0;
                 content: "";
+                line-height: 1.6;
+            }}
+            
+            code, pre {{
+                font-family: var(--font-mono);
+                background-color: rgba(0, 0, 0, 0.05);
+                border-radius: 4px;
+            }}
+            
+            code {{
+                padding: 2px 5px;
+                font-size: 14px;
+            }}
+            
+            pre {{
+                padding: 16px;
+                margin: 16px 0;
+                overflow-x: auto;
+                font-size: 14px;
+                line-height: 1.5;
+            }}
+            
+            .tag {{
+                color: #4a86e8;
+                font-weight: 600;
+                font-family: var(--font-mono);
+                font-size: 14px;
+            }}
+            
+            @media (max-width: 768px) {{
+                body {{
+                    padding: 15px;
+                }}
+                
+                .header {{
+                    padding: 15px;
+                }}
+                
+                .conversation-block {{
+                    padding: 15px;
+                }}
+                
+                .gene-table {{
+                    display: block;
+                    overflow-x: auto;
+                }}
             }}
         </style>
     </head>
     <body>
-        <h1>Single-Cell Analysis Report</h1>
+        <div class="header">
+            <h1>CASSIA Analysis Report</h1>
+            <p>Detailed analysis of single-cell data</p>
+        </div>
+        <div class="conversation-container">
         {content}
+        </div>
     </body>
     </html>
     """
@@ -2873,7 +2917,7 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
             block_class = 'user' if role == 'user' else 'assistant'
             
             # Format the content based on the role
-            if role == 'user' and 'p_val' in message:
+            if role == 'user' and 'p_val' in message and '\n' in message:
                 # This is gene expression data
                 content.append(f"""
                     <div class="conversation-block {block_class}">
@@ -2889,7 +2933,7 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
                 if "FINAL ANALYSIS COMPLETED" in message:
                     content.append(f"""
                         <div class="final-annotation">
-                            <h2>Final Annotation</h2>
+                            <h2>Final Analysis Results</h2>
                             {formatted_message}
                         </div>
                     """)
@@ -2899,19 +2943,49 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
                     reasoning = parse_reasoning(message)
                     
                     if genes or reasoning:
+                        # Properly escape the message for HTML but mark up special tags
+                        escaped_message = message.replace('<', '&lt;').replace('>', '&gt;')
+                        escaped_message = escaped_message.replace('&lt;check_genes&gt;', '<span class="tag">&lt;check_genes&gt;</span>')
+                        escaped_message = escaped_message.replace('&lt;/check_genes&gt;', '<span class="tag">&lt;/check_genes&gt;</span>')
+                        escaped_message = escaped_message.replace('&lt;reasoning&gt;', '<span class="tag">&lt;reasoning&gt;</span>')
+                        escaped_message = escaped_message.replace('&lt;/reasoning&gt;', '<span class="tag">&lt;/reasoning&gt;</span>')
+                        
+                        # Format newlines
+                        escaped_message = escaped_message.replace('\n', '<br>')
+                        
+                        gene_content = ""
+                        if genes:
+                            gene_content = """
+                                <div class="gene-list">
+                                    <h4>Genes to Check:</h4>
+                                    <ul>
+                                        {}
+                                    </ul>
+                                </div>
+                            """.format(''.join(f'<li>{gene}</li>' for gene in genes))
+                        
+                        reasoning_content = ""
+                        if reasoning:
+                            reasoning_content = ''.join(["""
+                                <div class="reasoning">
+                                    <h4>Reasoning:</h4>
+                                    <p>{}</p>
+                                </div>
+                            """.format(r.replace('\n', '<br>')) for r in reasoning])
+                        
                         content.append(f"""
                             <div class="conversation-block {block_class}">
                                 <h3>Analysis Step</h3>
-                                {'<div class="gene-list"><h4>Genes to Check:</h4><ul>' + 
-                                ''.join(f'<li>{gene}</li>' for gene in genes) + '</ul></div>' if genes else ''}
-                                {''.join(f'<div class="reasoning"><h4>Reasoning:</h4><p>{r}</p></div>' 
-                                        for r in reasoning)}
+                                {gene_content}
+                                {reasoning_content}
+                                <div>{escaped_message}</div>
                             </div>
                         """)
                     else:
                         content.append(f"""
                             <div class="conversation-block {block_class}">
-                                {formatted_message}
+                                <h3>{role.title()}</h3>
+                                <div>{formatted_message}</div>
                             </div>
                         """)
 
@@ -2935,7 +3009,7 @@ def generate_raw_cell_annotation_report_additional_task(conversation_history, ou
         
     except Exception as e:
         error_html = f"""
-            <div class="conversation-block" style="background-color: #ffe6e6; border-left: 5px solid #cc0000;">
+            <div class="conversation-block" style="background-color: #ffe6e6; border-left: 4px solid #cc0000;">
                 <h3>Error Generating Report</h3>
                 <p>An error occurred while generating the report: {str(e)}</p>
             </div>
@@ -4670,27 +4744,43 @@ def runCASSIA_pipeline(
         merge_annotations (bool): Whether to merge annotations from LLM
         merge_model (str): Model to use for merging annotations
     """
-    # Create a folder based on tissue and species for organizing reports
-    folder_name = f"CASSIA_{tissue}_{species}"
-    folder_name = "".join(c for c in folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
-    folder_name = folder_name.replace(' ', '_')
+    # Create a main folder based on tissue and species for organizing reports
+    main_folder_name = f"CASSIA_{tissue}_{species}"
+    main_folder_name = "".join(c for c in main_folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
+    main_folder_name = main_folder_name.replace(' ', '_')
     
     # Add timestamp to prevent overwriting existing folders with the same name
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    folder_name = f"{folder_name}_{timestamp}"
+    main_folder_name = f"{main_folder_name}_{timestamp}"
     
-    # Create the folder if it doesn't exist
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-        print(f"Created folder: {folder_name}")
+    # Create the main folder if it doesn't exist
+    if not os.path.exists(main_folder_name):
+        os.makedirs(main_folder_name)
+        print(f"Created main folder: {main_folder_name}")
+        
+    # Create organized subfolders according to user's specifications
+    annotation_results_folder = os.path.join(main_folder_name, "01_annotation_results")  # All CSV files
+    reports_folder = os.path.join(main_folder_name, "02_reports")  # All HTML reports except annotation boost
+    boost_folder = os.path.join(main_folder_name, "03_boost_analysis")   # All annotation boost related results
+    
+    # Create all subfolders
+    for folder in [annotation_results_folder, reports_folder, boost_folder]:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            print(f"Created subfolder: {folder}")
     
     # Define derived file names with folder paths
-    score_file_name = os.path.join(folder_name, output_file_name + "_scored.csv")
-    report_name = os.path.join(folder_name, output_file_name + "_report")
-    lowscore_report_name = os.path.join(folder_name, output_file_name + "_lowscore_report")
-    merged_annotation_file = os.path.join(folder_name, output_file_name + "_merged.csv")
+    # All CSV files go to the annotation_results_folder
+    raw_full_csv = os.path.join(annotation_results_folder, f"{output_file_name}_full.csv")
+    raw_summary_csv = os.path.join(annotation_results_folder, f"{output_file_name}_summary.csv")
+    raw_sorted_csv = os.path.join(annotation_results_folder, f"{output_file_name}_sorted_full.csv")
+    score_file_name = os.path.join(annotation_results_folder, f"{output_file_name}_scored.csv")
+    merged_annotation_file = os.path.join(annotation_results_folder, f"{output_file_name}_merged.csv")
     
-    # First annotation output is still in current directory since other parts of code may expect it there
+    # Reports go to the reports_folder - ALL HTML reports should be in this folder
+    report_base_name = os.path.join(reports_folder, f"{output_file_name}")
+    
+    # First annotation output is in the current directory but will be moved later
     annotation_output = output_file_name
 
     print("\n=== Starting cell type analysis ===")
@@ -4707,27 +4797,40 @@ def runCASSIA_pipeline(
         max_retries=max_retries
     )
     print("✓ Cell type analysis completed")
+    
+    # Copy the generated files to the organized folders
+    original_full_csv = annotation_output + "_full.csv"
+    original_summary_csv = annotation_output + "_summary.csv"
+    
+    # Copy the files if they exist
+    if os.path.exists(original_full_csv):
+        # Read and write instead of just copying to ensure compatibility
+        df_full = pd.read_csv(original_full_csv)
+        df_full.to_csv(raw_full_csv, index=False)
+        print(f"Copied full results to {raw_full_csv}")
+    if os.path.exists(original_summary_csv):
+        df_summary = pd.read_csv(original_summary_csv)
+        df_summary.to_csv(raw_summary_csv, index=False)
+        print(f"Copied summary results to {raw_summary_csv}")
 
     # Merge annotations if requested
     if merge_annotations:
         print("\n=== Starting annotation merging ===")
-        summary_csv = annotation_output + "_summary.csv"
+        summary_csv = raw_summary_csv
         
         # Import the merge_annotations function dynamically
         try:
-            from .merging_annotation import merge_annotations_all
+            from merging_annotation import merge_annotations_all
             
             # Sort the CSV file by True Cell Type before merging to ensure consistent order
             print("Sorting CSV by True Cell Type before merging...")
-            full_csv = annotation_output + "_full.csv"
-            df = pd.read_csv(full_csv)
+            df = pd.read_csv(raw_full_csv)
             df = df.sort_values(by=['True Cell Type'])
-            sorted_csv = annotation_output + "_sorted_full.csv"
-            df.to_csv(sorted_csv, index=False)
+            df.to_csv(raw_sorted_csv, index=False)
             
             # Run the merging process on the sorted CSV
             merge_annotations_all(
-                csv_path=sorted_csv,
+                csv_path=raw_sorted_csv,
                 output_path=merged_annotation_file,
                 provider=annotation_provider,
                 model=merge_model,
@@ -4740,7 +4843,7 @@ def runCASSIA_pipeline(
     print("\n=== Starting scoring process ===")
     # Run scoring
     runCASSIA_score_batch(
-        input_file=annotation_output + "_full.csv",
+        input_file=raw_full_csv,
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
@@ -4750,11 +4853,24 @@ def runCASSIA_pipeline(
     print("✓ Scoring process completed")
 
     print("\n=== Generating main reports ===")
-    # Process reports
+    # Process reports - ensure they go to reports_folder
     runCASSIA_generate_score_report(
         csv_path=score_file_name,
-        index_name=report_name
+        index_name=report_base_name  # This will create reports in the reports_folder
     )
+    
+    # Move any HTML files from annotation_results_folder to reports_folder
+    for file in os.listdir(annotation_results_folder):
+        if file.endswith('.html'):
+            src_path = os.path.join(annotation_results_folder, file)
+            dst_path = os.path.join(reports_folder, file)
+            try:
+                shutil.copy2(src_path, dst_path)
+                os.remove(src_path)  # Remove from original location after copying
+                print(f"Moved HTML report {file} to reports folder")
+            except Exception as e:
+                print(f"Error moving HTML file {file}: {str(e)}")
+    
     print("✓ Main reports generated")
 
     print("\n=== Analyzing low-scoring clusters ===")
@@ -4767,45 +4883,62 @@ def runCASSIA_pipeline(
     
     if low_score_clusters:
         print("\n=== Starting boost annotation for low-scoring clusters ===")
-        full_result_path = annotation_output + "_full.csv"
-
+        
+        # Create boosted reports list - we will NOT generate a combined report
         for cluster in low_score_clusters:
             print(f"Processing low score cluster: {cluster}")
             
-            # Convert cluster to string before sanitizing
-            cluster_name = "".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip()
-            cluster_info = df[df['True Cell Type'] == cluster].iloc[0].to_dict()
+            # Keep the original cluster name for data lookup
+            original_cluster_name = cluster
             
-            # Run annotation boost
-            runCASSIA_annotationboost(
-                full_result_path=full_result_path,
-                marker=marker_path,
-                cluster_name=cluster_name,
-                major_cluster_info=cluster_info,
-                output_name=os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted"),
-                num_iterations=5,
-                model=annotationboost_model,
-                provider=annotationboost_provider
-            )
-        
-        # Also save a copy of the boosted reports index
-        boosted_reports = [
-            os.path.join(folder_name, f"{output_file_name}_{cluster_name}_boosted.html") 
-            for cluster_name in ["".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip() 
-                              for cluster in low_score_clusters]
-        ]
-        
-        if boosted_reports:
-            index_html = generate_index_page(boosted_reports)
-            index_filename = f"{lowscore_report_name}.html"
-            with open(index_filename, "w", encoding="utf-8") as f:
-                f.write(index_html)
-            print(f"Low score reports index saved to {index_filename}")
+            # Sanitize the cluster name only for file naming purposes
+            sanitized_cluster_name = "".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip()
+            
+            # Create individual folder for this cluster's boost analysis
+            cluster_boost_folder = os.path.join(boost_folder, sanitized_cluster_name)
+            if not os.path.exists(cluster_boost_folder):
+                os.makedirs(cluster_boost_folder)
+                
+            # Define output name for the cluster boost report
+            cluster_output_name = os.path.join(cluster_boost_folder, f"{output_file_name}_{sanitized_cluster_name}_boosted")
+            
+            # Use the original name for data lookup
+            try:
+                cluster_info = df[df['True Cell Type'] == original_cluster_name].iloc[0].to_dict()
+                
+                # Run annotation boost - use original cluster name for data lookup, but sanitized name for output file
+                # NOTE: Using the raw_full_csv path to ensure the CSV can be found
+                runCASSIA_annotationboost(
+                    full_result_path=raw_full_csv,  # This is in the annotation_results_folder
+                    marker=marker_path,
+                    cluster_name=original_cluster_name,
+                    major_cluster_info=cluster_info,
+                    output_name=cluster_output_name,
+                    num_iterations=5,
+                    model=annotationboost_model,
+                    provider=annotationboost_provider
+                )
+            except IndexError:
+                print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")
+            except Exception as e:
+                print(f"Error in pipeline processing cluster {original_cluster_name}: {str(e)}")
         
         print("✓ Boost annotation completed")
     
+    # Try to clean up the original files in the root directory
+    try:
+        for file_to_remove in [original_full_csv, original_summary_csv, annotation_output + "_sorted_full.csv"]:
+            if os.path.exists(file_to_remove):
+                os.remove(file_to_remove)
+                print(f"Removed original file: {file_to_remove}")
+    except Exception as e:
+        print(f"Warning: Could not remove some temporary files: {str(e)}")
+    
     print("\n=== Cell type analysis pipeline completed ===")
-    print(f"All reports have been saved to the '{folder_name}' folder")
+    print(f"All results have been organized in the '{main_folder_name}' folder:")
+    print(f"  - Annotation Results (CSV files): {annotation_results_folder}")
+    print(f"  - HTML Reports: {reports_folder}")
+    print(f"  - Annotation Boost Results: {boost_folder}")
 
 
 def loadmarker(marker_type="processed"):
@@ -5128,3 +5261,343 @@ def process_cell_type_results(organized_results, max_workers=10, model="google/g
             processed_results[celltype] = result
     
     return processed_results
+
+def prepare_analysis_data(full_result_path, marker_path, cluster_name):
+    # Load the full results and marker files
+    full_result = pd.read_csv(full_result_path)
+    
+    if isinstance(marker_path, pd.DataFrame):
+        marker = marker_path.copy()
+    elif isinstance(marker_path, str):
+        marker = pd.read_csv(marker_path)
+    else:
+        raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
+
+    # Convert cluster_name to string to ensure proper comparison
+    cluster_name = str(cluster_name)
+    
+    # Make sure 'True Cell Type' column values are also converted to strings
+    full_result['True Cell Type'] = full_result['True Cell Type'].astype(str)
+    
+    # Debug information to help troubleshoot cluster not found issues
+    print(f"Looking for cluster: '{cluster_name}'")
+    print(f"Available clusters: {full_result['True Cell Type'].unique().tolist()}")
+    
+    # Extract conversation history for the specified cluster - use exact string matching
+    cluster_data = full_result[full_result['True Cell Type'] == cluster_name]
+    
+    if cluster_data.empty:
+        # Attempt a case-insensitive match as fallback
+        cluster_name_lower = cluster_name.lower()
+        full_result['True Cell Type Lower'] = full_result['True Cell Type'].str.lower()
+        cluster_data = full_result[full_result['True Cell Type Lower'] == cluster_name_lower]
+        
+        if cluster_data.empty:
+            # If still empty, try with or without comma
+            if ',' in cluster_name:
+                # Try without comma
+                alt_cluster_name = cluster_name.replace(',', '')
+                print(f"Trying alternative name without comma: '{alt_cluster_name}'")
+                cluster_data = full_result[full_result['True Cell Type'].str.replace(',', '') == alt_cluster_name]
+            else:
+                # No easy fallback without commas in original name
+                pass
+                
+        if cluster_data.empty:
+            raise ValueError(f"No data found for cluster: {cluster_name}")
+    
+    annotation_history = cluster_data['Conversation History'].iloc[0]
+    
+    # Prepare marker data for the specified cluster
+    if 'cluster' in marker.columns:
+        # Convert cluster column to string as well for proper comparison
+        marker['cluster'] = marker['cluster'].astype(str)
+        cluster_marker = marker[marker['cluster'] == cluster_name]
+        
+        # If no markers found, try with case-insensitive matching
+        if cluster_marker.empty and 'True Cell Type Lower' in full_result.columns:
+            matched_cluster_name = cluster_data['True Cell Type'].iloc[0]  # Get the actual matched name
+            cluster_marker = marker[marker['cluster'] == matched_cluster_name]
+    else:
+        # If there's no cluster column, assume it's already the right subset
+        cluster_marker = marker
+
+    comma_separated_genes = cluster_data['Marker List'].iloc[0]
+
+    # Prepare subset of marker file for iterative analysis
+    marker_subset = cluster_marker
+    if 'gene' in marker_subset.columns:
+        marker_subset = marker_subset.set_index('gene')
+    
+    return annotation_history, comma_separated_genes, marker_subset
+
+def get_marker_info(gene_list, marker):
+    def filter_marker(gene_names):
+        # Convert marker to pandas DataFrame if it's not already
+        if not isinstance(marker, pd.DataFrame):
+            marker_df = pd.DataFrame(marker)
+        else:
+            marker_df = marker.copy()
+        
+        # Remove any 'Unnamed: 0' column if it exists
+        if 'Unnamed: 0' in marker_df.columns:
+            marker_df = marker_df.drop(columns=['Unnamed: 0'])
+
+        # Identify valid genes and NA genes
+        valid_genes = []
+        na_genes = []
+        for gene in gene_names:
+            if gene in marker_df.index:
+                # Check if all values for this gene are NA
+                gene_data = marker_df.loc[gene]
+                if gene_data.isna().all() or (gene_data == 'NA').all():
+                    na_genes.append(gene)
+                else:
+                    valid_genes.append(gene)
+            else:
+                na_genes.append(gene)
+        
+        # Create result DataFrame with only valid genes
+        if valid_genes:
+            result = marker_df.loc[valid_genes].copy()
+        else:
+            # If no valid genes, create an empty dataframe with the same columns
+            result = pd.DataFrame(columns=marker_df.columns)
+            
+        # Only try to format numeric columns that exist
+        numeric_cols = result.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            try:
+                result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
+            except:
+                continue
+
+        return result.iloc[:, 0:5], na_genes
+
+    # Filter to rows based on gene name and get NA genes list
+    marker_filtered, na_genes = filter_marker(gene_list)
+    
+    # Generate marker info string from valid genes only
+    marker_string = marker_filtered.to_string()
+    
+    # If there are genes with all NA values, add a message
+    if na_genes:
+        na_genes_message = f"\nNote: The following genes are not in the differential expression list: {', '.join(na_genes)}"
+        marker_string += na_genes_message
+
+    return marker_string
+
+def iterative_marker_analysis_openrouter_additional_task(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet", additional_task="check if this is a cancer cluster"):
+    """
+    Perform iterative marker analysis using OpenRouter API.
+    
+    Args:
+        major_cluster_info (str): Information about the cluster
+        marker (DataFrame): Marker gene expression data
+        comma_separated_genes (str): List of genes as comma-separated string
+        annotation_history (str): Previous annotation history
+        num_iterations (int): Maximum number of iterations
+        model (str): OpenRouter model identifier
+        additional_task (str): Additional task to be performed
+
+    Returns:
+        tuple: (final_response_text, messages)
+    """
+    messages = [{"role": "user", "content": prompt_hypothesis_generator3_additional_task(major_cluster_info, comma_separated_genes, annotation_history, additional_task)}]
+
+    for iteration in range(num_iterations):
+        try:
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "temperature": 0,
+                    "max_tokens": 7000,
+                    "messages": messages
+                }
+            )
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                response_data = response.json()
+                conversation = response_data['choices'][0]['message']['content']
+
+                # Check for completion
+                if "FINAL ANALYSIS COMPLETED" in conversation:
+                    print(f"Final annotation completed in iteration {iteration + 1}.")
+                    return conversation, messages
+
+                # Extract gene lists and get marker info
+                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
+                unique_genes = sorted(set(all_genes))
+
+                retrived_marker_info = get_marker_info(unique_genes, marker)
+                
+                # Append messages
+                messages.append({"role": "assistant", "content": conversation})
+                messages.append({"role": "user", "content": retrived_marker_info})
+
+                print(f"Iteration {iteration + 1} completed.")
+            else:
+                print(f"Error: OpenRouter API returned status code {response.status_code}")
+                print(f"Response: {response.text}")
+                return '', messages
+
+        except Exception as e:
+            print(f"Error in iteration {iteration + 1}: {str(e)}")
+            return '', messages
+
+    # Final response if max iterations reached
+    try:
+        final_response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": 0,
+                "max_tokens": 7000,
+                "messages": messages
+            }
+        )
+        
+        if final_response.status_code == 200:
+            final_data = final_response.json()
+            return final_data['choices'][0]['message']['content'], messages
+        else:
+            print(f"Error getting final response: {final_response.status_code}")
+            print(f"Response: {final_response.text}")
+            return '', messages
+            
+    except Exception as e:
+        print(f"Error in final response: {str(e)}")
+        return '', messages
+
+def iterative_marker_analysis_openrouter(major_cluster_info, marker, comma_separated_genes, annotation_history, num_iterations=2, model="anthropic/claude-3.5-sonnet"):
+    """
+    Perform iterative marker analysis using OpenRouter API.
+    
+    Args:
+        major_cluster_info (str): Information about the cluster
+        marker (DataFrame): Marker gene expression data
+        comma_separated_genes (str): List of genes as comma-separated string
+        annotation_history (str): Previous annotation history
+        num_iterations (int): Maximum number of iterations
+        model (str): OpenRouter model identifier
+        
+    Returns:
+        tuple: (final_response_text, messages)
+    """
+    messages = [{"role": "user", "content": prompt_hypothesis_generator3(major_cluster_info, comma_separated_genes, annotation_history)}]
+
+    for iteration in range(num_iterations):
+        try:
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                    "X-Title": "CASSIA",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "temperature": 0,
+                    "max_tokens": 7000,
+                    "messages": messages
+                }
+            )
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                response_data = response.json()
+                conversation = response_data['choices'][0]['message']['content']
+
+                # Check for completion
+                if "FINAL ANNOTATION COMPLETED" in conversation:
+                    print(f"Final annotation completed in iteration {iteration + 1}.")
+                    return conversation, messages
+
+                # Extract gene lists and get marker info
+                gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
+                
+                # Improve gene extraction to handle special cases
+                all_genes = []
+                for gene_list in gene_lists:
+                    # Clean and normalize the gene list
+                    # Replace common separators with commas
+                    cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
+                    cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
+                    # Split by comma or space, depending on formatting
+                    genes = re.split(r',\s*|\s+', cleaned_list)
+                    all_genes.extend([g.strip() for g in genes if g.strip()])
+                
+                unique_genes = sorted(set(all_genes))
+
+                retrived_marker_info = get_marker_info(unique_genes, marker)
+                
+                # Append messages
+                messages.append({"role": "assistant", "content": conversation})
+                messages.append({"role": "user", "content": retrived_marker_info})
+
+                print(f"Iteration {iteration + 1} completed.")
+            else:
+                print(f"Error: OpenRouter API returned status code {response.status_code}")
+                print(f"Response: {response.text}")
+                return '', messages
+
+        except Exception as e:
+            print(f"Error in iteration {iteration + 1}: {str(e)}")
+            return '', messages
+
+    # Final response if max iterations reached
+    try:
+        final_response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+                "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
+                "X-Title": "CASSIA",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "temperature": 0,
+                "max_tokens": 7000,
+                "messages": messages
+            }
+        )
+        
+        if final_response.status_code == 200:
+            final_data = final_response.json()
+            return final_data['choices'][0]['message']['content'], messages
+        else:
+            print(f"Error getting final response: {final_response.status_code}")
+            print(f"Response: {final_response.text}")
+            return '', messages
+            
+    except Exception as e:
+        print(f"Error in final response: {str(e)}")
+        return '', messages
