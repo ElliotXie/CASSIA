@@ -43,6 +43,86 @@ def set_api_key(api_key, provider="openai"):
     else:
         raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
     
+def loadmarker(marker_type="processed"):
+    """
+    Load built-in marker files.
+    
+    Args:
+        marker_type (str): Type of markers to load. Options:
+            - "processed": For processed marker data
+            - "unprocessed": For raw unprocessed marker data
+            - "subcluster_results": For subcluster analysis results
+    
+    Returns:
+        pandas.DataFrame: Marker data
+    
+    Raises:
+        ValueError: If marker_type is not recognized
+    """
+    import os
+    import pandas as pd
+    from importlib import resources
+    
+    marker_files = {
+        "processed": "processed.csv",
+        "unprocessed": "unprocessed.csv",
+        "subcluster_results": "subcluster_results.csv"
+    }
+    
+    if marker_type not in marker_files:
+        raise ValueError(f"Unknown marker type: {marker_type}. Available types: {list(marker_files.keys())}")
+    
+    filename = marker_files[marker_type]
+    
+    try:
+        # First try to access the file via importlib.resources if using as a Python package
+        try:
+            with resources.path('CASSIA.data', filename) as file_path:
+                return pd.read_csv(file_path)
+        except (ImportError, ModuleNotFoundError):
+            # If not available as a Python package, try in the R package structure
+            # Find the current script's directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # Construct path to the extdata directory
+            data_path = os.path.join(script_dir, 'extdata', filename)
+            
+            if os.path.exists(data_path):
+                return pd.read_csv(data_path)
+            else:
+                raise FileNotFoundError(f"Marker file not found: {data_path}")
+    except Exception as e:
+        raise Exception(f"Error loading marker file: {str(e)}")
+
+def list_available_markers():
+    """
+    List all available built-in marker sets.
+    
+    Returns:
+        list: Names of available marker files (without extension)
+    """
+    import os
+    from importlib import resources
+    
+    try:
+        # First try via importlib.resources if using as a Python package
+        try:
+            with resources.path('CASSIA.data', '') as data_path:
+                marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+        except (ImportError, ModuleNotFoundError):
+            # If not available as a Python package, try in the R package structure
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            data_path = os.path.join(script_dir, 'extdata')
+            
+            if os.path.exists(data_path):
+                marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+            else:
+                raise FileNotFoundError(f"Extdata directory not found: {data_path}")
+        
+        return [f.replace('.csv', '') for f in marker_files]
+    except Exception as e:
+        raise Exception(f"Error listing marker files: {str(e)}")
+    
 def split_markers(marker_string):
     # First, try splitting by comma and space
     markers = re.split(r',\s*', marker_string)
@@ -187,7 +267,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -216,7 +296,7 @@ def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", sp
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -384,7 +464,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1):
     def single_batch_run(i):
         # For each run, use the same base output name but with an index
         # If output_name already includes a folder path, maintain it
@@ -457,7 +537,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -972,17 +1052,7 @@ def extract_celltypes_from_llm_claude(llm_response):
     if json_match:
         try:
             # Clean up the matched string and parse JSON
-            json_str = json_match.group(1) if ('<json>' in llm_response or 'json>' in llm_response or '```' in llm_response) else json_match.group(0)
-            
-            # Try to clean up any malformed JSON
-            json_str = json_str.strip()
-            
-            # Remove any unexpected characters at the beginning or end
-            if not json_str.startswith('{'):
-                json_str = '{' + json_str.split('{', 1)[1]
-            if not json_str.endswith('}'):
-                json_str = json_str.rsplit('}', 1)[0] + '}'
-                
+            json_str = json_match.group(1) if ('<json>' in llm_response or '```' in llm_response or 'json>' in llm_response) else json_match.group(0)
             data = json.loads(json_str)
             
             final_results = data.get("final_results", [])
@@ -993,14 +1063,14 @@ def extract_celltypes_from_llm_claude(llm_response):
             sub_celltype = final_results[1] if len(final_results) > 1 else "Not found"
             
             return general_celltype, sub_celltype, mixed_celltypes, consensus_score
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from LLM response: {e}")
-            print(f"Attempted to parse: {json_str}")
+        except json.JSONDecodeError:
+            print("Error decoding JSON from LLM response")
+            print(f"Attempted to parse: {json_str if 'json_str' in locals() else 'No JSON found'}")
     else:
         print("No JSON data found in the LLM response")
         print(f"Full response: {llm_response}")
         
-    return "Not found", "Not found", [], "Not found"
+    return "Not found", "Not found", [], 0
 
 
 
@@ -1197,7 +1267,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1407,7 +1477,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1820,7 +1890,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
     """
     Run scoring with progress updates and retry failed rows once.
     
@@ -3975,8 +4045,8 @@ def runCASSIA_annotationboost(
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="gpt-4o",
-    provider="openai"
+    model="google/gemini-2.5-flash-preview",
+    provider="openrouter"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -4834,7 +4904,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
-                       model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
+                       model="google/gemini-2.5-flash-preview", temperature=0, provider="openrouter",n_genes=50):
     """
     Process subclusters from a CSV file and generate annotated results
     
@@ -4860,8 +4930,8 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
 
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
-                                         model="claude-3-5-sonnet-20241022", temperature=0, 
-                                         provider="anthropic", max_workers=5,n_genes=50):       
+                                         model="google/gemini-2.5-flash-preview", temperature=0, 
+                                         provider="openrouter", max_workers=5,n_genes=50):       
     def run_single_analysis(i):
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info, 
@@ -5077,7 +5147,7 @@ Input format：
 result1:(immune cell, t cell),result2:(Immune cells,t cell),result3:(T cell, cd8+ t cell)
                   
 Output format:
-<results>result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)</results>
+result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)
 
 Another example:
                       
@@ -5085,8 +5155,8 @@ Input format：
 result1:(Hematopoietic stem/progenitor cells (HSPCs), T cell progenitors),result2:(Hematopoietic Progenitor cells,t cell),result3:(Hematopoietic progenitor cells, T cell)
                   
 Output format:
-<results>result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)</results>
-''', model="google/gemini-2.5-flash-preview", temperature=0):
+result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)
+''', model="anthropic/claude-3.5-sonnet", temperature=0):
     
     try:
         response = requests.post(
@@ -5132,8 +5202,8 @@ Output format:
 
 def agent_judgement_openrouter(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis. You will be given a series of results from a cell type annotator.
 Your task is to determine the consensus cell type. The first entry of each result is the general cell type and the second entry is the subtype. You should provide the final general cell type and the subtype. Considering all results, if you think there is very strong evidence of mixed cell types, please also list them. Please give your step-by-step reasoning and the final answer. We also want to know how robust our reuslts are, please give a consensus score ranging from 0 to 100 to show how similar the results are from different runs. $10,000 will be rewarded for the correct answer.
-                           
-Output in JSON format:
+
+Output in JSON format without any tags:
 {
 "final_results": [
 "General cell type here",
@@ -5145,7 +5215,7 @@ Output in JSON format:
 ],
 "consensus_score": 0-100
 }
-''', model="google/gemini-2.5-flash-preview", temperature=0):
+''', model="anthropic/claude-3.5-sonnet", temperature=0):
     
     try:
         response = requests.post(
