@@ -1,9 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Merged_Grouping_1
-1,macrophage,"inflammatory macrophage, resident macrophage",Myeloid cells
-2,CD4 T cell,"naive CD4 T cell, memory CD4 T cell",T cells
-3,B cell,"memory B cell, plasma cell",B cells
-4,dendritic cell,"plasmacytoid dendritic cell, conventional dendritic cell",Myeloid cells
-5,CD8 T cell,"cytotoxic CD8 T cell, exhausted CD8 T cell",T cells
-6,NK cell,"CD56bright NK cell, CD56dim NK cell",Innate lymphoid cells
-7,epithelial cell,"type II pneumocyte, type I pneumocyte",Epithelial cells
-8,fibroblast,"activated fibroblast, quiescent fibroblast",Stromal cells
