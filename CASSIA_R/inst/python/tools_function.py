@@ -187,7 +187,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -216,7 +216,7 @@ def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=No
 
 
 
-def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -243,7 +243,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     
     
     # Choose the appropriate analysis function based on provider
-    analysis_function = run_cell_type_analysis_wrapper
+    analysis_function = runCASSIA
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
@@ -384,7 +384,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
-def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
     def single_batch_run(i):
         # For each run, use the same base output name but with an index
         # If output_name already includes a folder path, maintain it
@@ -394,7 +394,7 @@ def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_result
         
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
-        result = run_cell_type_analysis_batchrun(
+        result = runCASSIA_batch(
             marker=marker,
             output_name=output_json_name,
             model=model,
@@ -441,7 +441,7 @@ def run_single_analysis(args):
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
-        result = run_cell_type_analysis_wrapper(
+        result = runCASSIA(
             tissue=tissue,
             species=species,
             additional_info=additional_info,
@@ -457,7 +457,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -1197,7 +1197,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def process_and_save_batch_results(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1377,7 +1377,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
     '''
 
 
-    results=run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
+    results=runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
 
     results=extract_cell_types_from_results_single(results)
     
@@ -1407,7 +1407,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def process_cell_type_analysis_single_wrapper(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1444,7 +1444,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types
@@ -1820,7 +1820,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
     """
     Run scoring with progress updates and retry failed rows once.
     
@@ -1937,7 +1937,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         return results
         
     except Exception as e:
-        print(f"Error in run_scoring_with_progress: {str(e)}")
+        print(f"Error in runCASSIA_score_batch: {str(e)}")
         raise
 
 
@@ -3824,7 +3824,7 @@ def render_report_to_html(report_content, output_path):
 
 
 
-def generate_cell_type_analysis_report_openrouter_additional_task(
+def runCASSIA_annotationboost_additional_task(
     full_result_path,
     marker,
     cluster_name,
@@ -3968,7 +3968,7 @@ def generate_cell_type_analysis_report_openai(
 
 
 
-def generate_cell_type_analysis_report_wrapper(
+def runCASSIA_annotationboost(
     full_result_path,
     marker,
     cluster_name,
@@ -4034,7 +4034,7 @@ def generate_cell_type_analysis_report_wrapper(
                 model=model
             )
     except Exception as e:
-        print(f"Error in generate_cell_type_analysis_report_wrapper: {str(e)}")
+        print(f"Error in runCASSIA_annotationboost: {str(e)}")
         raise
 
 
@@ -4483,7 +4483,7 @@ def generate_index_page(report_files):
     
     return index_template.format('\n'.join(links))
 
-def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
+def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
     # Read the CSV file
     report = pd.read_csv(csv_path)
     report_files = []
@@ -4536,7 +4536,7 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
 
 
 
-def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
+def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
     # Get API key from environment variable
     OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
     if not OPENROUTER_API_KEY:
@@ -4904,7 +4904,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
 
 
 
-def run_cell_analysis_pipeline(
+def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
     species: str,
@@ -4976,7 +4976,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
-    run_cell_type_analysis_batchrun(
+    runCASSIA_batch(
         marker=marker_path,
         output_name=annotation_output,
         model=annotation_model,
@@ -5014,7 +5014,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting scoring process ===")
     # Run scoring
-    run_scoring_with_progress(
+    runCASSIA_score_batch(
         input_file=annotation_full_file,
         output_file=score_file_name,
         max_workers=max_workers,
@@ -5026,7 +5026,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Generating main reports ===")
     # Process reports
-    process_all_reports(
+    runCASSIA_generate_score_report(
         csv_path=score_file_name,
         index_name=report_name
     )
@@ -5051,7 +5051,7 @@ def run_cell_analysis_pipeline(
             # Create proper output filename in the folder
             cluster_output_name = os.path.join(folder_name, f"{sanitized_cluster}_boost_report")
             
-            generate_cell_type_analysis_report_wrapper(
+            runCASSIA_annotationboost(
                 full_result_path=annotation_full_file,
                 marker=marker_path,
                 cluster_name=cluster,
