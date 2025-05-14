@@ -4948,6 +4948,10 @@ def run_cell_analysis_pipeline(
     max_retries = int(max_retries)
     score_threshold = float(score_threshold)
 
+    # Remove .csv extension if present
+    if output_file_name.lower().endswith('.csv'):
+        output_file_name = output_file_name[:-4] # Remove last 4 characters (.csv)
+
     # Create a folder based on tissue and species for organizing reports
     import datetime
     folder_name = f"CASSIA_{tissue}_{species}"

@@ -4749,6 +4749,10 @@ def runCASSIA_pipeline(
     main_folder_name = "".join(c for c in main_folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
     main_folder_name = main_folder_name.replace(' ', '_')
     
+    # Remove .csv extension if present
+    if output_file_name.lower().endswith('.csv'):
+        output_file_name = output_file_name[:-4] # Remove last 4 characters (.csv)
+
     # Add timestamp to prevent overwriting existing folders with the same name
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     main_folder_name = f"{main_folder_name}_{timestamp}"
