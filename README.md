@@ -104,11 +104,11 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 # The default provider is set to OpenRouter.
 
 runCASSIA_pipeline(
-    output_file_name,     # Base name for output files
-    tissue,               # Tissue type (e.g., "brain")
-    species,              # Species (e.g., "human")
-    marker,               # Marker data from findallmarker
-    max_workers = 4      # Number of parallel workers
+    output_file_name = "cassia_test",            # Base name for output files
+    tissue = "Large Intestine",                   # Tissue type (e.g., "brain")
+    species = "Human",              		 # Species (e.g., "human")
+    marker = "markers_unprocessed",               # Marker data from findallmarker
+    max_workers = 4                              # Number of parallel workers
 )
 ```
 
