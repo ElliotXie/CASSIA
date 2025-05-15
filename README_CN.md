@@ -98,11 +98,11 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式
 # 默认提供商设置为OpenRouter
 
 runCASSIA_pipeline(
-    output_file_name,     # 输出文件的基本名称
-    tissue,               # 组织类型（例如，"brain"）
-    species,              # 物种（例如，"human"）
-    marker,               # 来自 findallmarker 的标记数据
-    max_workers = 4       # 并行工作者数量
+    output_file_name = "cassia_test",            # Base name for output files
+    tissue = "Large Intestine",                   # Tissue type (e.g., "brain")
+    species = "Human",              		 # Species (e.g., "human")
+    marker = "markers_unprocessed",               # Marker data from findallmarker
+    max_workers = 4                              # Number of parallel workers
 )
 ```
 
