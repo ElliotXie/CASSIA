@@ -62,7 +62,7 @@ setup_cassia_env()
 
 获取API密钥大约需要3分钟时间。
 
-我们建议从 OpenRouter 开始，因为它可以通过单个 API 密钥访问大多数模型。
+针对国内用户，我们强烈推荐使用 OpenRouter ，因为OpenAI和Anthropic都对国内访问有限制，使用OpenRouter可以通过单个 API 密钥访问大多数模型。
 
 ```R
 # 对于 OpenRouter
@@ -77,12 +77,10 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
 
 - **API 提供商指南:**
-	- [如何获取 OpenAI API 密钥](https://platform.openai.com/api-keys)
-	- [如何获取 Anthropic API 密钥](https://console.anthropic.com/settings/keys)
+
 	- [如何获取 OpenRouter API 密钥](https://openrouter.ai/settings/keys)
-    - [OpenAI API 文档](https://beta.openai.com/docs/)
-    - [Anthropic API 文档](https://docs.anthropic.com/)
-    - [OpenRouter API 文档](https://openrouter.ai/docs/quick-start)
+ 	- [如何充值OpenRouter](https://zhuanlan.zhihu.com/p/1898753591528908109)
+
 
 
 ## 🧬 示例数据
