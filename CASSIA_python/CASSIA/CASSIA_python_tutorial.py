@@ -18,14 +18,32 @@ six distinct populations:
 
 # --------------------- Setup and Environment Preparation ---------------------
 
+# Add current directory to path for proper imports
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Direct imports from local files, not from the installed package
 from tools_function import *
 from main_function_code import *
 import pandas as pd
-import os
 import numpy as np
 import argparse
 import re
+
+# Import the new unified modules for annotation boost
+try:
+    from annotation_boost import (
+        iterative_marker_analysis,
+        runCASSIA_annotationboost,
+        runCASSIA_annotationboost_additional_task
+    )
+    from llm_utils import call_llm
+    print("Successfully imported unified annotation boost modules")
+except ImportError as e:
+    print(f"Note: Could not import unified modules: {str(e)}")
+    print("Using original implementations from tools_function.py")
+    # These will be provided by tools_function import
 
 # Setup configuration variables
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -41,6 +59,11 @@ def load_marker_data():
     processed_markers = pd.read_csv(os.path.join(script_dir, "data", "processed.csv"))
     unprocessed_markers = pd.read_csv(os.path.join(script_dir, "data", "unprocessed.csv"))
     subcluster_results = pd.read_csv(os.path.join(script_dir, "data", "subcluster_results.csv"))
+    
+    # Remove 'Unnamed: 0' column if it exists, as it's redundant with the 'gene' column
+    for df in [processed_markers, unprocessed_markers, subcluster_results]:
+        if 'Unnamed: 0' in df.columns:
+            df.drop(columns=['Unnamed: 0'], inplace=True)
     
     # Handle potential column name differences - ensure we have the required columns
     for df in [processed_markers, unprocessed_markers, subcluster_results]:
@@ -229,20 +252,63 @@ def run_uncertainty_quantification(marker_data):
     )
 
 # --------------------- Step 6: Annotation Boost ---------------------
-def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte"):
+def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provider_test=None, debug_mode=False, test_genes=None, conversation_history_mode="final"):
     """
     Run annotation boost for a specific cluster.
-    
-    Note: This function preserves the original cluster name format from the CSV file.
-    The original runCASSIA_annotationboost function has issues with cluster names 
-    containing commas and special characters.
     
     Args:
         marker_data: Marker data DataFrame
         full_csv: Path to the CSV file with annotation results
         cluster_name: Name of the cluster to analyze (default: "monocyte")
+        provider_test: Optional provider to test (default: uses global provider)
+        debug_mode: Enable debug mode for diagnostics
+        test_genes: List of test genes to check in the marker data
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
     """
     print(f"\n=== Running Annotation Boost for {cluster_name} ===")
+    
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
+    
+    # Import debug utilities if in debug mode
+    if debug_mode:
+        try:
+            from CASSIA.debug_genes import run_gene_diagnostics
+            print("Successfully imported debug utilities")
+            
+            # Define the test genes if not specified
+            if test_genes is None:
+                test_genes = ["CD133", "CD9", "ChAT", "DCLK1", "EDNRB", "ERBB3", "FABP7", "GFAP", "KIT", "LGR5", "NGFR", "NKX2-2", "NOS1", "OLIG2", "PGP9.5", "PROM1", "RET", "S100B", "SOX9", "UCHL1", "VIP"]
+            
+            # Generate a test conversation
+            test_conversation = f"""
+            Based on the marker genes, I would like to check some additional genes to confirm this cell type:
+            <check_genes>{', '.join(test_genes[:10])}</check_genes>
+            
+            Let's also check these additional markers:
+            <check_genes>{', '.join(test_genes[10:])}</check_genes>
+            """
+            
+            # Run diagnostics
+            print("\n=== Running Gene Extraction Diagnostics ===")
+            print(f"Testing with marker data: {marker_data.shape}")
+            
+            try:
+                # Try normal import first
+                from debug_genes import run_gene_diagnostics
+            except ImportError:
+                try:
+                    # Try relative import as fallback
+                    from CASSIA.debug_genes import run_gene_diagnostics
+                except ImportError:
+                    raise ImportError("Could not import debug_genes module. Make sure it's in the correct directory.")
+            
+            # Run full diagnostics
+            run_gene_diagnostics(marker_data, test_conversation, test_genes)
+            
+        except ImportError as e:
+            print(f"Could not import debug utilities: {e}")
     
     # Make sure the CSV file exists
     if not os.path.exists(full_csv):
@@ -283,7 +349,9 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte"):
         
     try:
         # Now run with the exact cluster name
-        runCASSIA_annotationboost(
+        print(f"Running annotation boost with {test_provider} provider")
+        print(f"Using conversation history mode: {conversation_history_mode}")
+        result = runCASSIA_annotationboost(
             full_result_path = full_csv,
             marker = marker_data,
             output_name = output_filename,  # Remove comma for filename only
@@ -291,11 +359,47 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte"):
             major_cluster_info = f"{species.title()} {tissue.title()}",
             num_iterations = 5,
             model = model_name,
-            provider = provider
+            provider = test_provider,
+            conversation_history_mode = conversation_history_mode
         )
+        
+        # Check if the result is successful
+        if isinstance(result, dict):
+            status = result.get('status', 'unknown')
+            if status == 'success':
+                print(f"\n✅ Successfully completed annotation boost for {cluster_name}")
+                print(f"Results saved to:")
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
+                    if key in result:
+                        print(f"  - {key}: {result[key]}")
+                print(f"Execution time: {result.get('execution_time', 0):.2f} seconds")
+            elif status in ['error', 'partial_error', 'critical_error']:
+                print(f"\n❌ Error in annotation boost: {result.get('error_message', 'Unknown error')}")
+                # Try to report any partial results if available
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
+                    if key in result and result[key]:
+                        print(f"  - Partial {key}: {result[key]}")
+            else:
+                print(f"\n⚠️ Unknown result status: {status}")
+        else:
+            # Handle old style return value (for backward compatibility)
+            print(f"Successfully completed annotation boost for {cluster_name}")
+            print(f"Results saved with prefix: {output_filename}")
+        
+        # Offer to open the reports if they were generated
+        if isinstance(result, dict) and result.get('status') == 'success':
+            if 'formatted_report_path' in result and os.path.exists(result['formatted_report_path']):
+                print(f"\nTo view the formatted report, open: {result['formatted_report_path']}")
+            if 'raw_report_path' in result and result['raw_report_path'] and os.path.exists(result['raw_report_path']):
+                print(f"To view the raw conversation report, open: {result['raw_report_path']}")
+            if 'summary_report_path' in result and result['summary_report_path'] and os.path.exists(result['summary_report_path']):
+                print(f"To view the summary report, open: {result['summary_report_path']}")
+        
         print(f"Successfully completed annotation boost for {cluster_name}")
     except Exception as e:
         print(f"Error in run_annotation_boost: {str(e)}")
+        import traceback
+        traceback.print_exc()
         print("Available clusters in the CSV file:")
         print(df['True Cell Type'].tolist())
 
@@ -350,23 +454,25 @@ def run_subclustering(subcluster_data):
     )
 
 # --------------------- Step 9: Annotation Boost with Additional Task ---------------------
-def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None):
+def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None, provider_test=None, conversation_history_mode="final"):
     """
     Run annotation boost with an additional task for a cluster.
-    
-    This function properly handles cluster names with commas or special characters.
-    The annotation boost with additional task performs standard marker-based annotation
-    plus an extra analysis task (e.g., checking cell state, cancer markers, etc.).
     
     Args:
         marker_data: Marker data DataFrame
         full_csv: Path to the CSV file with annotation results
         cluster_name: Optional name of the cluster to analyze (default: "cd8-positive, alpha-beta t cell")
         additional_task: Optional task description (default: infer cell state and function)
+        provider_test: Optional provider to test (default: uses global provider)
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
     """
     # Default cluster to analyze if not specified
     if cluster_name is None:
         cluster_name = "cd8-positive, alpha-beta t cell"
+        
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
         
     print(f"\n=== Running Annotation Boost with Additional Task for {cluster_name} ===")
     
@@ -415,6 +521,8 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
             additional_task = "infer the state and function of this cell cluster, and determine if it shows signs of exhaustion or activation"
         
         print(f"Additional task: {additional_task}")
+        print(f"Running annotation boost with {test_provider} provider")
+        print(f"Using conversation history mode: {conversation_history_mode}")
         
         # Call the annotation boost function with the exact cluster name from the file
         result = runCASSIA_annotationboost_additional_task(
@@ -425,7 +533,9 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
             major_cluster_info = f"{species.title()} {tissue.title()}",
             num_iterations = 5,
             model = model_name,
-            additional_task = additional_task
+            provider = test_provider,
+            additional_task = additional_task,
+            conversation_history_mode = conversation_history_mode
         )
         
         # Check if the result is successful
@@ -434,14 +544,14 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
             if status == 'success':
                 print(f"\n✅ Successfully completed annotation boost for {cluster_name}")
                 print(f"Results saved to:")
-                for key in ['summary_report_path', 'raw_report_path', 'formatted_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result:
                         print(f"  - {key}: {result[key]}")
                 print(f"Execution time: {result.get('execution_time', 0):.2f} seconds")
             elif status in ['error', 'partial_error', 'critical_error']:
                 print(f"\n❌ Error in annotation boost: {result.get('error_message', 'Unknown error')}")
                 # Try to report any partial results if available
-                for key in ['summary_report_path', 'raw_report_path', 'formatted_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result and result[key]:
                         print(f"  - Partial {key}: {result[key]}")
             else:
@@ -455,6 +565,10 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         if isinstance(result, dict) and result.get('status') == 'success':
             if 'formatted_report_path' in result and os.path.exists(result['formatted_report_path']):
                 print(f"\nTo view the formatted report, open: {result['formatted_report_path']}")
+            if 'raw_report_path' in result and result['raw_report_path'] and os.path.exists(result['raw_report_path']):
+                print(f"To view the raw conversation report, open: {result['raw_report_path']}")
+            if 'summary_report_path' in result and result['summary_report_path'] and os.path.exists(result['summary_report_path']):
+                print(f"To view the summary report, open: {result['summary_report_path']}")
     
     except Exception as e:
         print(f"Error in run_annotation_boost_with_task: {str(e)}")
@@ -462,6 +576,57 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         traceback.print_exc()
         print("\nAvailable clusters in the CSV file:")
         print(df['True Cell Type'].tolist())
+
+# --------------------- New: Test All Annotation Boost Providers ---------------------
+def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final"):
+    """
+    Test the annotation boost functionality with different providers.
+    This function helps validate that the unified annotation boost implementation 
+    works correctly with all supported providers.
+    
+    Args:
+        marker_data: Marker data DataFrame
+        full_csv: Path to the CSV file with annotation results
+        cluster_name: Name of the cluster to analyze (default: "monocyte")
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+    """
+    print("\n=== Testing Annotation Boost with Multiple Providers ===")
+    print(f"Using conversation history mode: {conversation_history_mode}")
+    
+    # Test with OpenAI provider
+    print("\n----- Testing with OpenAI provider -----")
+    try:
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openai", conversation_history_mode=conversation_history_mode)
+    except Exception as e:
+        print(f"Error with OpenAI provider: {str(e)}")
+    
+    # Test with Anthropic provider
+    print("\n----- Testing with Anthropic provider -----")
+    try:
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="anthropic", conversation_history_mode=conversation_history_mode)
+    except Exception as e:
+        print(f"Error with Anthropic provider: {str(e)}")
+    
+    # Test with OpenRouter provider
+    print("\n----- Testing with OpenRouter provider -----")
+    try:
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openrouter", conversation_history_mode=conversation_history_mode)
+    except Exception as e:
+        print(f"Error with OpenRouter provider: {str(e)}")
+    
+    # Test additional task functionality with OpenRouter
+    print("\n----- Testing Annotation Boost with Additional Task -----")
+    try:
+        run_annotation_boost_with_task(
+            marker_data, 
+            full_csv, 
+            cluster_name, 
+            additional_task="check if this cell type expresses cancer markers", 
+            provider_test="openrouter",
+            conversation_history_mode=conversation_history_mode
+        )
+    except Exception as e:
+        print(f"Error with additional task: {str(e)}")
 
 def setup_api_keys():
     """Setup API keys for various providers from environment variables."""
@@ -513,14 +678,26 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task')
+                      help='Which step to run: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task, test_boost, debug_genes')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
                       help='Cluster name for annotation boost')
     parser.add_argument('--task', type=str, default=None,
                       help='Additional task for annotation boost with task, e.g., "check if this is a cancer cell"')
+    parser.add_argument('--provider', type=str, default=None,
+                      help='Provider to use for API calls (openai, anthropic, openrouter)')
+    parser.add_argument('--test_genes', type=str, default=None,
+                      help='Comma-separated list of genes to test for the debug_genes step')
+    parser.add_argument('--history_mode', type=str, default="final",
+                      help='Conversation history mode for annotation boost: "full", "final", or "none"')
     args = parser.parse_args()
+    
+    # Override default provider if specified in command line
+    global provider
+    if args.provider:
+        provider = args.provider
+        print(f"Using provider specified in command line: {provider}")
     
     # Setup API keys first
     setup_api_keys()
@@ -535,7 +712,7 @@ def main():
         return
     
     # Get the default input CSV if not provided
-    input_csv = args.input_csv or f"{output_name}_full.csv"
+    input_csv = args.input_csv or r"C:\Users\ellio\OneDrive - UW-Madison\CASSIA+\CASSIA_large_intestine_human_20250513_225204\TEST2_full.csv"
     
     # Run the selected step
     if args.step == 'all':
@@ -558,19 +735,69 @@ def main():
     elif args.step == 'uncertainty':
         run_uncertainty_quantification(unprocessed)
     elif args.step == 'boost':
-        run_annotation_boost(unprocessed, input_csv, args.cluster)
+        run_annotation_boost(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
     elif args.step == 'compare':
         run_celltype_comparison()
     elif args.step == 'subcluster':
         run_subclustering(subcluster)
     elif args.step == 'boost_task':
         try:
-            run_annotation_boost_with_task(unprocessed, input_csv, args.cluster, args.task)
+            run_annotation_boost_with_task(unprocessed, input_csv, args.cluster, args.task, conversation_history_mode=args.history_mode)
         except Exception as e:
             print(f"Error in annotation boost with task: {str(e)}")
+    elif args.step == 'test_boost':
+        # New option to test the unified annotation boost functionality
+        try:
+            test_annotation_boost_providers(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
+        except Exception as e:
+            print(f"Error testing annotation boost: {str(e)}")
+    elif args.step == 'debug_genes':
+        # New option to run gene extraction diagnostics
+        try:
+            # Parse test genes if provided
+            test_genes = None
+            if args.test_genes:
+                test_genes = [g.strip() for g in args.test_genes.split(',')]
+            
+            print(f"=== Running Gene Extraction Diagnostics ===")
+            print(f"Testing with marker data: {unprocessed.shape}")
+            
+            try:
+                # Try normal import first
+                from debug_genes import run_gene_diagnostics
+            except ImportError:
+                try:
+                    # Try relative import as fallback
+                    from CASSIA.debug_genes import run_gene_diagnostics
+                except ImportError:
+                    raise ImportError("Could not import debug_genes module. Make sure it's in the correct directory.")
+            
+            # Create a sample conversation with the problematic genes
+            if test_genes is None:
+                test_genes = ["CD133", "CD9", "ChAT", "DCLK1", "EDNRB", "ERBB3", "FABP7", "GFAP", "KIT", "LGR5", "NGFR", "NKX2-2", "NOS1", "OLIG2", "PGP9.5", "PROM1", "RET", "S100B", "SOX9", "UCHL1", "VIP"]
+            
+            test_conversation = f"""
+            Based on the marker genes, I would like to check some additional genes to confirm this cell type:
+            <check_genes>{', '.join(test_genes[:10])}</check_genes>
+            
+            Let's also check these additional markers:
+            <check_genes>{', '.join(test_genes[10:])}</check_genes>
+            """
+            
+            # Run full diagnostics
+            run_gene_diagnostics(unprocessed, test_conversation, test_genes)
+            
+            # Test with a specific cluster
+            if args.cluster:
+                run_annotation_boost(unprocessed, input_csv, args.cluster, debug_mode=True, test_genes=test_genes)
+            
+        except Exception as e:
+            print(f"Error in gene extraction diagnostics: {str(e)}")
+            import traceback
+            traceback.print_exc()
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task")
+        print("Available steps: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task, test_boost, debug_genes")
 
 
 if __name__ == "__main__":
@@ -588,6 +815,22 @@ if __name__ == "__main__":
     tissue = "large intestine"
     model_name = "google/gemini-2.5-flash-preview"  # Using specified model
     output_name = f"CASSIA_{tissue.replace(' ', '_')}_{species}"
+
     
     # Run the main function
     main() 
+
+
+    # Example commands to test each case in a Windows terminal (Command Prompt or PowerShell):
+    # python CASSIA_python_tutorial.py --step all
+    # python CASSIA_python_tutorial.py --step batch
+    # python CASSIA_python_tutorial.py --step merge
+    # python CASSIA_python_tutorial.py --step score
+    # python CASSIA_python_tutorial.py --step report
+    # python CASSIA_python_tutorial.py --step uncertainty
+    # python CASSIA_python_tutorial.py --step boost
+    # python CASSIA_python_tutorial.py --step compare
+    # python CASSIA_python_tutorial.py --step subcluster
+    # python CASSIA_python_tutorial.py --step boost_task
+    # python CASSIA_python_tutorial.py --step test_boost
+    

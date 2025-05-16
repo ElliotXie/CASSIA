@@ -12,6 +12,11 @@ import requests
 import threading
 import numpy as np
 import datetime
+# Explicitly import the function from annotation_boost
+from annotation_boost import runCASSIA_annotationboost as ab_runCASSIA_annotationboost
+from annotation_boost import runCASSIA_annotationboost_additional_task as ab_runCASSIA_annotationboost_additional_task
+
+
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -42,6 +47,86 @@ def set_api_key(api_key, provider="openai"):
         os.environ["OPENROUTER_API_KEY"] = api_key
     else:
         raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
+    
+def loadmarker(marker_type="processed"):
+    """
+    Load built-in marker files.
+    
+    Args:
+        marker_type (str): Type of markers to load. Options:
+            - "processed": For processed marker data
+            - "unprocessed": For raw unprocessed marker data
+            - "subcluster_results": For subcluster analysis results
+    
+    Returns:
+        pandas.DataFrame: Marker data
+    
+    Raises:
+        ValueError: If marker_type is not recognized
+    """
+    import os
+    import pandas as pd
+    from importlib import resources
+    
+    marker_files = {
+        "processed": "processed.csv",
+        "unprocessed": "unprocessed.csv",
+        "subcluster_results": "subcluster_results.csv"
+    }
+    
+    if marker_type not in marker_files:
+        raise ValueError(f"Unknown marker type: {marker_type}. Available types: {list(marker_files.keys())}")
+    
+    filename = marker_files[marker_type]
+    
+    try:
+        # First try to access the file via importlib.resources if using as a Python package
+        try:
+            with resources.path('CASSIA.data', filename) as file_path:
+                return pd.read_csv(file_path)
+        except (ImportError, ModuleNotFoundError):
+            # If not available as a Python package, try in the R package structure
+            # Find the current script's directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # Construct path to the extdata directory
+            data_path = os.path.join(script_dir, 'extdata', filename)
+            
+            if os.path.exists(data_path):
+                return pd.read_csv(data_path)
+            else:
+                raise FileNotFoundError(f"Marker file not found: {data_path}")
+    except Exception as e:
+        raise Exception(f"Error loading marker file: {str(e)}")
+
+def list_available_markers():
+    """
+    List all available built-in marker sets.
+    
+    Returns:
+        list: Names of available marker files (without extension)
+    """
+    import os
+    from importlib import resources
+    
+    try:
+        # First try via importlib.resources if using as a Python package
+        try:
+            with resources.path('CASSIA.data', '') as data_path:
+                marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+        except (ImportError, ModuleNotFoundError):
+            # If not available as a Python package, try in the R package structure
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            data_path = os.path.join(script_dir, 'extdata')
+            
+            if os.path.exists(data_path):
+                marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+            else:
+                raise FileNotFoundError(f"Extdata directory not found: {data_path}")
+        
+        return [f.replace('.csv', '') for f in marker_files]
+    except Exception as e:
+        raise Exception(f"Error listing marker files: {str(e)}")
     
 def split_markers(marker_string):
     # First, try splitting by comma and space
@@ -187,7 +272,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openai"):
+def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter"):
     """
     Wrapper function to run cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -216,7 +301,7 @@ def run_cell_type_analysis_wrapper(model="gpt-4o", temperature=0, marker_list=No
 
 
 
-def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openai", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1):
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -243,7 +328,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
     
     
     # Choose the appropriate analysis function based on provider
-    analysis_function = run_cell_type_analysis_wrapper
+    analysis_function = runCASSIA
     
     def analyze_cell_type(cell_type, marker_list):
         print(f"\nAnalyzing {cell_type}...")
@@ -384,7 +469,7 @@ def run_cell_type_analysis_batchrun(marker, output_name="cell_type_analysis_resu
 
 
 
-def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_results", model="gpt-4o", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openai", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1):
     def single_batch_run(i):
         # For each run, use the same base output name but with an index
         # If output_name already includes a folder path, maintain it
@@ -394,7 +479,7 @@ def run_batch_analysis_n_times(n, marker, output_name="cell_type_analysis_result
         
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
-        result = run_cell_type_analysis_batchrun(
+        result = runCASSIA_batch(
             marker=marker,
             output_name=output_json_name,
             model=model,
@@ -441,7 +526,7 @@ def run_single_analysis(args):
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
-        result = run_cell_type_analysis_wrapper(
+        result = runCASSIA(
             tissue=tissue,
             species=species,
             additional_info=additional_info,
@@ -457,7 +542,7 @@ def run_single_analysis(args):
         print(f"Error in analysis {index+1}: {str(e)}")
         return index, None
 
-def run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openai"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter"):
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -972,17 +1057,7 @@ def extract_celltypes_from_llm_claude(llm_response):
     if json_match:
         try:
             # Clean up the matched string and parse JSON
-            json_str = json_match.group(1) if ('<json>' in llm_response or 'json>' in llm_response or '```' in llm_response) else json_match.group(0)
-            
-            # Try to clean up any malformed JSON
-            json_str = json_str.strip()
-            
-            # Remove any unexpected characters at the beginning or end
-            if not json_str.startswith('{'):
-                json_str = '{' + json_str.split('{', 1)[1]
-            if not json_str.endswith('}'):
-                json_str = json_str.rsplit('}', 1)[0] + '}'
-                
+            json_str = json_match.group(1) if ('<json>' in llm_response or '```' in llm_response or 'json>' in llm_response) else json_match.group(0)
             data = json.loads(json_str)
             
             final_results = data.get("final_results", [])
@@ -993,14 +1068,14 @@ def extract_celltypes_from_llm_claude(llm_response):
             sub_celltype = final_results[1] if len(final_results) > 1 else "Not found"
             
             return general_celltype, sub_celltype, mixed_celltypes, consensus_score
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from LLM response: {e}")
-            print(f"Attempted to parse: {json_str}")
+        except json.JSONDecodeError:
+            print("Error decoding JSON from LLM response")
+            print(f"Attempted to parse: {json_str if 'json_str' in locals() else 'No JSON found'}")
     else:
         print("No JSON data found in the LLM response")
         print(f"Full response: {llm_response}")
         
-    return "Not found", "Not found", [], "Not found"
+    return "Not found", "Not found", [], 0
 
 
 
@@ -1197,7 +1272,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def process_and_save_batch_results(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="gpt-4o", provider="openai", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1377,7 +1452,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
     '''
 
 
-    results=run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
+    results=runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers)
 
     results=extract_cell_types_from_results_single(results)
     
@@ -1407,7 +1482,7 @@ def process_cell_type_analysis_single(tissue,species,additional_info,temperature
 
 
 
-def process_cell_type_analysis_single_wrapper(tissue, species, additional_info, temperature, marker_list, model="gpt-4o", max_workers=10, n=3, provider="openai",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5):
     """
     Wrapper function for processing cell type analysis using either OpenAI or Anthropic's Claude
     
@@ -1444,7 +1519,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = run_analysis_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types
@@ -1820,7 +1895,7 @@ def score_annotation_batch(results_file_path, output_file_path=None, max_workers
     
     return results
 
-def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model="gpt-4o", provider="openai", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
     """
     Run scoring with progress updates and retry failed rows once.
     
@@ -1937,7 +2012,7 @@ def run_scoring_with_progress(input_file, output_file=None, max_workers=4, model
         return results
         
     except Exception as e:
-        print(f"Error in run_scoring_with_progress: {str(e)}")
+        print(f"Error in runCASSIA_score_batch: {str(e)}")
         raise
 
 
@@ -3824,18 +3899,21 @@ def render_report_to_html(report_content, output_path):
 
 
 
-def generate_cell_type_analysis_report_openrouter_additional_task(
+def runCASSIA_annotationboost_additional_task(
     full_result_path,
     marker,
     cluster_name,
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="claude-3-5-sonnet-20241022",
-    additional_task=""
+    model="google/gemini-2.5-flash-preview",
+    provider="openrouter",
+    additional_task="check if this is a cancer cluster",
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
-    Generate a detailed HTML report for cell type analysis of a specific cluster.
+    Generate a detailed HTML report for cell type analysis of a specific cluster with an additional task.
     
     Args:
         full_result_path (str): Path to the full results CSV file
@@ -3844,49 +3922,33 @@ def generate_cell_type_analysis_report_openrouter_additional_task(
         major_cluster_info (str): General information about the dataset (e.g., "Human PBMC")
         output_name (str): Name of the output HTML file
         num_iterations (int): Number of iterations for marker analysis (default=5)
-        model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
+        model (str): Model to use for analysis (default="google/gemini-2.5-flash-preview")
+        provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
+        additional_task (str): Additional task to perform during analysis
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         
     Returns:
         tuple: (analysis_result, messages_history)
             - analysis_result: Final analysis text
             - messages_history: Complete conversation history
     """
-    try:
-        # Step 1: Prepare analysis data
-        annotation_history, comma_separated_genes, marker_subset = prepare_analysis_data(
-            full_result_path, 
-            marker, 
-            cluster_name
-        )
-        
-        # Step 2: Perform iterative marker analysis
-        analysis_result = iterative_marker_analysis_openrouter_additional_task(
-            major_cluster_info,
-            marker=marker_subset,
-            comma_separated_genes=comma_separated_genes,
-            annotation_history=annotation_history,
-            num_iterations=num_iterations,
-            model=model,
-            additional_task=additional_task
-        )
-        
-        # Step 3: Add final result to message history
-        messages = analysis_result[1]
-        messages.append({"role": "user", "content": analysis_result[0]})
-        
-        # Step 4: Generate and save HTML report
-        report = openrouter_agent(report_generator_additional_task(messages), model=model)
-        
-        render_report_to_html(report, f"{output_name}_summary_report.html")
-        print(f"Analysis completed successfully. Summary Report saved as {output_name}_summary_report.html")
- 
-        generate_raw_cell_annotation_report_additional_task(messages, f'{output_name}_raw.html')
-        print(f"Analysis completed successfully. Raw Cell Annotation Report saved as {output_name}_raw.html")
-        return None
-        
-    except Exception as e:
-        print(f"Error generating analysis report: {str(e)}")
-        raise
+    # Import here to avoid circular imports
+    from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+    
+    return run_annotationboost_additional_task(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        additional_task=additional_task,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )
 
 
 
@@ -3968,15 +4030,17 @@ def generate_cell_type_analysis_report_openai(
 
 
 
-def generate_cell_type_analysis_report_wrapper(
+def runCASSIA_annotationboost(
     full_result_path,
     marker,
     cluster_name,
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="gpt-4o",
-    provider="openai"
+    model="google/gemini-2.5-flash-preview",
+    provider="openrouter",
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -3992,50 +4056,27 @@ def generate_cell_type_analysis_report_wrapper(
             - OpenAI options: "gpt-4", "gpt-3.5-turbo", etc.
             - Anthropic options: "claude-3-opus-20240229", "claude-3-sonnet-20240229", etc.
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
     
     Returns:
         tuple: (analysis_result, messages_history)
             - analysis_result: Final analysis text
             - messages_history: Complete conversation history
     """
-    # Validate provider input
-    if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-        raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
-
-    try:
-        if provider.lower() == 'openai':
-            return generate_cell_type_analysis_report_openai(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-        elif provider.lower() == "openrouter":
-            return generate_cell_type_analysis_report_openrouter(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-        elif provider.lower() == "anthropic":
-            return generate_cell_type_analysis_report(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-    except Exception as e:
-        print(f"Error in generate_cell_type_analysis_report_wrapper: {str(e)}")
-        raise
+    
+    return run_annotationboost(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )
 
 
 def generate_html_report(analysis_text):
@@ -4483,7 +4524,7 @@ def generate_index_page(report_files):
     
     return index_template.format('\n'.join(links))
 
-def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
+def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
     # Read the CSV file
     report = pd.read_csv(csv_path)
     report_files = []
@@ -4536,7 +4577,7 @@ def process_all_reports(csv_path, index_name="CASSIA_reports_summary"):
 
 
 
-def compare_celltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
+def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
     # Get API key from environment variable
     OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
     if not OPENROUTER_API_KEY:
@@ -4726,7 +4767,7 @@ def subcluster_agent_annotate_subcluster(user_message,model="claude-3-5-sonnet-2
             return text_block[0].text  # Directly access the 'text' attribute
     else:  # OpenRouter
         return openrouter_agent(user_message, model=model, temperature=temperature)
-    return ''
+    return None
 
 
 
@@ -4834,7 +4875,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
-                       model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic",n_genes=50):
+                       model="google/gemini-2.5-flash-preview", temperature=0, provider="openrouter",n_genes=50):
     """
     Process subclusters from a CSV file and generate annotated results
     
@@ -4860,8 +4901,8 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
 
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
-                                         model="claude-3-5-sonnet-20241022", temperature=0, 
-                                         provider="anthropic", max_workers=5,n_genes=50):       
+                                         model="google/gemini-2.5-flash-preview", temperature=0, 
+                                         provider="openrouter", max_workers=5,n_genes=50):       
     def run_single_analysis(i):
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info, 
@@ -4904,7 +4945,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
 
 
 
-def run_cell_analysis_pipeline(
+def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
     species: str,
@@ -4920,7 +4961,8 @@ def run_cell_analysis_pipeline(
     additional_info: str = "None",
     max_retries: int = 1,
     do_merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324"
+    merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    conversation_history_mode: str = "final"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4942,6 +4984,7 @@ def run_cell_analysis_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         do_merge_annotations (bool): Whether to run the merging annotations step
         merge_model (str): Model to use for merging annotations
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
     """
     # Convert parameters to the appropriate types
     max_workers = int(max_workers)
@@ -4976,7 +5019,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
-    run_cell_type_analysis_batchrun(
+    runCASSIA_batch(
         marker=marker_path,
         output_name=annotation_output,
         model=annotation_model,
@@ -5014,7 +5057,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Starting scoring process ===")
     # Run scoring
-    run_scoring_with_progress(
+    runCASSIA_score_batch(
         input_file=annotation_full_file,
         output_file=score_file_name,
         max_workers=max_workers,
@@ -5026,7 +5069,7 @@ def run_cell_analysis_pipeline(
 
     print("\n=== Generating main reports ===")
     # Process reports
-    process_all_reports(
+    runCASSIA_generate_score_report(
         csv_path=score_file_name,
         index_name=report_name
     )
@@ -5051,7 +5094,7 @@ def run_cell_analysis_pipeline(
             # Create proper output filename in the folder
             cluster_output_name = os.path.join(folder_name, f"{sanitized_cluster}_boost_report")
             
-            generate_cell_type_analysis_report_wrapper(
+            runCASSIA_annotationboost(
                 full_result_path=annotation_full_file,
                 marker=marker_path,
                 cluster_name=cluster,
@@ -5059,7 +5102,9 @@ def run_cell_analysis_pipeline(
                 output_name=cluster_output_name,
                 num_iterations=5,
                 model=annotationboost_model,
-                provider=annotationboost_provider
+                provider=annotationboost_provider,
+                temperature=0,
+                conversation_history_mode=conversation_history_mode
             )
             print(f"✓ Completed analysis for cluster: {cluster}")
     else:
@@ -5077,7 +5122,7 @@ Input format：
 result1:(immune cell, t cell),result2:(Immune cells,t cell),result3:(T cell, cd8+ t cell)
                   
 Output format:
-<results>result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)</results>
+result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)
 
 Another example:
                       
@@ -5085,8 +5130,8 @@ Input format：
 result1:(Hematopoietic stem/progenitor cells (HSPCs), T cell progenitors),result2:(Hematopoietic Progenitor cells,t cell),result3:(Hematopoietic progenitor cells, T cell)
                   
 Output format:
-<results>result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)</results>
-''', model="google/gemini-2.5-flash-preview", temperature=0):
+result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)
+''', model="anthropic/claude-3.5-sonnet", temperature=0):
     
     try:
         response = requests.post(
@@ -5132,8 +5177,8 @@ Output format:
 
 def agent_judgement_openrouter(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis. You will be given a series of results from a cell type annotator.
 Your task is to determine the consensus cell type. The first entry of each result is the general cell type and the second entry is the subtype. You should provide the final general cell type and the subtype. Considering all results, if you think there is very strong evidence of mixed cell types, please also list them. Please give your step-by-step reasoning and the final answer. We also want to know how robust our reuslts are, please give a consensus score ranging from 0 to 100 to show how similar the results are from different runs. $10,000 will be rewarded for the correct answer.
-                           
-Output in JSON format:
+
+Output in JSON format without any tags:
 {
 "final_results": [
 "General cell type here",
@@ -5145,7 +5190,7 @@ Output in JSON format:
 ],
 "consensus_score": 0-100
 }
-''', model="google/gemini-2.5-flash-preview", temperature=0):
+''', model="anthropic/claude-3.5-sonnet", temperature=0):
     
     try:
         response = requests.post(
@@ -5270,3 +5315,57 @@ def process_cell_type_variance_analysis_batch_openrouter(results, model="google/
         'result_consensus_from_llm': result_consensus_from_llm,
         'result_consensus_from_oncology': result_consensus_from_oncology
     }
+
+def runCASSIA_annotationboost(
+    full_result_path,
+    marker,
+    cluster_name,
+    major_cluster_info,
+    output_name,
+    num_iterations=5,
+    model=None, 
+    provider="openrouter",
+    temperature=0,
+    conversation_history_mode="final"
+):
+    # This function is now a direct attribute of the tools_function module
+    return ab_runCASSIA_annotationboost(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )
+
+def runCASSIA_annotationboost_additional_task(
+    full_result_path,
+    marker,
+    cluster_name,
+    major_cluster_info,
+    output_name,
+    num_iterations=5,
+    model=None, 
+    provider="openrouter",
+    additional_task="check if this is a cancer cluster",
+    temperature=0,
+    conversation_history_mode="final"
+):
+    # This function is now a direct attribute of the tools_function module
+    return ab_runCASSIA_annotationboost_additional_task(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        additional_task=additional_task,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )

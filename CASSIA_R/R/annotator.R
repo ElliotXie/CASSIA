@@ -3,7 +3,8 @@
 # Use reticulate to import Python modules
 py_main <- NULL
 py_tools <- NULL
-py_determinator <- NULL  # Add this line
+py_merging <- NULL
+py_annotation_boost <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # Get the conda environment name from the package configuration
@@ -22,6 +23,7 @@ py_determinator <- NULL  # Add this line
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
     py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+    py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
   }, error = function(e) {
     warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
   })
@@ -170,7 +172,7 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @export
 runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter") {
   tryCatch({
-    result <- py_tools$run_cell_type_analysis_wrapper(
+    result <- py_tools$runCASSIA(
       model = model,
       temperature = temperature,
       marker_list = marker_list,
@@ -195,7 +197,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
     
     return(list(structured_output = structured_output, conversation_history = conversation_history))
   }, error = function(e) {
-    error_msg <- paste("Error in run_cell_type_analysis:", e$message, "\n",
+    error_msg <- paste("Error in runCASSIA:", e$message, "\n",
                        "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
@@ -218,7 +220,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, marker_list, 
                            model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter") {
   tryCatch({
-    result <- py_tools$run_analysis_n_times(
+    result <- py_tools$runCASSIA_n_times(
       n = as.integer(n),
       tissue = tissue,
       species = species,
@@ -250,7 +252,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, 
     names(converted_result) <- as.character(seq_len(n) - 1)  # Match Python's 0-based indexing
     return(converted_result)
   }, error = function(e) {
-    error_msg <- paste("Error in run_analysis_n_times:", e$message, "\n",
+    error_msg <- paste("Error in runCASSIA_n_times:", e$message, "\n",
                        "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
@@ -276,7 +278,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, 
 runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter") {
   tryCatch({
     # Call the Python function with the new parameter structure
-    processed_results <- py_tools$process_cell_type_analysis_single_wrapper(
+    processed_results <- py_tools$runCASSIA_n_times_similarity_score(
       tissue = tissue,
       species = species,
       additional_info = additional_info,
@@ -305,7 +307,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
     
     return(r_results)
   }, error = function(e) {
-    error_msg <- paste("Error in process_cell_type_analysis_single:", e$message, "\n",
+    error_msg <- paste("Error in runCASSIA_n_times_similarity_score:", e$message, "\n",
                        "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
@@ -351,7 +353,7 @@ if (is.data.frame(marker)) {
   stop("marker must be either a data frame or a character vector")
 }
     
-    py_tools$run_cell_type_analysis_batchrun(
+    py_tools$runCASSIA_batch(
       marker = marker,  # Changed parameter name to match Python function
       output_name = output_name,
       model = model,
@@ -412,14 +414,14 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$run_batch_analysis_n_times(
+      py_tools$runCASSIA_batch_n_times(
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
         as.integer(max_workers), as.integer(batch_max_workers), provider,
         as.integer(max_retries)
       )
     }, error = function(e) {
-      stop(paste("Error in run_batch_analysis_n_times:", e$message))
+      stop(paste("Error in runCASSIA_batch_n_times:", e$message))
     })
   })
   
@@ -458,10 +460,10 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$process_and_save_batch_results(marker, file_pattern, output_name, 
+      py_tools$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
                                               celltype_column, max_workers, model, provider, main_weight, sub_weight)
     }, error = function(e) {
-      stop(paste("Error in process_and_save_batch_results:", e$message))
+      stop(paste("Error in runCASSIA_similarity_score_batch:", e$message))
     })
   })
   
@@ -478,36 +480,39 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' Generate Cell Type Analysis Report
 #'
 #' @param full_result_path Path to the full results CSV file
-#' @param marker_path Path to the marker genes CSV file
+#' @param marker Path to the marker genes CSV file or data frame with marker data
 #' @param cluster_name Name of the cluster to analyze
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="gpt-4o")
+#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param temperature Sampling temperature (0-1)
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #'
-#' @return None
+#' @return None. This function generates output files.
 #' @export
-runCASSIA_annotationboost<- function(full_result_path, 
-                                                     marker, 
-                                                     cluster_name, 
-                                                     major_cluster_info, 
-                                                     output_name, 
-                                                     num_iterations = 5,
-                                                     model = "google/gemini-2.5-flash-preview",
-                                                     provider = "openrouter") {
+runCASSIA_annotationboost <- function(full_result_path, 
+                                     marker, 
+                                     cluster_name, 
+                                     major_cluster_info, 
+                                     output_name, 
+                                     num_iterations = 5,
+                                     model = "google/gemini-2.5-flash-preview",
+                                     provider = "openrouter",
+                                     temperature = 0,
+                                     conversation_history_mode = "final") {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
-
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
                                                       
   tryCatch({
-    result <- py_tools$generate_cell_type_analysis_report_wrapper(
+    py_tools$runCASSIA_annotationboost(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -515,21 +520,15 @@ runCASSIA_annotationboost<- function(full_result_path,
       output_name = output_name,
       num_iterations = as.integer(num_iterations),
       model = model,
-      provider = provider
+      provider = provider,
+      temperature = as.numeric(temperature),
+      conversation_history_mode = conversation_history_mode
     )
     
-    # Convert the result to an R list
-    analysis_result <- result[[1]]
-    messages_history <- lapply(result[[2]], function(msg) {
-      list(
-        role = msg$role,
-        content = msg$content
-      )
-    })
-    
+    invisible(NULL)
     
   }, error = function(e) {
-    error_msg <- paste("Error in generate_cell_type_analysis_report_wrapper:", e$message)
+    error_msg <- paste("Error in runCASSIA_annotationboost:", e$message)
     stop(error_msg)
   })
 }
@@ -537,38 +536,44 @@ runCASSIA_annotationboost<- function(full_result_path,
 
 
 
-#' Generate Cell Type Analysis Report
+#' Generate Cell Type Analysis Report with Additional Task
 #'
 #' @param full_result_path Path to the full results CSV file
-#' @param marker_path Path to the marker genes CSV file
+#' @param marker Path to the marker genes CSV file or data frame with marker data
 #' @param cluster_name Name of the cluster to analyze
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="gpt-4o")
-#' @param additional_task Additional task to perform
-#' @return None
+#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param additional_task Additional task to perform during analysis
+#' @param temperature Sampling temperature (0-1)
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' 
+#' @return None. This function generates output files.
 #' @export
-runCASSIA_annottaionboost_additional_task<- function(full_result_path, 
+runCASSIA_annotationboost_additional_task <- function(full_result_path, 
                                                      marker, 
                                                      cluster_name, 
                                                      major_cluster_info, 
                                                      output_name, 
                                                      num_iterations = 5,
                                                      model = "google/gemini-2.5-flash-preview",
-                                                     additional_task = "") {
+                                                     provider = "openrouter",
+                                                     additional_task = "check if this is a cancer cluster",
+                                                     temperature = 0,
+                                                     conversation_history_mode = "final") {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
-
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
                                                       
   tryCatch({
-    result <- py_tools$generate_cell_type_analysis_report_openrouter_additional_task(
+    py_tools$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -576,21 +581,16 @@ runCASSIA_annottaionboost_additional_task<- function(full_result_path,
       output_name = output_name,
       num_iterations = as.integer(num_iterations),
       model = model,
-      additional_task = additional_task
+      provider = provider,
+      additional_task = additional_task,
+      temperature = as.numeric(temperature),
+      conversation_history_mode = conversation_history_mode
     )
     
-    # Convert the result to an R list
-    analysis_result <- result[[1]]
-    messages_history <- lapply(result[[2]], function(msg) {
-      list(
-        role = msg$role,
-        content = msg$content
-      )
-    })
-    
+    invisible(NULL)
     
   }, error = function(e) {
-    error_msg <- paste("Error in generate_cell_type_analysis_report_wrapper:", e$message)
+    error_msg <- paste("Error in runCASSIA_annotationboost_additional_task:", e$message)
     stop(error_msg)
   })
 }
@@ -614,7 +614,7 @@ runCASSIA_score_batch <- function(input_file,
                                     provider = "openrouter",
                                     max_retries = 1) {
   tryCatch({
-    results <- py_tools$run_scoring_with_progress(
+    results <- py_tools$runCASSIA_score_batch(
       input_file = input_file,
       output_file = output_file,
       max_workers = as.integer(max_workers),
@@ -653,7 +653,7 @@ runCASSIA_score_batch <- function(input_file,
 #' }
 runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_reports_summary") {
   tryCatch({
-    py_tools$process_all_reports(
+    py_tools$runCASSIA_generate_score_report(
       csv_path = csv_path,
       index_name = output_name
     )
@@ -685,6 +685,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -704,7 +705,8 @@ runCASSIA_pipeline <- function(
     additional_info = NULL,
     max_retries = 1,
     do_merge_annotations = TRUE,
-    merge_model = "deepseek/deepseek-chat-v3-0324"
+    merge_model = "deepseek/deepseek-chat-v3-0324",
+    conversation_history_mode = "final"
 ) {
   # Convert marker data frame if necessary
   if (is.data.frame(marker)) {
@@ -715,7 +717,7 @@ runCASSIA_pipeline <- function(
   }
 
   tryCatch({
-    py_tools$run_cell_analysis_pipeline(
+    py_tools$runCASSIA_pipeline(
       output_file_name = output_file_name,
       tissue = tissue,
       species = species,
@@ -731,10 +733,11 @@ runCASSIA_pipeline <- function(
       additional_info = if(is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
       do_merge_annotations = do_merge_annotations,
-      merge_model = merge_model
+      merge_model = merge_model,
+      conversation_history_mode = conversation_history_mode
     )
   }, error = function(e) {
-    error_msg <- paste("Error in run_cell_analysis_pipeline:", e$message, "\n",
+    error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",
                       "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
@@ -765,7 +768,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
     }
     
     # Call the Python function
-    responses <- py_tools$compare_celltypes(
+    responses <- py_tools$compareCelltypes(
       tissue = tissue,
       celltypes = celltypes,
       marker_set = marker,
@@ -775,7 +778,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
     )
 
   }, error = function(e) {
-    error_msg <- paste("Error in compareModels:", e$message, "\n",
+    error_msg <- paste("Error in compareCelltypes:", e$message, "\n",
                       "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
