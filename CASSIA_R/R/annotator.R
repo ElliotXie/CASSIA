@@ -3,7 +3,8 @@
 # Use reticulate to import Python modules
 py_main <- NULL
 py_tools <- NULL
-py_determinator <- NULL  # Add this line
+py_merging <- NULL
+py_annotation_boost <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # Get the conda environment name from the package configuration
@@ -22,6 +23,7 @@ py_determinator <- NULL  # Add this line
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
     py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+    py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
   }, error = function(e) {
     warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
   })

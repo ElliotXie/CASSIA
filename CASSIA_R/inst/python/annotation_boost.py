@@ -5,16 +5,7 @@ import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Union
 
 # Change from relative to absolute import
-try:
-    from llm_utils import call_llm
-except ImportError:
-    # Try relative import as fallback
-    try:
-        from .llm_utils import call_llm
-    except ImportError:
-        # If both fail, provide a helpful error message
-        raise ImportError(
-            "Could not import llm_utils. Make sure it's in the same directory or Python path.")
+from llm_utils import call_llm
 
 
 def prompt_hypothesis_generator2(
@@ -68,12 +59,12 @@ def prompt_hypothesis_generator(
     annotation_history: str) -> str:
     """
     Generate a prompt for iterative marker analysis without additional tasks.
-
+    
     Args:
         major_cluster_info: Information about the cluster being analyzed
         comma_separated_genes: Comma-separated list of marker genes
         annotation_history: Previous annotation history
-
+        
     Returns:
         str: Generated prompt text
     """
@@ -171,17 +162,17 @@ def prompt_hypothesis_generator_additional_task(
     additional_task: str) -> str:
     """
     Generate a prompt for iterative marker analysis with an additional task.
-
+    
     Args:
         major_cluster_info: Information about the cluster being analyzed
         comma_separated_genes: Comma-separated list of marker genes
         annotation_history: Previous annotation history
         additional_task: Additional analysis task to perform
-
+        
     Returns:
         str: Generated prompt text
     """
-    prompt = f"""You are a careful professional biologist, specializing in single-cell RNA-seq analysis.
+    prompt = f"""You are a careful professional biologist, specializing in single-cell RNA-seq analysis. 
 I'll provide you with some genes (comma-separated) from a cell type in {major_cluster_info} and I want you to help identify the cell type.
 
 Here are the marker genes that are differentially expressed in this cluster:
@@ -217,11 +208,11 @@ def get_marker_info(gene_list: List[str],
                     marker: Union[pd.DataFrame, Any]) -> str:
     """
     Extract information about marker genes from a marker dataset.
-
+    
     Args:
         gene_list: List of gene names to filter the marker dataset
         marker: DataFrame containing marker gene expression data
-
+        
     Returns:
         str: Formatted string with marker information
     """
@@ -234,7 +225,7 @@ def get_marker_info(gene_list: List[str],
             marker_df = pd.DataFrame(marker)
         else:
             marker_df = marker.copy()
-
+        
         # Debug marker dataframe structure
         if debug_mode:
             print(f"DEBUG: Marker DataFrame shape: {marker_df.shape}")
@@ -266,12 +257,11 @@ def get_marker_info(gene_list: List[str],
         valid_rows = []  # Store row indices for valid genes
         gene_name_map = {}  # Map of row index to gene name for output
 
-        # Debug each gene lookup if in debug mode
         if debug_mode:
             print(
                 f"DEBUG: Searching for {len(gene_names)} genes: {', '.join(gene_names)}")
 
-                       # Check if any genes are in the index at all (case-sensitive)
+            # Check if any genes are in the index at all (case-sensitive)
             exact_matches = [
                 gene for gene in gene_names if gene in marker_df.index]
             if exact_matches:
@@ -280,29 +270,29 @@ def get_marker_info(gene_list: List[str],
             else:
                 print(f"DEBUG: No exact gene matches found in index")
 
-                if gene_column:
-                    # Check if genes are in the gene column
-                    column_matches = []
-                    for gene in gene_names:
-                        gene_rows = marker_df[marker_df[gene_column].str.contains(
-                            f"^{gene}$", case=True, regex=True, na=False)]
-                        if not gene_rows.empty:
-                            column_matches.append(gene)
-                    
-                    if column_matches:
-                        print(f"DEBUG: Found {len(column_matches)} exact matches in '{gene_column}' column: {', '.join(column_matches)}")
+            if gene_column:
+                # Check if genes are in the gene column
+                column_matches = []
+                for gene in gene_names:
+                    gene_rows = marker_df[marker_df[gene_column].str.contains(
+                        f"^{gene}$", case=True, regex=True, na=False)]
+                    if not gene_rows.empty:
+                        column_matches.append(gene)
                 
-                # Try case-insensitive matching
-                if not marker_df.index.empty:
-                    lower_index = {str(idx).lower(): idx for idx in marker_df.index}
-                    lower_matches = [gene for gene in gene_names if str(gene).lower() in lower_index]
-                    if lower_matches:
-                        print(f"DEBUG: Found {len(lower_matches)} case-insensitive matches in index: {', '.join(lower_matches)}")
-                        print(f"DEBUG: Actual case in index: {[lower_index[gene.lower()] for gene in lower_matches if gene.lower() in lower_index]}")
+                if column_matches:
+                    print(f"DEBUG: Found {len(column_matches)} exact matches in '{gene_column}' column: {', '.join(column_matches)}")
+            
+            # Try case-insensitive matching
+            if not marker_df.index.empty:
+                lower_index = {str(idx).lower(): idx for idx in marker_df.index}
+                lower_matches = [gene for gene in gene_names if str(gene).lower() in lower_index]
+                if lower_matches:
+                    print(f"DEBUG: Found {len(lower_matches)} case-insensitive matches in index: {', '.join(lower_matches)}")
+                    print(f"DEBUG: Actual case in index: {[lower_index[gene.lower()] for gene in lower_matches if gene.lower() in lower_index]}")
 
         # Modified gene lookup process to check both index and gene column
         for gene in gene_names:
-            # First try to find in index
+        # First try to find in index
             if gene in marker_df.index:
                 # Check if all values for this gene are NA
                 gene_data = marker_df.loc[gene]
@@ -312,11 +302,11 @@ def get_marker_info(gene_list: List[str],
                         print(f"DEBUG: Gene {gene} found in index but has all NA values")
                 else:
                     valid_genes.append(gene)
-                    valid_rows.append(gene)  # For index-based lookup we use the gene name
-                    gene_name_map[gene] = gene  # Map the index to gene name
-                    if debug_mode:
-                        print(f"DEBUG: Gene {gene} found in index with valid data")
-            # Then try to find in gene column
+                valid_rows.append(gene)  # For index-based lookup we use the gene name
+                gene_name_map[gene] = gene  # Map the index to gene name
+                if debug_mode:
+                    print(f"DEBUG: Gene {gene} found in index with valid data")
+        # Then try to find in gene column
             elif gene_column and isinstance(gene_column, str):
                 try:
                     # Look for exact match in gene column
@@ -325,7 +315,7 @@ def get_marker_info(gene_list: List[str],
                     if not gene_rows.empty:
                         # Take the first row if multiple matches
                         row_idx = gene_rows.index[0]
-                        gene_data = gene_rows.iloc[0]
+                        # gene_data = gene_rows.iloc[0] # This line seems unused, consider removing if truly not needed
 
                         # Check if all values are NA
                         numeric_data = gene_rows.select_dtypes(include=[np.number])
@@ -344,7 +334,7 @@ def get_marker_info(gene_list: List[str],
                         gene_rows = marker_df[marker_df[gene_column].str.contains(f"^{gene}$", case=False, regex=True, na=False)]
                         if not gene_rows.empty:
                             row_idx = gene_rows.index[0]
-                            gene_data = gene_rows.iloc[0]
+                            # gene_data = gene_rows.iloc[0] # This line seems unused
                             actual_gene = gene_rows[gene_column].iloc[0]  # Get the actual name with correct case
 
                             # Check if all values are NA
@@ -371,11 +361,11 @@ def get_marker_info(gene_list: List[str],
                 na_genes.append(gene)
                 if debug_mode:
                     print(f"DEBUG: Gene {gene} not found in index and no gene column available")
-
+        
         # Create result DataFrame with only valid genes
         if valid_rows:
             result = marker_df.loc[valid_rows].copy()
-
+            
             # Add gene name as a column if it's not the index
             if result.index.name != 'gene' and 'gene' not in result.columns:
                 result['gene'] = [gene_name_map.get(idx, str(idx)) for idx in result.index]
@@ -391,7 +381,7 @@ def get_marker_info(gene_list: List[str],
             result = pd.DataFrame(columns=marker_df.columns)
             if debug_mode:
                 print(f"DEBUG: No valid genes found, created empty DataFrame")
-
+            
         # Only try to format numeric columns that exist
         numeric_cols = result.select_dtypes(include=[np.number]).columns
         for col in numeric_cols:
@@ -404,7 +394,7 @@ def get_marker_info(gene_list: List[str],
 
     # Filter to rows based on gene name and get NA genes list
     marker_filtered, na_genes = filter_marker(gene_list)
-
+    
     # Ensure gene names are visible in output by making a copy with gene as first column if needed
     if 'gene' not in marker_filtered.columns and marker_filtered.index.name != 'gene':
         # Add the index as a column named 'gene'
@@ -414,21 +404,21 @@ def get_marker_info(gene_list: List[str],
             output_df = output_df.rename(columns={'index': 'gene'})
     else:
         output_df = marker_filtered
-
+    
     # Remove the 'cluster' column if it exists - it's not needed in the gene expression output
     if 'cluster' in output_df.columns:
         output_df = output_df.drop(columns=['cluster'])
-
+    
     # Ensure 'gene' column is the first column
     if 'gene' in output_df.columns and list(output_df.columns).index('gene') > 0:
         cols = list(output_df.columns)
         cols.remove('gene')
         cols.insert(0, 'gene')
         output_df = output_df[cols]
-
+        
     # Generate marker info string from valid genes only - don't show the row indices
     marker_string = output_df.to_string(index=False)
-
+    
     # If there are genes with all NA values, add a message
     if na_genes:
         na_genes_message = f"\nNote: The following genes are not in the differential expression list: {', '.join(na_genes)}"
@@ -453,10 +443,10 @@ def get_marker_info(gene_list: List[str],
 def extract_genes_from_conversation(conversation: str) -> List[str]:
     """
     Extract gene lists from conversation using the check_genes tag.
-
+    
     Args:
         conversation: Text containing gene lists in check_genes tags
-
+        
     Returns:
         List[str]: List of unique gene names
     """
@@ -472,12 +462,12 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
 
     # Extract gene lists and get marker info
     gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
-
+    
     if debug_mode:
         print(f"DEBUG: Found {len(gene_lists)} gene lists")
         for i, genes in enumerate(gene_lists):
             print(f"DEBUG: Gene list {i+1}: {genes[:100]}...")
-
+    
     # Improve gene extraction to handle special cases
     all_genes = []
     for gene_list in gene_lists:
@@ -529,11 +519,11 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
 
 
 def iterative_marker_analysis(
-    major_cluster_info: str,
-    marker: Union[pd.DataFrame, Any],
-    comma_separated_genes: str,
-    annotation_history: str,
-    num_iterations: int = 2,
+    major_cluster_info: str, 
+    marker: Union[pd.DataFrame, Any], 
+    comma_separated_genes: str, 
+    annotation_history: str, 
+    num_iterations: int = 2, 
     provider: str = "openrouter",
     model: Optional[str] = None,
     additional_task: Optional[str] = None,
@@ -541,7 +531,7 @@ def iterative_marker_analysis(
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Perform iterative marker analysis using the specified LLM provider.
-
+    
     Args:
         major_cluster_info: Information about the cluster
         marker: DataFrame or other structure containing marker gene expression data
@@ -552,30 +542,30 @@ def iterative_marker_analysis(
         model: Specific model from the provider to use
         additional_task: Optional additional task to perform during analysis
         temperature: Sampling temperature (0-1)
-
+        
     Returns:
         tuple: (final_response_text, messages)
     """
     # Select the appropriate prompt based on whether there's an additional task
     if additional_task:
         prompt = prompt_hypothesis_generator_additional_task(
-            major_cluster_info,
-            comma_separated_genes,
-            annotation_history,
+            major_cluster_info, 
+            comma_separated_genes, 
+            annotation_history, 
             additional_task
         )
         completion_marker = "FINAL ANALYSIS COMPLETED"
     else:
         prompt = prompt_hypothesis_generator(
-            major_cluster_info,
-            comma_separated_genes,
+            major_cluster_info, 
+            comma_separated_genes, 
             annotation_history
         )
         completion_marker = "FINAL ANNOTATION COMPLETED"
-
+    
     # Initialize the conversation history
     messages = [{"role": "user", "content": prompt}]
-
+    
     # Iterative process
     for iteration in range(num_iterations):
         try:
@@ -589,36 +579,36 @@ def iterative_marker_analysis(
                 # If not the first message, include conversation history
                 additional_params={"messages": messages} if iteration > 0 else {}
             )
-
+            
             # Check if the analysis is complete
             if completion_marker in conversation:
                 print(f"Final annotation completed in iteration {iteration + 1}.")
                 messages.append({"role": "assistant", "content": conversation})
                 return conversation, messages
-
+            
             # Extract gene lists and get marker info
             unique_genes = extract_genes_from_conversation(conversation)
-
+            
             if unique_genes:
                 # Get marker information for the requested genes
                 retrieved_marker_info = get_marker_info(unique_genes, marker)
-
+                
                 # Append messages
                 messages.append({"role": "assistant", "content": conversation})
                 messages.append({"role": "user", "content": retrieved_marker_info})
-
+                
                 print(f"Iteration {iteration + 1} completed.")
             else:
                 # No genes to check, simply continue the conversation
                 messages.append({"role": "assistant", "content": conversation})
                 messages.append({"role": "user", "content": "Please continue your analysis and provide a final annotation."})
-
+                
                 print(f"Iteration {iteration + 1} completed (no genes to check).")
-
+        
         except Exception as e:
             print(f"Error in iteration {iteration + 1}: {str(e)}")
             return f"Error occurred: {str(e)}", messages
-
+    
     # Final response if max iterations reached
     try:
         final_response = call_llm(
@@ -629,10 +619,10 @@ def iterative_marker_analysis(
             max_tokens=7000,
             additional_params={"messages": messages}
         )
-
+        
         messages.append({"role": "assistant", "content": final_response})
         return final_response, messages
-
+            
     except Exception as e:
         print(f"Error in final response: {str(e)}")
         return f"Error in final response: {str(e)}", messages
@@ -642,7 +632,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                           conversation_history_mode: str = "final") -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
-
+    
     Args:
         full_result_path: Path to the full results CSV file
         marker_path: Path to the marker genes CSV file
@@ -651,7 +641,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             - "full": Use the entire conversation history
             - "final": Extract only the part between "Step 6" and "FINAL ANNOTATION COMPLETED" (default)
             - "none": Don't include any conversation history
-
+        
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
     """
@@ -660,7 +650,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         full_results = pd.read_csv(full_result_path)
     except BaseException:
         full_results = pd.read_csv(full_result_path, index_col=0)
-
+    
     # Load marker data - handle both DataFrame and file path
     if isinstance(marker_path, pd.DataFrame):
         marker = marker_path
@@ -669,26 +659,26 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             marker = pd.read_csv(marker_path)
         except BaseException:
             marker = pd.read_csv(marker_path, index_col=0)
-
+        
         # Clean up by removing the 'Unnamed: 0' column if it exists
         if 'Unnamed: 0' in marker.columns:
             marker.drop(columns=['Unnamed: 0'], inplace=True)
-
+    
     # Try to find the cluster column name - the old code assumed 'cluster'
     cluster_column = 'True Cell Type'  # Default based on the CSV file we checked
     if cluster_column not in full_results.columns and 'cluster' in full_results.columns:
         cluster_column = 'cluster'
-
+    
     # Filter the results for the specified cluster
     cluster_data = full_results[full_results[cluster_column] == cluster_name]
-
+    
     if cluster_data.empty:
         raise ValueError(
             f"No data found for cluster '{cluster_name}' in the full results file. Available clusters: {full_results[cluster_column].unique().tolist()}")
-
+    
     # Get marker column from the CSV if it exists, otherwise use 'Marker List'
     marker_column = 'Marker List' if 'Marker List' in cluster_data.columns else None
-
+    
     if marker_column and not cluster_data[marker_column].empty and not pd.isna(cluster_data[marker_column].iloc[0]):
         # Use the markers directly from the CSV
         top_markers_string = cluster_data[marker_column].iloc[0]
@@ -697,7 +687,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         # This is a fallback in case markers aren't in the CSV
         top_markers_string = "CD14, CD11B, CD68, CSF1R, CX3CR1, CD163, MSR1, ITGAM, FCGR1A, CCR2"
         print(f"Warning: No marker list found for {cluster_name}, using default markers")
-
+    
     # Extract conversation history if available
     annotation_history = ""
     if 'Conversation History' in cluster_data.columns and conversation_history_mode != "none":
@@ -705,7 +695,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             # Get the conversation history from the first row (should be the same for all rows of this cluster)
             if not cluster_data['Conversation History'].empty and not pd.isna(cluster_data['Conversation History'].iloc[0]):
                 full_history = cluster_data['Conversation History'].iloc[0]
-
+                
                 # Process the conversation history based on the selected mode
                 if conversation_history_mode == "full":
                     annotation_history = full_history
@@ -716,7 +706,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                     # Then extract everything between that line and FINAL ANNOTATION COMPLETED
                     # but exclude the Step 6 line itself
                     match = re.search(f'{step6_pattern}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
-
+                    
                     if match:
                         # Use group(1) to get only the content after the Step 6 line
                         annotation_history = match.group(1).strip()
@@ -734,7 +724,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                 else:
                     # For any unrecognized mode, default to full history
                     annotation_history = full_history
-
+                
                 print(
                     f"Using conversation history for cluster {cluster_name} (mode: {conversation_history_mode}, {len(annotation_history)} characters)")
             else:
@@ -746,18 +736,18 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             print(f"Note: Conversation history extraction disabled (mode: none)")
         else:
             print(f"Note: 'Conversation History' column not found in the results file")
-
+    
     return full_results, marker, top_markers_string, annotation_history
 
 
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str) -> str:
     """
     Generate a summarized report from the raw conversation history.
-
+    
     Args:
         conversation_history: List of conversation messages
         output_filename: Path to save the summary report
-
+        
     Returns:
         str: Path to the saved HTML report
     """
@@ -984,13 +974,13 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         
         # HTML template with CSS styling
         html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
+    <!DOCTYPE html>
+    <html>
+    <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>CASSIA Cell Type Annotation Summary</title>
-            <style>
+        <style>
                     :root {{
                         --primary-color: #2563eb;
                         --secondary-color: #0891b2;
@@ -1001,16 +991,16 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
                         --text-light: #6b7280;
                     }}
                     
-                body {{ 
+            body {{ 
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                    line-height: 1.6;
+                line-height: 1.6;
                         color: var(--text-color);
                         background-color: #ffffff;
                         margin: 0;
                         padding: 0;
-                }}
+            }}
                     
-                .container {{ 
+            .container {{ 
                         max-width: 900px;
                         margin: 0 auto;
                         padding: 2rem;
@@ -1152,11 +1142,11 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
                         padding-left: 1.5rem;
                         margin-top: -0.3rem;
                         color: var(--text-light);
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
                     <header>
                         <h1>CASSIA Cell Type Annotation Summary</h1>
                         <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
@@ -1164,9 +1154,9 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
                     
                     <section>
                         <h2>Overview</h2>
-                <div class="content">
+            <div class="content">
                             {sections['overview']}
-                </div>
+            </div>
                     </section>
                     
                     <section>
@@ -1244,11 +1234,11 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         
         # Close the HTML
         html += """
-            </div>
-        </body>
-        </html>
-        """
-        
+        </div>
+    </body>
+    </html>
+    """
+    
         # Save the HTML report
         with open(output_filename, 'w', encoding='utf-8') as f:
             f.write(html)
@@ -1268,7 +1258,7 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
 def save_html_report(report: str, filename: str) -> None:
     """
     Save the HTML report to a file.
-
+    
     Args:
         report: HTML report content
         filename: Output filename
@@ -1292,7 +1282,7 @@ def runCASSIA_annotationboost(
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
-
+    
     Args:
         full_result_path: Path to the full results CSV file
         marker: Path to marker genes CSV file or DataFrame with marker data
@@ -1304,7 +1294,7 @@ def runCASSIA_annotationboost(
         provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
         temperature: Sampling temperature (0-1)
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
-
+    
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
@@ -1315,12 +1305,12 @@ def runCASSIA_annotationboost(
         # Validate provider input
         if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
             raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
-
+        
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
             full_result_path, marker, cluster_name, conversation_history_mode
         )
-
+        
         # Run the iterative marker analysis
         analysis_text, messages = iterative_marker_analysis(
             major_cluster_info=major_cluster_info,
@@ -1332,7 +1322,7 @@ def runCASSIA_annotationboost(
             model=model,
             temperature=temperature
         )
-
+        
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
@@ -1346,7 +1336,7 @@ def runCASSIA_annotationboost(
 
         # Skip the first message which contains the prompt
         conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
-
+        
         # Generate the HTML reports
         try:
             # Generate the raw conversation report
@@ -1376,7 +1366,7 @@ def runCASSIA_annotationboost(
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
-
+    
     except Exception as e:
         error_msg = f"Error in runCASSIA_annotationboost: {str(e)}"
         print(error_msg)
@@ -1409,7 +1399,7 @@ def runCASSIA_annotationboost_additional_task(
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.
-
+    
     Args:
         full_result_path: Path to the full results CSV file
         marker: Path to marker genes CSV file or DataFrame with marker data
@@ -1422,7 +1412,7 @@ def runCASSIA_annotationboost_additional_task(
         additional_task: Additional task to perform during analysis
         temperature: Sampling temperature (0-1)
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
-
+    
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
@@ -1433,12 +1423,12 @@ def runCASSIA_annotationboost_additional_task(
         # Validate provider input
         if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
             raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
-
+        
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
             full_result_path, marker, cluster_name, conversation_history_mode
         )
-
+        
         # Run the iterative marker analysis with additional task
         analysis_text, messages = iterative_marker_analysis(
             major_cluster_info=major_cluster_info,
@@ -1451,7 +1441,7 @@ def runCASSIA_annotationboost_additional_task(
             additional_task=additional_task,
             temperature=temperature
         )
-
+        
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
@@ -1465,7 +1455,7 @@ def runCASSIA_annotationboost_additional_task(
 
         # Skip the first message which contains the prompt
         conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
-
+        
         # Generate the HTML reports
         try:
             # Generate the raw conversation report
@@ -1495,7 +1485,7 @@ def runCASSIA_annotationboost_additional_task(
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
-
+    
     except Exception as e:
         error_msg = f"Error in runCASSIA_annotationboost_additional_task: {str(e)}"
         print(error_msg)
