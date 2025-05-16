@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 from main_function_code import *
 from merging_annotation_code import *
+from annotation_boost import *
 import requests
 import threading
 import numpy as np
