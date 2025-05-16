@@ -8,11 +8,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 from main_function_code import *
 from merging_annotation_code import *
-from annotation_boost import *
 import requests
 import threading
 import numpy as np
 import datetime
+# Explicitly import the function from annotation_boost
+from annotation_boost import runCASSIA_annotationboost as ab_runCASSIA_annotationboost
+from annotation_boost import runCASSIA_annotationboost_additional_task as ab_runCASSIA_annotationboost_additional_task
+
+
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -4060,8 +4064,6 @@ def runCASSIA_annotationboost(
             - analysis_result: Final analysis text
             - messages_history: Complete conversation history
     """
-    # Import here to avoid circular imports
-    from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
     
     return run_annotationboost(
         full_result_path=full_result_path,
@@ -4765,7 +4767,7 @@ def subcluster_agent_annotate_subcluster(user_message,model="claude-3-5-sonnet-2
             return text_block[0].text  # Directly access the 'text' attribute
     else:  # OpenRouter
         return openrouter_agent(user_message, model=model, temperature=temperature)
-    return ''
+    return None
 
 
 
@@ -5313,3 +5315,57 @@ def process_cell_type_variance_analysis_batch_openrouter(results, model="google/
         'result_consensus_from_llm': result_consensus_from_llm,
         'result_consensus_from_oncology': result_consensus_from_oncology
     }
+
+def runCASSIA_annotationboost(
+    full_result_path,
+    marker,
+    cluster_name,
+    major_cluster_info,
+    output_name,
+    num_iterations=5,
+    model=None, 
+    provider="openrouter",
+    temperature=0,
+    conversation_history_mode="final"
+):
+    # This function is now a direct attribute of the tools_function module
+    return ab_runCASSIA_annotationboost(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )
+
+def runCASSIA_annotationboost_additional_task(
+    full_result_path,
+    marker,
+    cluster_name,
+    major_cluster_info,
+    output_name,
+    num_iterations=5,
+    model=None, 
+    provider="openrouter",
+    additional_task="check if this is a cancer cluster",
+    temperature=0,
+    conversation_history_mode="final"
+):
+    # This function is now a direct attribute of the tools_function module
+    return ab_runCASSIA_annotationboost_additional_task(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        additional_task=additional_task,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
+    )
