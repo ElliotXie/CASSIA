@@ -143,6 +143,7 @@ hypothesis to check 3
 
 *Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
 *Provide no more than three total blocks (celltype + hypothesis combined).
+*For each hypothesis check no more than 7 genes.
 
 
 Tone & Style Guidelines
@@ -248,11 +249,12 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                 print(f"DEBUG: Using '{gene_column}' as the gene column")
             else:
                 print(f"DEBUG: No gene column found. Will use DataFrame index for gene lookup.")
-        
+
         # Identify valid genes and NA genes
         valid_genes = []
         na_genes = []
         valid_rows = []  # Store row indices for valid genes
+        gene_name_map = {}  # Map of row index to gene name for output
         
         # Debug each gene lookup if in debug mode
         if debug_mode:
@@ -297,6 +299,7 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                 else:
                     valid_genes.append(gene)
                     valid_rows.append(gene)  # For index-based lookup we use the gene name
+                    gene_name_map[gene] = gene  # Map the index to gene name
                     if debug_mode:
                         print(f"DEBUG: Gene {gene} found in index with valid data")
             # Then try to find in gene column
@@ -319,6 +322,7 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                         else:
                             valid_genes.append(gene)
                             valid_rows.append(row_idx)  # For column-based lookup we use the row index
+                            gene_name_map[row_idx] = gene  # Map the index to gene name
                             if debug_mode:
                                 print(f"DEBUG: Gene {gene} found in '{gene_column}' with valid data - row {row_idx}")
                     else:
@@ -338,6 +342,7 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                             else:
                                 valid_genes.append(gene)
                                 valid_rows.append(row_idx)  # For column-based lookup we use the row index
+                                gene_name_map[row_idx] = gene  # Map the index to gene name
                                 if debug_mode:
                                     print(f"DEBUG: Gene {gene} (as {actual_gene}) found in '{gene_column}' with valid data - row {row_idx}")
                         else:
@@ -356,6 +361,15 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
         # Create result DataFrame with only valid genes
         if valid_rows:
             result = marker_df.loc[valid_rows].copy()
+            
+            # Add gene name as a column if it's not the index
+            if result.index.name != 'gene' and 'gene' not in result.columns:
+                result['gene'] = [gene_name_map.get(idx, str(idx)) for idx in result.index]
+                # Move gene column to first position
+                cols = result.columns.tolist()
+                cols.insert(0, cols.pop(cols.index('gene')))
+                result = result[cols]
+            
             if debug_mode:
                 print(f"DEBUG: Created result DataFrame with {len(valid_rows)} rows")
         else:
@@ -372,13 +386,34 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
             except:
                 continue
 
-        return result.iloc[:, 0:5], na_genes
+        return result, na_genes
 
     # Filter to rows based on gene name and get NA genes list
     marker_filtered, na_genes = filter_marker(gene_list)
     
-    # Generate marker info string from valid genes only
-    marker_string = marker_filtered.to_string()
+    # Ensure gene names are visible in output by making a copy with gene as first column if needed
+    if 'gene' not in marker_filtered.columns and marker_filtered.index.name != 'gene':
+        # Add the index as a column named 'gene'
+        output_df = marker_filtered.reset_index()
+        # Rename index column to 'gene' if it has no name
+        if output_df.columns[0] == 'index':
+            output_df = output_df.rename(columns={'index': 'gene'})
+    else:
+        output_df = marker_filtered
+    
+    # Remove the 'cluster' column if it exists - it's not needed in the gene expression output
+    if 'cluster' in output_df.columns:
+        output_df = output_df.drop(columns=['cluster'])
+    
+    # Ensure 'gene' column is the first column
+    if 'gene' in output_df.columns and list(output_df.columns).index('gene') > 0:
+        cols = list(output_df.columns)
+        cols.remove('gene')
+        cols.insert(0, 'gene')
+        output_df = output_df[cols]
+        
+    # Generate marker info string from valid genes only - don't show the row indices
+    marker_string = output_df.to_string(index=False)
     
     # If there are genes with all NA values, add a message
     if na_genes:
@@ -699,365 +734,6 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     
     return full_results, marker, top_markers_string, annotation_history
 
-def generate_html_report(analysis_text: str) -> str:
-    """
-    Generate an HTML report from the analysis text.
-    
-    Args:
-        analysis_text: The text output from the analysis
-        
-    Returns:
-        str: HTML formatted report
-    """
-    # Split the text into sections based on agents
-    sections = analysis_text.split(" | ")
-    
-    # HTML template with CSS styling - note the double curly braces for CSS
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {{ 
-                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
-                max-width: 1200px; 
-                margin: 0 auto; 
-                padding: 20px; 
-                background-color: #f0f2f5;
-                line-height: 1.6;
-            }}
-            .container {{ 
-                background-color: white; 
-                padding: 40px; 
-                border-radius: 16px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }}
-            .agent-section {{ 
-                margin-bottom: 35px; 
-                padding: 25px; 
-                border-radius: 12px; 
-                transition: all 0.3s ease;
-            }}
-            .agent-section:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            }}
-            .final-annotation {{ 
-                background-color: #f0f7ff; 
-                border-left: 5px solid #2196f3; 
-            }}
-            .validator {{ 
-                background-color: #f0fdf4; 
-                border-left: 5px solid #22c55e; 
-            }}
-            .formatting {{ 
-                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
-                border-left: 5px solid #f97316; 
-                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
-            }}
-            h2 {{ 
-                color: #1a2b3c; 
-                margin-top: 0; 
-                font-size: 1.5rem;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }}
-            ul {{ 
-                margin: 15px 0; 
-                padding-left: 20px; 
-            }}
-            pre {{ 
-                background-color: #f8fafc; 
-                padding: 20px; 
-                border-radius: 8px; 
-                overflow-x: auto;
-                font-family: 'Consolas', 'Monaco', monospace;
-                font-size: 0.9rem;
-                line-height: 1.5;
-            }}
-            .validation-result {{ 
-                font-weight: 600; 
-                color: #16a34a; 
-                padding: 12px 20px;
-                background-color: #dcfce7; 
-                border-radius: 8px; 
-                display: inline-block;
-                margin: 10px 0;
-            }}
-            br {{ 
-                margin-bottom: 8px; 
-            }}
-            p {{
-                margin: 12px 0;
-                color: #374151;
-            }}
-            .summary-content {{
-                display: flex;
-                flex-direction: column;
-                gap: 24px;
-            }}
-            .summary-item {{
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                background: rgba(255, 255, 255, 0.7);
-                padding: 16px;
-                border-radius: 12px;
-                backdrop-filter: blur(8px);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            }}
-            .summary-label {{
-                font-weight: 600;
-                color: #c2410c;
-                font-size: 0.95rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }}
-            .summary-value {{
-                color: #1f2937;
-                font-size: 1.1rem;
-                padding: 8px 16px;
-                background-color: rgba(255, 255, 255, 0.9);
-                border-radius: 8px;
-                display: inline-block;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }}
-            .summary-list {{
-                margin: 0;
-                padding-left: 24px;
-                list-style-type: none;
-            }}
-            .summary-list li {{
-                color: #1f2937;
-                padding: 8px 0;
-                position: relative;
-            }}
-            .summary-list li:before {{
-                content: "•";
-                color: #f97316;
-                font-weight: bold;
-                position: absolute;
-                left: -20px;
-            }}
-            .report-header {{
-                text-align: center;
-                margin-bottom: 40px;
-                padding-bottom: 30px;
-                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
-            }}
-            
-            .report-title {{
-                font-size: 2.5rem;
-                font-weight: 800;
-                color: #1a2b3c;
-                margin: 0;
-                padding: 0;
-                background: linear-gradient(135deg, #f97316, #c2410c);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                letter-spacing: -0.5px;
-            }}
-            
-            .report-subtitle {{
-                font-size: 1.1rem;
-                color: #64748b;
-                margin-top: 8px;
-                font-weight: 500;
-            }}
-            .scoring {{ 
-                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
-                border-left: 5px solid #22c55e;
-                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
-            }}
-            .scoring-content {{
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                color: #1f2937;
-                line-height: 1.8;
-            }}
-            .scoring-content br + br {{
-                content: "";
-                display: block;
-                margin: 12px 0;
-            }}
-            .empty-list {{
-                color: #6b7280;
-                font-style: italic;
-            }}
-            .error-message {{
-                color: #dc2626;
-                padding: 12px;
-                background-color: #fef2f2;
-                border-radius: 6px;
-                border-left: 4px solid #dc2626;
-            }}
-            .score-badge {{
-                background: linear-gradient(135deg, #22c55e, #16a34a);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 12px;
-                font-size: 1.5rem;
-                font-weight: 700;
-                display: inline-block;
-                margin: 12px 0;
-                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-                position: relative;
-                top: -10px;
-            }}
-            .score-badge::before {{
-                content: "Score:";
-                font-size: 0.9rem;
-                font-weight: 500;
-                margin-right: 8px;
-                opacity: 0.9;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="report-header">
-                <h1 class="report-title">CASSIA Analysis Report</h1>
-                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
-            </div>
-            {0}
-        </div>
-    </body>
-    </html>
-    """
-    
-    content = []
-    
-    # Process each section
-    for section in sections:
-        if section.startswith("Final Annotation Agent:"):
-            annotation_content = section.replace("Final Annotation Agent:", "").strip()
-            content.append("""
-                <div class="agent-section final-annotation">
-                    <h2>🔍 Final Annotation Analysis</h2>
-                    {0}
-                </div>
-            """.format(annotation_content.replace('\n', '<br>')))
-            
-        elif section.startswith("Coupling Validator:"):
-            validator_content = section.replace("Coupling Validator:", "").strip()
-            validation_result = '<div class="validation-result">✅ VALIDATION PASSED</div>' if "VALIDATION PASSED" in validator_content else ""
-            
-            content.append("""
-                <div class="agent-section validator">
-                    <h2>✓ Validation Check</h2>
-                    {0}
-                    {1}
-                </div>
-            """.format(validation_result, validator_content.replace('\n', '<br>')))
-            
-        elif section.startswith("Formatting Agent:"):
-            try:
-                import json
-                # Get the content after "Formatting Agent:"
-                json_text = section.replace("Formatting Agent:", "").strip()
-                
-                # Since the JSON is consistently formatted with newlines,
-                # we can find where it ends (the last '}' followed by a newline or end of string)
-                json_end = json_text.rfind('}')
-                if json_end != -1:
-                    json_content = json_text[:json_end + 1]
-                    data = json.loads(json_content)
-                    
-                    # Process the data...
-                    main_cell_type = data.get('main_cell_type', 'Not specified')
-                    sub_cell_types = data.get('sub_cell_types', [])
-                    mixed_types = data.get('possible_mixed_cell_types', [])
-                    num_markers = data.get('num_markers', 'Not specified')
-                    
-                    # Format the content...
-                    formatted_content = f"""
-                        <div class="summary-content">
-                            <div class="summary-item">
-                                <span class="summary-label">Main Cell Type:</span>
-                                <span class="summary-value">{main_cell_type}</span>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Sub Cell Types:</span>
-                                <ul class="summary-list">
-                                    {"".join(f'<li>{item}</li>' for item in sub_cell_types) if sub_cell_types 
-                                     else '<li class="empty-list">No sub cell types identified</li>'}
-                                </ul>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Possible Mixed Cell Types:</span>
-                                <ul class="summary-list">
-                                    {"".join(f'<li>{item}</li>' for item in mixed_types) if mixed_types 
-                                     else '<li class="empty-list">No mixed cell types identified</li>'}
-                                </ul>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Number of Markers:</span>
-                                <span class="summary-value">{num_markers}</span>
-                            </div>
-                        </div>
-                    """
-                    
-                    content.append(f"""
-                        <div class="agent-section formatting">
-                            <h2>📋 Summary</h2>
-                            {formatted_content}
-                        </div>
-                    """)
-                else:
-                    raise ValueError("Could not find JSON content")
-                    
-            except Exception as e:
-                content.append(f"""
-                    <div class="agent-section formatting">
-                        <h2>📋 Summary</h2>
-                        <p class="error-message">Error formatting data: {str(e)}</p>
-                    </div>
-                """)
-        elif section.startswith("Scoring Agent:"):
-            try:
-                # Get the content after "Scoring Agent:"
-                scoring_text = section.split("Scoring Agent:", 1)[1].strip()
-                
-                # Split the score from the main text
-                main_text, score = scoring_text.rsplit("Score:", 1)
-                score = score.strip()
-                
-                content.append(r"""
-                    <div class="agent-section scoring">
-                        <h2>🎯 Quality Assessment</h2>
-                        <div class="score-badge">{0}</div>
-                        <div class="scoring-content">
-                            {1}
-                        </div>
-                    </div>
-                """.format(score, main_text.replace('\n', '<br>')))
-            except Exception as e:
-                content.append(f"""
-                    <div class="agent-section scoring">
-                        <h2>🎯 Quality Assessment</h2>
-                        <p class="error-message">Error parsing scoring data: {str(e)}</p>
-                        <div>{section.replace("Scoring Agent:", "").strip().replace(chr(10), '<br>')}</div>
-                    </div>
-                """)
-        else:
-            # For any other type of section, just add it as is
-            content.append(f"""
-                <div class="agent-section">
-                    <div>{section.replace(chr(10), '<br>')}</div>
-                </div>
-            """)
-    
-    # Format the final HTML
-    html = html_template.format("".join(content))
-    
-    return html
-
 def save_html_report(report: str, filename: str) -> None:
     """
     Save the HTML report to a file.
@@ -1069,6 +745,123 @@ def save_html_report(report: str, filename: str) -> None:
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(report)
     print(f"Report saved to {filename}")
+
+def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str) -> str:
+    """
+    Generate a summarized report from the raw conversation history.
+    
+    Args:
+        conversation_history: List of conversation messages
+        output_filename: Path to save the summary report
+        
+    Returns:
+        str: Path to the saved HTML report
+    """
+    try:
+        # Extract content from conversation history, alternating between assistant and user
+        full_conversation = ""
+        for msg in conversation_history:
+            role = msg.get('role', '')
+            content = msg.get('content', '')
+            if isinstance(content, list):
+                content = str(content)
+            full_conversation += f"\n## {role.upper()}\n{content}\n"
+        
+        # Craft the prompt for the LLM to generate a summary using simple tags
+        prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis. 
+        I will provide you a raw conversation history from a cell type annotation tool called CASSIA, which conducts iterative gene expression analysis.
+        
+        Your task is to generate a structured, concise summary report that highlights the key findings, hypotheses tested, and conclusions drawn.
+        
+        Use the following simple tag format exactly in your response:
+        
+        <OVERVIEW>
+        Brief overview of what was analyzed and how many iterations were performed.
+        Include the total number of genes examined across all iterations.
+        </OVERVIEW>
+        
+        <INITIAL_ASSESSMENT>
+        Summarize the initial cell type hypothesis and evidence from the first evaluation.
+        </INITIAL_ASSESSMENT>
+        
+        <ITERATION_1>
+        <HYPOTHESES>
+        Clear explanation of what hypotheses were being tested in the first iteration and WHY.
+        Format multiple hypotheses as numbered points (1., 2., 3.) each on a new line.
+        </HYPOTHESES>
+        
+        <GENES_CHECKED>
+        List the specific genes checked in this iteration (comma-separated).
+        </GENES_CHECKED>
+        
+        <KEY_FINDINGS>
+        Concise summary of the key results from gene expression analysis and what was learned.
+        </KEY_FINDINGS>
+        </ITERATION_1>
+        
+        # Repeat for each additional iteration (ITERATION_2, ITERATION_3, etc.)
+        
+        <FINAL_ANNOTATION>
+        The conclusive cell type annotation, exactly as determined in the conversation.
+        Include the confidence level and main supporting evidence.
+        </FINAL_ANNOTATION>
+        
+        <MARKER_SUMMARY>
+        List the most important marker genes that defined this cell type, organized by their functional groups.
+        </MARKER_SUMMARY>
+        
+        <RECOMMENDATIONS>
+        Any suggested next steps or validation approaches mentioned in the conversation.
+        </RECOMMENDATIONS>
+        
+        Follow these guidelines:
+        1. Maintain scientific precision while making the report accessible
+        2. Include exact gene names with proper capitalization
+        3. Keep your summary factual and based strictly on the conversation
+        4. Use the exact tags as shown above
+        5. Make sure to separate each iteration clearly
+        6. Make the final cell type annotation stand out prominently
+        
+        Here's the conversation history to summarize:
+        
+        {full_conversation}
+        """
+        
+        # Use the call_llm function to generate the summary
+        summary = call_llm(
+            prompt=prompt,
+            provider="openrouter",  # Using OpenRouter as the provider
+            model="google/gemini-2.5-flash-preview",  # Using Gemini 2.5 Flash model
+            temperature=0.3,      # Low temperature for more consistent output
+            max_tokens=4000
+        )
+        
+        # Get the base name without extension
+        base_filename = os.path.splitext(output_filename)[0]
+        
+        # Create filenames for raw and HTML versions
+        raw_output_filename = base_filename + "_raw.txt"
+        html_output_filename = base_filename + ".html"
+        
+        # Save the raw summary to a file
+        with open(raw_output_filename, 'w', encoding='utf-8') as f:
+            f.write(summary)
+        print(f"Raw summary saved to {raw_output_filename}")
+        
+        # Convert to HTML and save
+        html_path = format_summary_to_html(summary, html_output_filename)
+        print(f"HTML summary saved to {html_path}")
+        
+        # Return the HTML file path
+        return html_output_filename
+        
+    except Exception as e:
+        error_msg = f"Error generating summary report: {str(e)}"
+        print(error_msg)
+        # Save error message to file so there's still an output
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(f"<error>{error_msg}</error>")
+        return output_filename
 
 def runCASSIA_annotationboost(
     full_result_path: str,
@@ -1125,22 +918,16 @@ def runCASSIA_annotationboost(
             temperature=temperature
         )
         
-        # Generate and save the HTML report
-        html_report = generate_html_report(analysis_text)
-        
-        # Ensure output_name has .html extension for the formatted report
+        # Generate paths for reports
         if not output_name.lower().endswith('.html'):
-            formatted_report_path = output_name + '.html'
+            raw_report_path = output_name + '_raw_conversation.html'
         else:
-            formatted_report_path = output_name
             # Remove .html for base name
             output_name = output_name[:-5]
+            raw_report_path = output_name + '_raw_conversation.html'
         
-        # Generate path for raw conversation report
-        raw_report_path = output_name + '_raw_conversation.html'
-        
-        # Save the formatted HTML report
-        save_html_report(html_report, formatted_report_path)
+        # Generate path for summary report
+        summary_report_path = output_name + '_summary.html'
         
         # Generate and save raw conversation report
         try:
@@ -1175,19 +962,30 @@ def runCASSIA_annotationboost(
                             f.write('\n'.join(html))
                         return output_filename
             
+            # Skip the first message which contains the prompt
+            conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
+            
             # Generate the raw conversation report
-            raw_report_path = generate_raw_cell_annotation_report(messages, raw_report_path)
+            raw_report_path = generate_raw_cell_annotation_report(conversation_without_prompt, raw_report_path)
             print(f"Raw conversation report saved to {raw_report_path}")
+            
+            # Generate the summary report
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            print(f"Summary report saved to {summary_report_path}")
+            
+            # The generate_summary_report function now returns the HTML path, 
+            # and also creates a raw text version at {basename}_raw.txt
         except Exception as e:
-            print(f"Warning: Could not generate raw conversation report: {str(e)}")
+            print(f"Warning: Could not generate raw conversation or summary report: {str(e)}")
             raw_report_path = None
+            summary_report_path = None
         
-        # Return a dictionary with paths to formatted and raw reports
+        # Return a dictionary with paths to reports
         execution_time = time.time() - start_time
         return {
             'status': 'success',
-            'formatted_report_path': formatted_report_path,
             'raw_report_path': raw_report_path,
+            'summary_report_path': summary_report_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -1202,8 +1000,8 @@ def runCASSIA_annotationboost(
         return {
             'status': 'error',
             'error_message': str(e),
-            'formatted_report_path': None,
             'raw_report_path': None,
+            'summary_report_path': None,
             'execution_time': 0,
             'analysis_text': None
         }
@@ -1266,25 +1064,16 @@ def runCASSIA_annotationboost_additional_task(
             temperature=temperature
         )
         
-        # Generate and save the HTML report
-        html_report = generate_html_report(analysis_text)
-        
-        # Ensure output_name has .html extension for the formatted report
+        # Generate paths for reports
         if not output_name.lower().endswith('.html'):
-            formatted_report_path = output_name + '.html'
+            raw_report_path = output_name + '_raw_conversation.html'
         else:
-            formatted_report_path = output_name
             # Remove .html for base name
             output_name = output_name[:-5]
+            raw_report_path = output_name + '_raw_conversation.html'
         
-        # Generate path for raw conversation report
-        raw_report_path = output_name + '_raw_conversation.html'
-        
-        # Generate path for summary report (later if we add summarization)
+        # Generate path for summary report
         summary_report_path = output_name + '_summary.html'
-        
-        # Save the formatted HTML report
-        save_html_report(html_report, formatted_report_path)
         
         # Generate and save raw conversation report
         try:
@@ -1328,20 +1117,30 @@ def runCASSIA_annotationboost_additional_task(
                                     f.write('\n'.join(html))
                                 return output_filename
             
+            # Skip the first message which contains the prompt
+            conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
+            
             # Generate the raw conversation report
-            raw_report_path = generate_raw_cell_annotation_report_additional_task(messages, raw_report_path)
+            raw_report_path = generate_raw_cell_annotation_report_additional_task(conversation_without_prompt, raw_report_path)
             print(f"Raw conversation report saved to {raw_report_path}")
+            
+            # Generate the summary report
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            print(f"Summary report saved to {summary_report_path}")
+            
+            # The generate_summary_report function now returns the HTML path, 
+            # and also creates a raw text version at {basename}_raw.txt
         except Exception as e:
-            print(f"Warning: Could not generate raw conversation report: {str(e)}")
+            print(f"Warning: Could not generate raw conversation or summary report: {str(e)}")
             raw_report_path = None
+            summary_report_path = None
         
         # Return a dictionary with paths to reports
         execution_time = time.time() - start_time
         return {
             'status': 'success',
-            'formatted_report_path': formatted_report_path,
             'raw_report_path': raw_report_path,
-            'summary_report_path': summary_report_path if os.path.exists(summary_report_path) else None,
+            'summary_report_path': summary_report_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -1356,9 +1155,404 @@ def runCASSIA_annotationboost_additional_task(
         return {
             'status': 'error',
             'error_message': str(e),
-            'formatted_report_path': None,
             'raw_report_path': None,
             'summary_report_path': None,
             'execution_time': 0,
             'analysis_text': None
-        } 
+        }
+
+def format_summary_to_html(summary_text: str, output_filename: str) -> str:
+    """
+    Convert the tagged summary into a properly formatted HTML report.
+    
+    Args:
+        summary_text: Text with tags like <OVERVIEW>, <ITERATION_1>, etc.
+        output_filename: Path to save the HTML report
+        
+    Returns:
+        str: Path to the saved HTML report
+    """
+    try:
+        import re
+        
+        # Helper function to format hypotheses with better separation
+        def format_hypotheses(text: str) -> str:
+            """
+            Format hypotheses text to make numbered points stand out better.
+            Detects numbered lists (1., 2., 3.) and formats them with proper styling.
+            
+            Args:
+                text: The raw hypotheses text
+                
+            Returns:
+                str: Formatted HTML for the hypotheses
+            """
+            # Handle case where there's no content
+            if not text or text == "No information available":
+                return text
+                
+            # Check if text contains numbered points (1. 2. 3. etc.)
+            numbered_points = re.findall(r'(?:^|\s)(\d+\.)\s+([^0-9\.].*?)(?=\s+\d+\.\s+|\s*$)', text, re.DOTALL)
+            
+            # If we found numbered points, format them as a list
+            if numbered_points:
+                result = '<div class="hypothesis-list">'
+                for num, content in numbered_points:
+                    result += f'<div class="hypothesis-item"><span class="hypothesis-number">{num}</span> {content.strip()}</div>'
+                result += '</div>'
+                return result
+                
+            # Alternative approach: look for numbers at beginning of paragraphs
+            paragraphs = text.split('\n')
+            if any(re.match(r'^\s*\d+[\.\)\-]', p) for p in paragraphs if p.strip()):
+                result = '<div class="hypothesis-list">'
+                for para in paragraphs:
+                    if not para.strip():
+                        continue
+                    if re.match(r'^\s*\d+[\.\)\-]', para):
+                        num, content = re.match(r'^\s*(\d+[\.\)\-])\s*(.*)', para).groups()
+                        result += f'<div class="hypothesis-item"><span class="hypothesis-number">{num}</span> {content.strip()}</div>'
+                    else:
+                        result += f'<div class="hypothesis-item-continued">{para.strip()}</div>'
+                result += '</div>'
+                return result
+            
+            # If the above patterns don't match, do a more aggressive search for numbered items
+            numbered_items = re.split(r'(?:^|\s)(\d+[\.\)\-])(?=\s)', text)
+            if len(numbered_items) > 2:  # We have at least one number + content
+                result = '<div class="hypothesis-list">'
+                # Skip the first empty item
+                for i in range(1, len(numbered_items), 2):
+                    if i+1 < len(numbered_items):
+                        num = numbered_items[i]
+                        content = numbered_items[i+1].strip()
+                        result += f'<div class="hypothesis-item"><span class="hypothesis-number">{num}</span> {content}</div>'
+                result += '</div>'
+                return result
+            
+            # If no patterns match, just return the original text
+            return text
+            
+        # Extract sections using regex
+        sections = {}
+        
+        # Define the sections to extract
+        section_patterns = {
+            'overview': r'<OVERVIEW>\s*([\s\S]*?)\s*</OVERVIEW>',
+            'initial_assessment': r'<INITIAL_ASSESSMENT>\s*([\s\S]*?)\s*</INITIAL_ASSESSMENT>',
+            'final_annotation': r'<FINAL_ANNOTATION>\s*([\s\S]*?)\s*</FINAL_ANNOTATION>',
+            'marker_summary': r'<MARKER_SUMMARY>\s*([\s\S]*?)\s*</MARKER_SUMMARY>',
+            'recommendations': r'<RECOMMENDATIONS>\s*([\s\S]*?)\s*</RECOMMENDATIONS>',
+        }
+        
+        # Extract each section
+        for key, pattern in section_patterns.items():
+            match = re.search(pattern, summary_text)
+            if match:
+                sections[key] = match.group(1).strip()
+            else:
+                sections[key] = "No information available"
+        
+        # Extract iterations
+        iterations = []
+        iter_pattern = r'<ITERATION_(\d+)>\s*([\s\S]*?)\s*</ITERATION_\1>'
+        for match in re.finditer(iter_pattern, summary_text):
+            iter_num = match.group(1)
+            iter_content = match.group(2)
+            
+            # Extract subsections within each iteration
+            hypotheses = re.search(r'<HYPOTHESES>\s*([\s\S]*?)\s*</HYPOTHESES>', iter_content)
+            genes_checked = re.search(r'<GENES_CHECKED>\s*([\s\S]*?)\s*</GENES_CHECKED>', iter_content)
+            key_findings = re.search(r'<KEY_FINDINGS>\s*([\s\S]*?)\s*</KEY_FINDINGS>', iter_content)
+            
+            iterations.append({
+                'number': iter_num,
+                'hypotheses': hypotheses.group(1).strip() if hypotheses else "No information available",
+                'genes_checked': genes_checked.group(1).strip() if genes_checked else "No information available",
+                'key_findings': key_findings.group(1).strip() if key_findings else "No information available"
+            })
+        
+        # Sort iterations by number
+        iterations.sort(key=lambda x: int(x['number']))
+        
+        # HTML template with CSS styling
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary</title>
+            <style>
+                :root {{
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }}
+                
+                body {{
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                .container {{
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }}
+                
+                header {{
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }}
+                
+                h1 {{
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .subtitle {{
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }}
+                
+                section {{
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }}
+                
+                h2 {{
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }}
+                
+                h3 {{
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }}
+                
+                ul, ol {{
+                    padding-left: 1.5rem;
+                }}
+                
+                li {{
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .final-annotation {{
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }}
+                
+                .final-annotation h2 {{
+                    color: #10b981;
+                }}
+                
+                .iteration {{
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }}
+                
+                .iteration-title {{
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }}
+                
+                .gene-list {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }}
+                
+                .gene-badge {{
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }}
+                
+                .sub-section {{
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }}
+                
+                code {{
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }}
+                
+                .marker-category {{
+                    margin-bottom: 1rem;
+                }}
+                
+                .marker-category-title {{
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }}
+                
+                .hypothesis-list {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }}
+                
+                .hypothesis-item {{
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .hypothesis-number {{
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }}
+                
+                .hypothesis-item-continued {{
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        {sections['overview']}
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        {sections['initial_assessment']}
+                    </div>
+                </section>
+        """
+        
+        # Add iterations
+        for iteration in iterations:
+            # Format genes checked as badges
+            genes = iteration['genes_checked']
+            gene_badges = ""
+            if genes and genes != "No information available":
+                gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
+                gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+            
+            html += f"""
+                <section>
+                    <h2>Iteration {iteration['number']}</h2>
+                    
+                    <div class="sub-section">
+                        <h3>Hypotheses</h3>
+                        <div class="content">
+                            {format_hypotheses(iteration['hypotheses'])}
+                        </div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Genes Checked</h3>
+                        {gene_badges}
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Key Findings</h3>
+                        <div class="content">
+                            {iteration['key_findings']}
+                        </div>
+                    </div>
+                </section>
+            """
+        
+        # Add final annotation (highlighted)
+        html += f"""
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        {sections['final_annotation']}
+                    </div>
+                </section>
+        """
+        
+        # Add marker summary
+        html += f"""
+                <section>
+                    <h2>Key Marker Genes</h2>
+                    <div class="content">
+                        {sections['marker_summary']}
+                    </div>
+                </section>
+        """
+        
+        # Add recommendations if available
+        if sections['recommendations'] and sections['recommendations'] != "No information available":
+            html += f"""
+                <section>
+                    <h2>Recommendations</h2>
+                    <div class="content">
+                        {sections['recommendations']}
+                    </div>
+                </section>
+            """
+        
+        # Close the HTML
+        html += """
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Save the HTML report
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(html)
+        
+        print(f"HTML report saved to {output_filename}")
+        return output_filename
+    
+    except Exception as e:
+        error_msg = f"Error formatting summary to HTML: {str(e)}"
+        print(error_msg)
+        # Save error message to file so there's still an output
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(f"<html><body><h1>Error</h1><p>{error_msg}</p></body></html>")
+        return output_filename 

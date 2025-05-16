@@ -369,14 +369,14 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
             if status == 'success':
                 print(f"\n✅ Successfully completed annotation boost for {cluster_name}")
                 print(f"Results saved to:")
-                for key in ['formatted_report_path', 'raw_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result:
                         print(f"  - {key}: {result[key]}")
                 print(f"Execution time: {result.get('execution_time', 0):.2f} seconds")
             elif status in ['error', 'partial_error', 'critical_error']:
                 print(f"\n❌ Error in annotation boost: {result.get('error_message', 'Unknown error')}")
                 # Try to report any partial results if available
-                for key in ['formatted_report_path', 'raw_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result and result[key]:
                         print(f"  - Partial {key}: {result[key]}")
             else:
@@ -392,6 +392,8 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
                 print(f"\nTo view the formatted report, open: {result['formatted_report_path']}")
             if 'raw_report_path' in result and result['raw_report_path'] and os.path.exists(result['raw_report_path']):
                 print(f"To view the raw conversation report, open: {result['raw_report_path']}")
+            if 'summary_report_path' in result and result['summary_report_path'] and os.path.exists(result['summary_report_path']):
+                print(f"To view the summary report, open: {result['summary_report_path']}")
         
         print(f"Successfully completed annotation boost for {cluster_name}")
     except Exception as e:
@@ -542,14 +544,14 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
             if status == 'success':
                 print(f"\n✅ Successfully completed annotation boost for {cluster_name}")
                 print(f"Results saved to:")
-                for key in ['summary_report_path', 'raw_report_path', 'formatted_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result:
                         print(f"  - {key}: {result[key]}")
                 print(f"Execution time: {result.get('execution_time', 0):.2f} seconds")
             elif status in ['error', 'partial_error', 'critical_error']:
                 print(f"\n❌ Error in annotation boost: {result.get('error_message', 'Unknown error')}")
                 # Try to report any partial results if available
-                for key in ['summary_report_path', 'raw_report_path', 'formatted_report_path']:
+                for key in ['formatted_report_path', 'raw_report_path', 'summary_report_path']:
                     if key in result and result[key]:
                         print(f"  - Partial {key}: {result[key]}")
             else:
@@ -565,6 +567,8 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
                 print(f"\nTo view the formatted report, open: {result['formatted_report_path']}")
             if 'raw_report_path' in result and result['raw_report_path'] and os.path.exists(result['raw_report_path']):
                 print(f"To view the raw conversation report, open: {result['raw_report_path']}")
+            if 'summary_report_path' in result and result['summary_report_path'] and os.path.exists(result['summary_report_path']):
+                print(f"To view the summary report, open: {result['summary_report_path']}")
     
     except Exception as e:
         print(f"Error in run_annotation_boost_with_task: {str(e)}")

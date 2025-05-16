@@ -478,36 +478,39 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' Generate Cell Type Analysis Report
 #'
 #' @param full_result_path Path to the full results CSV file
-#' @param marker_path Path to the marker genes CSV file
+#' @param marker Path to the marker genes CSV file or data frame with marker data
 #' @param cluster_name Name of the cluster to analyze
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="gpt-4o")
+#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param temperature Sampling temperature (0-1)
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #'
-#' @return None
+#' @return None. This function generates output files.
 #' @export
-runCASSIA_annotationboost<- function(full_result_path, 
-                                                     marker, 
-                                                     cluster_name, 
-                                                     major_cluster_info, 
-                                                     output_name, 
-                                                     num_iterations = 5,
-                                                     model = "google/gemini-2.5-flash-preview",
-                                                     provider = "openrouter") {
+runCASSIA_annotationboost <- function(full_result_path, 
+                                     marker, 
+                                     cluster_name, 
+                                     major_cluster_info, 
+                                     output_name, 
+                                     num_iterations = 5,
+                                     model = "google/gemini-2.5-flash-preview",
+                                     provider = "openrouter",
+                                     temperature = 0,
+                                     conversation_history_mode = "final") {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
-
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
                                                       
   tryCatch({
-    result <- py_tools$runCASSIA_annotationboost(
+    py_tools$runCASSIA_annotationboost(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -515,18 +518,12 @@ runCASSIA_annotationboost<- function(full_result_path,
       output_name = output_name,
       num_iterations = as.integer(num_iterations),
       model = model,
-      provider = provider
+      provider = provider,
+      temperature = as.numeric(temperature),
+      conversation_history_mode = conversation_history_mode
     )
     
-    # Convert the result to an R list
-    analysis_result <- result[[1]]
-    messages_history <- lapply(result[[2]], function(msg) {
-      list(
-        role = msg$role,
-        content = msg$content
-      )
-    })
-    
+    invisible(NULL)
     
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_annotationboost:", e$message)
@@ -537,17 +534,21 @@ runCASSIA_annotationboost<- function(full_result_path,
 
 
 
-#' Generate Cell Type Analysis Report
+#' Generate Cell Type Analysis Report with Additional Task
 #'
 #' @param full_result_path Path to the full results CSV file
-#' @param marker_path Path to the marker genes CSV file
+#' @param marker Path to the marker genes CSV file or data frame with marker data
 #' @param cluster_name Name of the cluster to analyze
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="gpt-4o")
-#' @param additional_task Additional task to perform
-#' @return None
+#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
+#' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param additional_task Additional task to perform during analysis
+#' @param temperature Sampling temperature (0-1)
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' 
+#' @return None. This function generates output files.
 #' @export
 runCASSIA_annotationboost_additional_task <- function(full_result_path, 
                                                      marker, 
@@ -556,19 +557,21 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      output_name, 
                                                      num_iterations = 5,
                                                      model = "google/gemini-2.5-flash-preview",
-                                                     additional_task = "") {
+                                                     provider = "openrouter",
+                                                     additional_task = "check if this is a cancer cluster",
+                                                     temperature = 0,
+                                                     conversation_history_mode = "final") {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
-
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
                                                       
   tryCatch({
-    result <- py_tools$runCASSIA_annotationboost_additional_task(
+    py_tools$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -576,18 +579,13 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       output_name = output_name,
       num_iterations = as.integer(num_iterations),
       model = model,
-      additional_task = additional_task
+      provider = provider,
+      additional_task = additional_task,
+      temperature = as.numeric(temperature),
+      conversation_history_mode = conversation_history_mode
     )
     
-    # Convert the result to an R list
-    analysis_result <- result[[1]]
-    messages_history <- lapply(result[[2]], function(msg) {
-      list(
-        role = msg$role,
-        content = msg$content
-      )
-    })
-    
+    invisible(NULL)
     
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_annotationboost_additional_task:", e$message)
@@ -685,6 +683,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -704,7 +703,8 @@ runCASSIA_pipeline <- function(
     additional_info = NULL,
     max_retries = 1,
     do_merge_annotations = TRUE,
-    merge_model = "deepseek/deepseek-chat-v3-0324"
+    merge_model = "deepseek/deepseek-chat-v3-0324",
+    conversation_history_mode = "final"
 ) {
   # Convert marker data frame if necessary
   if (is.data.frame(marker)) {
@@ -731,7 +731,8 @@ runCASSIA_pipeline <- function(
       additional_info = if(is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
       do_merge_annotations = do_merge_annotations,
-      merge_model = merge_model
+      merge_model = merge_model,
+      conversation_history_mode = conversation_history_mode
     )
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",

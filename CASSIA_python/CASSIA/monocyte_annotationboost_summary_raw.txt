@@ -1,0 +1,88 @@
+<OVERVIEW>
+This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a cell cluster from the large intestine. The analysis involved 4 iterations of hypothesis testing and gene expression evaluation. A total of 55 unique genes were examined across all iterations.
+</OVERVIEW>
+
+<INITIAL_ASSESSMENT>
+The initial hypothesis was Enteric Glial Cells, strongly supported by canonical markers like PLP1, SOX10, L1CAM, NRXN1, NRXN3, SOX2, FOXD3, and PTPRZ1. High PLP1 expression suggested myelinating glia. However, the presence of SPP1 and LPL, along with less specific neural markers, indicated potential contamination or a transitional state.
+</INITIAL_ASSESSMENT>
+
+<ITERATION_1>
+<HYPOTHESES>
+1. To further confirm glial identity and assess myelinating glia by checking classical glial and myelin-specific markers.
+2. To rule out contamination from common large intestine cell types (macrophages, T cells, epithelial cells) by checking lineage-specific markers.
+3. To investigate the possibility of a progenitor or immature glial population by examining neural crest/glial progenitor markers.
+</HYPESES>
+
+<GENES_CHECKED>
+GFAP, S100B, MBP, MPZ, P0, CD68, CD163, LYZ, CD3E, CD8A, CD4, EPCAM, KRT18, SOX9, NGFR, CD34, PROM1
+</GENES_CHECKED>
+
+<KEY_FINDINGS>
+Low/absent expression of CD3E, CD8A, EPCAM, and KRT18 ruled out significant T cell and epithelial contamination. High expression of S100B and MPZ, along with initial markers, confirmed glial identity and a myelinating component (despite low MBP). High NGFR expression suggested a progenitor/less differentiated population. SOX9 and PROM1 showed lower expression. Unexpected LYZ expression was noted, suggesting potential myeloid presence.
+</KEY_1>
+</ITERATION_1>
+
+<ITERATION_2>
+<HYPOTHESES>
+1. To refine glial subtypes and investigate functional states using markers associated with glial functions and interactions.
+2. To perform a focused check for myeloid contamination (macrophages) given the LYZ expression, using additional macrophage markers.
+3. To assess for a cycling or proliferative subpopulation using proliferation markers.
+</HYPOTHESES>
+
+<GENES_CHECKED>
+PTPRS, LRP4, ITGA4, ITGB1, CD44, CD14, FCGR3A, CSF1R, MKI67, PCNA, TOP2A
+</GENES_CHECKED>
+
+<KEY_FINDINGS>
+ITGB1 expression was consistent with glia, but low ITGA4 and missing data for LRP4/PTPRS limited glial subtype refinement. Critically, high CD14 expression (along with LYZ) strongly indicated a significant myeloid component. High MKI67 and TOP2A expression revealed a substantial cycling population. The cluster was re-evaluated as a mixed population of enteric glia and cycling myeloid cells.
+</KEY_FINDINGS>
+</ITERATION_2>
+
+<ITERATION_3>
+<HYPOTHESES>
+1. To definitively characterize the myeloid component using additional macrophage markers, given the CD14 and LYZ signals.
+2. To confirm the continued presence and relative proportion of the glial population by re-examining core glial markers.
+3. To understand the state of the cycling population by examining cell cycle inhibitors.
+</HYPOTHESES>
+
+<GENES_CHECKED>
+CD68, CD163, MRC1, S100A8, S100A9, SOX10, PLP1, MPZ, NGFR, SOX2, FOXD3, PTPRZ1, CDKN1A, CDKN1B, CDKN2A
+</GENES_CHECKED>
+
+<KEY_FINDINGS>
+Core glial markers (SOX10, PLP1, MPZ, NGFR, SOX2, FOXD3, PTPRZ1) remained highly expressed, confirming a significant enteric glial component (myelinating and progenitor subtypes). High CDKN1A and CDKN2A expression suggested a complex cycling state, potentially with cells in G1 arrest or senescence. Continued lack of data for key macrophage markers (CD68, CD163, MRC1, S100A8, S100A9) prevented definitive characterization of the myeloid component.
+</KEY_FINDINGS>
+</ITERATION_3>
+
+<ITERATION_4>
+<HYPOTHESES>
+1. To obtain expression data for core macrophage markers to definitively assess the myeloid component.
+2. To investigate the functional state of a potential macrophage population using markers associated with lipid metabolism and complement.
+3. To comprehensively rule out other immune cell contamination (pan-leukocytes, B cells, NK cells).
+</HYPOTHESES>
+
+<GENES_CHECKED>
+CD68, CD163, MRC1, S100A8, S100A9, APOE, APOC1, C1QA, C1QB, C1QC, PTPRC, CD19, MS4A1, CD3G, NKG7
+</GENES_CHECKED>
+
+<KEY_FINDINGS>
+High APOE and APOC1 expression (along with initial LPL) supported a role in lipid metabolism, consistent with certain macrophages or lipid-associated glia. High NKG7 expression suggested a cytotoxic lymphocyte component. Low PTPRC (CD45) suggested the cluster wasn't predominantly immune cells, but NKG7 and the CD14/LYZ signal persisted. Continued lack of data for key macrophage and B cell markers hindered full characterization. The cluster appeared to be a complex mix of enteric glia, a myeloid population with lipid metabolism characteristics, and potentially cytotoxic lymphocytes.
+</KEY_FINDINGS>
+</ITERATION_4>
+
+<FINAL_ANNOTATION>
+**Mixed Population: Enteric Glia (Myelinating & Progenitor Subtypes), NK Cells, and Myeloid Cells (Lipid Metabolism)**
+Confidence: Moderate (due to unobtained macrophage marker data)
+Supporting Evidence: High expression of glial markers (SOX10, PLP1, MPZ, NGFR, SOX2, FOXD3, PTPRZ1, S100B, ITGB1), NK cell markers (NKG7, GZMA, PRF1), myeloid/lipid metabolism markers (CD14, LYZ, APOE, APOC1, LPL), and proliferation/cell cycle markers (MKI67, TOP2A, CDKN1A, CDKN2A). Absence/low expression of markers for T cells, B cells, and epithelial cells.
+</FINAL_ANNOTATION>
+
+<MARKER_SUMMARY>
+Glial Markers: SOX10, PLP1, MPZ, NGFR, SOX2, FOXD3, PTPRZ1, S100B, ITGB1
+Myeloid/Lipid Metabolism Markers: CD14, LYZ, APOE, APOC1, LPL
+NK Cell Markers: NKG7, GZMA, PRF1
+Proliferation/Cell Cycle Markers: MKI67, TOP2A, CDKN1A, CDKN2A
+</MARKER_SUMMARY>
+
+<RECOMMENDATIONS>
+Obtain differential expression data for the consistently missing core macrophage markers (CD68, CD163, MRC1, S100A8, S100A9, ADGRE1, FCER1G, ITGAM) and B cell markers (CD19, MS4A1) to definitively characterize the myeloid and B cell components. Further investigate the relationship and potential interactions between the identified glial, NK cell, and myeloid populations within this cluster. Consider sub-clustering the population to resolve the distinct cell types.
+</RECOMMENDATIONS>
