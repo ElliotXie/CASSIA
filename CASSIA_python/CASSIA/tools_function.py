@@ -3651,7 +3651,8 @@ def runCASSIA_annotationboost_additional_task(
     output_name,
     num_iterations=5,
     model="claude-3-5-sonnet-20241022",
-    additional_task=""
+    additional_task="",
+    provider=None
 ):
     """
     Generate a detailed HTML report for cell type analysis of a specific cluster.
@@ -3664,48 +3665,44 @@ def runCASSIA_annotationboost_additional_task(
         output_name (str): Name of the output HTML file
         num_iterations (int): Number of iterations for marker analysis (default=5)
         model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
+        additional_task (str): Additional analysis task to perform
+        provider (str): AI provider to use (default=None, will be inferred from model name)
         
     Returns:
         tuple: (analysis_result, messages_history)
             - analysis_result: Final analysis text
             - messages_history: Complete conversation history
     """
+    # Import here to avoid circular imports
     try:
-        # Step 1: Prepare analysis data
-        annotation_history, comma_separated_genes, marker_subset = prepare_analysis_data(
-            full_result_path, 
-            marker, 
-            cluster_name
-        )
-        
-        # Step 2: Perform iterative marker analysis
-        analysis_result = iterative_marker_analysis_openrouter_additional_task(
-            major_cluster_info,
-            marker=marker_subset,
-            comma_separated_genes=comma_separated_genes,
-            annotation_history=annotation_history,
-            num_iterations=num_iterations,
-            model=model,
-            additional_task=additional_task
-        )
-        
-        # Step 3: Add final result to message history
-        messages = analysis_result[1]
-        messages.append({"role": "user", "content": analysis_result[0]})
-        
-        # Step 4: Generate and save HTML report
-        report = openrouter_agent(report_generator_additional_task(messages), model=model)
-        
-        render_report_to_html(report, f"{output_name}_summary_report.html")
-        print(f"Analysis completed successfully. Summary Report saved as {output_name}_summary_report.html")
- 
-        generate_raw_cell_annotation_report_additional_task(messages, f'{output_name}_raw.html')
-        print(f"Analysis completed successfully. Raw Cell Annotation Report saved as {output_name}_raw.html")
-        return None
-        
-    except Exception as e:
-        print(f"Error generating analysis report: {str(e)}")
-        raise
+        # Try normal import first
+        from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+    except ImportError:
+        try:
+            # Try relative import as fallback
+            from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+        except ImportError:
+            raise ImportError("Could not import annotation_boost module.")
+    
+    # Determine provider based on model name if not provided
+    if provider is None:
+        provider = "anthropic"
+        if "gpt" in model.lower():
+            provider = "openai"
+        elif not model.startswith("claude"):
+            provider = "openrouter"
+    
+    return run_annotationboost_additional_task(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider,
+        additional_task=additional_task
+    )
 
 
 
@@ -3802,44 +3799,27 @@ def runCASSIA_annotationboost(
             - analysis_result: Final analysis text
             - messages_history: Complete conversation history
     """
-    # Validate provider input
-    if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-        raise ValueError("Provider must be either 'openai' or 'anthropic' or 'openrouter'")
-
+    # Import here to avoid circular imports
     try:
-        if provider.lower() == 'openai':
-            return generate_cell_type_analysis_report_openai(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-        elif provider.lower() == "openrouter":
-            return generate_cell_type_analysis_report_openrouter(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-        elif provider.lower() == "anthropic":
-            return generate_cell_type_analysis_report(
-                full_result_path=full_result_path,
-                marker=marker,
-                cluster_name=cluster_name,
-                major_cluster_info=major_cluster_info,
-                output_name=output_name,
-                num_iterations=num_iterations,
-                model=model
-            )
-    except Exception as e:
-        print(f"Error in runCASSIA_annotationboost: {str(e)}")
-        raise
+        # Try normal import first
+        from annotation_boost import runCASSIA_annotationboost as run_annotationboost
+    except ImportError:
+        try:
+            # Try relative import as fallback
+            from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
+        except ImportError:
+            raise ImportError("Could not import annotation_boost module.")
+    
+    return run_annotationboost(
+        full_result_path=full_result_path,
+        marker=marker,
+        cluster_name=cluster_name,
+        major_cluster_info=major_cluster_info,
+        output_name=output_name,
+        num_iterations=num_iterations,
+        model=model,
+        provider=provider
+    )
 
 
 def generate_html_report(analysis_text):
