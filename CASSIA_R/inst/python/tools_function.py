@@ -3901,11 +3901,14 @@ def runCASSIA_annotationboost_additional_task(
     major_cluster_info,
     output_name,
     num_iterations=5,
-    model="claude-3-5-sonnet-20241022",
-    additional_task=""
+    model="google/gemini-2.5-flash-preview",
+    provider="openrouter",
+    additional_task="check if this is a cancer cluster",
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
-    Generate a detailed HTML report for cell type analysis of a specific cluster.
+    Generate a detailed HTML report for cell type analysis of a specific cluster with an additional task.
     
     Args:
         full_result_path (str): Path to the full results CSV file
@@ -3914,7 +3917,11 @@ def runCASSIA_annotationboost_additional_task(
         major_cluster_info (str): General information about the dataset (e.g., "Human PBMC")
         output_name (str): Name of the output HTML file
         num_iterations (int): Number of iterations for marker analysis (default=5)
-        model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
+        model (str): Model to use for analysis (default="google/gemini-2.5-flash-preview")
+        provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
+        additional_task (str): Additional task to perform during analysis
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         
     Returns:
         tuple: (analysis_result, messages_history)
@@ -3923,13 +3930,6 @@ def runCASSIA_annotationboost_additional_task(
     """
     # Import here to avoid circular imports
     from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
-    
-    # Determine provider based on model name
-    provider = "anthropic"
-    if "gpt" in model.lower():
-        provider = "openai"
-    elif not model.startswith("claude"):
-        provider = "openrouter"
     
     return run_annotationboost_additional_task(
         full_result_path=full_result_path,
@@ -3940,7 +3940,9 @@ def runCASSIA_annotationboost_additional_task(
         num_iterations=num_iterations,
         model=model,
         provider=provider,
-        additional_task=additional_task
+        additional_task=additional_task,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
     )
 
 
@@ -4031,7 +4033,9 @@ def runCASSIA_annotationboost(
     output_name,
     num_iterations=5,
     model="google/gemini-2.5-flash-preview",
-    provider="openrouter"
+    provider="openrouter",
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -4047,6 +4051,8 @@ def runCASSIA_annotationboost(
             - OpenAI options: "gpt-4", "gpt-3.5-turbo", etc.
             - Anthropic options: "claude-3-opus-20240229", "claude-3-sonnet-20240229", etc.
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
     
     Returns:
         tuple: (analysis_result, messages_history)
@@ -4064,7 +4070,9 @@ def runCASSIA_annotationboost(
         output_name=output_name,
         num_iterations=num_iterations,
         model=model,
-        provider=provider
+        provider=provider,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
     )
 
 
@@ -4950,7 +4958,8 @@ def runCASSIA_pipeline(
     additional_info: str = "None",
     max_retries: int = 1,
     do_merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324"
+    merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    conversation_history_mode: str = "final"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -4972,6 +4981,7 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         do_merge_annotations (bool): Whether to run the merging annotations step
         merge_model (str): Model to use for merging annotations
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
     """
     # Convert parameters to the appropriate types
     max_workers = int(max_workers)
@@ -5089,7 +5099,9 @@ def runCASSIA_pipeline(
                 output_name=cluster_output_name,
                 num_iterations=5,
                 model=annotationboost_model,
-                provider=annotationboost_provider
+                provider=annotationboost_provider,
+                temperature=0,
+                conversation_history_mode=conversation_history_mode
             )
             print(f"✓ Completed analysis for cluster: {cluster}")
     else:
