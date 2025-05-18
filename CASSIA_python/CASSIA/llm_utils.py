@@ -84,6 +84,25 @@ def call_llm(
         
         return response.choices[0].message.content
     
+    # Custom OpenAI-compatible API call (base_url as provider)
+    elif provider.startswith("http"):
+        try:
+            import openai
+        except ImportError:
+            raise ImportError("Please install openai package: pip install openai")
+        custom_api_key = api_key or os.environ.get("CUSTERMIZED_API_KEY")
+        if not custom_api_key:
+            raise ValueError("API key not provided and CUSTERMIZED_API_KEY not found in environment")
+        client = openai.OpenAI(api_key=custom_api_key, base_url=provider)
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **additional_params
+        )
+        return response.choices[0].message.content
+    
     # Anthropic API call
     elif provider == "anthropic":
         try:

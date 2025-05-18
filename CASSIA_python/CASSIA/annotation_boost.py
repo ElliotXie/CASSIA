@@ -419,30 +419,6 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
     if na_genes:
         na_genes_message = f"\nNote: The following genes are not in the differential expression list: {', '.join(na_genes)}"
         marker_string += na_genes_message
-        
-        # Add more debug info if all or most genes are missing
-        if len(na_genes) > len(gene_list) * 0.8:  # If more than 80% of genes are missing
-            try:
-                # Try to dynamically import the debug module
-                try:
-                    from debug_genes import examine_marker_structure
-                    
-                    # Add marker structure debug info
-                    marker_string += "\n\nDEBUG: Most genes not found. Running marker data diagnostics..."
-                    marker_string += "\n\nPlease check the console for detailed diagnostic information."
-                    
-                    # Run the diagnostics in the background
-                    examine_marker_structure(marker)
-                except ImportError:
-                    # Basic diagnostics if debug module not found
-                    marker_string += "\n\nDEBUG: Most genes not found. Basic marker data info:"
-                    if isinstance(marker, pd.DataFrame):
-                        marker_string += f"\nShape: {marker.shape}"
-                        marker_string += f"\nIndex type: {type(marker.index).__name__}"
-                        marker_string += f"\nColumns: {marker.columns.tolist()}"
-                        marker_string += f"\nFirst 5 rows:\n{marker.head().to_string()}"
-            except Exception as e:
-                marker_string += f"\n\nDEBUG: Error running diagnostics: {str(e)}"
 
     return marker_string
 
@@ -615,6 +591,11 @@ def iterative_marker_analysis(
             return f"Error occurred: {str(e)}", messages
     
     # Final response if max iterations reached
+    # Encourage the agent to reach a conclusion if not already done
+    messages.append({
+        "role": "user",
+        "content": "You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response."
+    })
     try:
         final_response = call_llm(
             prompt="Please provide your final analysis based on all the information so far.",
@@ -697,22 +678,25 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                     annotation_history = full_history
                 elif conversation_history_mode == "final":
                     # Extract the part between "Step 6" and "FINAL ANNOTATION COMPLETED"
-                    # First find the Step 6 line with various possible formats
-                    step6_pattern = r'(?:\*\*Step 6:|Step 6:|STEP 6:|step 6:|Step6:).*?Concise Summary.*?\*\*'
-                    # Then extract everything between that line and FINAL ANNOTATION COMPLETED
-                    # but exclude the Step 6 line itself
-                    match = re.search(f'{step6_pattern}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
-                    
-                    if match:
-                        # Use group(1) to get only the content after the Step 6 line
-                        annotation_history = match.group(1).strip()
-                        print(f"Extracted final section of conversation history ({len(annotation_history)} characters)")
-                    else:
-                        # Fallback to original pattern if the specific format isn't found
-                        step6_match = re.search(r'(?:Step 6|STEP 6|step 6|Step6).*?(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
+                    # Try multiple robust patterns for Step 6
+                    step6_patterns = [
+                        r'(?:\*\*Step 6:|Step 6:|STEP 6:|step 6:|Step6:|STEP6:|step6:|\*Step 6\*|\*\*Step 6\*\*|Step6)',
+                        r'(?:Step 6|STEP 6|step 6|Step6|STEP6|step6)'
+                    ]
+                    found = False
+                    for pat in step6_patterns:
+                        match = re.search(f'{pat}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
+                        if match:
+                            annotation_history = match.group(1).strip()
+                            found = True
+                            print(f"Extracted final section of conversation history ({len(annotation_history)} characters) using pattern: {pat}")
+                            break
+                    if not found:
+                        # Fallback: try to find the last occurrence of Step 6 and extract until FINAL ANNOTATION COMPLETED
+                        step6_match = list(re.finditer(r'(Step ?6.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL | re.IGNORECASE))
                         if step6_match:
-                            annotation_history = step6_match.group(0).strip()
-                            print(f"Using original pattern - extracted final section ({len(annotation_history)} characters)")
+                            annotation_history = step6_match[-1].group(1).strip()
+                            print(f"Using fallback pattern - extracted final section ({len(annotation_history)} characters)")
                         else:
                             # If Step 6 pattern not found, use the full history
                             annotation_history = full_history
@@ -869,7 +853,7 @@ def runCASSIA_annotationboost(
     cluster_name: str,
     major_cluster_info: str,
     output_name: str,
-    num_iterations: int = 5,
+    num_iterations: int = 10,
     model: Optional[str] = None,
     provider: str = "openrouter",
     temperature: float = 0,
@@ -898,8 +882,8 @@ def runCASSIA_annotationboost(
         start_time = time.time()
         
         # Validate provider input
-        if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-            raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
+        if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
+            raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
         
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
@@ -921,10 +905,12 @@ def runCASSIA_annotationboost(
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
+            absolute_raw_txt_path = output_name + '_absolute_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
             raw_report_path = output_name + '_raw_conversation.html'
+            absolute_raw_txt_path = output_name + '_absolute_raw_conversation.txt'
         
         # Generate path for summary report
         summary_report_path = output_name + '_summary.html'
@@ -969,6 +955,14 @@ def runCASSIA_annotationboost(
             raw_report_path = generate_raw_cell_annotation_report(conversation_without_prompt, raw_report_path)
             print(f"Raw conversation report saved to {raw_report_path}")
             
+            # Save the absolute raw conversation as plain text
+            with open(absolute_raw_txt_path, 'w', encoding='utf-8') as f:
+                for entry in messages:
+                    role = entry.get('role', '')
+                    content = entry.get('content', '')
+                    f.write(f"{role.upper()}\n{content}\n\n")
+            print(f"Absolute raw conversation saved to {absolute_raw_txt_path}")
+            
             # Generate the summary report
             summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
             print(f"Summary report saved to {summary_report_path}")
@@ -986,6 +980,7 @@ def runCASSIA_annotationboost(
             'status': 'success',
             'raw_report_path': raw_report_path,
             'summary_report_path': summary_report_path,
+            'absolute_raw_txt_path': absolute_raw_txt_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -1002,6 +997,7 @@ def runCASSIA_annotationboost(
             'error_message': str(e),
             'raw_report_path': None,
             'summary_report_path': None,
+            'absolute_raw_txt_path': None,
             'execution_time': 0,
             'analysis_text': None
         }
@@ -1043,8 +1039,8 @@ def runCASSIA_annotationboost_additional_task(
         start_time = time.time()
         
         # Validate provider input
-        if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-            raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
+        if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
+            raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
         
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
@@ -1067,10 +1063,12 @@ def runCASSIA_annotationboost_additional_task(
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
+            absolute_raw_txt_path = output_name + '_absolute_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
             raw_report_path = output_name + '_raw_conversation.html'
+            absolute_raw_txt_path = output_name + '_absolute_raw_conversation.txt'
         
         # Generate path for summary report
         summary_report_path = output_name + '_summary.html'
@@ -1124,6 +1122,14 @@ def runCASSIA_annotationboost_additional_task(
             raw_report_path = generate_raw_cell_annotation_report_additional_task(conversation_without_prompt, raw_report_path)
             print(f"Raw conversation report saved to {raw_report_path}")
             
+            # Save the absolute raw conversation as plain text
+            with open(absolute_raw_txt_path, 'w', encoding='utf-8') as f:
+                for entry in messages:
+                    role = entry.get('role', '')
+                    content = entry.get('content', '')
+                    f.write(f"{role.upper()}\n{content}\n\n")
+            print(f"Absolute raw conversation saved to {absolute_raw_txt_path}")
+            
             # Generate the summary report
             summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
             print(f"Summary report saved to {summary_report_path}")
@@ -1141,6 +1147,7 @@ def runCASSIA_annotationboost_additional_task(
             'status': 'success',
             'raw_report_path': raw_report_path,
             'summary_report_path': summary_report_path,
+            'absolute_raw_txt_path': absolute_raw_txt_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -1157,6 +1164,7 @@ def runCASSIA_annotationboost_additional_task(
             'error_message': str(e),
             'raw_report_path': None,
             'summary_report_path': None,
+            'absolute_raw_txt_path': None,
             'execution_time': 0,
             'analysis_text': None
         }

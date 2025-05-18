@@ -1,0 +1,94 @@
+Cell Type,General Cell Type LLM,Sub Cell Type LLM,Mixed Cell Types LLM,General Cell Type Oncology,Sub Cell Type Oncology,Mixed Cell Types Oncology,Similarity Score LLM,Similarity Score Oncology,LLM Generated Consensus Score LLM,LLM Generated Consensus Score Oncology,Count Consensus General Type LLM,Count Consensus Sub Type LLM,Count Consensus General Type Oncology,Count Consensus Sub Type Oncology,Unified Results LLM,Unified Results Oncology,Consensus Result LLM,Consensus Result Oncology,Original Non-Unified Results,Original General Type 1,Original Sub Type 1,Original General Type 2,Original Sub Type 2
+monocyte,Enteric Glial Cell,Mature Enteric Glial Cell (Spp1+ Subtype),,type I enteric glial cell,type I enteric glial cell,,1.0,1.0,100,100,Enteric Glial Cell,Mature Enteric Glial Cell (Spp1+ Subtype,type I enteric glial cell,type I enteric glial cell,"result1:('Enteric Glial Cell', 'Mature Enteric Glial Cell (Spp1+ Subtype)'),result2:('Enteric Glial Cell', 'Mature Enteric Glial Cell (Spp1+ Subtype)')","result1:('type I enteric glial cell', 'type I enteric glial cell'),result2:('type I enteric glial cell', 'type I enteric glial cell')","<json>{
+""final_results"": [
+""Enteric Glial Cell"",
+""Mature Enteric Glial Cell (Spp1+ Subtype)""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""type I enteric glial cell"",
+""type I enteric glial cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","result1:('Enteric Glial Cells (EGCs)', 'Mature Enteric Glial Cells (SPP1+ subtype)'),result2:('Enteric Glial Cells (EGCs)', 'Mature Enteric Glial Cells (SPP1+ subtype)')",Enteric Glial Cells (EGCs),Mature Enteric Glial Cells (SPP1+ subtype),Enteric Glial Cells (EGCs),Mature Enteric Glial Cells (SPP1+ subtype)
+intestinal crypt stem cell,Intestinal Stem Cell,Lgr5+ Intestinal Stem Cell,,intestinal crypt stem cell,intestinal crypt stem cell,,1.0,1.0,100,100,Intestinal Stem Cell,Lgr5+ Intestinal Stem Cell,intestinal crypt stem cell,intestinal crypt stem cell,"result1:('Intestinal Stem Cell', 'Lgr5+ Intestinal Stem Cell'),result2:('Intestinal Stem Cell', 'Lgr5+ Intestinal Stem Cell')","result1:('intestinal crypt stem cell', 'intestinal crypt stem cell'),result2:('intestinal crypt stem cell', 'intestinal crypt stem cell')","<json>{
+""final_results"": [
+""Intestinal Stem Cell"",
+""Lgr5+ Intestinal Stem Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""intestinal crypt stem cell"",
+""intestinal crypt stem cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","result1:('Intestinal Stem Cells', 'LGR5+ Intestinal Stem Cells'),result2:('Intestinal Stem Cells', 'LGR5+ Intestinal Stem Cells')",Intestinal Stem Cells,LGR5+ Intestinal Stem Cells,Intestinal Stem Cells,LGR5+ Intestinal Stem Cells
+intestinal enteroendocrine cell,Enteroendocrine Cell,L Cell,,enteroendocrine cell,L cone cell,,1.0,0.75,100,80,Enteroendocrine Cell,L Cell,enteroendocrine cell,L cone cell,"result1:('Enteroendocrine Cell', 'L Cell'),result2:('Enteroendocrine Cell', 'L Cell')","result1:('enteroendocrine cell', 'L cone cell'),result2:('intestinal enteroendocrine progenitor', 'L cone cell')","<json>{
+""final_results"": [
+""Enteroendocrine Cell"",
+""L Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""enteroendocrine cell"",
+""L cone cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 80
+}</json>","result1:('Enteroendocrine Cell', 'L Cell'),result2:('Enteroendocrine Cell (EEC)', 'L cells')",Enteroendocrine Cell,L Cell,Enteroendocrine Cell (EEC),L cells
+"cd8-positive, alpha-beta t cell",Lymphocyte,Cytotoxic γδ T cell,,cytotoxic T cell,cytotoxic T cell,,0.75,0.75,90,90,Cytotoxic Lymphocyte,Cytotoxic γδ T cell,cytotoxic T cell,cytotoxic T cell,"result1:('Cytotoxic Lymphocyte', 'Cytotoxic γδ T cell'),result2:('Lymphocyte', 'Cytotoxic γδ T cell')","result1:('cytotoxic T cell', 'cytotoxic T cell'),result2:('lymphocyte', 'cytotoxic T cell')","<json>{
+""final_results"": [
+""Lymphocyte"",
+""Cytotoxic γδ T cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 90
+}</json>","<json>{
+""final_results"": [
+""cytotoxic T cell"",
+""cytotoxic T cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 90
+}</json>","result1:('Cytotoxic Lymphocytes', 'Cytotoxic γδ T cells'),result2:('Lymphocyte', 'Cytotoxic γδ T cells')",Cytotoxic Lymphocytes,Cytotoxic γδ T cells,Lymphocyte,Cytotoxic γδ T cells
+transit amplifying cell of large intestine,Proliferating Cell,Transit-Amplifying (TA) Cell,,transit amplifying cell of gut,unknown,"epithelial cell, cycling B cell",0.75,0.75,90,50,Proliferating Epithelial Cell,Transit-Amplifying (TA,epithelial cell,transit amplifying cell of gut,"result1:('Proliferating Epithelial Cell', 'Transit-Amplifying (TA) Cell'),result2:('Proliferating Cell', 'Transit-Amplifying (TA) Cell')","result1:('epithelial cell', 'transit amplifying cell of gut'),result2:('cycling B cell', 'transit amplifying cell of gut')","<json>{
+""final_results"": [
+""Proliferating Cell"",
+""Transit-Amplifying (TA) Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 90
+}</json>","<json>{
+""final_results"": [
+""transit amplifying cell of gut"",
+""unknown""
+],
+""possible_mixed_celltypes"": [
+""epithelial cell"",
+""cycling B cell""
+],
+""consensus_score"": 50
+}</json>","result1:('Proliferative Epithelial Cells', 'Transit-Amplifying (TA) Cells'),result2:('Proliferating Cells', 'Transit-Amplifying (TA) Cells')",Proliferative Epithelial Cells,Transit-Amplifying (TA) Cells,Proliferating Cells,Transit-Amplifying (TA) Cells
+plasma cell,Plasma Cell,Iga-secreting Plasma Cell,,plasma cell,IgA plasma cell,,1.0,1.0,100,100,Plasma Cell,Iga-secreting Plasma Cell,plasma cell,IgA plasma cell,"result1:(Plasma Cell, Iga-secreting Plasma Cell),result2:(Plasma Cell, Iga-secreting Plasma Cell)","result1:('plasma cell', 'IgA plasma cell'),result2:('plasma cell', 'IgA plasma cell')","<json>{
+""final_results"": [
+""Plasma Cell"",
+""Iga-secreting Plasma Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""plasma cell"",
+""IgA plasma cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","result1:('Plasma Cell', 'IgA-secreting Plasma Cells'),result2:('Plasma Cell', 'IgA-secreting Plasma Cells')",Plasma Cell,IgA-secreting Plasma Cells,Plasma Cell,IgA-secreting Plasma Cells

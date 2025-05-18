@@ -26,6 +26,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Direct imports from local files, not from the installed package
 from tools_function import *
 from main_function_code import *
+from Uncertainty_quantification import *
+from subclustering import *
 import pandas as pd
 import numpy as np
 import argparse
@@ -52,6 +54,15 @@ model_name = "google/gemini-2.5-flash-preview"
 provider = "openrouter"
 tissue = "large intestine"
 species = "human"
+
+# Setup configuration variables for custermized api key (deepseek example)
+# Uncomment the following block to use DeepSeek as a custom provider
+# output_name = "intestine_detailed"
+# model_name = "deepseek-chat"
+# provider = "https://api.deepseek.com"
+# tissue = "large intestine"
+# species = "human"
+# api_key = "sk-afb39114f1334ba486505d9425937d16"
 
 # Load marker data (using relative file paths instead of the builtin loadmarker function)
 def load_marker_data():
@@ -686,7 +697,11 @@ def main():
     parser.add_argument('--task', type=str, default=None,
                       help='Additional task for annotation boost with task, e.g., "check if this is a cancer cell"')
     parser.add_argument('--provider', type=str, default=None,
-                      help='Provider to use for API calls (openai, anthropic, openrouter)')
+                      help='Provider to use for API calls (openai, anthropic, openrouter, or a custom base URL)')
+    parser.add_argument('--test_provider', type=str, default=None,
+                      help='Test provider to use for API calls (e.g., openrouter, https://api.deepseek.com)')
+    parser.add_argument('--api_key', type=str, default=None,
+                      help='API key for custom provider (used if test_provider is a base URL)')
     parser.add_argument('--test_genes', type=str, default=None,
                       help='Comma-separated list of genes to test for the debug_genes step')
     parser.add_argument('--history_mode', type=str, default="final",
@@ -694,8 +709,22 @@ def main():
     args = parser.parse_args()
     
     # Override default provider if specified in command line
-    global provider
-    if args.provider:
+    global provider, model_name, api_key
+    if args.test_provider:
+        provider = args.test_provider
+        print(f"Using test provider specified in command line: {provider}")
+        if provider.startswith("http"):
+            # If a custom provider, set the API key
+            api_key = args.api_key or os.environ.get("CUSTERMIZED_API_KEY", "")
+            if not api_key:
+                print("Warning: No API key provided for custom provider. Use --api_key to specify it.")
+            else:
+                os.environ["CUSTERMIZED_API_KEY"] = api_key
+                print(f"Set CUSTERMIZED_API_KEY for custom provider: {provider}")
+        # Optionally, set a default model for deepseek
+        if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
+            model_name = "deepseek-chat"
+    elif args.provider:
         provider = args.provider
         print(f"Using provider specified in command line: {provider}")
     
@@ -833,4 +862,17 @@ if __name__ == "__main__":
     # python CASSIA_python_tutorial.py --step subcluster
     # python CASSIA_python_tutorial.py --step boost_task
     # python CASSIA_python_tutorial.py --step test_boost
+
+    # To test with a custom provider API (for any step that supports --provider and --model):
+    # (Replace http://your-custom-api/v1/chat/completions with your actual endpoint)
+    # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step boost_task --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step test_boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step batch --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step merge --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step score --provider http://your-custom-api/v1/chat/completions --model your-model-name
+    # python CASSIA_python_tutorial.py --step uncertainty --provider http://your-custom-api/v1/chat/completions --model your-model-name
+
+    # You can also specify --api_key if your custom provider requires it:
+    # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
     
