@@ -68,17 +68,17 @@ def prompt_hypothesis_generator(
     Returns:
         str: Generated prompt text
     """
-    prompt = f"""You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful
+    prompt = f"""You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
 
 Context Provided to You
 
 Cluster summary：{major_cluster_info}
 
 Top ranked markers (high → low)：
- {comma_separated_genes}
+ {comma_separated_genes}
 
 Prior annotation dialogue：
- {annotation_history}
+ {annotation_history}
 
 What to Do
 1. Brief Evaluation – One concise paragraph that:
@@ -87,7 +87,7 @@ What to Do
 
     - Notes if a mixed population, doublets, or transitional state might explain the data.
 
-2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
+2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
 
     - Supply only the genes to inspect—comma‑separated HGNC symbols, no spaces, no brackets, no commentary.
 
@@ -95,7 +95,7 @@ What to Do
 
     - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
 
-3. Upon receiving gene expression results, refine the hypothesis or generate new ones. Continue Step 2 iteratively until the cluster is confidently and fully annotated. Once finalized, output the single line:
+3. Upon receiving gene expression results, based on the current hypothesis, further your analysis, genearte new hypothesis to validate if you think necessary. Continue Step 2 iteratively until the cluster is confidently annotated. Once finalized, output the single line:
 "FINAL ANNOTATION COMPLETED"
 Then provide a conclusion paragraph that includes:
 
@@ -142,14 +142,14 @@ hypothesis to check 3
 *Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
 *Provide no more than three total blocks (celltype + hypothesis combined).
 *For each hypothesis check no more than 7 genes.
+*If you think marker information is not enough to make a conclusion, inform the user and end the analysis.
 
 
 Tone & Style Guidelines
 
 Skeptical, critical, and careful
 Professional, succinct, and evidence‑based.
-Reference established biology when helpful ("LYZ vs. CTSW distinguishes myeloid from T‑cell lineages").
-
+Progressively deepen the anlaysis, don't repeat the same hypothesis.
 
 """
     return prompt
@@ -389,6 +389,10 @@ def get_marker_info(gene_list: List[str],
                 result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
             except BaseException:
                 continue
+        
+        # Exclude p_val column if it exists and p_val_adj is also present
+        if 'p_val' in result.columns and 'p_val_adj' in result.columns:
+            result = result.drop(columns=['p_val'])
 
         return result, na_genes
 
