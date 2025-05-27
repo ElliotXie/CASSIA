@@ -740,6 +740,68 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     return full_results, marker, top_markers_string, annotation_history
 
 
+def save_html_report(report: str, filename: str) -> None:
+    """
+    Save the HTML report to a file.
+    
+    Args:
+        report: HTML report content
+        filename: Output filename
+    """
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(report)
+    print(f"Report saved to {filename}")
+
+
+def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) -> str:
+    """
+    Save the raw conversation history (including the prompt) as a plain text file.
+    
+    Args:
+        messages: List of conversation messages with role and content
+        filename: Path to save the text file
+        
+    Returns:
+        str: Path to the saved text file
+    """
+    try:
+        # Format the conversation as plain text
+        conversation_text = ""
+        for i, msg in enumerate(messages):
+            role = msg.get('role', '')
+            content = msg.get('content', '')
+            
+            # Format the content
+            if isinstance(content, list):
+                content = str(content)
+                
+            # Add a separator between messages
+            if i > 0:
+                conversation_text += "\n\n" + "="*80 + "\n\n"
+                
+            conversation_text += f"## {role.upper()}\n\n{content}\n"
+        
+        # Save the file
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(conversation_text)
+            
+        print(f"Raw conversation text saved to {filename}")
+        return filename
+        
+    except Exception as e:
+        error_msg = f"Error saving raw conversation text: {str(e)}"
+        print(error_msg)
+        
+        # Try to save an error message
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(f"Error saving raw conversation: {str(e)}")
+        except:
+            pass
+            
+        return filename
+
+
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str) -> str:
     """
     Generate a summarized report from the raw conversation history.
@@ -830,24 +892,12 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             max_tokens=4000
         )
 
-        # Get the base name without extension
-        base_filename = os.path.splitext(output_filename)[0]
-
-        # Create filenames for raw and HTML versions
-        raw_output_filename = base_filename + "_raw.txt"
-        html_output_filename = base_filename + ".html"
-
-        # Save the raw summary to a file
-        with open(raw_output_filename, 'w', encoding='utf-8') as f:
-            f.write(summary)
-        print(f"Raw summary saved to {raw_output_filename}")
-
         # Convert to HTML and save
-        html_path = format_summary_to_html(summary, html_output_filename)
-        print(f"HTML summary saved to {html_path}")
-
+        html_path = format_summary_to_html(summary, output_filename)
+        print(f"Summary report saved to {html_path}")
+        
         # Return the HTML file path
-        return html_output_filename
+        return html_path
 
     except Exception as e:
         error_msg = f"Error generating summary report: {str(e)}"
@@ -1255,19 +1305,6 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         return output_filename
 
 
-def save_html_report(report: str, filename: str) -> None:
-    """
-    Save the HTML report to a file.
-    
-    Args:
-        report: HTML report content
-        filename: Output filename
-    """
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(report)
-    print(f"Report saved to {filename}")
-
-
 def runCASSIA_annotationboost(
     full_result_path: str,
     marker: Union[str, pd.DataFrame],
@@ -1326,10 +1363,12 @@ def runCASSIA_annotationboost(
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
+            raw_text_path = output_name + '_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
             raw_report_path = output_name + '_raw_conversation.html'
+            raw_text_path = output_name + '_raw_conversation.txt'
 
         # Generate path for summary report
         summary_report_path = output_name + '_summary.html'
@@ -1343,7 +1382,10 @@ def runCASSIA_annotationboost(
             html_report = generate_html_report(analysis_text) if 'generate_html_report' in globals(
             ) else "<html><body><h1>Raw Output</h1><pre>" + analysis_text + "</pre></body></html>"
             save_html_report(html_report, raw_report_path)
-            print(f"Raw conversation report saved to {raw_report_path}")
+            print(f"Raw conversation HTML report saved to {raw_report_path}")
+            
+            # Save the complete raw conversation as text (including prompt)
+            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
 
             # Generate the summary report
             try:
@@ -1356,12 +1398,14 @@ def runCASSIA_annotationboost(
             print(f"Warning: Could not generate raw conversation report: {str(e)}")
             raw_report_path = None
             summary_report_path = None
+            raw_text_path = None
 
         # Return a dictionary with paths to reports
         execution_time = time.time() - start_time
         return {
             'status': 'success',
             'raw_report_path': raw_report_path,
+            'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
@@ -1378,6 +1422,7 @@ def runCASSIA_annotationboost(
             'status': 'error',
             'error_message': str(e),
             'raw_report_path': None,
+            'raw_text_path': None,
             'summary_report_path': None,
             'execution_time': 0,
             'analysis_text': None
@@ -1445,10 +1490,12 @@ def runCASSIA_annotationboost_additional_task(
         # Generate paths for reports
         if not output_name.lower().endswith('.html'):
             raw_report_path = output_name + '_raw_conversation.html'
+            raw_text_path = output_name + '_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
             raw_report_path = output_name + '_raw_conversation.html'
+            raw_text_path = output_name + '_raw_conversation.txt'
 
         # Generate path for summary report
         summary_report_path = output_name + '_summary.html'
@@ -1462,7 +1509,10 @@ def runCASSIA_annotationboost_additional_task(
             html_report = generate_html_report(analysis_text) if 'generate_html_report' in globals(
             ) else "<html><body><h1>Raw Output</h1><pre>" + analysis_text + "</pre></body></html>"
             save_html_report(html_report, raw_report_path)
-            print(f"Raw conversation report saved to {raw_report_path}")
+            print(f"Raw conversation HTML report saved to {raw_report_path}")
+            
+            # Save the complete raw conversation as text (including prompt)
+            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
 
             # Generate the summary report
             try:
@@ -1475,12 +1525,14 @@ def runCASSIA_annotationboost_additional_task(
             print(f"Warning: Could not generate raw conversation report: {str(e)}")
             raw_report_path = None
             summary_report_path = None
+            raw_text_path = None
 
         # Return a dictionary with paths to reports
         execution_time = time.time() - start_time
         return {
             'status': 'success',
             'raw_report_path': raw_report_path,
+            'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
@@ -1497,6 +1549,7 @@ def runCASSIA_annotationboost_additional_task(
             'status': 'error',
             'error_message': str(e),
             'raw_report_path': None,
+            'raw_text_path': None,
             'summary_report_path': None,
             'execution_time': 0,
             'analysis_text': None
