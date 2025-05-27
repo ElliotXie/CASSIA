@@ -1360,14 +1360,12 @@ def runCASSIA_annotationboost(
             temperature=temperature
         )
         
-        # Generate paths for reports
+        # Generate paths for reports - only summary HTML and raw conversation text
         if not output_name.lower().endswith('.html'):
-            raw_report_path = output_name + '_raw_conversation.html'
             raw_text_path = output_name + '_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
-            raw_report_path = output_name + '_raw_conversation.html'
             raw_text_path = output_name + '_raw_conversation.txt'
 
         # Generate path for summary report
@@ -1376,16 +1374,11 @@ def runCASSIA_annotationboost(
         # Skip the first message which contains the prompt
         conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
         
-        # Generate the HTML reports
+        # Generate only the needed reports
         try:
-            # Generate the raw conversation report
-            html_report = generate_html_report(analysis_text) if 'generate_html_report' in globals(
-            ) else "<html><body><h1>Raw Output</h1><pre>" + analysis_text + "</pre></body></html>"
-            save_html_report(html_report, raw_report_path)
-            print(f"Raw conversation HTML report saved to {raw_report_path}")
-            
             # Save the complete raw conversation as text (including prompt)
             raw_text_path = save_raw_conversation_text(messages, raw_text_path)
+            print(f"Raw conversation text saved to {raw_text_path}")
 
             # Generate the summary report
             try:
@@ -1395,8 +1388,7 @@ def runCASSIA_annotationboost(
                 print(f"Warning: Could not generate summary report: {str(e)}")
                 summary_report_path = None
         except Exception as e:
-            print(f"Warning: Could not generate raw conversation report: {str(e)}")
-            raw_report_path = None
+            print(f"Warning: Could not generate reports: {str(e)}")
             summary_report_path = None
             raw_text_path = None
 
@@ -1404,7 +1396,6 @@ def runCASSIA_annotationboost(
         execution_time = time.time() - start_time
         return {
             'status': 'success',
-            'raw_report_path': raw_report_path,
             'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
             'execution_time': execution_time,
@@ -1421,7 +1412,6 @@ def runCASSIA_annotationboost(
         return {
             'status': 'error',
             'error_message': str(e),
-            'raw_report_path': None,
             'raw_text_path': None,
             'summary_report_path': None,
             'execution_time': 0,
@@ -1487,14 +1477,12 @@ def runCASSIA_annotationboost_additional_task(
             temperature=temperature
         )
         
-        # Generate paths for reports
+        # Generate paths for reports - only summary HTML and raw conversation text
         if not output_name.lower().endswith('.html'):
-            raw_report_path = output_name + '_raw_conversation.html'
             raw_text_path = output_name + '_raw_conversation.txt'
         else:
             # Remove .html for base name
             output_name = output_name[:-5]
-            raw_report_path = output_name + '_raw_conversation.html'
             raw_text_path = output_name + '_raw_conversation.txt'
 
         # Generate path for summary report
@@ -1503,16 +1491,11 @@ def runCASSIA_annotationboost_additional_task(
         # Skip the first message which contains the prompt
         conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
         
-        # Generate the HTML reports
+        # Generate only the needed reports
         try:
-            # Generate the raw conversation report
-            html_report = generate_html_report(analysis_text) if 'generate_html_report' in globals(
-            ) else "<html><body><h1>Raw Output</h1><pre>" + analysis_text + "</pre></body></html>"
-            save_html_report(html_report, raw_report_path)
-            print(f"Raw conversation HTML report saved to {raw_report_path}")
-            
             # Save the complete raw conversation as text (including prompt)
             raw_text_path = save_raw_conversation_text(messages, raw_text_path)
+            print(f"Raw conversation text saved to {raw_text_path}")
 
             # Generate the summary report
             try:
@@ -1522,8 +1505,7 @@ def runCASSIA_annotationboost_additional_task(
                 print(f"Warning: Could not generate summary report: {str(e)}")
                 summary_report_path = None
         except Exception as e:
-            print(f"Warning: Could not generate raw conversation report: {str(e)}")
-            raw_report_path = None
+            print(f"Warning: Could not generate reports: {str(e)}")
             summary_report_path = None
             raw_text_path = None
 
@@ -1531,7 +1513,6 @@ def runCASSIA_annotationboost_additional_task(
         execution_time = time.time() - start_time
         return {
             'status': 'success',
-            'raw_report_path': raw_report_path,
             'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
             'execution_time': execution_time,
@@ -1548,7 +1529,6 @@ def runCASSIA_annotationboost_additional_task(
         return {
             'status': 'error',
             'error_message': str(e),
-            'raw_report_path': None,
             'raw_text_path': None,
             'summary_report_path': None,
             'execution_time': 0,
