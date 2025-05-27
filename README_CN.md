@@ -62,7 +62,7 @@ setup_cassia_env()
 
 获取API密钥大约需要3分钟时间。
 
-我们建议从 OpenRouter 开始，因为它可以通过单个 API 密钥访问大多数模型。
+针对国内用户，我们强烈推荐使用 OpenRouter ，因为OpenAI和Anthropic都对国内访问有限制，使用OpenRouter可以通过单个 API 密钥访问大多数模型。
 
 ```R
 # 对于 OpenRouter
@@ -77,12 +77,10 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
 
 - **API 提供商指南:**
-	- [如何获取 OpenAI API 密钥](https://platform.openai.com/api-keys)
-	- [如何获取 Anthropic API 密钥](https://console.anthropic.com/settings/keys)
+
 	- [如何获取 OpenRouter API 密钥](https://openrouter.ai/settings/keys)
-    - [OpenAI API 文档](https://beta.openai.com/docs/)
-    - [Anthropic API 文档](https://docs.anthropic.com/)
-    - [OpenRouter API 文档](https://openrouter.ai/docs/quick-start)
+ 	- [如何充值OpenRouter](https://zhuanlan.zhihu.com/p/1898753591528908109)
+
 
 
 ## 🧬 示例数据
@@ -100,11 +98,11 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式
 # 默认提供商设置为OpenRouter
 
 runCASSIA_pipeline(
-    output_file_name,     # 输出文件的基本名称
-    tissue,               # 组织类型（例如，"brain"）
-    species,              # 物种（例如，"human"）
-    marker,               # 来自 findallmarker 的标记数据
-    max_workers = 4       # 并行工作者数量
+    output_file_name = "cassia_test",            # Base name for output files
+    tissue = "Large Intestine",                   # Tissue type (e.g., "brain")
+    species = "Human",              		 # Species (e.g., "human")
+    marker = "markers_unprocessed",               # Marker data from findallmarker
+    max_workers = 4                              # Number of parallel workers
 )
 ```
 
@@ -117,7 +115,7 @@ runCASSIA_pipeline(
 - `google/gemini-2.5-flash-preview`: 最好的低费率大模型之一（最推荐）
 - `deepseek/deepseek-chat-v3-0324`: 最好的开源大模型之一，经常给出非常详细的注释（推荐）
 - `deepseek/deepseek-chat-v3-0324:free`: 免费但速度较慢
-s
+
 ### OpenAI
 - `gpt-4o`: 用于文章的基准测试
 
