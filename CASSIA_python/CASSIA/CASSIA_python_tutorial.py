@@ -235,15 +235,27 @@ def generate_report(scored_csv, report_name=None):
     )
 
 # --------------------- Step 5: Uncertainty Quantification ---------------------
-def run_uncertainty_quantification(marker_data):
+def run_uncertainty_quantification(marker_data, provider_test=None):
     print("\n=== Running Uncertainty Quantification ===")
+    
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
+    
+    # If using a custom provider, set a default model if needed
+    current_model = model_name
+    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+        if test_provider == "https://api.deepseek.com":
+            current_model = "deepseek-chat"
+        print(f"Using model: {current_model} with custom provider: {test_provider}")
+    
     # Run multiple iterations
     iteration_results = runCASSIA_batch_n_times(
-        n=2,
+        n=4,
         marker=marker_data,
         output_name=output_name + "_Uncertainty",
-        model=model_name,
-        provider=provider,
+        model=current_model,
+        provider=test_provider,
         tissue=tissue,
         species=species,
         max_workers=6,
@@ -256,11 +268,179 @@ def run_uncertainty_quantification(marker_data):
         file_pattern=output_name + "_Uncertainty_*_full.csv",
         output_name="intestine_uncertainty",
         max_workers=6,
-        model=model_name,
-        provider=provider,
+        model=current_model,
+        provider=test_provider,
         main_weight=0.5,
         sub_weight=0.5
     )
+
+# --------------------- Step 5b: Single Cluster Uncertainty Quantification ---------------------
+def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provider_test=None, n_iterations=5):
+    """
+    Run uncertainty quantification for a single cluster.
+    
+    Args:
+        marker_data: Marker data DataFrame
+        cluster_name: Name of the cluster to analyze (default: "monocyte")
+        provider_test: Optional provider to test (default: uses global provider)
+        n_iterations: Number of iterations to run (default: 5)
+    
+    Returns:
+        dict: Analysis results including consensus types, cell types, and scores
+    """
+    print(f"\n=== Running Single Cluster Uncertainty Quantification for {cluster_name} ===")
+    
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
+    
+    # If using a custom provider, set a default model if needed
+    current_model = model_name
+    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+        if test_provider == "https://api.deepseek.com":
+            current_model = "deepseek-chat"
+        print(f"Using model: {current_model} with custom provider: {test_provider}")
+    
+    # Filter marker data for the specific cluster
+    if isinstance(marker_data, pd.DataFrame):
+        if 'cluster' in marker_data.columns:
+            cluster_col = 'cluster'
+        elif 'cell_type' in marker_data.columns:
+            cluster_col = 'cell_type'
+        elif marker_data.columns[0].lower() in ['cluster', 'cell_type', 'celltype', 'cell type']:
+            cluster_col = marker_data.columns[0]
+        else:
+            print(f"Warning: Could not identify cluster column in marker data")
+            print(f"Available columns: {marker_data.columns.tolist()}")
+            print(f"Using first column as cluster column: {marker_data.columns[0]}")
+            cluster_col = marker_data.columns[0]
+        
+        # Try to find the cluster (case insensitive)
+        if cluster_col in marker_data.columns:
+            try:
+                filtered_markers = marker_data[marker_data[cluster_col].str.lower() == cluster_name.lower()]
+                if filtered_markers.empty:
+                    print(f"Warning: Cluster '{cluster_name}' not found in marker data")
+                    print(f"Available clusters: {marker_data[cluster_col].unique().tolist()}")
+                    # Use all markers as fallback
+                    filtered_markers = marker_data
+                else:
+                    print(f"Found {len(filtered_markers)} marker genes for cluster '{cluster_name}'")
+            except Exception as e:
+                print(f"Error filtering marker data: {str(e)}")
+                filtered_markers = marker_data
+        else:
+            filtered_markers = marker_data
+    else:
+        # If not a DataFrame, use as is
+        filtered_markers = marker_data
+    
+    # Extract marker genes if needed
+    if isinstance(filtered_markers, pd.DataFrame):
+        # Get top marker genes
+        if len(filtered_markers.columns) > 1:
+            # If we have a proper marker dataframe with multiple columns
+            try:
+                # Try to get gene column
+                gene_col = None
+                for col_name in ['gene', 'genes', 'feature', 'features', 'marker', 'markers']:
+                    if col_name in filtered_markers.columns:
+                        gene_col = col_name
+                        break
+                
+                if gene_col is None:
+                    # If no obvious gene column, use second column
+                    gene_col = filtered_markers.columns[1]
+                
+                # Get top 50 genes
+                if len(filtered_markers) > 50:
+                    # Sort by fold change or p-value if available
+                    if 'avg_log2FC' in filtered_markers.columns:
+                        sorted_markers = filtered_markers.sort_values(by='avg_log2FC', ascending=False)
+                    elif 'p_val_adj' in filtered_markers.columns:
+                        sorted_markers = filtered_markers.sort_values(by='p_val_adj', ascending=True)
+                    else:
+                        sorted_markers = filtered_markers
+                    
+                    top_markers = sorted_markers.head(50)
+                else:
+                    top_markers = filtered_markers
+                
+                # Extract gene list
+                marker_list = top_markers[gene_col].tolist()
+                marker_list = [str(gene) for gene in marker_list if gene and str(gene).strip()]
+                
+                # Fall back to string representation if extraction fails
+                if not marker_list:
+                    marker_list = filtered_markers.iloc[:, 1].astype(str).tolist()[:50]
+            except Exception as e:
+                print(f"Error extracting marker genes: {str(e)}")
+                # Fall back to string representation
+                marker_list = filtered_markers.iloc[:, 1].astype(str).tolist()[:50]
+        else:
+            # If we only have one column, use it directly
+            marker_list = filtered_markers.iloc[:, 0].astype(str).tolist()[:50]
+    elif isinstance(filtered_markers, str):
+        # If it's already a string, split by common separators
+        marker_list = [m.strip() for m in re.split(r'[,;\s]+', filtered_markers)][:50]
+    elif isinstance(filtered_markers, list):
+        # If it's already a list, use it directly
+        marker_list = [str(m).strip() for m in filtered_markers][:50]
+    else:
+        print(f"Error: Unsupported marker data type: {type(filtered_markers)}")
+        return None
+    
+    # Print marker list for verification
+    print(f"Using {len(marker_list)} marker genes for analysis:")
+    print(", ".join(marker_list[:10]) + (", ..." if len(marker_list) > 10 else ""))
+    
+    # Run uncertainty quantification using runCASSIA_n_times_similarity_score
+    try:
+        print(f"Running {n_iterations} iterations of cell type analysis...")
+        results = runCASSIA_n_times_similarity_score(
+            tissue=tissue,
+            species=species,
+            additional_info=f"Analyzing cluster: {cluster_name}",
+            temperature=0,
+            marker_list=marker_list,
+            model=current_model,
+            max_workers=5,
+            n=n_iterations,
+            provider=test_provider,
+            main_weight=0.5,
+            sub_weight=0.5
+        )
+        
+        # Print results
+        print("\n=== Single Cluster Uncertainty Analysis Results ===")
+        print(f"Cluster: {cluster_name}")
+        print(f"General cell type: {results['general_celltype_llm']}")
+        print(f"Sub cell type: {results['sub_celltype_llm']}")
+        if results['Possible_mixed_celltypes_llm']:
+            print(f"Possible mixed cell types: {', '.join(results['Possible_mixed_celltypes_llm'])}")
+        print(f"Similarity score: {results['similarity_score']:.2f}")
+        print(f"Consensus types (from frequency): {results['consensus_types']}")
+        
+        # Save results to file
+        output_filename = f"{cluster_name.replace(' ', '_').replace(',', '')}_uncertainty.json"
+        import json
+        with open(output_filename, 'w') as f:
+            # Convert any non-serializable objects to strings
+            serializable_results = {}
+            for k, v in results.items():
+                if isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+                    serializable_results[k] = v
+                else:
+                    serializable_results[k] = str(v)
+            json.dump(serializable_results, f, indent=2)
+        print(f"Results saved to {output_filename}")
+        
+        return results
+    except Exception as e:
+        print(f"Error in single cluster uncertainty quantification: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 # --------------------- Step 6: Annotation Boost ---------------------
 def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provider_test=None, debug_mode=False, test_genes=None, conversation_history_mode="final"):
@@ -463,6 +643,93 @@ def run_subclustering(subcluster_data):
         main_weight = 0.5,
         sub_weight = 0.5
     )
+
+# --------------------- Step 8b: Single Subclustering Analysis ---------------------
+def run_single_subcluster(subcluster_data, major_cluster_info="cd8 t cell"):
+    """
+    Run a single subclustering analysis without multiple iterations.
+    Useful for testing custom API providers.
+    
+    Args:
+        subcluster_data: DataFrame containing marker data for subclusters
+        major_cluster_info: Description of the major cluster type
+    """
+    print(f"\n=== Running Single Subclustering Analysis for {major_cluster_info} ===")
+    print(f"Using provider: {provider}")
+    
+    # Run a single subclustering analysis
+    runCASSIA_subclusters(
+        marker=subcluster_data,
+        major_cluster_info=major_cluster_info,
+        output_name="single_subclustering_result",
+        model=model_name,
+        provider=provider
+    )
+    
+    print(f"Single subclustering analysis completed. Results saved to single_subclustering_result.csv")
+
+# --------------------- New: Test Subclustering with Different Providers ---------------------
+def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell"):
+    """
+    Test the subclustering functionality with different providers.
+    This function helps validate that the subclustering implementation works correctly
+    with all supported providers, including custom API endpoints.
+    
+    Args:
+        subcluster_data: DataFrame containing marker data for subclusters
+        major_cluster_info: Description of the major cluster type (default: "cd8 t cell")
+    """
+    print("\n=== Testing Subclustering with Multiple Providers ===")
+    print(f"Using major cluster info: {major_cluster_info}")
+    
+    # Test with OpenAI provider
+    print("\n----- Testing Subclustering with OpenAI provider -----")
+    try:
+        runCASSIA_subclusters(
+            marker=subcluster_data,
+            major_cluster_info=major_cluster_info,
+            output_name="subclustering_results_openai",
+            model="gpt-4o",
+            provider="openai"
+        )
+        print("✅ Subclustering with OpenAI completed successfully")
+    except Exception as e:
+        print(f"❌ Error with OpenAI provider: {str(e)}")
+    
+    # Test with Anthropic provider
+    print("\n----- Testing Subclustering with Anthropic provider -----")
+    try:
+        runCASSIA_subclusters(
+            marker=subcluster_data,
+            major_cluster_info=major_cluster_info,
+            output_name="subclustering_results_anthropic",
+            model="claude-3-5-sonnet-20241022",
+            provider="anthropic"
+        )
+        print("✅ Subclustering with Anthropic completed successfully")
+    except Exception as e:
+        print(f"❌ Error with Anthropic provider: {str(e)}")
+    
+    # Test with OpenRouter provider
+    print("\n----- Testing Subclustering with OpenRouter provider -----")
+    try:
+        runCASSIA_subclusters(
+            marker=subcluster_data,
+            major_cluster_info=major_cluster_info,
+            output_name="subclustering_results_openrouter",
+            model="anthropic/claude-3.5-sonnet",
+            provider="openrouter"
+        )
+        print("✅ Subclustering with OpenRouter completed successfully")
+    except Exception as e:
+        print(f"❌ Error with OpenRouter provider: {str(e)}")
+    
+    # Test with custom provider (commented out as it requires an API key)
+    print("\n----- Custom Provider Test (Skipped - Requires API Key) -----")
+    print("To test with a custom provider like DeepSeek, use the command line option:")
+    print("python CASSIA_python_tutorial.py --step test_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY")
+    
+    print("\n=== Subclustering Provider Tests Complete ===")
 
 # --------------------- Step 9: Annotation Boost with Additional Task ---------------------
 def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None, provider_test=None, conversation_history_mode="final"):
@@ -689,11 +956,11 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task, test_boost, debug_genes')
+                      help='Which step to run: all, batch, merge, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
-                      help='Cluster name for annotation boost')
+                      help='Cluster name for annotation boost or single cluster uncertainty')
     parser.add_argument('--task', type=str, default=None,
                       help='Additional task for annotation boost with task, e.g., "check if this is a cancer cell"')
     parser.add_argument('--provider', type=str, default=None,
@@ -706,6 +973,10 @@ def main():
                       help='Comma-separated list of genes to test for the debug_genes step')
     parser.add_argument('--history_mode', type=str, default="final",
                       help='Conversation history mode for annotation boost: "full", "final", or "none"')
+    parser.add_argument('--iterations', type=int, default=5,
+                      help='Number of iterations for single_cluster_uncertainty (default: 5)')
+    parser.add_argument('--major_cluster', type=str, default="cd8 t cell",
+                      help='Major cluster info for subclustering (default: "cd8 t cell")')
     args = parser.parse_args()
     
     # Override default provider if specified in command line
@@ -727,6 +998,18 @@ def main():
     elif args.provider:
         provider = args.provider
         print(f"Using provider specified in command line: {provider}")
+        # Also handle API key setting for custom providers when using --provider flag
+        if provider.startswith("http"):
+            # If a custom provider, set the API key
+            api_key = args.api_key or os.environ.get("CUSTERMIZED_API_KEY", "")
+            if not api_key:
+                print("Warning: No API key provided for custom provider. Use --api_key to specify it.")
+            else:
+                os.environ["CUSTERMIZED_API_KEY"] = api_key
+                print(f"Set CUSTERMIZED_API_KEY for custom provider: {provider}")
+            # Set default model for deepseek
+            if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
+                model_name = "deepseek-chat"
     
     # Setup API keys first
     setup_api_keys()
@@ -762,7 +1045,14 @@ def main():
         input_csv = args.input_csv or f"{output_name}_scored.csv"
         generate_report(input_csv)
     elif args.step == 'uncertainty':
-        run_uncertainty_quantification(unprocessed)
+        run_uncertainty_quantification(unprocessed, provider)
+    elif args.step == 'single_cluster_uncertainty':
+        run_single_cluster_uncertainty(
+            marker_data=unprocessed, 
+            cluster_name=args.cluster, 
+            provider_test=provider, 
+            n_iterations=args.iterations
+        )
     elif args.step == 'boost':
         run_annotation_boost(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
     elif args.step == 'compare':
@@ -824,9 +1114,18 @@ def main():
             print(f"Error in gene extraction diagnostics: {str(e)}")
             import traceback
             traceback.print_exc()
+    elif args.step == 'test_subcluster':
+        # New option to test subclustering with different providers
+        try:
+            test_subclustering_providers(subcluster, args.major_cluster)
+        except Exception as e:
+            print(f"Error testing subclustering: {str(e)}")
+    elif args.step == 'single_subcluster':
+        # New option to run a single subclustering analysis
+        run_single_subcluster(subcluster, args.major_cluster)
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, score, report, uncertainty, boost, compare, subcluster, boost_task, test_boost, debug_genes")
+        print("Available steps: all, batch, merge, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes")
 
 
 if __name__ == "__main__":
@@ -875,4 +1174,41 @@ if __name__ == "__main__":
 
     # You can also specify --api_key if your custom provider requires it:
     # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
+
+    # Example with a real provider and API key (DeepSeek):
+    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step test_boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com  --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step merge --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
     
+    # Specific example for uncertainty quantification with DeepSeek:
+    # python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    
+    # Examples for subclustering:
+    # python CASSIA_python_tutorial.py --step subcluster
+    # python CASSIA_python_tutorial.py --step subcluster --provider openai
+    # python CASSIA_python_tutorial.py --step subcluster --provider anthropic
+    # python CASSIA_python_tutorial.py --step subcluster --provider openrouter
+    
+    # Examples for testing subclustering with multiple providers:
+    # python CASSIA_python_tutorial.py --step test_subcluster
+    # python CASSIA_python_tutorial.py --step test_subcluster --major_cluster "T cell"
+    
+    # Example for subclustering with a custom provider:
+    # python CASSIA_python_tutorial.py --step subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
+    # python CASSIA_python_tutorial.py --step test_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
+    
+    # Example for running a single subclustering result with a custom API:
+    # python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
+    
+    # Examples for testing subclustering with custom APIs:
+    # One-line command for direct subclustering with DeepSeek:
+    # python -c "import os; os.environ['CUSTERMIZED_API_KEY']='YOUR_API_KEY'; from subclustering import runCASSIA_subclusters; import pandas as pd; runCASSIA_subclusters(pd.read_csv('data/subcluster_results.csv'), 'cd8 t cell', 'deepseek_result', model='deepseek-chat', provider='https://api.deepseek.com')"
+    
+    # More secure approach using environment variables for API key:
+    # export CUSTERMIZED_API_KEY=YOUR_API_KEY  # Linux/Mac
+    # $env:CUSTERMIZED_API_KEY="YOUR_API_KEY"  # Windows PowerShell
+    # python -c "from subclustering import runCASSIA_subclusters; import pandas as pd; runCASSIA_subclusters(pd.read_csv('data/subcluster_results.csv'), 'cd8 t cell', 'secure_result', model='deepseek-chat', provider='https://api.deepseek.com')"

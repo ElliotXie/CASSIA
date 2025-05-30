@@ -591,6 +591,26 @@ def iterative_marker_analysis(
         
         except Exception as e:
             print(f"Error in iteration {iteration + 1}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            # Save diagnostic information
+            try:
+                error_log = f"Error in iteration {iteration + 1}: {str(e)}\n\n"
+                error_log += f"Provider: {provider}\n"
+                error_log += f"Model: {model}\n"
+                error_log += f"Number of messages: {len(messages)}\n"
+                error_log += f"Last message content: {messages[-1]['content'][:200]}...\n\n"
+                error_log += "Full traceback:\n"
+                error_log += traceback.format_exc()
+                
+                # Write to error log file
+                with open(f"cassia_error_log_{iteration+1}.txt", "w", encoding="utf-8") as f:
+                    f.write(error_log)
+                print(f"Error details saved to cassia_error_log_{iteration+1}.txt")
+            except:
+                pass
+                
             return f"Error occurred: {str(e)}", messages
     
     # Final response if max iterations reached
@@ -614,6 +634,26 @@ def iterative_marker_analysis(
             
     except Exception as e:
         print(f"Error in final response: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Save diagnostic information
+        try:
+            error_log = f"Error in final response: {str(e)}\n\n"
+            error_log += f"Provider: {provider}\n"
+            error_log += f"Model: {model}\n"
+            error_log += f"Number of messages: {len(messages)}\n"
+            error_log += f"Last message content: {messages[-1]['content'][:200]}...\n\n"
+            error_log += "Full traceback:\n"
+            error_log += traceback.format_exc()
+            
+            # Write to error log file
+            with open("cassia_error_log_final.txt", "w", encoding="utf-8") as f:
+                f.write(error_log)
+            print(f"Error details saved to cassia_error_log_final.txt")
+        except:
+            pass
+            
         return f"Error in final response: {str(e)}", messages
 
 def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final") -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
@@ -974,7 +1014,6 @@ def runCASSIA_annotationboost(
             'status': 'success',
             'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
-            'absolute_raw_txt_path': absolute_raw_txt_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -991,7 +1030,6 @@ def runCASSIA_annotationboost(
             'error_message': str(e),
             'raw_text_path': None,
             'summary_report_path': None,
-            'absolute_raw_txt_path': None,
             'execution_time': 0,
             'analysis_text': None
         }
@@ -1087,7 +1125,6 @@ def runCASSIA_annotationboost_additional_task(
             'status': 'success',
             'raw_text_path': raw_text_path,
             'summary_report_path': summary_report_path,
-            'absolute_raw_txt_path': absolute_raw_txt_path,
             'execution_time': execution_time,
             'analysis_text': analysis_text
         }
@@ -1104,7 +1141,6 @@ def runCASSIA_annotationboost_additional_task(
             'error_message': str(e),
             'raw_text_path': None,
             'summary_report_path': None,
-            'absolute_raw_txt_path': None,
             'execution_time': 0,
             'analysis_text': None
         }

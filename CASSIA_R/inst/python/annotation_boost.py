@@ -8,22 +8,19 @@ from typing import List, Tuple, Dict, Any, Optional, Union
 from llm_utils import call_llm
 
 
-def prompt_hypothesis_generator2(
-    major_cluster_info: str,
-    comma_separated_genes: str,
-    annotation_history: str) -> str:
+def prompt_hypothesis_generator2(major_cluster_info: str, comma_separated_genes: str, annotation_history: str) -> str:
     """
     Generate a prompt for iterative marker analysis without additional tasks.
-
+    
     Args:
         major_cluster_info: Information about the cluster being analyzed
         comma_separated_genes: Comma-separated list of marker genes
         annotation_history: Previous annotation history
-
+        
     Returns:
         str: Generated prompt text
     """
-    prompt = f"""You are a careful professional biologist, specializing in single-cell RNA-seq analysis.
+    prompt = f"""You are a careful professional biologist, specializing in single-cell RNA-seq analysis. 
 I'll provide you with some genes (comma-separated) from a cell type in {major_cluster_info} and I want you to help identify the cell type. Previous expert has done some analysis but the reuslts is not conclusive, your additional anlysis is needed.
 
 
@@ -53,10 +50,7 @@ Please start by analyzing the provided markers and forming initial hypotheses.
     return prompt
 
 
-def prompt_hypothesis_generator(
-    major_cluster_info: str,
-    comma_separated_genes: str,
-    annotation_history: str) -> str:
+def prompt_hypothesis_generator(major_cluster_info: str, comma_separated_genes: str, annotation_history: str) -> str:
     """
     Generate a prompt for iterative marker analysis without additional tasks.
     
@@ -68,7 +62,8 @@ def prompt_hypothesis_generator(
     Returns:
         str: Generated prompt text
     """
-    prompt = f"""You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
+    prompt = f"""
+You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
 
 Context Provided to You
 
@@ -155,11 +150,11 @@ Progressively deepen the anlaysis, don't repeat the same hypothesis.
     return prompt
 
 
-def prompt_hypothesis_generator_additional_task(
-    major_cluster_info: str,
-    comma_separated_genes: str,
-    annotation_history: str,
-    additional_task: str) -> str:
+
+
+
+
+def prompt_hypothesis_generator_additional_task(major_cluster_info: str, comma_separated_genes: str, annotation_history: str, additional_task: str) -> str:
     """
     Generate a prompt for iterative marker analysis with an additional task.
     
@@ -203,9 +198,7 @@ Please start by analyzing the provided markers and forming initial hypotheses.
 """
     return prompt
 
-
-def get_marker_info(gene_list: List[str],
-                    marker: Union[pd.DataFrame, Any]) -> str:
+def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> str:
     """
     Extract information about marker genes from a marker dataset.
     
@@ -219,7 +212,7 @@ def get_marker_info(gene_list: List[str],
     def filter_marker(gene_names: List[str]) -> Tuple[pd.DataFrame, List[str]]:
         # Enable debug mode only when needed, default is False
         debug_mode = False
-
+        
         # Convert marker to pandas DataFrame if it's not already
         if not isinstance(marker, pd.DataFrame):
             marker_df = pd.DataFrame(marker)
@@ -229,70 +222,65 @@ def get_marker_info(gene_list: List[str],
         # Debug marker dataframe structure
         if debug_mode:
             print(f"DEBUG: Marker DataFrame shape: {marker_df.shape}")
-            print(
-                f"DEBUG: Marker DataFrame index type: {type(marker_df.index).__name__}")
+            print(f"DEBUG: Marker DataFrame index type: {type(marker_df.index).__name__}")
             print(f"DEBUG: First 5 index entries: {list(marker_df.index[:5])}")
             print(f"DEBUG: Columns: {marker_df.columns.tolist()}")
-
+        
         # Determine which column contains the gene names
         gene_column = None
-
+        
         # Prefer 'gene' column over any others
         if 'gene' in marker_df.columns:
             gene_column = 'gene'
         # Only use 'Unnamed: 0' as fallback if no 'gene' column exists
         elif 'Unnamed: 0' in marker_df.columns:
             gene_column = 'Unnamed: 0'
-
+        
         if debug_mode:
             if gene_column:
                 print(f"DEBUG: Using '{gene_column}' as the gene column")
             else:
-                print(
-                    f"DEBUG: No gene column found. Will use DataFrame index for gene lookup.")
+                print(f"DEBUG: No gene column found. Will use DataFrame index for gene lookup.")
 
         # Identify valid genes and NA genes
         valid_genes = []
         na_genes = []
         valid_rows = []  # Store row indices for valid genes
         gene_name_map = {}  # Map of row index to gene name for output
-
+        
+        # Debug each gene lookup if in debug mode
         if debug_mode:
-            print(
-                f"DEBUG: Searching for {len(gene_names)} genes: {', '.join(gene_names)}")
-
+            print(f"DEBUG: Searching for {len(gene_names)} genes: {', '.join(gene_names)}")
+            
             # Check if any genes are in the index at all (case-sensitive)
-            exact_matches = [
-                gene for gene in gene_names if gene in marker_df.index]
+            exact_matches = [gene for gene in gene_names if gene in marker_df.index]
             if exact_matches:
-                print(
-                    f"DEBUG: Found {len(exact_matches)} exact gene matches in index: {', '.join(exact_matches)}")
+                print(f"DEBUG: Found {len(exact_matches)} exact gene matches in index: {', '.join(exact_matches)}")
             else:
                 print(f"DEBUG: No exact gene matches found in index")
-
-            if gene_column:
-                # Check if genes are in the gene column
-                column_matches = []
-                for gene in gene_names:
-                    gene_rows = marker_df[marker_df[gene_column].str.contains(
-                        f"^{gene}$", case=True, regex=True, na=False)]
-                    if not gene_rows.empty:
-                        column_matches.append(gene)
                 
-                if column_matches:
-                    print(f"DEBUG: Found {len(column_matches)} exact matches in '{gene_column}' column: {', '.join(column_matches)}")
-            
-            # Try case-insensitive matching
-            if not marker_df.index.empty:
-                lower_index = {str(idx).lower(): idx for idx in marker_df.index}
-                lower_matches = [gene for gene in gene_names if str(gene).lower() in lower_index]
-                if lower_matches:
-                    print(f"DEBUG: Found {len(lower_matches)} case-insensitive matches in index: {', '.join(lower_matches)}")
-                    print(f"DEBUG: Actual case in index: {[lower_index[gene.lower()] for gene in lower_matches if gene.lower() in lower_index]}")
-
+                if gene_column:
+                    # Check if genes are in the gene column
+                    column_matches = []
+                    for gene in gene_names:
+                        gene_rows = marker_df[marker_df[gene_column].str.contains(f"^{gene}$", case=True, regex=True, na=False)]
+                        if not gene_rows.empty:
+                            column_matches.append(gene)
+                    
+                    if column_matches:
+                        print(f"DEBUG: Found {len(column_matches)} exact matches in '{gene_column}' column: {', '.join(column_matches)}")
+                
+                # Try case-insensitive matching
+                if not marker_df.index.empty:
+                    lower_index = {str(idx).lower(): idx for idx in marker_df.index}
+                    lower_matches = [gene for gene in gene_names if str(gene).lower() in lower_index]
+                    if lower_matches:
+                        print(f"DEBUG: Found {len(lower_matches)} case-insensitive matches in index: {', '.join(lower_matches)}")
+                        print(f"DEBUG: Actual case in index: {[lower_index[gene.lower()] for gene in lower_matches if gene.lower() in lower_index]}")
+        
         # Modified gene lookup process to check both index and gene column
         for gene in gene_names:
-        # First try to find in index
+            # First try to find in index
             if gene in marker_df.index:
                 # Check if all values for this gene are NA
                 gene_data = marker_df.loc[gene]
@@ -302,21 +290,21 @@ def get_marker_info(gene_list: List[str],
                         print(f"DEBUG: Gene {gene} found in index but has all NA values")
                 else:
                     valid_genes.append(gene)
-                valid_rows.append(gene)  # For index-based lookup we use the gene name
-                gene_name_map[gene] = gene  # Map the index to gene name
-                if debug_mode:
-                    print(f"DEBUG: Gene {gene} found in index with valid data")
-        # Then try to find in gene column
+                    valid_rows.append(gene)  # For index-based lookup we use the gene name
+                    gene_name_map[gene] = gene  # Map the index to gene name
+                    if debug_mode:
+                        print(f"DEBUG: Gene {gene} found in index with valid data")
+            # Then try to find in gene column
             elif gene_column and isinstance(gene_column, str):
                 try:
                     # Look for exact match in gene column
                     gene_rows = marker_df[marker_df[gene_column].str.contains(f"^{gene}$", case=True, regex=True, na=False)]
-
+                    
                     if not gene_rows.empty:
                         # Take the first row if multiple matches
                         row_idx = gene_rows.index[0]
-                        # gene_data = gene_rows.iloc[0] # This line seems unused, consider removing if truly not needed
-
+                        gene_data = gene_rows.iloc[0]
+                        
                         # Check if all values are NA
                         numeric_data = gene_rows.select_dtypes(include=[np.number])
                         if numeric_data.empty or numeric_data.isna().all().all() or (numeric_data == 'NA').all().all():
@@ -334,9 +322,9 @@ def get_marker_info(gene_list: List[str],
                         gene_rows = marker_df[marker_df[gene_column].str.contains(f"^{gene}$", case=False, regex=True, na=False)]
                         if not gene_rows.empty:
                             row_idx = gene_rows.index[0]
-                            # gene_data = gene_rows.iloc[0] # This line seems unused
+                            gene_data = gene_rows.iloc[0]
                             actual_gene = gene_rows[gene_column].iloc[0]  # Get the actual name with correct case
-
+                            
                             # Check if all values are NA
                             numeric_data = gene_rows.select_dtypes(include=[np.number])
                             if numeric_data.empty or numeric_data.isna().all().all() or (numeric_data == 'NA').all().all():
@@ -373,7 +361,7 @@ def get_marker_info(gene_list: List[str],
                 cols = result.columns.tolist()
                 cols.insert(0, cols.pop(cols.index('gene')))
                 result = result[cols]
-
+            
             if debug_mode:
                 print(f"DEBUG: Created result DataFrame with {len(valid_rows)} rows")
         else:
@@ -387,7 +375,7 @@ def get_marker_info(gene_list: List[str],
         for col in numeric_cols:
             try:
                 result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
-            except BaseException:
+            except:
                 continue
         
         # Exclude p_val column if it exists and p_val_adj is also present
@@ -428,21 +416,7 @@ def get_marker_info(gene_list: List[str],
         na_genes_message = f"\nNote: The following genes are not in the differential expression list: {', '.join(na_genes)}"
         marker_string += na_genes_message
 
-        # Add more debug info if all or most genes are missing
-        if len(na_genes) > len(gene_list) * 0.8:  # If more than 80% of genes are missing
-            try:
-                # Basic diagnostics if debug module not found
-                marker_string += "\n\nDEBUG: Most genes not found. Basic marker data info:"
-                if isinstance(marker, pd.DataFrame):
-                    marker_string += f"\nShape: {marker.shape}"
-                    marker_string += f"\nIndex type: {type(marker.index).__name__}"
-                    marker_string += f"\nColumns: {marker.columns.tolist()}"
-                    marker_string += f"\nFirst 5 rows:\n{marker.head().to_string()}"
-            except Exception as e:
-                marker_string += f"\n\nDEBUG: Error running diagnostics: {str(e)}"
-
     return marker_string
-
 
 def extract_genes_from_conversation(conversation: str) -> List[str]:
     """
@@ -456,14 +430,14 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
     """
     # Debug mode off by default
     debug_mode = False
-
+    
     if debug_mode:
         print(f"\nDEBUG: Extract genes from conversation")
         print(f"DEBUG: Conversation length: {len(conversation)} characters")
         # Print a limited preview
         preview_length = min(200, len(conversation))
         print(f"DEBUG: Conversation preview: {conversation[:preview_length]}...")
-
+    
     # Extract gene lists and get marker info
     gene_lists = re.findall(r'<check_genes>\s*(.*?)\s*</check_genes>', conversation, re.DOTALL)
     
@@ -479,31 +453,31 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
         # Replace common separators with commas
         cleaned_list = re.sub(r'[\]\[\)\(]', '', gene_list)
         cleaned_list = re.sub(r'\s+', ' ', cleaned_list)
-
+        
         if debug_mode:
             print(f"DEBUG: Cleaned list: {cleaned_list[:100]}...")
-
+        
         # Split by comma or space, depending on formatting
         genes = re.split(r',\s*|\s+', cleaned_list)
         cleaned_genes = [g.strip() for g in genes if g.strip()]
-
+        
         if debug_mode:
             print(f"DEBUG: Found {len(cleaned_genes)} genes in this list")
             print(f"DEBUG: Sample genes from this list: {', '.join(cleaned_genes[:5])}")
-
+        
         all_genes.extend(cleaned_genes)
-
+    
     # Get unique genes
     unique_genes = sorted(set(all_genes))
-
+    
     if debug_mode:
         print(f"DEBUG: Total unique genes extracted: {len(unique_genes)}")
         print(f"DEBUG: All unique genes: {', '.join(unique_genes)}")
-
+        
         # If no genes found, try alternative extraction methods
         if not unique_genes:
             print("DEBUG: No genes found with standard pattern, trying alternative patterns")
-
+            
             # Try alternative regex patterns
             alt_patterns = [
                 r'check_genes[:\s]+(.*?)(?:\n\n|\n[A-Z]|$)',  # Informal syntax
@@ -511,16 +485,15 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
                 r'additional genes[:\s]+(.*?)(?:\n\n|\n[A-Z]|$)',  # Another common phrase
                 r'marker genes[:\s]+(.*?)(?:\n\n|\n[A-Z]|$)'  # Another common phrase
             ]
-
+            
             for pattern in alt_patterns:
                 alt_matches = re.findall(pattern, conversation, re.IGNORECASE | re.DOTALL)
                 if alt_matches:
                     print(f"DEBUG: Found matches with alternative pattern: {pattern}")
                     for match in alt_matches:
                         print(f"DEBUG: Alternative match: {match[:100]}...")
-
+    
     return unique_genes
-
 
 def iterative_marker_analysis(
     major_cluster_info: str, 
@@ -611,9 +584,34 @@ def iterative_marker_analysis(
         
         except Exception as e:
             print(f"Error in iteration {iteration + 1}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            # Save diagnostic information
+            try:
+                error_log = f"Error in iteration {iteration + 1}: {str(e)}\n\n"
+                error_log += f"Provider: {provider}\n"
+                error_log += f"Model: {model}\n"
+                error_log += f"Number of messages: {len(messages)}\n"
+                error_log += f"Last message content: {messages[-1]['content'][:200]}...\n\n"
+                error_log += "Full traceback:\n"
+                error_log += traceback.format_exc()
+                
+                # Write to error log file
+                with open(f"cassia_error_log_{iteration+1}.txt", "w", encoding="utf-8") as f:
+                    f.write(error_log)
+                print(f"Error details saved to cassia_error_log_{iteration+1}.txt")
+            except:
+                pass
+                
             return f"Error occurred: {str(e)}", messages
     
     # Final response if max iterations reached
+    # Encourage the agent to reach a conclusion if not already done
+    messages.append({
+        "role": "user",
+        "content": "You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response."
+    })
     try:
         final_response = call_llm(
             prompt="Please provide your final analysis based on all the information so far.",
@@ -629,11 +627,29 @@ def iterative_marker_analysis(
             
     except Exception as e:
         print(f"Error in final response: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Save diagnostic information
+        try:
+            error_log = f"Error in final response: {str(e)}\n\n"
+            error_log += f"Provider: {provider}\n"
+            error_log += f"Model: {model}\n"
+            error_log += f"Number of messages: {len(messages)}\n"
+            error_log += f"Last message content: {messages[-1]['content'][:200]}...\n\n"
+            error_log += "Full traceback:\n"
+            error_log += traceback.format_exc()
+            
+            # Write to error log file
+            with open("cassia_error_log_final.txt", "w", encoding="utf-8") as f:
+                f.write(error_log)
+            print(f"Error details saved to cassia_error_log_final.txt")
+        except:
+            pass
+            
         return f"Error in final response: {str(e)}", messages
 
-
-def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str,
-                          conversation_history_mode: str = "final") -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
+def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final") -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
     
@@ -650,19 +666,13 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
     """
     # Load the full results - don't use index_col=0 as it's not indexed that way
-    try:
-        full_results = pd.read_csv(full_result_path)
-    except BaseException:
-        full_results = pd.read_csv(full_result_path, index_col=0)
+    full_results = pd.read_csv(full_result_path)
     
     # Load marker data - handle both DataFrame and file path
     if isinstance(marker_path, pd.DataFrame):
         marker = marker_path
     else:
-        try:
-            marker = pd.read_csv(marker_path)
-        except BaseException:
-            marker = pd.read_csv(marker_path, index_col=0)
+        marker = pd.read_csv(marker_path)
         
         # Clean up by removing the 'Unnamed: 0' column if it exists
         if 'Unnamed: 0' in marker.columns:
@@ -677,8 +687,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     cluster_data = full_results[full_results[cluster_column] == cluster_name]
     
     if cluster_data.empty:
-        raise ValueError(
-            f"No data found for cluster '{cluster_name}' in the full results file. Available clusters: {full_results[cluster_column].unique().tolist()}")
+        raise ValueError(f"No data found for cluster '{cluster_name}' in the full results file. Available clusters: {full_results[cluster_column].unique().tolist()}")
     
     # Get marker column from the CSV if it exists, otherwise use 'Marker List'
     marker_column = 'Marker List' if 'Marker List' in cluster_data.columns else None
@@ -705,22 +714,25 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                     annotation_history = full_history
                 elif conversation_history_mode == "final":
                     # Extract the part between "Step 6" and "FINAL ANNOTATION COMPLETED"
-                    # First find the Step 6 line with various possible formats
-                    step6_pattern = r'(?:\*\*Step 6:|Step 6:|STEP 6:|step 6:|Step6:).*?Concise Summary.*?\*\*'
-                    # Then extract everything between that line and FINAL ANNOTATION COMPLETED
-                    # but exclude the Step 6 line itself
-                    match = re.search(f'{step6_pattern}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
-                    
-                    if match:
-                        # Use group(1) to get only the content after the Step 6 line
-                        annotation_history = match.group(1).strip()
-                        print(f"Extracted final section of conversation history ({len(annotation_history)} characters)")
-                    else:
-                        # Fallback to original pattern if the specific format isn't found
-                        step6_match = re.search(r'(?:Step 6|STEP 6|step 6|Step6).*?(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
+                    # Try multiple robust patterns for Step 6
+                    step6_patterns = [
+                        r'(?:\*\*Step 6:|Step 6:|STEP 6:|step 6:|Step6:|STEP6:|step6:|\*Step 6\*|\*\*Step 6\*\*|Step6)',
+                        r'(?:Step 6|STEP 6|step 6|Step6|STEP6|step6)'
+                    ]
+                    found = False
+                    for pat in step6_patterns:
+                        match = re.search(f'{pat}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
+                        if match:
+                            annotation_history = match.group(1).strip()
+                            found = True
+                            print(f"Extracted final section of conversation history ({len(annotation_history)} characters) using pattern: {pat}")
+                            break
+                    if not found:
+                        # Fallback: try to find the last occurrence of Step 6 and extract until FINAL ANNOTATION COMPLETED
+                        step6_match = list(re.finditer(r'(Step ?6.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL | re.IGNORECASE))
                         if step6_match:
-                            annotation_history = step6_match.group(0).strip()
-                            print(f"Using original pattern - extracted final section ({len(annotation_history)} characters)")
+                            annotation_history = step6_match[-1].group(1).strip()
+                            print(f"Using fallback pattern - extracted final section ({len(annotation_history)} characters)")
                         else:
                             # If Step 6 pattern not found, use the full history
                             annotation_history = full_history
@@ -729,8 +741,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                     # For any unrecognized mode, default to full history
                     annotation_history = full_history
                 
-                print(
-                    f"Using conversation history for cluster {cluster_name} (mode: {conversation_history_mode}, {len(annotation_history)} characters)")
+                print(f"Using conversation history for cluster {cluster_name} (mode: {conversation_history_mode}, {len(annotation_history)} characters)")
             else:
                 print(f"Conversation History column exists but is empty for cluster {cluster_name}")
         except Exception as e:
@@ -743,7 +754,6 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     
     return full_results, marker, top_markers_string, annotation_history
 
-
 def save_html_report(report: str, filename: str) -> None:
     """
     Save the HTML report to a file.
@@ -755,7 +765,6 @@ def save_html_report(report: str, filename: str) -> None:
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(report)
     print(f"Report saved to {filename}")
-
 
 def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) -> str:
     """
@@ -805,7 +814,6 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
             
         return filename
 
-
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str) -> str:
     """
     Generate a summarized report from the raw conversation history.
@@ -826,54 +834,54 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             if isinstance(content, list):
                 content = str(content)
             full_conversation += f"\n## {role.upper()}\n{content}\n"
-
+        
         # Craft the prompt for the LLM to generate a summary using simple tags
-        prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis.
+        prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis. 
         I will provide you a raw conversation history from a cell type annotation tool called CASSIA, which conducts iterative gene expression analysis.
-
+        
         Your task is to generate a structured, concise summary report that highlights the key findings, hypotheses tested, and conclusions drawn.
-
+        
         Use the following simple tag format exactly in your response:
-
+        
         <OVERVIEW>
         Brief overview of what was analyzed and how many iterations were performed.
         Include the total number of genes examined across all iterations.
         </OVERVIEW>
-
+        
         <INITIAL_ASSESSMENT>
         Summarize the initial cell type hypothesis and evidence from the first evaluation.
         </INITIAL_ASSESSMENT>
-
+        
         <ITERATION_1>
         <HYPOTHESES>
         Clear explanation of what hypotheses were being tested in the first iteration and WHY.
         Format multiple hypotheses as numbered points (1., 2., 3.) each on a new line.
         </HYPOTHESES>
-
+        
         <GENES_CHECKED>
         List the specific genes checked in this iteration (comma-separated).
         </GENES_CHECKED>
-
+        
         <KEY_FINDINGS>
         Concise summary of the key results from gene expression analysis and what was learned.
         </KEY_FINDINGS>
         </ITERATION_1>
-
+        
         # Repeat for each additional iteration (ITERATION_2, ITERATION_3, etc.)
-
+        
         <FINAL_ANNOTATION>
         The conclusive cell type annotation, exactly as determined in the conversation.
         Include the confidence level and main supporting evidence.
         </FINAL_ANNOTATION>
-
+        
         <MARKER_SUMMARY>
         List the most important marker genes that defined this cell type, organized by their functional groups.
         </MARKER_SUMMARY>
-
+        
         <RECOMMENDATIONS>
         Any suggested next steps or validation approaches mentioned in the conversation.
         </RECOMMENDATIONS>
-
+        
         Follow these guidelines:
         1. Maintain scientific precision while making the report accessible
         2. Include exact gene names with proper capitalization
@@ -881,12 +889,12 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         4. Use the exact tags as shown above
         5. Make sure to separate each iteration clearly
         6. Make the final cell type annotation stand out prominently
-
+        
         Here's the conversation history to summarize:
-
+        
         {full_conversation}
         """
-
+        
         # Use the call_llm function to generate the summary
         summary = call_llm(
             prompt=prompt,
@@ -895,14 +903,14 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             temperature=0.3,      # Low temperature for more consistent output
             max_tokens=4000
         )
-
+        
         # Convert to HTML and save
         html_path = format_summary_to_html(summary, output_filename)
         print(f"Summary report saved to {html_path}")
         
         # Return the HTML file path
         return html_path
-
+        
     except Exception as e:
         error_msg = f"Error generating summary report: {str(e)}"
         print(error_msg)
@@ -911,6 +919,224 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             f.write(f"<error>{error_msg}</error>")
         return output_filename
 
+def runCASSIA_annotationboost(
+    full_result_path: str,
+    marker: Union[str, pd.DataFrame],
+    cluster_name: str,
+    major_cluster_info: str,
+    output_name: str,
+    num_iterations: int = 10,
+    model: Optional[str] = None,
+    provider: str = "openrouter",
+    temperature: float = 0,
+    conversation_history_mode: str = "final"
+) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
+    """
+    Run annotation boost analysis for a given cluster.
+    
+    Args:
+        full_result_path: Path to the full results CSV file
+        marker: Path to marker genes CSV file or DataFrame with marker data
+        cluster_name: Name of the cluster to analyze
+        major_cluster_info: General information about the dataset (e.g., "Human PBMC")
+        output_name: Base name for the output HTML file
+        num_iterations: Number of iterations for marker analysis (default=5)
+        model: Model to use for analysis - if None, uses the provider's default
+        provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
+        temperature: Sampling temperature (0-1)
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+    
+    Returns:
+        tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
+    """
+    try:
+        import time
+        start_time = time.time()
+        
+        # Validate provider input
+        if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
+            raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
+        
+        # Prepare the data
+        _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
+            full_result_path, marker, cluster_name, conversation_history_mode
+        )
+        
+        # Run the iterative marker analysis
+        analysis_text, messages = iterative_marker_analysis(
+            major_cluster_info=major_cluster_info,
+            marker=marker_data,
+            comma_separated_genes=top_markers_string,
+            annotation_history=annotation_history,
+            num_iterations=num_iterations,
+            provider=provider,
+            model=model,
+            temperature=temperature
+        )
+        
+        # Generate paths for reports - only summary HTML and raw conversation text
+        if not output_name.lower().endswith('.html'):
+            raw_text_path = output_name + '_raw_conversation.txt'
+        else:
+            # Remove .html for base name
+            output_name = output_name[:-5]
+            raw_text_path = output_name + '_raw_conversation.txt'
+        
+        # Generate path for summary report
+        summary_report_path = output_name + '_summary.html'
+        
+        # Skip the first message which contains the prompt
+        conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
+        
+        try:
+            # Save the complete raw conversation as text (including prompt)
+            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
+            print(f"Raw conversation text saved to {raw_text_path}")
+            
+            # Generate the summary report
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            print(f"Summary report saved to {summary_report_path}")
+        except Exception as e:
+            print(f"Warning: Could not generate reports: {str(e)}")
+            summary_report_path = None
+            raw_text_path = None
+        
+        # Return a dictionary with paths to reports
+        execution_time = time.time() - start_time
+        return {
+            'status': 'success',
+            'raw_text_path': raw_text_path,
+            'summary_report_path': summary_report_path,
+            'execution_time': execution_time,
+            'analysis_text': analysis_text
+        }
+    
+    except Exception as e:
+        error_msg = f"Error in runCASSIA_annotationboost: {str(e)}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        
+        # Return error status but include any partial results
+        return {
+            'status': 'error',
+            'error_message': str(e),
+            'raw_text_path': None,
+            'summary_report_path': None,
+            'execution_time': 0,
+            'analysis_text': None
+        }
+
+def runCASSIA_annotationboost_additional_task(
+    full_result_path: str,
+    marker: Union[str, pd.DataFrame],
+    cluster_name: str,
+    major_cluster_info: str,
+    output_name: str,
+    num_iterations: int = 5,
+    model: Optional[str] = None,
+    provider: str = "openrouter",
+    additional_task: str = "check if this is a cancer cluster",
+    temperature: float = 0,
+    conversation_history_mode: str = "final"
+) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
+    """
+    Run annotation boost analysis with an additional task for a given cluster.
+    
+    Args:
+        full_result_path: Path to the full results CSV file
+        marker: Path to marker genes CSV file or DataFrame with marker data
+        cluster_name: Name of the cluster to analyze
+        major_cluster_info: General information about the dataset (e.g., "Human PBMC")
+        output_name: Base name for the output HTML file
+        num_iterations: Number of iterations for marker analysis (default=5)
+        model: Model to use for analysis - if None, uses the provider's default
+        provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
+        additional_task: Additional task to perform during analysis
+        temperature: Sampling temperature (0-1)
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+    
+    Returns:
+        tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
+    """
+    try:
+        import time
+        start_time = time.time()
+        
+        # Validate provider input
+        if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
+            raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
+        
+        # Prepare the data
+        _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
+            full_result_path, marker, cluster_name, conversation_history_mode
+        )
+        
+        # Run the iterative marker analysis with additional task
+        analysis_text, messages = iterative_marker_analysis(
+            major_cluster_info=major_cluster_info,
+            marker=marker_data,
+            comma_separated_genes=top_markers_string,
+            annotation_history=annotation_history,
+            num_iterations=num_iterations,
+            provider=provider,
+            model=model,
+            additional_task=additional_task,
+            temperature=temperature
+        )
+        
+        # Generate paths for reports - only summary HTML and raw conversation text
+        if not output_name.lower().endswith('.html'):
+            raw_text_path = output_name + '_raw_conversation.txt'
+        else:
+            # Remove .html for base name
+            output_name = output_name[:-5]
+            raw_text_path = output_name + '_raw_conversation.txt'
+        
+        # Generate path for summary report
+        summary_report_path = output_name + '_summary.html'
+        
+        # Skip the first message which contains the prompt
+        conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
+        
+        try:
+            # Save the complete raw conversation as text (including prompt)
+            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
+            print(f"Raw conversation text saved to {raw_text_path}")
+            
+            # Generate the summary report
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            print(f"Summary report saved to {summary_report_path}")
+        except Exception as e:
+            print(f"Warning: Could not generate reports: {str(e)}")
+            summary_report_path = None
+            raw_text_path = None
+        
+        # Return a dictionary with paths to reports
+        execution_time = time.time() - start_time
+        return {
+            'status': 'success',
+            'raw_text_path': raw_text_path,
+            'summary_report_path': summary_report_path,
+            'execution_time': execution_time,
+            'analysis_text': analysis_text
+        }
+    
+    except Exception as e:
+        error_msg = f"Error in runCASSIA_annotationboost_additional_task: {str(e)}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        
+        # Return error status but include any partial results
+        return {
+            'status': 'error',
+            'error_message': str(e),
+            'raw_text_path': None,
+            'summary_report_path': None,
+            'execution_time': 0,
+            'analysis_text': None
+        }
 
 def format_summary_to_html(summary_text: str, output_filename: str) -> str:
     """
@@ -1028,199 +1254,199 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         
         # HTML template with CSS styling
         html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>CASSIA Cell Type Annotation Summary</title>
-        <style>
-                    :root {{
-                        --primary-color: #2563eb;
-                        --secondary-color: #0891b2;
-                        --accent-color: #4f46e5;
-                        --light-bg: #f3f4f6;
-                        --border-color: #e5e7eb;
-                        --text-color: #1f2937;
-                        --text-light: #6b7280;
-                    }}
-                    
-            body {{ 
-                        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                line-height: 1.6;
-                        color: var(--text-color);
-                        background-color: #ffffff;
-                        margin: 0;
-                        padding: 0;
-            }}
-                    
-            .container {{ 
-                        max-width: 900px;
-                        margin: 0 auto;
-                        padding: 2rem;
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary</title>
+            <style>
+                :root {{
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
                 }}
-                    
-                    header {{
-                        text-align: center;
-                        margin-bottom: 2.5rem;
-                        border-bottom: 2px solid var(--border-color);
-                        padding-bottom: 1rem;
-                    }}
-                    
-                    h1 {{
-                        color: var(--primary-color);
-                        font-size: 2.5rem;
-                        margin-bottom: 0.5rem;
-                    }}
-                    
-                    .subtitle {{
-                        color: var(--text-light);
-                        font-size: 1.2rem;
-                        margin-top: 0;
-                    }}
-                    
-                    section {{
-                        margin-bottom: 2.5rem;
-                        background-color: white;
-                        border-radius: 0.5rem;
-                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                        padding: 1.5rem;
-                        border-left: 4px solid var(--primary-color);
-                    }}
-                    
-                    h2 {{
-                        color: var(--primary-color);
-                        font-size: 1.8rem;
-                        margin-top: 0;
-                        border-bottom: 1px solid var(--border-color);
-                        padding-bottom: 0.5rem;
-                    }}
-                    
-                    h3 {{
-                        color: var(--secondary-color);
-                        font-size: 1.3rem;
-                        margin: 1.5rem 0 0.5rem;
-                    }}
-                    
-                    ul, ol {{
-                        padding-left: 1.5rem;
-                    }}
-                    
-                    li {{
-                        margin-bottom: 0.5rem;
-                    }}
-                    
-                    .final-annotation {{
-                        background-color: #ecfdf5;
-                        border-left: 4px solid #10b981;
-                    }}
-                    
-                    .final-annotation h2 {{
-                        color: #10b981;
-                    }}
-                    
-                    .iteration {{
-                        margin-bottom: 1.5rem;
-                        background-color: var(--light-bg);
-                        border-radius: 0.5rem;
-                        padding: 1.5rem;
-                        border-left: 4px solid var(--secondary-color);
-                    }}
-                    
-                    .iteration-title {{
-                        font-size: 1.5rem;
-                        color: var(--secondary-color);
-                        margin-top: 0;
-                        border-bottom: 1px solid var(--border-color);
-                        padding-bottom: 0.5rem;
-                    }}
-                    
-                    .gene-list {{
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 0.5rem;
-                        margin: 1rem 0;
-                    }}
-                    
-                    .gene-badge {{
-                        background-color: var(--accent-color);
-                        color: white;
-                        padding: 0.3rem 0.7rem;
-                        border-radius: 1rem;
-                        font-size: 0.9rem;
-                        font-weight: 500;
-                    }}
-                    
-                    .sub-section {{
-                        background-color: white;
-                        border-radius: 0.3rem;
-                        padding: 1rem;
-                        margin-top: 1rem;
-                    }}
-                    
-                    code {{
-                        font-family: ui-monospace, monospace;
-                        font-size: 0.9em;
-                    }}
-                    
-                    .marker-category {{
-                        margin-bottom: 1rem;
-                    }}
-                    
-                    .marker-category-title {{
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        color: var(--secondary-color);
-                    }}
-                    
-                    .hypothesis-list {{
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.8rem;
-                    }}
-                    
-                    .hypothesis-item {{
-                        padding-left: 1.5rem;
-                        position: relative;
-                        margin-bottom: 0.5rem;
-                    }}
-                    
-                    .hypothesis-number {{
-                        position: absolute;
-                        left: 0;
-                        font-weight: 600;
-                        color: var(--accent-color);
-                    }}
-                    
-                    .hypothesis-item-continued {{
-                        padding-left: 1.5rem;
-                        margin-top: -0.3rem;
-                        color: var(--text-light);
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-                    <header>
-                        <h1>CASSIA Cell Type Annotation Summary</h1>
-                        <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
-                    </header>
-                    
-                    <section>
-                        <h2>Overview</h2>
-            <div class="content">
-                            {sections['overview']}
-            </div>
-                    </section>
-                    
-                    <section>
-                        <h2>Initial Assessment</h2>
-                        <div class="content">
-                            {sections['initial_assessment']}
-                        </div>
-                    </section>
-            """
-            
+                
+                body {{
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                .container {{
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }}
+                
+                header {{
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }}
+                
+                h1 {{
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .subtitle {{
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }}
+                
+                section {{
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }}
+                
+                h2 {{
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }}
+                
+                h3 {{
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }}
+                
+                ul, ol {{
+                    padding-left: 1.5rem;
+                }}
+                
+                li {{
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .final-annotation {{
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }}
+                
+                .final-annotation h2 {{
+                    color: #10b981;
+                }}
+                
+                .iteration {{
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }}
+                
+                .iteration-title {{
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }}
+                
+                .gene-list {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }}
+                
+                .gene-badge {{
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }}
+                
+                .sub-section {{
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }}
+                
+                code {{
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }}
+                
+                .marker-category {{
+                    margin-bottom: 1rem;
+                }}
+                
+                .marker-category-title {{
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }}
+                
+                .hypothesis-list {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }}
+                
+                .hypothesis-item {{
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }}
+                
+                .hypothesis-number {{
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }}
+                
+                .hypothesis-item-continued {{
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        {sections['overview']}
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        {sections['initial_assessment']}
+                    </div>
+                </section>
+        """
+        
         # Add iterations
         for iteration in iterations:
             # Format genes checked as badges
@@ -1288,11 +1514,11 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         
         # Close the HTML
         html += """
-        </div>
-    </body>
-    </html>
-    """
-    
+            </div>
+        </body>
+        </html>
+        """
+        
         # Save the HTML report
         with open(output_filename, 'w', encoding='utf-8') as f:
             f.write(html)
@@ -1306,235 +1532,4 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         # Save error message to file so there's still an output
         with open(output_filename, 'w', encoding='utf-8') as f:
             f.write(f"<html><body><h1>Error</h1><p>{error_msg}</p></body></html>")
-        return output_filename
-
-
-def runCASSIA_annotationboost(
-    full_result_path: str,
-    marker: Union[str, pd.DataFrame],
-    cluster_name: str,
-    major_cluster_info: str,
-    output_name: str,
-    num_iterations: int = 5,
-    model: Optional[str] = None,
-    provider: str = "openrouter",
-    temperature: float = 0,
-    conversation_history_mode: str = "final"
-) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
-    """
-    Run annotation boost analysis for a given cluster.
-    
-    Args:
-        full_result_path: Path to the full results CSV file
-        marker: Path to marker genes CSV file or DataFrame with marker data
-        cluster_name: Name of the cluster to analyze
-        major_cluster_info: General information about the dataset (e.g., "Human PBMC")
-        output_name: Base name for the output HTML file
-        num_iterations: Number of iterations for marker analysis (default=5)
-        model: Model to use for analysis - if None, uses the provider's default
-        provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
-        temperature: Sampling temperature (0-1)
-        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
-    
-    Returns:
-        tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
-    """
-    try:
-        import time
-        start_time = time.time()
-
-        # Validate provider input
-        if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-            raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
-        
-        # Prepare the data
-        _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode
-        )
-        
-        # Run the iterative marker analysis
-        analysis_text, messages = iterative_marker_analysis(
-            major_cluster_info=major_cluster_info,
-            marker=marker_data,
-            comma_separated_genes=top_markers_string,
-            annotation_history=annotation_history,
-            num_iterations=num_iterations,
-            provider=provider,
-            model=model,
-            temperature=temperature
-        )
-        
-        # Generate paths for reports - only summary HTML and raw conversation text
-        if not output_name.lower().endswith('.html'):
-            raw_text_path = output_name + '_raw_conversation.txt'
-        else:
-            # Remove .html for base name
-            output_name = output_name[:-5]
-            raw_text_path = output_name + '_raw_conversation.txt'
-
-        # Generate path for summary report
-        summary_report_path = output_name + '_summary.html'
-
-        # Skip the first message which contains the prompt
-        conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
-        
-        # Generate only the needed reports
-        try:
-            # Save the complete raw conversation as text (including prompt)
-            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
-            print(f"Raw conversation text saved to {raw_text_path}")
-
-            # Generate the summary report
-            try:
-                summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
-                print(f"Summary report saved to {summary_report_path}")
-            except Exception as e:
-                print(f"Warning: Could not generate summary report: {str(e)}")
-                summary_report_path = None
-        except Exception as e:
-            print(f"Warning: Could not generate reports: {str(e)}")
-            summary_report_path = None
-            raw_text_path = None
-
-        # Return a dictionary with paths to reports
-        execution_time = time.time() - start_time
-        return {
-            'status': 'success',
-            'raw_text_path': raw_text_path,
-            'summary_report_path': summary_report_path,
-            'execution_time': execution_time,
-            'analysis_text': analysis_text
-        }
-    
-    except Exception as e:
-        error_msg = f"Error in runCASSIA_annotationboost: {str(e)}"
-        print(error_msg)
-        import traceback
-        traceback.print_exc()
-
-        # Return error status but include any partial results
-        return {
-            'status': 'error',
-            'error_message': str(e),
-            'raw_text_path': None,
-            'summary_report_path': None,
-            'execution_time': 0,
-            'analysis_text': None
-        }
-
-
-def runCASSIA_annotationboost_additional_task(
-    full_result_path: str,
-    marker: Union[str, pd.DataFrame],
-    cluster_name: str,
-    major_cluster_info: str,
-    output_name: str,
-    num_iterations: int = 5,
-    model: Optional[str] = None,
-    provider: str = "openrouter",
-    additional_task: str = "check if this is a cancer cluster",
-    temperature: float = 0,
-    conversation_history_mode: str = "final"
-) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
-    """
-    Run annotation boost analysis with an additional task for a given cluster.
-    
-    Args:
-        full_result_path: Path to the full results CSV file
-        marker: Path to marker genes CSV file or DataFrame with marker data
-        cluster_name: Name of the cluster to analyze
-        major_cluster_info: General information about the dataset (e.g., "Human PBMC")
-        output_name: Base name for the output HTML file
-        num_iterations: Number of iterations for marker analysis (default=5)
-        model: Model to use for analysis - if None, uses the provider's default
-        provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
-        additional_task: Additional task to perform during analysis
-        temperature: Sampling temperature (0-1)
-        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
-    
-    Returns:
-        tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
-    """
-    try:
-        import time
-        start_time = time.time()
-
-        # Validate provider input
-        if provider.lower() not in ['openai', 'anthropic', 'openrouter']:
-            raise ValueError("Provider must be one of: 'openai', 'anthropic', or 'openrouter'")
-        
-        # Prepare the data
-        _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode
-        )
-        
-        # Run the iterative marker analysis with additional task
-        analysis_text, messages = iterative_marker_analysis(
-            major_cluster_info=major_cluster_info,
-            marker=marker_data,
-            comma_separated_genes=top_markers_string,
-            annotation_history=annotation_history,
-            num_iterations=num_iterations,
-            provider=provider,
-            model=model,
-            additional_task=additional_task,
-            temperature=temperature
-        )
-        
-        # Generate paths for reports - only summary HTML and raw conversation text
-        if not output_name.lower().endswith('.html'):
-            raw_text_path = output_name + '_raw_conversation.txt'
-        else:
-            # Remove .html for base name
-            output_name = output_name[:-5]
-            raw_text_path = output_name + '_raw_conversation.txt'
-
-        # Generate path for summary report
-        summary_report_path = output_name + '_summary.html'
-
-        # Skip the first message which contains the prompt
-        conversation_without_prompt = messages[1:] if len(messages) > 1 else messages
-        
-        # Generate only the needed reports
-        try:
-            # Save the complete raw conversation as text (including prompt)
-            raw_text_path = save_raw_conversation_text(messages, raw_text_path)
-            print(f"Raw conversation text saved to {raw_text_path}")
-
-            # Generate the summary report
-            try:
-                summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
-                print(f"Summary report saved to {summary_report_path}")
-            except Exception as e:
-                print(f"Warning: Could not generate summary report: {str(e)}")
-                summary_report_path = None
-        except Exception as e:
-            print(f"Warning: Could not generate reports: {str(e)}")
-            summary_report_path = None
-            raw_text_path = None
-
-        # Return a dictionary with paths to reports
-        execution_time = time.time() - start_time
-        return {
-            'status': 'success',
-            'raw_text_path': raw_text_path,
-            'summary_report_path': summary_report_path,
-            'execution_time': execution_time,
-            'analysis_text': analysis_text
-        }
-    
-    except Exception as e:
-        error_msg = f"Error in runCASSIA_annotationboost_additional_task: {str(e)}"
-        print(error_msg)
-        import traceback
-        traceback.print_exc()
-
-        # Return error status but include any partial results
-        return {
-            'status': 'error',
-            'error_message': str(e),
-            'raw_text_path': None,
-            'summary_report_path': None,
-            'execution_time': 0,
-            'analysis_text': None
-        }
+        return output_filename 

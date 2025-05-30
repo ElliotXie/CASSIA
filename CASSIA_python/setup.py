@@ -9,11 +9,14 @@ setup(
     },
     include_package_data=True,  # This tells setuptools to include package_data
     install_requires=[
-        "numpy",
-        "pandas",
+        "numpy>=1.21.0",
+        "pandas>=1.3.0",
         "openai>=1.0.0",
         "anthropic>=0.3.0",
         "requests>=2.25.0",
+        "matplotlib>=3.3.0",
+        "seaborn>=0.11.0",
+        "tqdm>=4.60.0",
     ],
     author="Elliot Yixuan Xie",
     author_email="xie227@wisc.edu",
@@ -30,6 +33,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     python_requires=">=3.8",
 )

@@ -1,12 +1,34 @@
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from CASSIA.tools_function import *
+from .tools_function import *
+import time
+from .llm_utils import *
 import re
-from llm_utils import *
 
 
 
 def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1):
+    """
+    Run multiple batch cell type analyses in parallel.
+    
+    Args:
+        n (int): Number of batch analyses to run
+        marker: DataFrame or path to CSV file containing marker data
+        output_name (str): Base name for output files
+        model (str): Model name to use
+        temperature (float): Temperature parameter for the model
+        tissue (str): Tissue type
+        species (str): Species type
+        additional_info (str): Additional information for analysis
+        celltype_column (str): Name of column containing cell types
+        gene_column_name (str): Name of column containing gene lists
+        max_workers (int): Maximum number of workers for each batch
+        batch_max_workers (int): Maximum number of concurrent batch runs
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
+        max_retries (int): Maximum number of retries for failed analyses
+    
+    Returns:
+        None: Results are saved to files
+    """
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -79,6 +101,23 @@ def run_single_analysis(args):
 
 
 def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter"):
+    """
+    Run multiple cell type analyses in parallel.
+    
+    Args:
+        n (int): Number of analyses to run
+        tissue (str): Tissue type
+        species (str): Species type
+        additional_info (str): Additional information for analysis
+        temperature (float): Temperature parameter for the model
+        marker_list (list): List of markers to analyze
+        model (str): Model name to use
+        max_workers (int): Maximum number of parallel workers
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
+    
+    Returns:
+        dict: Dictionary of analysis results indexed by iteration number
+    """
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
     
@@ -151,7 +190,7 @@ def extract_celltypes_from_llm(llm_response, provider="openai", single_analysis=
     
     Args:
         llm_response: The text response from the LLM
-        provider: The provider that generated the response ("openai", "anthropic", "openrouter")
+        provider: The provider that generated the response ("openai", "anthropic", "openrouter", or a custom URL)
         single_analysis: Whether this is from a single analysis (different return format)
         
     Returns:
@@ -165,27 +204,43 @@ def extract_celltypes_from_llm(llm_response, provider="openai", single_analysis=
     
     # Default return values
     default_not_found = "Not found"
-    default_score = 0 if provider != "openai" else default_not_found  # OpenAI returns "Not found" for score
+    default_score = 0
     
-    # For Claude and OpenRouter responses, first try to extract JSON from <json> tags
-    if provider in ["anthropic", "openrouter"]:
+    # Try multiple extraction methods for all providers
+    json_match = None
+    
+    # First try to extract JSON from <json> tags (common for Claude and some custom APIs)
+    if not json_match:
         json_match = re.search(r'<json>(.*?)</json>', llm_response, re.DOTALL)
-        
-        # If no <json> tags, try json> format (sometimes Claude drops the opening <)
-        if not json_match:
-            json_match = re.search(r'json>(.*?)</json>', llm_response, re.DOTALL)
-    else:
-        # For OpenAI, first try to extract from markdown code blocks
+    
+    # Try json> format (sometimes Claude drops the opening <)
+    if not json_match:
+        json_match = re.search(r'json>(.*?)</json>', llm_response, re.DOTALL)
+    
+    # Try markdown code blocks (common for OpenAI and some custom APIs)
+    if not json_match:
         json_match = re.search(r'```json\n(.*?)\n```', llm_response, re.DOTALL)
+        
+    # Try code blocks with different formatting
+    if not json_match:
+        json_match = re.search(r'```\s*json\s*(.*?)\s*```', llm_response, re.DOTALL)
     
     # If still no match, try to find JSON object directly
     if not json_match:
         json_match = re.search(r'\{[\s\S]*\}', llm_response)
     
+    # Process the match if found
     if json_match:
         try:
-            # Clean up the matched string and parse JSON
-            json_str = json_match.group(1) if ('<json>' in llm_response or '```json' in llm_response or 'json>' in llm_response) else json_match.group(0)
+            # Extract the JSON content based on the matched pattern
+            if '<json>' in llm_response or 'json>' in llm_response:
+                json_str = json_match.group(1)
+            elif '```json' in llm_response or '```' in llm_response:
+                json_str = json_match.group(1)
+            else:
+                json_str = json_match.group(0)
+                
+            # Parse the JSON
             data = json.loads(json_str)
             
             final_results = data.get("final_results", [])
@@ -217,11 +272,31 @@ def extract_celltypes_from_llm(llm_response, provider="openai", single_analysis=
 
 
 def consensus_similarity_flexible(results, main_weight=0.7, sub_weight=0.3):
+    # Check if results is empty
+    if not results:
+        print("Warning: No results to calculate consensus similarity")
+        return 0.0, "Unknown", "Unknown"
+        
     general_types = [result[0] for result in results.values()]
     sub_types = [result[1] for result in results.values()]
     
-    consensus_general = Counter(general_types).most_common(1)[0][0]
-    consensus_sub = Counter(sub_types).most_common(1)[0][0]
+    # Check if general_types or sub_types is empty
+    if not general_types or not sub_types:
+        print("Warning: Empty general_types or sub_types in consensus calculation")
+        return 0.0, "Unknown", "Unknown"
+    
+    # Use Counter to get most common types
+    from collections import Counter
+    general_counter = Counter(general_types)
+    sub_counter = Counter(sub_types)
+    
+    # Check if Counter is empty
+    if not general_counter or not sub_counter:
+        print("Warning: Empty counter in consensus calculation")
+        return 0.0, "Unknown", "Unknown"
+    
+    consensus_general = general_counter.most_common(1)[0][0]
+    consensus_sub = sub_counter.most_common(1)[0][0]
     
     total_score = 0
     for result in results.values():
@@ -270,7 +345,7 @@ Output format:
         prompt: The unification prompt containing cell type names to unify
         system_prompt: Instructions for the LLM
         model: Model to use (defaults to provider's default if None)
-        provider: LLM provider ("openai", "anthropic", or "openrouter")
+        provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
         deplural_only: If True, only removes plurals without other unification
     
@@ -289,6 +364,9 @@ Output format:
             model = "claude-3-5-sonnet-20241022"
         elif provider == "openrouter":
             model = "anthropic/claude-3.5-sonnet"
+        elif provider.startswith("http"):
+            # For custom API endpoints, use a default model if none specified
+            model = model or "deepseek-chat"
     
     # Call LLM using the unified function
     result = call_llm(
@@ -299,8 +377,9 @@ Output format:
         system_prompt=system_prompt
     )
     
-    # Process the result for claude models to extract content from <results> tags
-    if provider in ["anthropic", "openrouter"] and not deplural_only:
+    # Process the result for all providers to extract content from <results> tags
+    # This ensures consistent behavior regardless of provider
+    if not deplural_only:
         import re
         results_match = re.search(r'<results>(.*?)</results>', result, re.DOTALL)
         if results_match:
@@ -338,7 +417,7 @@ Output in JSON format:
         prompt: The prompt containing cell type info for judgment
         system_prompt: Instructions for the LLM
         model: Model to use (defaults to provider's default if None)
-        provider: LLM provider ("openai", "anthropic", or "openrouter")
+        provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
         single_analysis: Whether this is a single analysis judgment 
         use_json_tags: Whether to add <json></json> tags around the output
@@ -354,10 +433,13 @@ Output in JSON format:
             model = "claude-3-5-sonnet-20241022"
         elif provider == "openrouter":
             model = "anthropic/claude-3.5-sonnet"
+        elif provider.startswith("http"):
+            # For custom API endpoints, use a default model if none specified
+            model = model or "deepseek-chat"
             
-    # Modify system prompt for Claude to include JSON tags if needed
-    # Claude often works better with explicit tags
-    if use_json_tags or provider in ["anthropic", "openrouter"]:
+    # Modify system prompt for all providers to include JSON tags
+    # This helps standardize the output format across all providers
+    if use_json_tags or True:  # Always use JSON tags for consistency
         # Replace the JSON format instruction to include tags
         if "Output in JSON format:" in system_prompt:
             system_prompt = system_prompt.replace(
@@ -391,7 +473,7 @@ def agent_unification_deplural(prompt, model="gpt-4o", provider="openai", temper
     Args:
         prompt: The prompt containing cell type names to depluralize
         model: Model to use
-        provider: LLM provider ("openai", "anthropic", or "openrouter")
+        provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
         
     Returns:
@@ -444,6 +526,11 @@ def standardize_cell_types(input_string):
     
     # Parse the input string into a list of tuples
     results = re.findall(r"result\d+:\('([^']+)', '([^']+)'\)", input_string)
+    
+    # Check if results is empty
+    if not results:
+        print("Warning: No results found to standardize")
+        return input_string
     
     standardized_results = []
     for i, (general_type, specific_type) in enumerate(results, 1):
@@ -525,7 +612,7 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     Args:
         results: The formatted batch results string
         model: Model to use (defaults to provider's default if None)
-        provider: LLM provider ("openai", "anthropic", or "openrouter")
+        provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
         main_weight: Weight for the main cell type in similarity calculation
         sub_weight: Weight for the sub cell type in similarity calculation
@@ -544,52 +631,77 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
             model = "claude-3-5-sonnet-20241022"
         elif provider == "openrouter":
             model = "anthropic/claude-3.5-sonnet"
+        elif provider.startswith("http"):
+            # For custom API endpoints, use a default model if none specified
+            model = model or "deepseek-chat"
     
     # Extract and format results using the unified agent_unification function
-    results_unification_llm = agent_unification(
-        prompt=results,
-        model=model,
-        provider=provider,
-        temperature=temperature
-    )
-    print(f"Unified results: {results_unification_llm[:100]}...")
-    
-    # Process with ontology if requested
-    if include_ontology:
-        # Depluralize using unified function
-        results_depluar = agent_unification_deplural(
+    try:
+        results_unification_llm = agent_unification(
             prompt=results,
             model=model,
             provider=provider,
             temperature=temperature
         )
-        
-        # Get standardized cell types using ontology
-        result_unified_oncology = standardize_cell_types(results_depluar)
+        print(f"Unified results: {results_unification_llm[:100]}...")
+    except Exception as e:
+        print(f"Error in agent_unification: {str(e)}")
+        results_unification_llm = results  # Fall back to original results
     
-    # Consensus judgment using unified function
-    result_consensus_from_llm = agent_judgement(
-        prompt=results_unification_llm,
-        model=model,
-        provider=provider,
-        temperature=temperature,
-        use_json_tags=(provider in ["anthropic", "openrouter"])
-    )
-    print(f"Consensus judgment: {result_consensus_from_llm[:100]}...")
+    # Process with ontology if requested
+    ontology_results_available = False
+    if include_ontology:
+        try:
+            # Depluralize using unified function
+            results_depluar = agent_unification_deplural(
+                prompt=results,
+                model=model,
+                provider=provider,
+                temperature=temperature
+            )
+            
+            # Get standardized cell types using ontology
+            result_unified_oncology = standardize_cell_types(results_depluar)
+            ontology_results_available = True
+        except Exception as e:
+            print(f"Error in ontology processing: {str(e)}")
+            result_unified_oncology = results  # Fall back to original results
+    
+    # Consensus judgment using unified function - always use JSON tags for consistency
+    try:
+        result_consensus_from_llm = agent_judgement(
+            prompt=results_unification_llm,
+            model=model,
+            provider=provider,
+            temperature=temperature,
+            use_json_tags=True  # Always use JSON tags for all providers
+        )
+        print(f"Consensus judgment: {result_consensus_from_llm[:100]}...")
+    except Exception as e:
+        print(f"Error in agent_judgement: {str(e)}")
+        result_consensus_from_llm = "{}"  # Empty JSON as fallback
     
     # Extract consensus celltypes using unified function
-    general_celltype, sub_celltype, mixed_types, llm_generated_consensus_score_llm = extract_celltypes_from_llm(
-        llm_response=result_consensus_from_llm,
-        provider=provider
-    )
+    try:
+        general_celltype, sub_celltype, mixed_types, llm_generated_consensus_score_llm = extract_celltypes_from_llm(
+            llm_response=result_consensus_from_llm,
+            provider=provider
+        )
+    except Exception as e:
+        print(f"Error extracting celltypes: {str(e)}")
+        general_celltype, sub_celltype, mixed_types, llm_generated_consensus_score_llm = "Unknown", "Unknown", [], 0
     
     # Calculate similarity score
-    parsed_results_llm = parse_results_to_dict(results_unification_llm)
-    consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_flexible(
-        parsed_results_llm, 
-        main_weight=main_weight, 
-        sub_weight=sub_weight
-    )
+    try:
+        parsed_results_llm = parse_results_to_dict(results_unification_llm)
+        consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_flexible(
+            parsed_results_llm, 
+            main_weight=main_weight, 
+            sub_weight=sub_weight
+        )
+    except Exception as e:
+        print(f"Error calculating similarity score: {str(e)}")
+        consensus_score_llm, consensus_1_llm, consensus_2_llm = 0, "Unknown", "Unknown"
     
     print(f"General celltype: {general_celltype}")
     print(f"Sub celltype: {sub_celltype}")
@@ -610,48 +722,63 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
         'result_consensus_from_llm': result_consensus_from_llm
     }
     
-    # Add ontology-based results if included
-    if include_ontology:
-        # Get consensus from ontology-standardized results
-        result_consensus_from_oncology = agent_judgement(
-            prompt=result_unified_oncology,
-            model=model,
-            provider=provider,
-            temperature=temperature,
-            use_json_tags=(provider in ["anthropic", "openrouter"])
-        )
-        
-        # Extract ontology-based consensus
-        general_celltype_oncology, sub_celltype_oncology, mixed_types_oncology, llm_generated_consensus_score_oncology = extract_celltypes_from_llm(
-            llm_response=result_consensus_from_oncology,
-            provider=provider
-        )
-        
-        # Calculate ontology-based similarity score
-        parsed_results_oncology = parse_results_to_dict(result_unified_oncology)
-        consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_flexible(
-            parsed_results_oncology, 
-            main_weight=main_weight, 
-            sub_weight=sub_weight
-        )
-        
-        print(f"General celltype oncology: {general_celltype_oncology}")
-        print(f"Sub celltype oncology: {sub_celltype_oncology}")
-        print(f"Mixed types oncology: {mixed_types_oncology}")
-        print(f"Consensus score (Oncology): {consensus_score_oncology}")
-        
-        # Add ontology-based results to the result dictionary
-        result.update({
-            'general_celltype_oncology': general_celltype_oncology,
-            'sub_celltype_oncology': sub_celltype_oncology,
-            'mixed_types_oncology': mixed_types_oncology,
-            'consensus_score_oncology': consensus_score_oncology,
-            'llm_generated_consensus_score_oncology': llm_generated_consensus_score_oncology,
-            'count_consensus_1_oncology': consensus_1_oncology,
-            'count_consensus_2_oncology': consensus_2_oncology,
-            'unified_results_oncology': result_unified_oncology,
-            'result_consensus_from_oncology': result_consensus_from_oncology
-        })
+    # Add ontology-based results if included and available
+    if include_ontology and ontology_results_available:
+        try:
+            # Get consensus from ontology-standardized results - always use JSON tags
+            result_consensus_from_oncology = agent_judgement(
+                prompt=result_unified_oncology,
+                model=model,
+                provider=provider,
+                temperature=temperature,
+                use_json_tags=True  # Always use JSON tags for all providers
+            )
+            
+            # Extract ontology-based consensus
+            general_celltype_oncology, sub_celltype_oncology, mixed_types_oncology, llm_generated_consensus_score_oncology = extract_celltypes_from_llm(
+                llm_response=result_consensus_from_oncology,
+                provider=provider
+            )
+            
+            # Calculate ontology-based similarity score
+            parsed_results_oncology = parse_results_to_dict(result_unified_oncology)
+            consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_flexible(
+                parsed_results_oncology, 
+                main_weight=main_weight, 
+                sub_weight=sub_weight
+            )
+            
+            print(f"General celltype oncology: {general_celltype_oncology}")
+            print(f"Sub celltype oncology: {sub_celltype_oncology}")
+            print(f"Mixed types oncology: {mixed_types_oncology}")
+            print(f"Consensus score (Oncology): {consensus_score_oncology}")
+            
+            # Add ontology-based results to the result dictionary
+            result.update({
+                'general_celltype_oncology': general_celltype_oncology,
+                'sub_celltype_oncology': sub_celltype_oncology,
+                'mixed_types_oncology': mixed_types_oncology,
+                'consensus_score_oncology': consensus_score_oncology,
+                'llm_generated_consensus_score_oncology': llm_generated_consensus_score_oncology,
+                'count_consensus_1_oncology': consensus_1_oncology,
+                'count_consensus_2_oncology': consensus_2_oncology,
+                'unified_results_oncology': result_unified_oncology,
+                'result_consensus_from_oncology': result_consensus_from_oncology
+            })
+        except Exception as e:
+            print(f"Error in ontology-based consensus processing: {str(e)}")
+            # Add default values for ontology results
+            result.update({
+                'general_celltype_oncology': "Error in processing",
+                'sub_celltype_oncology': "Error in processing",
+                'mixed_types_oncology': [],
+                'consensus_score_oncology': 0,
+                'llm_generated_consensus_score_oncology': 0,
+                'count_consensus_1_oncology': "Unknown",
+                'count_consensus_2_oncology': "Unknown",
+                'unified_results_oncology': result_unified_oncology,
+                'result_consensus_from_oncology': "{}"
+            })
     
     return result
 
@@ -720,6 +847,15 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     # Create a list to store the data for each row
     data = []
     
+    # Check if processed_results is empty
+    if not processed_results:
+        print("Warning: No processed results to create DataFrame")
+        # Create an empty DataFrame with minimal columns
+        df = pd.DataFrame(columns=['Cell Type', 'Status'])
+        df.to_csv(output_csv, index=False)
+        print(f"\nEmpty results saved to {output_csv}")
+        return df
+    
     for celltype, result in processed_results.items():
         row_data = {
             'Cell Type': celltype,
@@ -754,8 +890,15 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
 
     # Create the DataFrame
     df = pd.DataFrame(data)
-
-    # Reorder columns
+    
+    # Check if DataFrame is empty
+    if df.empty:
+        print("Warning: Empty DataFrame created")
+        df.to_csv(output_csv, index=False)
+        print(f"\nEmpty results saved to {output_csv}")
+        return df
+        
+    # Define expected columns
     fixed_columns = ['Cell Type', 
                      'General Cell Type LLM', 'Sub Cell Type LLM', 'Mixed Cell Types LLM',
                      'General Cell Type Oncology', 'Sub Cell Type Oncology', 'Mixed Cell Types Oncology',
@@ -766,8 +909,16 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
                      'Unified Results LLM', 'Unified Results Oncology',
                      'Consensus Result LLM', 'Consensus Result Oncology',
                      'Original Non-Unified Results']
+    
+    # Filter fixed columns to only include those that exist in the DataFrame
+    available_fixed_columns = [col for col in fixed_columns if col in df.columns]
+    
+    # Get original columns
     original_columns = [col for col in df.columns if col.startswith('Original') and col != 'Original Non-Unified Results']
-    df = df[fixed_columns + original_columns]
+    
+    # Reorder columns if possible
+    if available_fixed_columns:
+        df = df[available_fixed_columns + original_columns]
 
     # Save the DataFrame to a CSV file
     df.to_csv(output_csv, index=False)
@@ -786,6 +937,10 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     output_csv_name (str): Name of the output CSV file.
     celltype_column (str): Name of the column containing cell types in the marker file.
     max_workers (int): Maximum number of workers for parallel processing.
+    model (str): Model name to use for LLM calls.
+    provider (str): LLM provider ("openai", "anthropic", "openrouter", or a custom URL).
+    main_weight (float): Weight for the main cell type in similarity calculation.
+    sub_weight (float): Weight for the sub cell type in similarity calculation.
     """
 
 
@@ -837,7 +992,7 @@ def extract_celltypes_from_llm_single(llm_response, provider="openai"):
     
     Args:
         llm_response: The text response from the LLM
-        provider: The provider that generated the response ("openai", "anthropic", "openrouter")
+        provider: The provider that generated the response ("openai", "anthropic", "openrouter", or a custom URL)
         
     Returns:
         general_celltype, sub_celltype, mixed_celltypes
@@ -873,7 +1028,7 @@ def agent_judgement_single(prompt, system_prompt, model="gpt-4o", provider="open
         prompt: The prompt containing cell type info for judgment
         system_prompt: Instructions for the LLM
         model: Model to use (defaults to gpt-4o for OpenAI)
-        provider: LLM provider ("openai", "anthropic", or "openrouter")
+        provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
         
     Returns:
@@ -885,7 +1040,8 @@ def agent_judgement_single(prompt, system_prompt, model="gpt-4o", provider="open
         model=model,
         provider=provider,
         temperature=temperature,
-        single_analysis=True
+        single_analysis=True,
+        use_json_tags=True  # Always use JSON tags for all providers
     )
 
 def get_cell_type_info_single(cell_type_name, ontology="CL"):
@@ -941,7 +1097,9 @@ def runCASSIA_n_times_similarity_score(tissue, species, additional_info, tempera
         model (str): Model name to use
         max_workers (int): Maximum number of parallel workers
         n (int): Number of analysis iterations
-        provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
+        main_weight (float): Weight for main cell type in similarity calculation
+        sub_weight (float): Weight for sub cell type in similarity calculation
     
     Returns:
         dict: Analysis results including consensus types, cell types, and scores
@@ -972,17 +1130,16 @@ Output in JSON format:
     standardized_results = standardize_cell_types_single(results)
     
     # Get consensus judgment using the unified function
-    result_consensus = agent_judgement(
+    result_consensus = agent_judgement_single(
         prompt=standardized_results,
         system_prompt=system_prompt,
         model=model,
-        provider=provider,
-        single_analysis=True
+        provider=provider
     )
     
     # Extract consensus celltypes using the unified function
-    general_celltype, sub_celltype, mixed_types, consensus_score_llm = extract_celltypes_from_llm(
-        result_consensus, provider=provider, single_analysis=True
+    general_celltype, sub_celltype, mixed_types = extract_celltypes_from_llm_single(
+        result_consensus, provider=provider
     )
     
     # Calculate similarity score
@@ -996,7 +1153,7 @@ Output in JSON format:
         'sub_celltype_llm': sub_celltype,
         'Possible_mixed_celltypes_llm': mixed_types,
         'llm_response': result_consensus,
-        'consensus_score_llm': consensus_score_llm,
+        'consensus_score_llm': None,  # Using None instead of consensus_score_llm which isn't returned by extract_celltypes_from_llm_single
         'similarity_score': consensus_score,
         'original_results': results
     }
