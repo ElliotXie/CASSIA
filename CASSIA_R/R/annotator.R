@@ -92,8 +92,12 @@ setLLMApiKey <- function(api_key, provider = "anthropic", persist = FALSE) {
   } else if (provider == "openrouter") {
     Sys.setenv(OPENROUTER_API_KEY = api_key)
     env_var_name <- "OPENROUTER_API_KEY"
+  } else if (startsWith(provider, "http")) {
+    # Handle custom HTTP endpoints
+    Sys.setenv(CUSTERMIZED_API_KEY = api_key)
+    env_var_name <- "CUSTERMIZED_API_KEY"
   } else {
-    stop("Unsupported provider. Use 'openai' or 'anthropic' or 'openrouter'")
+    stop("Unsupported provider. Use 'openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints")
   }
   
   # Set API key in Python tools if available
@@ -161,6 +165,9 @@ setAnthropicApiKey <- function(api_key, persist = FALSE) {
 setOpenRouterApiKey <- function(api_key, persist = FALSE) {
   setLLMApiKey(api_key, provider = "openrouter", persist = persist)
 }
+
+
+
 
 
 
@@ -284,7 +291,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, 
 runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter") {
   tryCatch({
     # Call the Python function with the new parameter structure
-    processed_results <- py_tools$runCASSIA_n_times_similarity_score(
+    processed_results <- py_uncertainty$runCASSIA_n_times_similarity_score(
       tissue = tissue,
       species = species,
       additional_info = additional_info,
@@ -420,7 +427,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$runCASSIA_batch_n_times(
+      py_uncertainty$runCASSIA_batch_n_times(
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
         as.integer(max_workers), as.integer(batch_max_workers), provider,
@@ -466,7 +473,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
+      py_uncertainty$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
                                               celltype_column, max_workers, model, provider, main_weight, sub_weight)
     }, error = function(e) {
       stop(paste("Error in runCASSIA_similarity_score_batch:", e$message))

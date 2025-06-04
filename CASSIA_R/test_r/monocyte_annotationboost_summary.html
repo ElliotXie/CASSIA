@@ -1,0 +1,270 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved three iterations, examining a total of 58 genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial assessment hypothesized the cell type was Myelinating Schwann Cells, Non-myelinating (Remak) Schwann Cells, or Satellite Glial Cells. The primary evidence supporting Myelinating Schwann Cells was the strong expression of PLP1, along with SOX10, FOXD3, and a suite of adhesion molecules (L1CAM, NRXN1, NRXN3, CADM2, PTPRZ1) consistent with Schwann cell function.
+                    </div>
+                </section>
+        
+                <section>
+                    <h2>Iteration 1</h2>
+                    
+                    <div class="sub-section">
+                        <h3>Hypotheses</h3>
+                        <div class="content">
+                            <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further differentiate between Myelinating and Non-myelinating Schwann Cells by checking for additional myelin-specific markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To confirm the glial identity using general glial markers.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To assess the expression of other genes potentially involved in Schwann cell function or development.</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Genes Checked</h3>
+                        <div class="gene-list"><span class="gene-badge">MPZ</span><span class="gene-badge">POU3F1</span><span class="gene-badge">GFAP</span><span class="gene-badge">S100B</span><span class="gene-badge">NGFR</span><span class="gene-badge">CDH19</span><span class="gene-badge">TSPAN11</span><span class="gene-badge">MYOT</span><span class="gene-badge">IGSF11</span><span class="gene-badge">SLC35F1</span><span class="gene-badge">MEGF10</span><span class="gene-badge">SYT10</span><span class="gene-badge">SLITRK2</span><span class="gene-badge">CRTAC1</span><span class="gene-badge">CHL1</span><span class="gene-badge">ZNF536</span><span class="gene-badge">GRIK3</span><span class="gene-badge">CMTM5</span><span class="gene-badge">TTYH1</span><span class="gene-badge">ADARB2</span><span class="gene-badge">CDH2</span><span class="gene-badge">TENM3</span><span class="gene-badge">WNT6</span><span class="gene-badge">KCNMB4</span><span class="gene-badge">TMEM132B</span><span class="gene-badge">LPL</span><span class="gene-badge">GFRA2</span><span class="gene-badge">CHADL</span><span class="gene-badge">FLRT1</span><span class="gene-badge">CHST9</span><span class="gene-badge">GJC3</span><span class="gene-badge">RHAG</span><span class="gene-badge">FAM19A5</span><span class="gene-badge">FGFBP2</span></div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Key Findings</h3>
+                        <div class="content">
+                            No information available
+                        </div>
+                    </div>
+                </section>
+            
+                <section>
+                    <h2>Iteration 2</h2>
+                    
+                    <div class="sub-section">
+                        <h3>Hypotheses</h3>
+                        <div class="content">
+                            <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further solidify the Myelinating Schwann Cell conclusion by checking for markers involved in key Schwann cell signaling pathways.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To rule out any remaining ambiguity by assessing expression of genes potentially specific to related neural cell types or subtypes.</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Genes Checked</h3>
+                        <div class="gene-list"><span class="gene-badge">ERBB3</span><span class="gene-badge">DHH</span><span class="gene-badge">NRG1</span><span class="gene-badge">CD276</span><span class="gene-badge">CD56</span></div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3>Key Findings</h3>
+                        <div class="content">
+                            High expression of ERBB3, the receptor for NRG1 and crucial for Schwann cell development and myelination, was detected, further strengthening the Myelinating Schwann Cell hypothesis. CD276 expression was also observed, which is not inconsistent with Schwann cells. DHH, NRG1, and CD56 were not found in the differential expression list, which did not contradict the Myelinating Schwann Cell identification. This iteration provided strong additional support for the Myelinating Schwann Cell annotation.
+                        </div>
+                    </div>
+                </section>
+            
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        **Myelinating Schwann Cells**
+Confidence level: High
+Main supporting evidence: Strong expression of canonical myelin markers (PLP1, MPZ), general Schwann cell markers (SOX10, FOXD3, S100B, NGFR), key signaling pathway components (ERBB3), and a suite of neuron-glia adhesion molecules.
+                    </div>
+                </section>
+        
+                <section>
+                    <h2>Key Marker Genes</h2>
+                    <div class="content">
+                        Myelin Markers: PLP1, MPZ
+General Schwann Cell Markers: SOX10, FOXD3, S100B, NGFR, SOX2
+Signaling Pathway Components: ERBB3
+Cell Adhesion/Interaction Markers: L1CAM, NRXN1, NRXN3, CADM2, PTPRZ1, CDH19, TSPAN11, IGSF11, MEGF10, SYT10, SLITRK2, CHL1, ADARB2, CDH2, TENM3, FLRT1, GJC3, FAM19A5
+Other Supporting Markers: TUBB2B, ATP1A2, MYOT, SLC35F1, CRTAC1, ZNF536, GRIK3, CMTM5, TTYH1, WNT6, KCNMB4, TMEM132B, LPL, GFRA2, CHADL, CHST9, RHAG, FGFBP2, CD276
+                    </div>
+                </section>
+        
+                <section>
+                    <h2>Recommendations</h2>
+                    <div class="content">
+                        No specific next steps or validation approaches were explicitly recommended in the conversation, as the confidence level in the annotation was high.
+                    </div>
+                </section>
+            
+            </div>
+        </body>
+        </html>
+        

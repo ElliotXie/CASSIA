@@ -1,0 +1,264 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    Okay, let's analyze this list of highly expressed markers from a single-cell cluster in human large intestine tissue to identify the cell type.<br><br>**Step 1: List the Key Functional Markers**<br><br>Here are some key functional markers from the list and their roles:<br><br>*   **GZMH, GZMA, GZMB, GZMK, GZMM:** These are Granzymes, serine proteases found in the granules of cytotoxic lymphocytes (like NK cells and cytotoxic T cells). They are crucial for inducing apoptosis in target cells. Their presence strongly suggests a cytotoxic function.<br>*   **PRF1:** Perforin, a protein also found in cytotoxic granules. It forms pores in the membrane of target cells, allowing granzymes to enter and initiate apoptosis. This further supports a cytotoxic role.<br>*   **XCL1, XCL2, CCL4, CCL4L2, CCL5:** These are Chemokines. XCL1 and XCL2 are lymphotactins, attracting lymphocytes. CCL4 (MIP-1β), CCL4L2, and CCL5 (RANTES) are inflammatory chemokines that recruit various immune cells, including T cells, NK cells, and macrophages, to sites of inflammation. Their expression indicates the cells are involved in immune signaling and recruitment.<br>*   **IFNG:** Interferon-gamma, a potent cytokine produced by T cells and NK cells. It plays a critical role in innate and adaptive immunity, activating macrophages, increasing MHC class I expression, and promoting Th1 differentiation. Its presence points towards an active immune response.<br>*   **NKG7:** Natural Killer Cell Granule Protein 7, a transmembrane protein found in the granules of NK cells and cytotoxic T lymphocytes. Its function is not fully elucidated but is associated with cytotoxic activity.<br>*   **CTSW:** Cathepsin W, a cysteine protease found in cytotoxic lymphocytes. It is involved in processing granzymes and other granule proteins.<br>*   **CST7:** Cystatin F, a cysteine protease inhibitor. Its role in cytotoxic lymphocytes is not fully understood but may be involved in regulating protease activity.<br>*   **TIGIT, LAG3:** These are immune checkpoint receptors. TIGIT (T cell immunoreceptor with Ig and ITIM domains) and LAG3 (Lymphocyte-activation gene 3) are inhibitory receptors expressed on T cells and NK cells. Their expression can indicate a state of exhaustion or regulation of the immune response.<br>*   **TNFRSF9 (4-1BB):** Tumor necrosis factor receptor superfamily member 9, a costimulatory receptor expressed on activated T cells and NK cells. Ligation of 4-1BB enhances proliferation, survival, and cytotoxic function. Its presence suggests activation.<br>*   **CD160:** Cluster of Differentiation 160, a receptor expressed on NK cells, T cells, and other immune cells. It can have both inhibitory and activating functions depending on the context.<br>*   **ENTPD1 (CD39):** Ectonucleoside triphosphate diphosphohydrolase 1, an enzyme that hydrolyzes ATP and ADP to AMP. Expressed on regulatory T cells and other immune cells, it is involved in purinergic signaling and can contribute to immunosuppression. Its presence here is interesting given the other cytotoxic markers.<br>*   **PTPN22:** Protein Tyrosine Phosphatase Non-Receptor Type 22, a phosphatase involved in regulating T cell signaling. Mutations in PTPN22 are associated with autoimmune diseases.<br>*   **SH2D1A:** SH2 Domain Containing 1A, also known as SAP (SLAM-associated protein). It is a crucial adaptor protein involved in signaling through the SLAM family receptors, important for T cell and NK cell activation and function. Mutations in SH2D1A cause X-linked lymphoproliferative disease.<br><br>**Step 2: List the Key Cell Type Markers**<br><br>Here are some key cell type markers from the list and their roles:<br><br>*   **CD8A, CD8B:** These are subunits of the CD8 co-receptor, which is typically expressed on cytotoxic T lymphocytes (CTLs) and a subset of NK cells. CD8 binds to MHC class I molecules on target cells, enhancing T cell receptor signaling and cytotoxic activity. The presence of both CD8A and CD8B strongly points towards CD8+ T cells.<br>*   **KLRK1 (NKG2D), KLRC2 (NKG2C), KLRC4 (NKG2E), KLRD1 (CD94):** These are Killer Cell Lectin-like Receptors. NKG2D is an activating receptor expressed on NK cells, CD8+ T cells, and γδ T cells, recognizing stress-induced ligands on target cells. NKG2C, NKG2E, and CD94 form heterodimers with NKG2A (not on the list) and are expressed on NK cells and some T cell subsets. CD94/NKG2A is typically inhibitory, while CD94/NKG2C and CD94/NKG2E can be activating. Their presence suggests either NK cells or specific subsets of T cells.<br>*   **CRTAM:** Class I-restricted T cell-associated molecule, a receptor expressed on activated CD8+ T cells and NK cells. It is involved in cell-cell adhesion and signaling.<br>*   **TRGC1, TRGC2:** These are genes encoding the constant regions of the T cell receptor gamma chain. Their presence indicates the expression of gamma delta (γδ) T cell receptors. γδ T cells are a distinct lineage of T cells that play roles in innate and adaptive immunity, particularly at mucosal surfaces like the intestine.<br>*   **CD7:** Cluster of Differentiation 7, a transmembrane protein expressed on T cells, NK cells, and hematopoietic stem cells. It is a pan-T cell marker but also found on NK cells.<br>*   **GPR18:** G protein-coupled receptor 18, a receptor for oxysterols. Its expression has been associated with specific immune cell subsets, including some T cell populations.<br>*   **TMIGD2 (CD28H):** Transmembrane and immunoglobulin domain containing 2, a costimulatory molecule expressed on T cells and NK cells. It interacts with B7-H7 (B7x) and promotes T cell activation.<br>*   **HOPX:** Homeodomain Only Protein X, a transcriptional regulator. Its expression has been observed in various cell types, including some immune cells, and its role can be context-dependent.<br>*   **ZEB2:** Zinc Finger E-box Binding Homeobox 2, a transcriptional repressor involved in epithelial-mesenchymal transition and immune cell development and function. Its expression in immune cells can be associated with specific differentiation states.<br>*   **IKZF2 (Helios):** Ikaros Family Zinc Finger 2, a transcription factor. Helios is often expressed in regulatory T cells (Tregs) but can also be found in activated conventional T cells and other immune cells. Its presence here, alongside cytotoxic markers, is notable and might suggest a specific subset or activation state.<br><br>**Step 3: Cross-reference Known Databases**<br><br>Cross-referencing these markers with scRNA-seq databases (like the Human Cell Atlas, PanglaoDB, CellMarker) and relevant literature on intestinal immunity reveals strong associations with cytotoxic lymphocytes. The co-expression of Granzymes, Perforin, CD8A/B, and various Killer Cell Lectin-like Receptors is a hallmark of cytotoxic T cells and NK cells. The presence of TRGC1/TRGC2 is a key indicator of γδ T cells. The expression of chemokines and IFNG further supports an immune cell identity involved in inflammatory responses.<br><br>**Step 4: Determine the Most Probable General Cell Type**<br><br>Based on the overwhelming presence of cytotoxic granule proteins (Granzymes, Perforin), cytotoxic co-receptors (CD8A/B), and receptors associated with cytotoxicity and immune activation (KLRs, CRTAM, TNFRSF9), the most probable general cell type is **Cytotoxic Lymphocyte**.<br><br>**Step 5: Identify the Top 3 Most Probable Sub Cell Types**<br><br>Now, let's refine the annotation based on the specific markers:<br><br>1.  **CD8+ T Cells:** The strong expression of CD8A and CD8B is a primary characteristic of cytotoxic T lymphocytes (CTLs). The presence of Granzymes, Perforin, IFNG, and costimulatory molecules like TNFRSF9 aligns perfectly with the function of activated CTLs. Many of the KLRs (like NKG2D) are also expressed on CD8+ T cells.<br>2.  **Gamma Delta (γδ) T Cells:** The clear expression of TRGC1 and TRGC2 is definitive for γδ T cells. γδ T cells are abundant in mucosal tissues like the intestine and can exhibit cytotoxic activity, expressing Granzymes and Perforin. Some γδ T cell subsets also express CD8. The presence of KLRs is also consistent with γδ T cells.<br>3.  **Natural Killer (NK) Cells:** NK cells are another major type of cytotoxic lymphocyte. They express many of the same cytotoxic markers (Granzymes, Perforin, NKG7, IFNG, chemokines) and KLRs (NKG2D, CD94/NKG2C/E). However, the prominent expression of CD8A/B and TRGC1/TRGC2 makes NK cells less likely as the primary population, although a subset of NK cells can express CD8.<br><br>Considering the high expression of CD8A/B and the presence of TRGC1/TRGC2 alongside the cytotoxic machinery, this cluster likely represents a mix or a specific subset of cytotoxic T lymphocytes. The co-expression of CD8 and γδ TCR is known to occur in certain γδ T cell subsets, particularly in mucosal tissues.<br><br>Therefore, the top three most probable sub cell types, ranked from most likely to least likely, are:<br><br>1.  **CD8+ T Cells (specifically Cytotoxic T Lymphocytes)**<br>2.  **Gamma Delta (γδ) T Cells (potentially CD8+ subsets)**<br>3.  **Natural Killer (NK) Cells (less likely as the dominant population due to CD8 and TRGC expression)**<br><br>Based on the combined evidence, particularly the strong expression of CD8A/B and the cytotoxic markers, the most likely specific subtype is **CD8+ Cytotoxic T Lymphocytes**, with a significant possibility of including a population of **CD8+ Gamma Delta T Cells** given the TRGC expression. It's possible this cluster represents a heterogeneous population of cytotoxic T cells.<br><br>**Step 6: Provide a Concise Summary of Your Analysis**<br><br>This single-cell cluster from human large intestine tissue is characterized by high expression of genes associated with cytotoxicity, immune signaling, and specific lymphocyte lineages. Key functional markers include Granzymes (GZMH, GZMA, GZMB, GZMK, GZMM), Perforin (PRF1), chemokines (XCL1, XCL2, CCL4, CCL5), and IFNG, indicating a cytotoxic and inflammatory role. Key cell type markers include CD8A/B, Killer Cell Lectin-like Receptors (KLRK1, KLRC2, KLRC4, KLRD1), and T cell receptor gamma chain constant regions (TRGC1, TRGC2). The strong expression of CD8A/B, Granzymes, and Perforin points towards a cytotoxic T lymphocyte identity. The presence of TRGC1/TRGC2 indicates the inclusion of γδ T cells, potentially CD8+ subsets. Cross-referencing with databases confirms this marker profile is consistent with cytotoxic lymphocytes found in mucosal tissues. The most probable general cell type is Cytotoxic Lymphocyte. The top three most probable sub cell types are CD8+ T Cells, Gamma Delta (γδ) T Cells, and Natural Killer (NK) Cells. Based on the prominent CD8A/B and cytotoxic marker expression, the most likely specific subtype is **CD8+ Cytotoxic T Lymphocytes**, potentially including CD8+ γδ T cells.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                        <div class="agent-section formatting">
+                            <h2>📋 Summary</h2>
+                            
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <span class="summary-label">Main Cell Type:</span>
+                                <span class="summary-value">Cytotoxic Lymphocyte</span>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Sub Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>CD8+ T Cells</li><li>Gamma Delta (γδ) T Cells</li><li>Natural Killer (NK) Cells</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Possible Mixed Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>CD8+ Cytotoxic T Lymphocytes</li><li>CD8+ Gamma Delta T Cells</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Number of Markers:</span>
+                                <span class="summary-value">50</span>
+                            </div>
+                        </div>
+                    
+                        </div>
+                    
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">92</div>
+                        <div class="scoring-content">
+                            The annotation results demonstrate a thorough and scientifically accurate analysis of the marker list, effectively identifying the cell type as a cytotoxic lymphocyte. The analysis correctly highlights key markers such as CD8A/B, granzymes (GZMA, GZMB, etc.), perforin (PRF1), and chemokines (CCL4, CCL5), which are hallmark features of cytotoxic T cells and NK cells. The inclusion of TRGC1/TRGC2 as indicators of γδ T cells is particularly insightful, as these markers are often overlooked but are critical for identifying this subset in mucosal tissues like the large intestine.<br><br>Strengths:<br>1. **Comprehensive Marker Analysis**: The annotation considers a wide range of markers, balancing functional (e.g., cytotoxic proteins) and lineage-specific markers (e.g., CD8A/B, TRGC1/2). This avoids over-reliance on a single marker and captures the heterogeneity of the population.<br>2. **Contextual Relevance**: The analysis acknowledges the tissue origin (human large intestine) and aligns the marker profile with known immune cell subsets in mucosal tissues, such as CD8+ T cells and γδ T cells.<br>3. **Ranking of Subtypes**: The annotation logically ranks the most probable sub-cell types (CD8+ T cells > γδ T cells > NK cells), reflecting the relative strength of the evidence for each. The consideration of potential mixed populations (e.g., CD8+ γδ T cells) adds nuance.<br><br>Weaknesses:<br>1. **NK Cell Likelihood**: While NK cells are mentioned, the analysis could further justify why they are less likely (e.g., CD8A/B is rare in NK cells, and TRGC1/2 are absent). This would strengthen the exclusion of NK cells as the dominant population.<br>2. **Regulatory Markers**: The presence of markers like ENTPD1 (CD39) and IKZF2 (Helios) is noted but not deeply explored. These could hint at regulatory or exhausted subsets within the cytotoxic population, which might be relevant in the intestinal context.<br>3. **Marker Rank Consideration**: The analysis does not explicitly discuss the rank or expression level of markers (e.g., KLRC2 appears first but is not prioritized over CD8A/B). While the final conclusion is correct, this could add another layer of validation.<br><br>Overall, the annotation provides a comprehensive and accurate view of the cell population, with minor room for deeper exploration of regulatory/exhausted subsets and marker rank. The conclusion aligns well with the data and current understanding of intestinal immune cells.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

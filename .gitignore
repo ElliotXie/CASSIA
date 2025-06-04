@@ -28,4 +28,7 @@ cassia_env/
 
 # OS specific files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Test files with API keys
+CASSIA_R/test_r/cassia_ultimatetest.R 
