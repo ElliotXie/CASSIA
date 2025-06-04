@@ -738,7 +738,7 @@ runCASSIA_pipeline <- function(
       score_threshold = as.numeric(score_threshold),
       additional_info = if(is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
-      do_merge_annotations = do_merge_annotations,
+      merge_annotations = do_merge_annotations,
       merge_model = merge_model,
       conversation_history_mode = conversation_history_mode
     )
