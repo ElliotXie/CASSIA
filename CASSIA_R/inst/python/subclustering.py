@@ -1,5 +1,5 @@
-from .tools_function import *
-from .llm_utils import *
+from tools_function import *
+from llm_utils import *
 
 import pandas as pd
 
@@ -514,7 +514,7 @@ def test_custom_api_parsing():
     """
     import pandas as pd
     import os
-    from .tools_function import get_top_markers
+    from tools_function import get_top_markers
     
     # Sample structured response that mimics what DeepSeek or other custom APIs might return
     sample_response = [

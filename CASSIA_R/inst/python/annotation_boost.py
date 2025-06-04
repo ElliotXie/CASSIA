@@ -10,7 +10,7 @@ try:
 except ImportError:
     # Try relative import as fallback
     try:
-        from .llm_utils import call_llm
+        from llm_utils import call_llm
     except ImportError:
         # If both fail, provide a helpful error message
         raise ImportError("Could not import llm_utils. Make sure it's in the same directory or Python path.")

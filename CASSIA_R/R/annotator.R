@@ -5,6 +5,9 @@ py_main <- NULL
 py_tools <- NULL
 py_merging <- NULL
 py_annotation_boost <- NULL
+py_cell_comparison <- NULL
+py_subclustering <- NULL
+py_uncertainty <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # Get the conda environment name from the package configuration
@@ -24,6 +27,9 @@ py_annotation_boost <- NULL
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
     py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
     py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
+    py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
+    py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
+    py_uncertainty <<- reticulate::import_from_path("Uncertainty_quantification", path = system.file("python", package = "CASSIA"))
   }, error = function(e) {
     warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
   })
@@ -768,7 +774,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
     }
     
     # Call the Python function
-    responses <- py_tools$compareCelltypes(
+    responses <- py_cell_comparison$compareCelltypes(
       tissue = tissue,
       celltypes = celltypes,
       marker_set = marker,
@@ -804,7 +810,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name, 
                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                provider = "openrouter", n_genes = 50L) {
-  py_tools$runCASSIA_subclusters(
+  py_subclustering$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
     output_name = output_name,
@@ -832,7 +838,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name, 
                                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                                provider = "openrouter", max_workers = 5,n_genes=50L) {
-  py_tools$runCASSIA_n_subcluster(
+  py_subclustering$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
     major_cluster_info = major_cluster_info,
