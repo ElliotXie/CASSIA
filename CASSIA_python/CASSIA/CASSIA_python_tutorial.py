@@ -163,7 +163,7 @@ def run_custom_merge(input_csv):
     Use this approach if you're experiencing issues with the default merging process
     in the runCASSIA_pipeline function.
     """
-    from merging_annotation import call_llm, _create_annotation_prompt, _parse_llm_response
+    from .merging_annotation import call_llm, _create_annotation_prompt, _parse_llm_response
     
     print("\n=== Running Custom Linear Merging ===")
     

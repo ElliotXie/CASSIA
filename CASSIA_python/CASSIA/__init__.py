@@ -10,12 +10,14 @@ from .tools_function import (
     runCASSIA_score_batch,
     runCASSIA_generate_score_report,
     runCASSIA_pipeline,
-    compareCelltypes,
     set_openai_api_key,
     set_anthropic_api_key,
     set_openrouter_api_key,
     set_api_key
 )
+
+# Import cell type comparison from its own module
+from .cell_type_comparison import compareCelltypes
 
 # Import the new LLM utilities
 from .llm_utils import call_llm
@@ -51,4 +53,4 @@ try:
 except ImportError:
     pass  # Module may not be available in all installations
 
-__version__ = "0.2.0"
+__version__ = "0.2.20"

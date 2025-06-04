@@ -15,6 +15,8 @@ import datetime
 import shutil
 from collections import Counter
 from .llm_utils import *
+from .merging_annotation import *
+from .cell_type_comparison import compareCelltypes
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -66,7 +68,52 @@ def split_markers(marker_string):
     return markers
 
 
-def get_top_markers(df, n_genes=10, format_type=None):
+def _validate_ranking_parameters(df, ranking_method, ascending):
+    """Validate ranking method and column existence"""
+    valid_methods = ["avg_log2FC", "p_val_adj", "pct_diff", "Score"]
+    if ranking_method not in valid_methods:
+        raise ValueError(f"ranking_method must be one of {valid_methods}")
+    
+    if ranking_method == "Score" and "Score" not in df.columns:
+        available_cols = [col for col in df.columns if col.lower() in ['score', 'scores']]
+        if available_cols:
+            suggestion = f". Did you mean '{available_cols[0]}'?"
+        else:
+            suggestion = ". Available numeric columns: " + ", ".join(df.select_dtypes(include=[np.number]).columns.tolist())
+        raise ValueError(f"Column 'Score' not found in DataFrame{suggestion}")
+    
+    if ranking_method == "p_val_adj" and "p_val_adj" not in df.columns:
+        raise ValueError("Column 'p_val_adj' not found in DataFrame")
+
+
+def _prepare_ranking_column(df, ranking_method):
+    """Prepare the ranking column, calculating if necessary"""
+    df_copy = df.copy()
+    
+    if ranking_method == "pct_diff":
+        if "pct.1" not in df_copy.columns or "pct.2" not in df_copy.columns:
+            raise ValueError("Columns 'pct.1' and 'pct.2' required for pct_diff ranking")
+        df_copy["pct_diff"] = df_copy["pct.1"] - df_copy["pct.2"]
+        return df_copy, "pct_diff"
+    
+    return df_copy, ranking_method
+
+
+def _get_sort_direction(ranking_method, ascending):
+    """Get the sort direction for the ranking method"""
+    DEFAULT_SORT_DIRECTIONS = {
+        "avg_log2FC": False,    # Higher is better
+        "p_val_adj": True,      # Lower p-value is better
+        "pct_diff": False,      # Higher difference is better
+        "Score": False          # Higher score is better (default)
+    }
+    
+    if ascending is not None:
+        return ascending
+    return DEFAULT_SORT_DIRECTIONS.get(ranking_method, False)
+
+
+def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC", ascending=None):
     """
     Get top markers from either Seurat or Scanpy differential expression results.
     
@@ -74,6 +121,8 @@ def get_top_markers(df, n_genes=10, format_type=None):
         df: Either a pandas DataFrame (Seurat format) or dictionary (Scanpy format)
         n_genes: Number of top genes to return per cluster
         format_type: Either 'seurat', 'scanpy', or None (auto-detect)
+        ranking_method: Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
+        ascending: Sort direction (None uses default for each method)
     
     Returns:
         pandas DataFrame with cluster and marker columns
@@ -92,16 +141,36 @@ def get_top_markers(df, n_genes=10, format_type=None):
         
         for cluster in clusters:
             # Get data for this cluster
-            genes = df['names'][cluster][:n_genes]
-            logfc = df['logfoldchanges'][cluster][:n_genes]
-            pvals_adj = df['pvals_adj'][cluster][:n_genes]
-            pcts = df['pcts'][cluster][:n_genes]  # Get percentage information
+            genes = df['names'][cluster]
+            logfc = df['logfoldchanges'][cluster]
+            pvals_adj = df['pvals_adj'][cluster]
+            pcts = df['pcts'][cluster]  # Get percentage information
+            
+            # Create temporary DataFrame for sorting
+            cluster_df = pd.DataFrame({
+                'gene': genes,
+                'avg_log2FC': logfc,
+                'p_val_adj': pvals_adj,
+                'pct.1': pcts,  # Assuming this represents pct.1
+                'pct.2': np.zeros_like(pcts)  # May need to adjust based on data structure
+            })
             
             # Filter for significant upregulated genes with PCT threshold
             mask = (pvals_adj < 0.05) & (logfc > 0.25) & (pcts >= 0.1)  # Add PCT filter
-            valid_genes = genes[mask]
+            filtered_df = cluster_df[mask]
             
-            if len(valid_genes) > 0:
+            if not filtered_df.empty:
+                # Validate parameters and prepare ranking
+                _validate_ranking_parameters(filtered_df, ranking_method, ascending)
+                df_prepared, sort_column = _prepare_ranking_column(filtered_df, ranking_method)
+                sort_ascending = _get_sort_direction(ranking_method, ascending)
+                
+                # Sort and get top n genes
+                top_genes_df = (df_prepared
+                               .sort_values(sort_column, ascending=sort_ascending, na_position='last')
+                               .head(n_genes))
+                valid_genes = top_genes_df['gene'].values
+                
                 # Join genes with commas
                 markers = ','.join(valid_genes)
                 top_markers.append({
@@ -127,19 +196,25 @@ def get_top_markers(df, n_genes=10, format_type=None):
             ((df['pct.1'] >=0.1) | (df['pct.2'] >=0.1))  # Add PCT filter
         ].copy()
         
-        # Sort within each cluster by avg_log2FC and get top n genes
+        # Validate parameters and prepare ranking
+        _validate_ranking_parameters(df_filtered, ranking_method, ascending)
+        df_prepared, sort_column = _prepare_ranking_column(df_filtered, ranking_method)
+        sort_ascending = _get_sort_direction(ranking_method, ascending)
+        
+        # Sort within each cluster by specified method and get top n genes
         top_markers = []
         
-        for cluster in df_filtered['cluster'].unique():
-            cluster_data = df_filtered[df_filtered['cluster'] == cluster]
-            # Sort by avg_log2FC in descending order and take top n
+        for cluster in df_prepared['cluster'].unique():
+            cluster_data = df_prepared[df_prepared['cluster'] == cluster]
+            # Sort by specified column and direction, then take top n
             top_n = (cluster_data
-                    .sort_values('avg_log2FC', ascending=False)
+                    .sort_values(sort_column, ascending=sort_ascending, na_position='last')
                     .head(n_genes))
             
-            # Verify sorting worked correctly
-            if not top_n.empty and not top_n['avg_log2FC'].is_monotonic_decreasing:
-                print(f"Warning: Sorting issue detected for cluster {cluster}")
+            # Handle NaN values warning
+            nan_count = cluster_data[sort_column].isna().sum()
+            if nan_count > 0:
+                print(f"Warning: {nan_count} NaN values found in {sort_column} column for cluster {cluster}, they will be placed at the end")
             
             top_markers.append(top_n)
         
@@ -235,7 +310,30 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1, ranking_method="avg_log2FC", ascending=None):
+    """
+    Run cell type analysis on multiple clusters in parallel.
+    
+    Args:
+        marker: Input marker data (pandas DataFrame or path to CSV file)
+        output_name (str): Base name for output files  
+        n_genes (int): Number of top genes to extract per cluster
+        model (str): Model name to use for analysis
+        temperature (float): Temperature parameter for the model
+        tissue (str): Tissue type being analyzed
+        species (str): Species being analyzed
+        additional_info (str): Additional information for analysis
+        celltype_column (str): Column name containing cell type names (default: first column)
+        gene_column_name (str): Column name containing gene markers (default: second column)
+        max_workers (int): Maximum number of parallel workers
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or base URL)
+        max_retries (int): Maximum number of retries for failed analyses
+        ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
+        ascending (bool): Sort direction (None uses default for each method)
+    
+    Returns:
+        dict: Results dictionary containing analysis results for each cell type
+    """
     # Load the dataframe
 
     if isinstance(marker, pd.DataFrame):
@@ -250,7 +348,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
     else:
         print("Processing input dataframe to get top markers")
-        df = get_top_markers(df, n_genes=n_genes)
+        df = get_top_markers(df, n_genes=n_genes, ranking_method=ranking_method, ascending=ascending)
     
     # If celltype_column is not specified, use the first column
     if celltype_column is None:
@@ -280,7 +378,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                 # Add the number of markers and marker list to the result
                 result['num_markers'] = len(marker_list)
                 result['marker_list'] = marker_list
-                print(f"Analysis for {cell_type} completed.\n")
+                print(f"Analysis for {cell_type} completed.")
                 return cell_type, result, conversation_history
             except Exception as exc:
                 # Don't retry authentication errors
@@ -322,7 +420,6 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     
     print(f"All analyses completed. Results saved to '{output_name}'.")
     
-    # Function to safely get nested dictionary values
     # Prepare data for both CSV files
 
     full_data = []
@@ -397,8 +494,6 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     print(f"Two CSV files have been created:")
     print(f"1. {full_csv_name} (full data)")
     print(f"2. {summary_csv_name} (summary data)")
-    
-    return results
 
 
 
@@ -473,16 +568,42 @@ def extract_score_and_reasoning(text):
         score = None
         reasoning = None
         
-        # Extract score
-        score_match = re.search(r'<score>(\d+)</score>', text)
-        if score_match:
-            score = int(score_match.group(1))
-            
-        # Extract reasoning
-        reasoning_match = re.search(r'<reasoning>(.*?)</reasoning>', text, re.DOTALL)
-        if reasoning_match:
-            reasoning = reasoning_match.group(1).strip()
-            
+        # Extract score - try multiple patterns
+        score_patterns = [
+            r'<score>(\d+)</score>',  # Original format
+            r'Score:\s*(\d+)',        # "Score: 85"
+            r'score:\s*(\d+)',        # "score: 85"  
+            r'(\d+)/100',             # "85/100"
+            r'(\d+)\s*out\s*of\s*100', # "85 out of 100"
+            r'rating.*?(\d+)',        # "rating of 85"
+            r'(\d+)%'                 # "85%"
+        ]
+        
+        for pattern in score_patterns:
+            score_match = re.search(pattern, text, re.IGNORECASE)
+            if score_match:
+                score = int(score_match.group(1))
+                break
+        
+        # Extract reasoning - try multiple patterns
+        reasoning_patterns = [
+            r'<reasoning>(.*?)</reasoning>',  # Original format
+            r'Reasoning:\s*(.*?)(?=Score:|$)',  # "Reasoning: ..." until "Score:" or end
+            r'reasoning:\s*(.*?)(?=score:|$)',  # lowercase version
+            r'Analysis:\s*(.*?)(?=Score:|$)',   # "Analysis: ..."
+            r'Evaluation:\s*(.*?)(?=Score:|$)' # "Evaluation: ..."
+        ]
+        
+        for pattern in reasoning_patterns:
+            reasoning_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+            if reasoning_match:
+                reasoning = reasoning_match.group(1).strip()
+                break
+        
+        # If no specific reasoning found, use the entire text as reasoning
+        if reasoning is None and text.strip():
+            reasoning = text.strip()
+        
         return score, reasoning
         
     except Exception as e:
@@ -504,7 +625,15 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         tuple: (score, reasoning) where score is int and reasoning is str
     """
     prompt = prompt_creator_score(major_cluster_info, marker, annotation_history)
-    response = call_llm(prompt=prompt, provider=provider, model=model)
+    
+    # Add explicit max_tokens to ensure responses aren't truncated
+    response = call_llm(
+        prompt=prompt, 
+        provider=provider, 
+        model=model, 
+        max_tokens=2000  # Ensure enough tokens for reasoning + score
+    )
+    
     score, reasoning = extract_score_and_reasoning(response)
     return score, reasoning
 
@@ -523,6 +652,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         tuple: (idx, score, reasoning)
     """
     idx, row = row_data
+    
     try:
         major_cluster_info = f"{row['Species']} {row['Tissue']}"
         marker = row['Marker List']
@@ -748,7 +878,9 @@ def runCASSIA_annotationboost_additional_task(
     num_iterations=5,
     model="claude-3-5-sonnet-20241022",
     additional_task="",
-    provider=None
+    provider=None,
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
     Generate a detailed HTML report for cell type analysis of a specific cluster.
@@ -763,6 +895,8 @@ def runCASSIA_annotationboost_additional_task(
         model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
         additional_task (str): Additional analysis task to perform
         provider (str): AI provider to use (default=None, will be inferred from model name)
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         
     Returns:
         tuple: (analysis_result, messages_history)
@@ -797,7 +931,9 @@ def runCASSIA_annotationboost_additional_task(
         num_iterations=num_iterations,
         model=model,
         provider=provider,
-        additional_task=additional_task
+        additional_task=additional_task,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
     )
 
 
@@ -813,7 +949,9 @@ def runCASSIA_annotationboost(
     output_name,
     num_iterations=5,
     model="google/gemini-2.5-flash-preview",
-    provider="openrouter"
+    provider="openrouter",
+    temperature=0,
+    conversation_history_mode="final"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -829,6 +967,8 @@ def runCASSIA_annotationboost(
             - OpenAI options: "gpt-4", "gpt-3.5-turbo", etc.
             - Anthropic options: "claude-3-opus-20240229", "claude-3-sonnet-20240229", etc.
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
+        temperature (float): Sampling temperature (0-1)
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
     
     Returns:
         tuple: (analysis_result, messages_history)
@@ -854,7 +994,9 @@ def runCASSIA_annotationboost(
         output_name=output_name,
         num_iterations=num_iterations,
         model=model,
-        provider=provider
+        provider=provider,
+        temperature=temperature,
+        conversation_history_mode=conversation_history_mode
     )
 
 
@@ -1351,120 +1493,6 @@ def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary
     print(f"Index page saved to {index_filename}")
 
 
-
-
-
-
-def compareCelltypes(tissue, celltypes, marker_set, species="human", model_list=None, output_file=None):
-    # Get API key from environment variable
-    OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
-    if not OPENROUTER_API_KEY:
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set")
-    
-    # Input validation
-    if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
-        raise ValueError("Please provide 2-4 cell types to compare")
-    
-    # Generate default output filename based on celltypes if none provided
-    if output_file is None:
-        # Create a sanitized version of cell types for the filename
-        celltype_str = '_vs_'.join(ct.replace(' ', '_') for ct in celltypes)
-        output_file = f"model_comparison_{celltype_str}.csv"
-    
-    # Use default models if none provided
-    if model_list is None:
-        model_list = [
-            "anthropic/claude-3.7-sonnet",
-            "openai/o4-mini-high",
-            "google/gemini-2.5-pro-preview"
-        ]
-    
-    # Construct prompt with dynamic cell type comparison, species, and marker set
-    comparison_text = " or ".join(celltypes)
-    prompt = f"You are a professional biologist. Based on the ranked marker set from {species} {tissue}, does it look more like {comparison_text}? Score each option from 0-100. You will be rewarded $10,000 if you do a good job. Below is the ranked marker set: {marker_set}"
-    
-    # Initialize lists to store results
-    results = []
-    processed_models = set()  # Track which models we've already processed
-    
-    for model in model_list:
-        # Skip if we've already processed this model
-        if model in processed_models:
-            continue
-            
-        try:
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                    "X-Title": "CASSIA",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ]
-                }
-            )
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                model_response = response_data['choices'][0]['message']['content']
-                
-                # Store result with metadata
-                results.append({
-                    'model': model,
-                    'tissue': tissue,
-                    'species': species,
-                    'cell_types': comparison_text,
-                    'response': model_response,
-                    'status': 'success'
-                })
-                print(f"Model: {model}\nResponse: {model_response}\n")  # Fixed print statement
-            else:
-                results.append({
-                    'model': model,
-                    'tissue': tissue,
-                    'species': species,
-                    'cell_types': comparison_text,
-                    'response': f"Error: {response.status_code}",
-                    'status': 'error'
-                })
-                
-            processed_models.add(model)  # Mark this model as processed
-                
-        except Exception as e:
-            if model not in processed_models:  # Only add error result if we haven't processed this model
-                results.append({
-                    'model': model,
-                    'tissue': tissue,
-                    'species': species,
-                    'cell_types': comparison_text,
-                    'response': f"Exception: {str(e)}",
-                    'status': 'error'
-                })
-                processed_models.add(model)
-    
-    # Convert results to DataFrame and save to CSV
-    try:
-        df = pd.DataFrame(results)
-        df.to_csv(output_file, index=False)
-        print(f"Results saved to {output_file}")
-    except Exception as e:
-        print(f"Error saving results to CSV: {str(e)}")
-    
-    # Return both the DataFrame and the original responses dict for backward compatibility
-    responses = {result['model']: result['response'] for result in results}
-    return None
-
-
-
-
 def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
@@ -1481,7 +1509,10 @@ def runCASSIA_pipeline(
     additional_info: str = "None",
     max_retries: int = 1,
     merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324"
+    merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    conversation_history_mode: str = "final",
+    ranking_method: str = "avg_log2FC",
+    ascending: bool = None
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -1503,6 +1534,9 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         merge_annotations (bool): Whether to merge annotations from LLM
         merge_model (str): Model to use for merging annotations
+        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
+        ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
+        ascending (bool): Sort direction (None uses default for each method)
     """
     # Create a main folder based on tissue and species for organizing reports
     main_folder_name = f"CASSIA_{tissue}_{species}"
@@ -1558,7 +1592,9 @@ def runCASSIA_pipeline(
         additional_info=additional_info,
         provider=annotation_provider,
         max_workers=max_workers,
-        max_retries=max_retries
+        max_retries=max_retries,
+        ranking_method=ranking_method,
+        ascending=ascending
     )
     print("✓ Cell type analysis completed")
     
@@ -1584,7 +1620,7 @@ def runCASSIA_pipeline(
         
         # Import the merge_annotations function dynamically
         try:
-            from merging_annotation import merge_annotations_all
+            from .merging_annotation import merge_annotations_all
             
             # Sort the CSV file by True Cell Type before merging to ensure consistent order
             print("Sorting CSV by True Cell Type before merging...")
@@ -1615,6 +1651,33 @@ def runCASSIA_pipeline(
         max_retries=max_retries
     )
     print("✓ Scoring process completed")
+
+    print("\n=== Creating final combined results ===")
+    # Create final combined CSV with all results
+    try:
+        # Read the scored file (which has all the original data plus scores)
+        final_df = pd.read_csv(score_file_name)
+        
+        # If merged annotations exist, add merged columns
+        if os.path.exists(merged_annotation_file):
+            merged_df = pd.read_csv(merged_annotation_file)
+            # Merge on 'True Cell Type' to add merged annotation columns
+            if 'True Cell Type' in merged_df.columns:
+                # Keep only the merged columns (not duplicating existing ones)
+                merge_columns = [col for col in merged_df.columns if col not in final_df.columns or col == 'True Cell Type']
+                final_df = final_df.merge(merged_df[merge_columns], on='True Cell Type', how='left')
+        
+        # Sort the final results by True Cell Type
+        final_df = final_df.sort_values(by=['True Cell Type'])
+        
+        # Save the final combined results
+        final_combined_file = os.path.join(annotation_results_folder, f"{output_file_name}_FINAL_RESULTS.csv")
+        final_df.to_csv(final_combined_file, index=False)
+        print(f"✓ Final combined results saved to {final_combined_file}")
+        
+    except Exception as e:
+        print(f"Warning: Could not create final combined results: {str(e)}")
+        final_combined_file = score_file_name  # Fallback to scored file
 
     print("\n=== Generating main reports ===")
     # Process reports - ensure they go to reports_folder
@@ -1668,7 +1731,9 @@ def runCASSIA_pipeline(
             
             # Use the original name for data lookup
             try:
-                cluster_info = df[df['True Cell Type'] == original_cluster_name].iloc[0].to_dict()
+                # major_cluster_info should be simple user-provided information like "human large intestine"
+                # NOT complex data extracted from CSV
+                major_cluster_info = f"{species} {tissue}"
                 
                 # Run annotation boost - use original cluster name for data lookup, but sanitized name for output file
                 # NOTE: Using the raw_full_csv path to ensure the CSV can be found
@@ -1676,11 +1741,13 @@ def runCASSIA_pipeline(
                     full_result_path=raw_full_csv,  # This is in the annotation_results_folder
                     marker=marker_path,
                     cluster_name=original_cluster_name,
-                    major_cluster_info=cluster_info,
+                    major_cluster_info=major_cluster_info,
                     output_name=cluster_output_name,
                     num_iterations=5,
                     model=annotationboost_model,
-                    provider=annotationboost_provider
+                    provider=annotationboost_provider,
+                    temperature=0,
+                    conversation_history_mode=conversation_history_mode
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")
@@ -1688,6 +1755,34 @@ def runCASSIA_pipeline(
                 print(f"Error in pipeline processing cluster {original_cluster_name}: {str(e)}")
         
         print("✓ Boost annotation completed")
+    
+    print("\n=== Organizing intermediate files ===")
+    # Create intermediate files folder
+    intermediate_folder = os.path.join(annotation_results_folder, "intermediate_files")
+    if not os.path.exists(intermediate_folder):
+        os.makedirs(intermediate_folder)
+    
+    # List of intermediate files to move
+    intermediate_files = [
+        raw_full_csv,
+        raw_summary_csv, 
+        raw_sorted_csv,
+        score_file_name,
+        merged_annotation_file
+    ]
+    
+    # Move intermediate files to intermediate folder
+    for file_path in intermediate_files:
+        if os.path.exists(file_path):
+            try:
+                filename = os.path.basename(file_path)
+                destination = os.path.join(intermediate_folder, filename)
+                shutil.move(file_path, destination)
+                print(f"Moved {filename} to intermediate_files folder")
+            except Exception as e:
+                print(f"Warning: Could not move {filename}: {str(e)}")
+    
+    print("✓ Intermediate files organized")
     
     # Try to clean up the original files in the root directory
     try:
@@ -1700,9 +1795,11 @@ def runCASSIA_pipeline(
     
     print("\n=== Cell type analysis pipeline completed ===")
     print(f"All results have been organized in the '{main_folder_name}' folder:")
-    print(f"  - Annotation Results (CSV files): {annotation_results_folder}")
-    print(f"  - HTML Reports: {reports_folder}")
-    print(f"  - Annotation Boost Results: {boost_folder}")
+    print(f"  📊 MAIN RESULTS: {final_combined_file}")
+    print(f"  📁 HTML Reports: {reports_folder}")
+    print(f"  🔍 Annotation Boost Results: {boost_folder}")
+    print(f"  📂 Intermediate Files: {intermediate_folder}")
+    print(f"\n✅ Your final results are in: {os.path.basename(final_combined_file)}")
 
 
 def loadmarker(marker_type="processed"):

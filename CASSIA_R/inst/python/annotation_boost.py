@@ -5,8 +5,70 @@ import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Union
 
 # Change from relative to absolute import
-from llm_utils import call_llm
+try:
+    from llm_utils import call_llm
+except ImportError:
+    # Try relative import as fallback
+    try:
+        from .llm_utils import call_llm
+    except ImportError:
+        # If both fail, provide a helpful error message
+        raise ImportError("Could not import llm_utils. Make sure it's in the same directory or Python path.")
 
+def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1) -> str:
+    """
+    Use an LLM to summarize the conversation history for use as context in annotation boost.
+    
+    Args:
+        full_history: The full conversation history text
+        provider: LLM provider to use for summarization
+        model: Specific model to use (if None, uses provider default)
+        temperature: Temperature for summarization (low for consistency)
+        
+    Returns:
+        str: Summarized conversation history
+    """
+    try:
+        # Create a prompt for summarization
+        summarization_prompt = f"""You are a specialized scientific summarization agent. Your task is to create a concise summary of a prior cell type annotation analysis that will be used as context for further detailed analysis.
+
+The provided text contains a comprehensive cell type annotation analysis that was previously performed.
+
+Your task is to extract and summarize the key information in a structured format that includes:
+
+1. **Previously Identified Cell Type**: What cell type was determined in the prior analysis
+2. **Key Supporting Markers**: The most important markers that supported this identification
+3. **Alternative Hypotheses**: Any alternative cell types that were considered
+4. **Remaining Uncertainties**: Any aspects that were noted as unclear or requiring further investigation
+
+Keep the summary factual, scientific, and focused on information that would be helpful for conducting a deeper, more specialized analysis. Aim for 150-300 words.
+
+Format your response as a clear, structured summary that a cell type annotation expert can quickly understand.
+
+Here is the prior annotation analysis to summarize:
+
+{full_history}
+
+Please provide a structured summary following the format above:"""
+
+        # Call the LLM to generate the summary
+        summary = call_llm(
+            prompt=summarization_prompt,
+            provider=provider,
+            model=model if model else "google/gemini-2.5-flash-preview",  # Default model for summarization
+            temperature=temperature
+        )
+        
+        print(f"Conversation history summarized using {provider} ({len(full_history)} -> {len(summary)} characters)")
+        return summary.strip()
+        
+    except Exception as e:
+        print(f"Warning: Failed to summarize conversation history: {str(e)}")
+        print("Falling back to truncated original text...")
+        # Fallback: return a truncated version of the original
+        if len(full_history) > 2000:
+            return full_history[:2000] + "...\n[Text truncated due to summarization failure]"
+        return full_history
 
 def prompt_hypothesis_generator2(major_cluster_info: str, comma_separated_genes: str, annotation_history: str) -> str:
     """
@@ -65,17 +127,18 @@ def prompt_hypothesis_generator(major_cluster_info: str, comma_separated_genes: 
     prompt = f"""
 You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
 
-Context Provided to You
+Context Provided to You:
 
 Cluster summary：{major_cluster_info}
 
 Top ranked markers (high → low)：
  {comma_separated_genes}
 
-Prior annotation dialogue：
+Prior annotation results：
  {annotation_history}
 
-What to Do
+What you should do:
+
 1. Brief Evaluation – One concise paragraph that:
 
     - Highlights strengths, ambiguities, or contradictions in the current call.
@@ -374,7 +437,11 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
         numeric_cols = result.select_dtypes(include=[np.number]).columns
         for col in numeric_cols:
             try:
-                result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
+                # Different formatting for different columns
+                if 'p_val' in col.lower():  # p_val_adj, p_val columns - keep scientific notation
+                    result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
+                else:  # avg_log2FC, pct.1, pct.2 etc. - use regular decimal notation
+                    result[col] = result[col].apply(lambda x: f"{float(x):.2f}" if pd.notnull(x) and x != 'NA' else x)
             except:
                 continue
         
@@ -397,9 +464,11 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
     else:
         output_df = marker_filtered
     
-    # Remove the 'cluster' column if it exists - it's not needed in the gene expression output
-    if 'cluster' in output_df.columns:
-        output_df = output_df.drop(columns=['cluster'])
+    # Remove unwanted columns
+    columns_to_remove = ['cluster', 'Unnamed: 0']
+    for col in columns_to_remove:
+        if col in output_df.columns:
+            output_df = output_df.drop(columns=[col])
     
     # Ensure 'gene' column is the first column
     if 'gene' in output_df.columns and list(output_df.columns).index('gene') > 0:
@@ -649,7 +718,7 @@ def iterative_marker_analysis(
             
         return f"Error in final response: {str(e)}", messages
 
-def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final") -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
+def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
     
@@ -659,8 +728,10 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         cluster_name: Name of the cluster to analyze
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
             - "full": Use the entire conversation history
-            - "final": Extract only the part between "Step 6" and "FINAL ANNOTATION COMPLETED" (default)
+            - "final": Use a summarization agent to create a concise summary of the conversation history (default)
             - "none": Don't include any conversation history
+        provider: LLM provider to use for summarization (when mode is "final")
+        model: Specific model to use for summarization (when mode is "final")
         
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
@@ -713,30 +784,14 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                 if conversation_history_mode == "full":
                     annotation_history = full_history
                 elif conversation_history_mode == "final":
-                    # Extract the part between "Step 6" and "FINAL ANNOTATION COMPLETED"
-                    # Try multiple robust patterns for Step 6
-                    step6_patterns = [
-                        r'(?:\*\*Step 6:|Step 6:|STEP 6:|step 6:|Step6:|STEP6:|step6:|\*Step 6\*|\*\*Step 6\*\*|Step6)',
-                        r'(?:Step 6|STEP 6|step 6|Step6|STEP6|step6)'
-                    ]
-                    found = False
-                    for pat in step6_patterns:
-                        match = re.search(f'{pat}(.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL)
-                        if match:
-                            annotation_history = match.group(1).strip()
-                            found = True
-                            print(f"Extracted final section of conversation history ({len(annotation_history)} characters) using pattern: {pat}")
-                            break
-                    if not found:
-                        # Fallback: try to find the last occurrence of Step 6 and extract until FINAL ANNOTATION COMPLETED
-                        step6_match = list(re.finditer(r'(Step ?6.*?)(?=FINAL ANNOTATION COMPLETED)', full_history, re.DOTALL | re.IGNORECASE))
-                        if step6_match:
-                            annotation_history = step6_match[-1].group(1).strip()
-                            print(f"Using fallback pattern - extracted final section ({len(annotation_history)} characters)")
-                        else:
-                            # If Step 6 pattern not found, use the full history
-                            annotation_history = full_history
-                            print(f"Step 6 pattern not found in conversation history, using full history")
+                    # Use summarization agent to create a concise summary
+                    print(f"Using summarization agent to process conversation history for cluster {cluster_name}")
+                    annotation_history = summarize_conversation_history(
+                        full_history=full_history,
+                        provider=provider,
+                        model=model,
+                        temperature=0.1  # Low temperature for consistent summarization
+                    )
                 else:
                     # For any unrecognized mode, default to full history
                     annotation_history = full_history
@@ -959,7 +1014,7 @@ def runCASSIA_annotationboost(
         
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model
         )
         
         # Run the iterative marker analysis
@@ -1069,7 +1124,7 @@ def runCASSIA_annotationboost_additional_task(
         
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model
         )
         
         # Run the iterative marker analysis with additional task

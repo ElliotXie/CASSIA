@@ -1,0 +1,319 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Cell Type Comparison Report</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f7fa;
+                line-height: 1.6;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+                border-bottom: 3px solid #e74c3c;
+            }
+            .title {
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 0;
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .subtitle {
+                font-size: 1.2rem;
+                color: #7f8c8d;
+                margin-top: 10px;
+            }
+            .model-section {
+                margin-bottom: 40px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .model-header {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                padding: 15px 20px;
+                font-size: 1.3rem;
+                font-weight: bold;
+            }
+            .celltype-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 20px;
+                padding: 20px;
+                background-color: #f8f9fa;
+            }
+            .celltype-card {
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                border-left: 4px solid #e74c3c;
+            }
+            .celltype-name {
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                color: white;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+            .reasoning {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 3px solid #e74c3c;
+                margin-top: 10px;
+                font-style: italic;
+                color: #555;
+            }
+            .summary-section {
+                margin-top: 40px;
+                padding: 20px;
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border-radius: 8px;
+            }
+            .summary-title {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 20px;
+            }
+            .score-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            .score-table th,
+            .score-table td {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid #ddd;
+            }
+            .score-table th {
+                background-color: #34495e;
+                color: white;
+                font-weight: bold;
+            }
+            .score-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+            .high-score {
+                background-color: #d4edda !important;
+                color: #155724;
+                font-weight: bold;
+            }
+            .medium-score {
+                background-color: #fff3cd !important;
+                color: #856404;
+            }
+            .low-score {
+                background-color: #f8d7da !important;
+                color: #721c24;
+            }
+            .raw-response {
+                margin-top: 15px;
+                padding: 10px;
+                background-color: #f1f3f4;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                max-height: 200px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+            }
+            .toggle-button {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                margin-top: 10px;
+            }
+            .toggle-button:hover {
+                background-color: #5a6268;
+            }
+        </style>
+        <script>
+            function toggleRawResponse(buttonId, contentId) {
+                const content = document.getElementById(contentId);
+                const button = document.getElementById(buttonId);
+                if (content.style.display === 'none' || content.style.display === '') {
+                    content.style.display = 'block';
+                    button.textContent = 'Hide Raw Response';
+                } else {
+                    content.style.display = 'none';
+                    button.textContent = 'Show Raw Response';
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1 class="title">Cell Type Comparison Report</h1>
+                <p class="subtitle">Multi-Model Analysis Results</p>
+            </div>
+    
+            <div class="model-section">
+                <div class="model-header">🤖 anthropic/claude-3.5-haiku</div>
+                <div class="celltype-grid">
+        
+                    <div class="celltype-card">
+                        <div class="celltype-name">
+                            B cell
+                            <span class="score-badge">Score: No score found</span>
+                        </div>
+                        <div class="reasoning">No reasoning found</div>
+                        <button class="toggle-button" id="btn_0_B_cell" 
+                                onclick="toggleRawResponse('btn_0_B_cell', 'raw_0_B_cell')">
+                            Show Raw Response
+                        </button>
+                        <div class="raw-response" id="raw_0_B_cell" style="display: none;">
+                            <strong>Raw Model Response:</strong><br>
+                            I apologize, but it seems like you have not provided the specific ranked marker set you want me to analyze. Without the details of the marker set, I cannot provide a comprehensive analysis. 
+
+To perform a detailed cell type scoring, I would need:
+1. The specific markers in order
+2. Their presence/absence or expression levels
+
+If you provide the full marker set details, I can give a professional biological analysis using the following criteria:
+- Molecular markers specific to each cell type
+- Typical surface protein expression
+- Immunological classification principles
+- Differential marker interpretation
+
+Would you like to provide the complete marker set for analysis?
+                        </div>
+                    </div>
+            
+                    <div class="celltype-card">
+                        <div class="celltype-name">
+                            Monocyte
+                            <span class="score-badge">Score: No score found</span>
+                        </div>
+                        <div class="reasoning">No reasoning found</div>
+                        <button class="toggle-button" id="btn_0_Monocyte" 
+                                onclick="toggleRawResponse('btn_0_Monocyte', 'raw_0_Monocyte')">
+                            Show Raw Response
+                        </button>
+                        <div class="raw-response" id="raw_0_Monocyte" style="display: none;">
+                            <strong>Raw Model Response:</strong><br>
+                            I apologize, but it seems like you have not provided the specific ranked marker set you want me to analyze. Without the details of the marker set, I cannot provide a comprehensive analysis. 
+
+To perform a detailed cell type scoring, I would need:
+1. The specific markers in order
+2. Their presence/absence or expression levels
+
+If you provide the full marker set details, I can give a professional biological analysis using the following criteria:
+- Molecular markers specific to each cell type
+- Typical surface protein expression
+- Immunological classification principles
+- Differential marker interpretation
+
+Would you like to provide the complete marker set for analysis?
+                        </div>
+                    </div>
+            
+                    <div class="celltype-card">
+                        <div class="celltype-name">
+                            NK cell
+                            <span class="score-badge">Score: No score found</span>
+                        </div>
+                        <div class="reasoning">No reasoning found</div>
+                        <button class="toggle-button" id="btn_0_NK_cell" 
+                                onclick="toggleRawResponse('btn_0_NK_cell', 'raw_0_NK_cell')">
+                            Show Raw Response
+                        </button>
+                        <div class="raw-response" id="raw_0_NK_cell" style="display: none;">
+                            <strong>Raw Model Response:</strong><br>
+                            I apologize, but it seems like you have not provided the specific ranked marker set you want me to analyze. Without the details of the marker set, I cannot provide a comprehensive analysis. 
+
+To perform a detailed cell type scoring, I would need:
+1. The specific markers in order
+2. Their presence/absence or expression levels
+
+If you provide the full marker set details, I can give a professional biological analysis using the following criteria:
+- Molecular markers specific to each cell type
+- Typical surface protein expression
+- Immunological classification principles
+- Differential marker interpretation
+
+Would you like to provide the complete marker set for analysis?
+                        </div>
+                    </div>
+            
+                    <div class="celltype-card">
+                        <div class="celltype-name">
+                            T cell
+                            <span class="score-badge">Score: No score found</span>
+                        </div>
+                        <div class="reasoning">No reasoning found</div>
+                        <button class="toggle-button" id="btn_0_T_cell" 
+                                onclick="toggleRawResponse('btn_0_T_cell', 'raw_0_T_cell')">
+                            Show Raw Response
+                        </button>
+                        <div class="raw-response" id="raw_0_T_cell" style="display: none;">
+                            <strong>Raw Model Response:</strong><br>
+                            I apologize, but it seems like you have not provided the specific ranked marker set you want me to analyze. Without the details of the marker set, I cannot provide a comprehensive analysis. 
+
+To perform a detailed cell type scoring, I would need:
+1. The specific markers in order
+2. Their presence/absence or expression levels
+
+If you provide the full marker set details, I can give a professional biological analysis using the following criteria:
+- Molecular markers specific to each cell type
+- Typical surface protein expression
+- Immunological classification principles
+- Differential marker interpretation
+
+Would you like to provide the complete marker set for analysis?
+                        </div>
+                    </div>
+            
+                </div>
+            </div>
+        
+            <div class="summary-section">
+                <div class="summary-title">📊 Score Summary</div>
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th>Cell Type</th>
+    <th>anthropic/claude-3.5-haiku</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    <tr><td><strong>B cell</strong></td><td class="">No score found</td></tr><tr><td><strong>Monocyte</strong></td><td class="">No score found</td></tr><tr><td><strong>NK cell</strong></td><td class="">No score found</td></tr><tr><td><strong>T cell</strong></td><td class="">No score found</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+    </html>
+    
