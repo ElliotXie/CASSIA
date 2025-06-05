@@ -6,7 +6,7 @@ import csv
 import concurrent.futures
 from functools import partial
 from typing import Dict, Any, Optional, Union, List
-from .llm_utils import call_llm
+from llm_utils import call_llm
 
 
 def merge_annotations(
