@@ -30,5 +30,5 @@ cassia_env/
 .DS_Store
 Thumbs.db
 
-# Test files with API keys
-CASSIA_R/test_r/cassia_ultimatetest.R 
+# Test files and directories with API keys
+CASSIA_R/test_r/ 
