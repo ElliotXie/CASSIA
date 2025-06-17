@@ -698,6 +698,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
+#' @param merge_provider Provider to use for merging annotations (default: "openrouter")
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
 #'
 #' @return None. Creates output files and generates reports.
@@ -719,6 +720,7 @@ runCASSIA_pipeline <- function(
     max_retries = 1,
     do_merge_annotations = TRUE,
     merge_model = "deepseek/deepseek-chat-v3-0324",
+    merge_provider = "openrouter",
     conversation_history_mode = "final"
 ) {
   # Convert marker data frame if necessary
@@ -747,6 +749,7 @@ runCASSIA_pipeline <- function(
       max_retries = as.integer(max_retries),
       merge_annotations = do_merge_annotations,
       merge_model = merge_model,
+      merge_provider = merge_provider,
       conversation_history_mode = conversation_history_mode
     )
   }, error = function(e) {

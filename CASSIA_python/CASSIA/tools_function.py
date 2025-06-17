@@ -6,7 +6,11 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from .main_function_code import *
+try:
+    from .main_function_code import *
+except ImportError:
+    from main_function_code import *
+
 import requests
 import threading
 import numpy as np
@@ -14,9 +18,21 @@ from importlib import resources
 import datetime
 import shutil
 from collections import Counter
-from .llm_utils import *
-from .merging_annotation import *
-from .cell_type_comparison import compareCelltypes
+
+try:
+    from .llm_utils import *
+except ImportError:
+    from llm_utils import *
+
+try:
+    from .merging_annotation import *
+except ImportError:
+    from merging_annotation import *
+
+try:
+    from .cell_type_comparison import compareCelltypes
+except ImportError:
+    from cell_type_comparison import compareCelltypes
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -910,7 +926,10 @@ def runCASSIA_annotationboost_additional_task(
     except ImportError:
         try:
             # Try relative import as fallback
-            from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+            try:
+                from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+            except ImportError:
+                from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
         except ImportError:
             raise ImportError("Could not import annotation_boost module.")
     
@@ -982,7 +1001,10 @@ def runCASSIA_annotationboost(
     except ImportError:
         try:
             # Try relative import as fallback
-            from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
+            try:
+                from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
+            except ImportError:
+                from annotation_boost import runCASSIA_annotationboost as run_annotationboost
         except ImportError:
             raise ImportError("Could not import annotation_boost module.")
     
@@ -1510,6 +1532,7 @@ def runCASSIA_pipeline(
     max_retries: int = 1,
     merge_annotations: bool = True,
     merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
     ascending: bool = None
@@ -1534,6 +1557,7 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         merge_annotations (bool): Whether to merge annotations from LLM
         merge_model (str): Model to use for merging annotations
+        merge_provider (str): Provider to use for merging annotations
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
@@ -1620,7 +1644,10 @@ def runCASSIA_pipeline(
         
         # Import the merge_annotations function dynamically
         try:
-            from .merging_annotation import merge_annotations_all
+            try:
+                from .merging_annotation import merge_annotations_all
+            except ImportError:
+                from merging_annotation import merge_annotations_all
             
             # Sort the CSV file by True Cell Type before merging to ensure consistent order
             print("Sorting CSV by True Cell Type before merging...")
@@ -1632,7 +1659,7 @@ def runCASSIA_pipeline(
             merge_annotations_all(
                 csv_path=raw_sorted_csv,
                 output_path=merged_annotation_file,
-                provider=annotation_provider,
+                provider=merge_provider,
                 model=merge_model,
                 additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
             )

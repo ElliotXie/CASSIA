@@ -24,10 +24,22 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Direct imports from local files, not from the installed package
-from tools_function import *
-from main_function_code import *
-from Uncertainty_quantification import *
-from subclustering import *
+try:
+    from .tools_function import *
+except ImportError:
+    from tools_function import *
+try:
+    from .main_function_code import *
+except ImportError:
+    from main_function_code import *
+try:
+    from .Uncertainty_quantification import *
+except ImportError:
+    from Uncertainty_quantification import *
+try:
+    from .subclustering import *
+except ImportError:
+    from subclustering import *
 import pandas as pd
 import numpy as np
 import argparse
@@ -128,7 +140,8 @@ def run_full_pipeline(marker_data):
         annotationboost_model = model_name,
         annotationboost_provider = provider,
         merge_annotations = True,  # Enable the built-in merging functionality
-        merge_model = model_name   # Use the same model for merging
+        merge_model = model_name,   # Use the same model for merging
+        merge_provider = provider   # Use the same provider for merging
     )
     
 
@@ -147,66 +160,76 @@ def run_batch_analysis(marker_data):
         provider = provider
     )
 
-# --------------------- Custom Merging Function ---------------------
-def run_custom_merge(input_csv):
+# --------------------- Merging Function ---------------------
+def run_merge(input_csv, detail_level="broad"):
     """
-    Run the merging process in a linear (non-parallel) way to avoid potential issues.
+    Run the merging process using the official merging_annotation module.
     
-    This is an alternative implementation to the built-in merging in runCASSIA_pipeline.
-    The key differences are:
+    This uses the proper merge_annotations function with customizable provider support.
     
-    1. This implementation processes all clusters in a single LLM call instead of batching
-    2. No parallelization is used, avoiding potential race conditions
-    3. The results are sorted by True Cell Type before processing for consistency
-    4. This uses direct access to the internal functions of the merging module
-    
-    Use this approach if you're experiencing issues with the default merging process
-    in the runCASSIA_pipeline function.
+    Args:
+        input_csv: Path to input CSV file
+        detail_level: Level of detail for merging ("broad", "detailed", "very_detailed")
     """
-    from .merging_annotation import call_llm, _create_annotation_prompt, _parse_llm_response
+    try:
+        from .merging_annotation import merge_annotations
+    except ImportError:
+        from merging_annotation import merge_annotations
     
-    print("\n=== Running Custom Linear Merging ===")
+    print(f"\n=== Running Annotation Merging ({detail_level} level) ===")
     
-    # Read the CSV file
-    df = pd.read_csv(input_csv)
+    # Generate output path with detail level
+    base_name = input_csv.replace(".csv", "")
+    output_path = f"{base_name}_merged_{detail_level}.csv"
     
-    # Sort by True Cell Type to ensure consistent order
-    df = df.sort_values(by=['True Cell Type'])
-    
-    # Setup columns
-    cluster_col = 'True Cell Type'
-    general_col = 'Predicted Main Cell Type'
-    subtype_col = 'Predicted Sub Cell Types'
-    
-    # Process each row individually
-    results = {}
-    
+    # Additional context for the analysis
     additional_context = f"These are cell clusters from {species} {tissue}."
     
-    # Create one big prompt with all cells - avoids batch processing entirely
-    prompt = _create_annotation_prompt(df, cluster_col, general_col, subtype_col, additional_context, detail_level="broad")
-    
-    # Call LLM once with all data
-    print(f"Calling LLM to process {len(df)} clusters...")
-    llm_response = call_llm(
-        prompt=prompt,
+    # Use the official merge_annotations function with custom provider support
+    result_df = merge_annotations(
+        csv_path=input_csv,
+        output_path=output_path,
         provider=provider,
         model=model_name,
-        temperature=0
+        additional_context=additional_context,
+        batch_size=20,
+        detail_level=detail_level
     )
     
-    # Parse the response
-    merged_annotations = _parse_llm_response(llm_response, df.index)
+    print(f"✓ Annotation merging completed and saved to {output_path}")
+    return result_df
+
+def run_merge_all(input_csv):
+    """
+    Run all three levels of merging using the official merge_annotations_all function.
     
-    # Add a new column for merged annotations
-    df['Merged Annotation'] = df.index.map(lambda idx: merged_annotations.get(idx, "No annotation"))
+    This processes broad, detailed, and very_detailed levels in parallel.
+    """
+    try:
+        from .merging_annotation import merge_annotations_all
+    except ImportError:
+        from merging_annotation import merge_annotations_all
     
-    # Save the merged results
-    output_path = input_csv.replace(".csv", "_merged.csv")
-    df.to_csv(output_path, index=False)
-    print(f"Merged annotations saved to {output_path}")
+    print("\n=== Running All Levels of Annotation Merging ===")
     
-    return df
+    # Generate output path
+    output_path = input_csv.replace(".csv", "_merged_all.csv")
+    
+    # Additional context for the analysis
+    additional_context = f"These are cell clusters from {species} {tissue}."
+    
+    # Use the official merge_annotations_all function with custom provider support
+    result_df = merge_annotations_all(
+        csv_path=input_csv,
+        output_path=output_path,
+        provider=provider,
+        model=model_name,
+        additional_context=additional_context,
+        batch_size=20
+    )
+    
+    print(f"✓ All levels of annotation merging completed and saved to {output_path}")
+    return result_df
 
 # --------------------- Step 3: Quality Scoring ---------------------
 def run_quality_scoring(input_csv, output_csv=None):
@@ -855,6 +878,123 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         print("\nAvailable clusters in the CSV file:")
         print(df['True Cell Type'].tolist())
 
+# --------------------- New: Test Full Pipeline with Different Providers ---------------------
+def test_full_pipeline_providers(marker_data):
+    """
+    Test the full CASSIA pipeline with different providers.
+    This function helps validate that runCASSIA_pipeline works correctly 
+    with all supported providers, including custom API endpoints.
+    
+    Args:
+        marker_data: Marker data DataFrame for the pipeline
+    """
+    print("\n=== Testing Full Pipeline with Multiple Providers ===")
+    
+    # Test with OpenAI provider
+    print("\n----- Testing Full Pipeline with OpenAI provider -----")
+    try:
+        # Temporarily set provider and model for OpenAI
+        original_provider = globals()['provider']
+        original_model = globals()['model_name']
+        
+        globals()['provider'] = "openai"
+        globals()['model_name'] = "gpt-4o"
+        
+        print("Running full pipeline with OpenAI...")
+        runCASSIA_pipeline(
+            output_file_name="TestResults_OpenAI",
+            tissue=tissue,
+            species=species,
+            marker_path=marker_data,
+            max_workers=3,  # Reduced for testing
+            annotation_model="gpt-4o",
+            annotation_provider="openai",
+            score_model="gpt-4o",
+            score_provider="openai",
+            score_threshold=97,
+            annotationboost_model="gpt-4o",
+            annotationboost_provider="openai",
+            merge_annotations=True,
+            merge_model="gpt-4o",
+            merge_provider="openai"
+        )
+        print("✅ Full pipeline with OpenAI completed successfully")
+    except Exception as e:
+        print(f"❌ Error with OpenAI provider: {str(e)}")
+    finally:
+        # Restore original settings
+        globals()['provider'] = original_provider
+        globals()['model_name'] = original_model
+    
+    # Test with Anthropic provider
+    print("\n----- Testing Full Pipeline with Anthropic provider -----")
+    try:
+        globals()['provider'] = "anthropic"
+        globals()['model_name'] = "claude-3-5-sonnet-20241022"
+        
+        print("Running full pipeline with Anthropic...")
+        runCASSIA_pipeline(
+            output_file_name="TestResults_Anthropic",
+            tissue=tissue,
+            species=species,
+            marker_path=marker_data,
+            max_workers=3,
+            annotation_model="claude-3-5-sonnet-20241022",
+            annotation_provider="anthropic",
+            score_model="claude-3-5-sonnet-20241022",
+            score_provider="anthropic",
+            score_threshold=97,
+            annotationboost_model="claude-3-5-sonnet-20241022",
+            annotationboost_provider="anthropic",
+            merge_annotations=True,
+            merge_model="claude-3-5-sonnet-20241022",
+            merge_provider="anthropic"
+        )
+        print("✅ Full pipeline with Anthropic completed successfully")
+    except Exception as e:
+        print(f"❌ Error with Anthropic provider: {str(e)}")
+    finally:
+        globals()['provider'] = original_provider
+        globals()['model_name'] = original_model
+    
+    # Test with OpenRouter provider
+    print("\n----- Testing Full Pipeline with OpenRouter provider -----")
+    try:
+        globals()['provider'] = "openrouter"
+        globals()['model_name'] = "anthropic/claude-3.5-sonnet"
+        
+        print("Running full pipeline with OpenRouter...")
+        runCASSIA_pipeline(
+            output_file_name="TestResults_OpenRouter",
+            tissue=tissue,
+            species=species,
+            marker_path=marker_data,
+            max_workers=3,
+            annotation_model="anthropic/claude-3.5-sonnet",
+            annotation_provider="openrouter",
+            score_model="anthropic/claude-3.5-sonnet",
+            score_provider="openrouter",
+            score_threshold=97,
+            annotationboost_model="anthropic/claude-3.5-sonnet",
+            annotationboost_provider="openrouter",
+            merge_annotations=True,
+            merge_model="anthropic/claude-3.5-sonnet",
+            merge_provider="openrouter"
+        )
+        print("✅ Full pipeline with OpenRouter completed successfully")
+    except Exception as e:
+        print(f"❌ Error with OpenRouter provider: {str(e)}")
+    finally:
+        globals()['provider'] = original_provider
+        globals()['model_name'] = original_model
+    
+    # Test with custom provider (commented out as it requires an API key)
+    print("\n----- Custom Provider Test (Skipped - Requires API Key) -----")
+    print("To test with a custom provider like DeepSeek, use the command line option:")
+    print("python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY")
+    
+    print("\n=== Full Pipeline Provider Tests Complete ===")
+
 # --------------------- New: Test All Annotation Boost Providers ---------------------
 def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final"):
     """
@@ -956,7 +1096,7 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1036,9 +1176,11 @@ def main():
     elif args.step == 'batch':
         run_batch_analysis(unprocessed)
     elif args.step == 'merge':
-        # This uses our custom non-parallel merging implementation
-        # If you're having issues with the built-in merging, use this approach instead
-        run_custom_merge(input_csv)
+        # This uses the official merging implementation with custom provider support
+        run_merge(input_csv)
+    elif args.step == 'merge_all':
+        # This runs all three levels of merging (broad, detailed, very_detailed)
+        run_merge_all(input_csv)
     elif args.step == 'score':
         run_quality_scoring(input_csv)
     elif args.step == 'report':
@@ -1123,9 +1265,15 @@ def main():
     elif args.step == 'single_subcluster':
         # New option to run a single subclustering analysis
         run_single_subcluster(subcluster, args.major_cluster)
+    elif args.step == 'test_pipeline':
+        # New option to test the full pipeline with different providers
+        try:
+            test_full_pipeline_providers(unprocessed)
+        except Exception as e:
+            print(f"Error testing full pipeline: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline")
 
 
 if __name__ == "__main__":
@@ -1164,6 +1312,7 @@ if __name__ == "__main__":
 
     # To test with a custom provider API (for any step that supports --provider and --model):
     # (Replace http://your-custom-api/v1/chat/completions with your actual endpoint)
+    # python CASSIA_python_tutorial.py --step all --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
     # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
     # python CASSIA_python_tutorial.py --step boost_task --provider http://your-custom-api/v1/chat/completions --model your-model-name
     # python CASSIA_python_tutorial.py --step test_boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
@@ -1175,7 +1324,9 @@ if __name__ == "__main__":
     # You can also specify --api_key if your custom provider requires it:
     # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
 
-    # Example with a real provider and API key (DeepSeek):
+    # Examples with a real provider and API key (DeepSeek):
+    # Full pipeline with custom provider:
+    # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
     # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
     # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
     # python CASSIA_python_tutorial.py --step test_boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
@@ -1203,6 +1354,13 @@ if __name__ == "__main__":
     
     # Example for running a single subclustering result with a custom API:
     # python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
+    
+    # Examples for testing the full pipeline with multiple providers:
+    # python CASSIA_python_tutorial.py --step test_pipeline
+    # This will test OpenAI, Anthropic, and OpenRouter providers automatically
+    
+    # For testing the full pipeline with a custom provider like DeepSeek:
+    # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY
     
     # Examples for testing subclustering with custom APIs:
     # One-line command for direct subclustering with DeepSeek:

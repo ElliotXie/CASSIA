@@ -1510,6 +1510,7 @@ def runCASSIA_pipeline(
     max_retries: int = 1,
     merge_annotations: bool = True,
     merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
     ascending: bool = None
@@ -1534,6 +1535,7 @@ def runCASSIA_pipeline(
         max_retries (int): Maximum number of retries for failed analyses
         merge_annotations (bool): Whether to merge annotations from LLM
         merge_model (str): Model to use for merging annotations
+        merge_provider (str): Provider to use for merging annotations
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
@@ -1632,7 +1634,7 @@ def runCASSIA_pipeline(
             merge_annotations_all(
                 csv_path=raw_sorted_csv,
                 output_path=merged_annotation_file,
-                provider=annotation_provider,
+                provider=merge_provider,
                 model=merge_model,
                 additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
             )

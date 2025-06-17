@@ -152,32 +152,121 @@ def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_l
 
 
 def parse_results_to_dict(result_string):
-
+    """
+    Robust parsing function that tries multiple regex patterns to handle different model outputs.
+    """
     
-    # Use regex to find all results, supporting both () and [] formats
-    pattern = r"result(\d+):[\(\[]([^\]\)]+)[\)\]]"
-    matches = re.findall(pattern, result_string)
+    # Define multiple patterns to try, in order of preference
+    patterns = [
+        # Original strict pattern: result1:(cell_type, subtype) or result1:[cell_type, subtype]
+        r"result(\d+):[\(\[]([^\]\)]+)[\)\]]",
+        
+        # Case insensitive with optional spaces: Result 1: (cell_type, subtype)
+        r"(?i)result\s*(\d+)\s*:\s*[\(\[]([^\]\)]+)[\)\]]",
+        
+        # Simple numbered format: 1. (cell_type, subtype) or 1: (cell_type, subtype)
+        r"(\d+)[\.\:]\s*[\(\[]([^\]\)]+)[\)\]]",
+        
+        # Even more flexible: any number followed by parentheses/brackets
+        r"(\d+)[^\(\[]*[\(\[]([^\]\)]+)[\)\]]",
+        
+        # Pattern for results without explicit numbering but with parentheses
+        r"[\(\[]([^,\]\)]+),\s*([^\]\)]+)[\)\]]",
+        
+        # Very loose pattern: find any content in parentheses with comma
+        r"[\(\[]([^,\]\)]{3,}),\s*([^\]\)]{2,})[\)\]]"
+    ]
     
+    parsed_results = {}
+    
+    # Try each pattern until we find matches
+    for pattern_idx, pattern in enumerate(patterns):
+        matches = re.findall(pattern, result_string, re.IGNORECASE)
+        
+        if matches:
+            print(f"Successfully parsed using pattern {pattern_idx + 1}: {pattern}")
+            break
+    
+    # If no numbered patterns worked, try the non-numbered ones differently
+    if not matches and pattern_idx >= 4:  # If we reached the non-numbered patterns
+        # For non-numbered patterns, create sequential numbering
+        sequential_matches = re.findall(patterns[4], result_string, re.IGNORECASE)
+        if sequential_matches:
+            matches = [(str(i+1), cell_types) for i, cell_types in enumerate(sequential_matches)]
+            print(f"Created sequential numbering from pattern matches")
+        else:
+            sequential_matches = re.findall(patterns[5], result_string, re.IGNORECASE)
+            if sequential_matches:
+                matches = [(str(i+1), cell_types) for i, cell_types in enumerate(sequential_matches)]
+                print(f"Created sequential numbering from loose pattern matches")
     
     # Parse each result
-    parsed_results = {}
     for match in matches:
         try:
-            result_num, cell_types = match
-            # Split cell types, handling potential commas within cell type names
-            cell_type_list = re.split(r',\s*(?=[^,]*(?:,|$))', cell_types)
+            if len(match) == 2:
+                result_num, cell_types = match
+            else:
+                # Handle case where match might have different structure
+                result_num = str(len(parsed_results) + 1)
+                cell_types = str(match)
             
-            # Strip whitespace and remove any remaining quotes
-            cell_type_list = [ct.strip().strip("'\"") for ct in cell_type_list]
+            # Handle different cell type formats
+            if isinstance(cell_types, tuple):
+                # If cell_types is already a tuple (from non-numbered patterns)
+                cell_type_list = [str(ct).strip().strip("'\"") for ct in cell_types]
+            else:
+                # Split cell types, handling potential commas within cell type names
+                # Try different splitting approaches
+                if ',' in cell_types:
+                    # Split by comma and clean up
+                    cell_type_list = [ct.strip().strip("'\"") for ct in cell_types.split(',')]
+                else:
+                    # If no comma, try to split by other delimiters
+                    for delimiter in [';', '|', ' and ', ' & ']:
+                        if delimiter in cell_types:
+                            cell_type_list = [ct.strip().strip("'\"") for ct in cell_types.split(delimiter)]
+                            break
+                    else:
+                        # If no delimiter found, treat as single cell type
+                        cell_type_list = [cell_types.strip().strip("'\"")]
+            
+            # Clean up cell types - remove common prefixes/suffixes that models might add
+            cleaned_cell_types = []
+            for ct in cell_type_list:
+                ct = ct.strip()
+                # Remove common model artifacts
+                ct = re.sub(r'^(cell type:?\s*|type:?\s*)', '', ct, flags=re.IGNORECASE)
+                ct = re.sub(r'\s*(cell type|type)\s*$', '', ct, flags=re.IGNORECASE)
+                if ct:  # Only add non-empty cell types
+                    cleaned_cell_types.append(ct)
             
             # Ensure we have at least two cell types (main and sub)
-            while len(cell_type_list) < 2:
-                cell_type_list.append("N/A")
+            while len(cleaned_cell_types) < 2:
+                cleaned_cell_types.append("N/A")
             
-            parsed_results[f"result{result_num}"] = tuple(cell_type_list[:2])
+            parsed_results[f"result{result_num}"] = tuple(cleaned_cell_types[:2])
+            
         except Exception as e:
             print(f"Error parsing match {match}: {str(e)}")
+            continue
     
+    # If still no results, try one last desperate attempt
+    if not parsed_results:
+        print("No patterns matched. Attempting fallback parsing...")
+        # Look for any two consecutive words that might be cell types
+        fallback_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*,?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+        fallback_matches = re.findall(fallback_pattern, result_string)
+        
+        for i, (general, specific) in enumerate(fallback_matches[:5]):  # Limit to first 5 matches
+            if general.lower() != specific.lower():  # Avoid duplicates
+                parsed_results[f"result{i+1}"] = (general, specific)
+        
+        if parsed_results:
+            print(f"Fallback parsing found {len(parsed_results)} potential cell type pairs")
+    
+    if not parsed_results:
+        print("Warning: No results found to parse from input:")
+        print(f"Input string: {result_string[:200]}..." if len(result_string) > 200 else result_string)
     
     return parsed_results
 
@@ -319,24 +408,35 @@ def consensus_similarity_flexible(results, main_weight=0.7, sub_weight=0.3):
 
 
 
-def agent_unification(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis.You will be given a series results from a celltype annotator. 
-your task is to unify all the celltypes name, so that same celltype have the same name. The final format the first letter for each word will be capital and other will be small case. Remove plural. Some words like stem and progenitor and immature means the same thing should be unified.
-                  
-An example below:
-                  
-Input format：      
+def agent_unification(prompt, system_prompt='''You are a careful professional biologist, specializing in single-cell RNA-seq analysis. You will be given a series of results from a celltype annotator. 
+
+Your task is to unify all the celltype names, so that same celltype have the same name. Follow these rules EXACTLY:
+
+1. The first letter of each word should be CAPITAL and others should be lowercase
+2. Remove plurals (e.g., "cells" becomes "cell")  
+3. Unify similar terms: "stem", "progenitor", and "immature" mean the same thing
+4. Keep the exact same format as the input - only change the cell type names
+5. ALWAYS wrap your output in <results></results> tags
+
+CRITICAL: You MUST preserve the exact input format. If input is "result1:(cell1, cell2)" then output MUST be "result1:(Cell1, Cell2)"
+
+Examples:
+
+Input format:      
 result1:(immune cell, t cell),result2:(Immune cells,t cell),result3:(T cell, cd8+ t cell)
                   
 Output format:
-<results>result1:(Immune cell, T cell),result2:(Immune cell, T cell),result3:(T cell, Cd8+ t cell)</results>
+<results>result1:(Immune Cell, T Cell),result2:(Immune Cell, T Cell),result3:(T Cell, Cd8+ T Cell)</results>
 
 Another example:
                       
-Input format：      
+Input format:      
 result1:(Hematopoietic stem/progenitor cells (HSPCs), T cell progenitors),result2:(Hematopoietic Progenitor cells,t cell),result3:(Hematopoietic progenitor cells, T cell)
                   
 Output format:
-<results>result1:(Hematopoietic Progenitor Cells, T cell Progenitors),result2:(Hematopoietic Progenitor Cells,T cell),result3:(Hematopoietic Progenitor Cells, T cell)</results>
+<results>result1:(Hematopoietic Progenitor Cell, T Cell Progenitor),result2:(Hematopoietic Progenitor Cell, T Cell),result3:(Hematopoietic Progenitor Cell, T Cell)</results>
+
+REMEMBER: Always use <results></results> tags around your output and maintain the exact same structure as the input.
 ''', model=None, provider="openai", temperature=0, deplural_only=False):
     """
     Unified function to call any LLM provider for cell type name unification.
@@ -521,19 +621,61 @@ def get_cell_type_info(cell_type_name, ontology="CL"):
 
 
 def standardize_cell_types(input_string):
+    """
+    Robust standardization function that tries multiple parsing approaches.
+    If parsing fails, it returns the original input_string.
+    """
     # Remove all hyphens from the input string
-    input_string = input_string.replace("-", " ")
+    current_input_string = input_string.replace("-", " ")
     
-    # Parse the input string into a list of tuples
-    results = re.findall(r"result\d+:\('([^']+)', '([^']+)'\)", input_string)
+    results = []
+    parsing_successful = False
+
+    # Try multiple regex patterns to extract results
+    patterns = [
+        # Original strict pattern with single quotes
+        r"result\d+:\('([^']+)', '([^']+)'\)",
+        # Pattern with double quotes
+        r"result\d+:\(\"([^\"]+)\", \"([^\"]+)\"\)",
+        # Pattern without quotes
+        r"result\d+:\(([^,]+), ([^)]+)\)",
+        # Case insensitive result pattern
+        r"(?i)result\s*\d+\s*:\s*[\(\[]([^,\]\)]+),\s*([^\]\)]+)[\)\]]",
+        # Very flexible pattern
+        r"(?i)\d+[^\(\[]*[\(\[]([^,\]\)]+),\s*([^\]\)]+)[\)\]]"
+    ]
     
-    # Check if results is empty
-    if not results:
-        print("Warning: No results found to standardize")
-        return input_string
+    # Try each pattern until we find matches
+    for pattern_idx, pattern in enumerate(patterns):
+        results = re.findall(pattern, current_input_string)
+        if results:
+            print(f"Standardization: Successfully parsed using pattern {pattern_idx + 1}")
+            parsing_successful = True
+            break
     
-    standardized_results = []
+    # If no pattern worked, try to use the robust parser
+    if not parsing_successful:
+        print(f"Standardization: No direct patterns matched, trying robust parser...")
+        parsed_dict = parse_results_to_dict(current_input_string)
+        
+        if parsed_dict:
+            # Convert parsed dictionary back to tuples
+            results = [(cell_types[0], cell_types[1]) for cell_types in parsed_dict.values()]
+            print(f"Standardization: Extracted {len(results)} results using robust parser")
+            parsing_successful = True
+
+    # If parsing failed after all attempts
+    if not parsing_successful: # or not results
+        print("Warning: No results found to standardize.")
+        print(f"Input string for standardization was: {input_string[:200]}..." if len(input_string) > 200 else input_string)
+        return input_string # Return the original input_string if parsing failed
+    
+    standardized_results_list = []
     for i, (general_type, specific_type) in enumerate(results, 1):
+        # Clean up the cell types before ontology lookup
+        general_type = general_type.strip().strip("'\"")
+        specific_type = specific_type.strip().strip("'\"")
+        
         # Search for standardized names
         _, general_label = get_cell_type_info(general_type)
         _, specific_label = get_cell_type_info(specific_type)
@@ -542,9 +684,9 @@ def standardize_cell_types(input_string):
         general_label = general_label or general_type
         specific_label = specific_label or specific_type
         
-        standardized_results.append(f"result{i}:('{general_label}', '{specific_label}')")
+        standardized_results_list.append(f"result{i}:('{general_label}', '{specific_label}')")
     
-    return ",".join(standardized_results)
+    return ",".join(standardized_results_list)
 
 
 import pandas as pd
@@ -652,15 +794,49 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
         try:
             # Depluralize using unified function
             results_depluar = agent_unification_deplural(
-                prompt=results,
+                prompt=results, # This 'results' is the original full batch string
                 model=model,
                 provider=provider,
                 temperature=temperature
             )
             
-            # Get standardized cell types using ontology
+            # Attempt to standardize cell types
             result_unified_oncology = standardize_cell_types(results_depluar)
-            ontology_results_available = True
+            results_depluar_retry = None # Initialize results_depluar_retry to None
+            
+            # Check if standardization failed (returned input string unchanged)
+            # and if the input string was non-trivial
+            if result_unified_oncology == results_depluar and results_depluar and results_depluar.strip():
+                print("Standardization failed on first attempt. Attempting re-generation of depluralized string and retrying standardization...")
+                # Re-run depluralization
+                results_depluar_retry = agent_unification_deplural(
+                    prompt=results, # Use the same original prompt
+                    model=model,
+                    provider=provider,
+                    temperature=temperature 
+                )
+                # Retry standardization with the new depluralized string
+                result_unified_oncology = standardize_cell_types(results_depluar_retry)
+                # If it still fails, result_unified_oncology will be results_depluar_retry. 
+                # The subsequent logic will handle it as a failed standardization.
+
+            # Check if any actual standardization occurred or if it's still the raw depluralized string
+            if result_unified_oncology != results_depluar and \
+               (results_depluar_retry is None or result_unified_oncology != results_depluar_retry):
+                 ontology_results_available = True
+            else:
+                 # This means even after a potential retry, standardization didn't change the string,
+                 # or the initial standardization worked but produced the same string (e.g., already standardized)
+                 # or it failed and returned the input string.
+                 # We should consider it not truly "available" if it's identical to the unstandardized depluralized form
+                 # unless results_depluar itself was already in the final standardized format.
+                 # A simple check is if it contains "result1:(" which is our target format.
+                 if "result1:(" in result_unified_oncology:
+                     ontology_results_available = True
+                 else:
+                     ontology_results_available = False
+                     print("Ontology standardization did not produce a parseable result or made no changes.")
+
         except Exception as e:
             print(f"Error in ontology processing: {str(e)}")
             result_unified_oncology = results  # Fall back to original results

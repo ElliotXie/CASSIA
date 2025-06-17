@@ -4,16 +4,11 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Union
 
-# Change from relative to absolute import
+# Handle both package and direct imports
 try:
-    from llm_utils import call_llm
+    from .llm_utils import call_llm
 except ImportError:
-    # Try relative import as fallback
-    try:
-        from .llm_utils import call_llm
-    except ImportError:
-        # If both fail, provide a helpful error message
-        raise ImportError("Could not import llm_utils. Make sure it's in the same directory or Python path.")
+    from llm_utils import call_llm
 
 def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1) -> str:
     """
@@ -95,8 +90,9 @@ Previous annotation/analysis:
 Please follow these steps carefully:
 1. Based on the marker genes, generate hypotheses about what cell type this might be.
 2. For each hypothesis, provide supporting evidence from the marker genes.
-3. To validate your hypotheses, list additional marker genes that should be checked using this format:
-<check_genes>gene1, gene2, gene3, etc.</check_genes>，Use gene symbol only, no brackets or parentheses.
+3. To validate your hypotheses, list additional marker genes to check using the <check_genes>...</check_genes> tags.
+   - Inside the tags, provide *ONLY* a comma-separated list of official gene symbols.
+   - Example: `<check_genes>TP53,KRAS,EGFR</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
 4. After I provide additional gene information, refine your hypotheses, or generate new hypotheses.include your reasoning for the hypothesis using this format: <reasoning>your reasoning for the hypothesis</reasoning>
 5. Continue this process until you reach a confident conclusion.
 6. When you are ready to make a final determination, state: "FINAL ANNOTATION COMPLETED" followed by your conclusion.
@@ -147,8 +143,11 @@ What you should do:
 
 2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
 
-    - Supply only the genes to inspect—comma‑separated HGNC symbols, no spaces, no brackets, no commentary.
-
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
     - Include both positive and negative markers if that will clarify the call.
 
     - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
@@ -171,9 +170,7 @@ Evaluation
 
 celltype to check 1
 
-<check_genes>
-GENE1, GENE2, GENE3
-</check_genes>
+<check_genes>GENE1,GENE2,GENE3</check_genes>
 
 <reasoning>
 Why these genes and what we expect to see.
@@ -181,17 +178,15 @@ Why these genes and what we expect to see.
 
 celltype to check 2
 
-<check_genes>
-…
-</check_genes>
+<check_genes>GENE4,GENE5</check_genes>
+
 <reasoning>
 …
 </reasoning>
 
 hypothesis to check 3
-<check_genes>
-…
-</check_genes>
+
+<check_genes>GENE6,GENE7</check_genes>
 
 <reasoning>
 …
@@ -242,8 +237,11 @@ Previous annotation/analysis:
 Please follow these steps carefully:
 1. Based on the marker genes, generate hypotheses about what cell type this might be.
 2. For each hypothesis, provide supporting evidence from the marker genes.
-3. To validate your hypotheses, list additional marker genes that should be checked using this format:
-<check_genes>gene1, gene2, gene3, etc.</check_genes>
+3. To validate your hypotheses, list additional marker genes to check using the <check_genes>...</check_genes> tags.
+   **CRITICAL FORMATTING FOR <check_genes>:**
+   - Inside the tags, provide *ONLY* a comma-separated list of official gene symbols.
+   - Example: `<check_genes>TP53,KRAS,EGFR</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+   - Strict adherence to this format is ESSENTIAL.
 4. After I provide additional gene information, refine your hypotheses.
 5. Continue this process until you reach a confident conclusion.
 6. {additional_task} - perform this analysis based on the marker gene expression and patterns.
