@@ -896,7 +896,8 @@ def runCASSIA_annotationboost_additional_task(
     additional_task="",
     provider=None,
     temperature=0,
-    conversation_history_mode="final"
+    conversation_history_mode="final",
+    report_style="per_iteration"
 ):
     """
     Generate a detailed HTML report for cell type analysis of a specific cluster.
@@ -913,6 +914,7 @@ def runCASSIA_annotationboost_additional_task(
         provider (str): AI provider to use (default=None, will be inferred from model name)
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
         
     Returns:
         tuple: (analysis_result, messages_history)
@@ -952,7 +954,8 @@ def runCASSIA_annotationboost_additional_task(
         provider=provider,
         additional_task=additional_task,
         temperature=temperature,
-        conversation_history_mode=conversation_history_mode
+        conversation_history_mode=conversation_history_mode,
+        report_style=report_style
     )
 
 
@@ -970,7 +973,8 @@ def runCASSIA_annotationboost(
     model="google/gemini-2.5-flash-preview",
     provider="openrouter",
     temperature=0,
-    conversation_history_mode="final"
+    conversation_history_mode="final",
+    report_style="per_iteration"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -988,6 +992,7 @@ def runCASSIA_annotationboost(
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
     
     Returns:
         tuple: (analysis_result, messages_history)
@@ -1018,7 +1023,8 @@ def runCASSIA_annotationboost(
         model=model,
         provider=provider,
         temperature=temperature,
-        conversation_history_mode=conversation_history_mode
+        conversation_history_mode=conversation_history_mode,
+        report_style=report_style
     )
 
 
@@ -1535,7 +1541,8 @@ def runCASSIA_pipeline(
     merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
-    ascending: bool = None
+    ascending: bool = None,
+    report_style: str = "per_iteration"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -1561,6 +1568,7 @@ def runCASSIA_pipeline(
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
     """
     # Create a main folder based on tissue and species for organizing reports
     main_folder_name = f"CASSIA_{tissue}_{species}"
@@ -1774,7 +1782,8 @@ def runCASSIA_pipeline(
                     model=annotationboost_model,
                     provider=annotationboost_provider,
                     temperature=0,
-                    conversation_history_mode=conversation_history_mode
+                    conversation_history_mode=conversation_history_mode,
+                    report_style=report_style
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")

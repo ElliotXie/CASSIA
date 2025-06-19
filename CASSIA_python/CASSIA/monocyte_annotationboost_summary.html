@@ -1,0 +1,250 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This analysis focused on a specific cell cluster suspected to be enteric glial cells (EGCs). The analysis iteratively checked gene expression patterns to determine if there was a distinct progenitor subpopulation within the cluster or if the cells represented a transitional state. A total of 11 genes were checked across two rounds of analysis.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Hypothesis</h2>
+                    <div class="content">
+                        The initial hypothesis was that the cluster contained a distinct progenitor-like glial subpopulation coexisting with mature myelinating glia, based on the presence of *SOX2* and *FOXD3* alongside mature glial markers.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Gene Analysis 1: Investigating Progenitor vs. Mature Glial States</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Analyzed</h3>
+                            <div class="gene-list"><span class="gene-badge">SOX2</span><span class="gene-badge">FOXD3</span><span class="gene-badge">NGFR</span><span class="gene-badge">GFAP</span><span class="gene-badge">S100B</span><span class="gene-badge">MPZ</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Findings & Conclusions</h3>
+                            <div class="content">
+                                Expression of progenitor markers (*SOX2*, *FOXD3*, *NGFR*) was high, but mature glial markers (*S100B*, *MPZ*) were also highly expressed. *GFAP* was not detected. This mixed signature suggested either a transitional state or technical overlap, complicating the initial hypothesis of distinct subpopulations.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Gene Analysis 2: Resolving Ambiguity: Proliferation and Glial Lineage Markers</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Analyzed</h3>
+                            <div class="gene-list"><span class="gene-badge">MKI67</span><span class="gene-badge">ASCL1</span><span class="gene-badge">OLIG1</span><span class="gene-badge">ERBB3</span><span class="gene-badge">CDH19</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Findings & Conclusions</h3>
+                            <div class="content">
+                                *MKI67* expression was high, indicating active proliferation. *ERBB3* was moderately expressed, consistent with glial differentiation. *CDH19* was uniformly high, confirming neural crest origin. *ASCL1* and *OLIG1* were not detected. The co-expression of *MKI67* with mature markers (*S100B*, *MPZ* from the previous check) suggested a transitional state rather than clearly separated progenitor and mature subsets. The absence of *GFAP*, *ASCL1*, and *OLIG1* may reflect ENS-specific glial biology.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Conclusion</h2>
+                    <div class="content">
+                        The final annotation is **Proliferative Enteric Glial Cells with Myelin-like Features**. The confidence level is Medium-High. Key supporting evidence includes the expression of glial markers (*PLP1*, *SOX10*, *S100B*, *PTPRZ1*), proliferation/progenitor markers (*MKI67*, *SOX2*, *FOXD3*), and maturation/myelin-like markers (*MPZ*, *ERBB3*).
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Insights</h2>
+                        <div class="content">
+                            The cluster represents enteric glial cells with both proliferative/progenitor features and mature/myelin-like characteristics. The co-expression of markers suggests these cells may be in a transitional state rather than forming distinct progenitor and mature subpopulations. The specific marker profile (e.g., lack of *GFAP*) may reflect unique properties of enteric glia.
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Validation Status</h2>
+                        <div class="content">
+                            The analysis is complete based on the available data. Remaining uncertainties include definitively distinguishing a transitional state from potential minor contaminating populations or technical artifacts. Further validation through subclustering and functional assays is recommended.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

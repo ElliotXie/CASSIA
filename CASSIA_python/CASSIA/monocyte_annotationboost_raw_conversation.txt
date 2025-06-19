@@ -1,0 +1,244 @@
+## USER
+
+
+You are a careful senior computational biologist specializing in detailed, hypothesis-driven cell type annotation. Your approach is methodical and focused: you examine ONE specific hypothesis at a time and dive deep into its validation or refutation before moving to alternatives.
+
+CRITICAL WORKFLOW RULES:
+1. NEVER say "FINAL ANNOTATION COMPLETED" immediately after requesting genes to check
+2. You MUST wait for gene expression results before proceeding to any conclusion
+3. You MUST complete at least 2 rounds of gene checking before considering a final annotation
+4. Each round means: request genes → receive expression data → analyze results → either go deeper or pivot
+
+Context Provided to You:
+
+Cluster summary：Human Large Intestine
+
+Top ranked markers (high → low)：
+ NKAIN3, SPP1, CDH19, TSPAN11, PLP1, L1CAM, MYOT, IGSF11, NRXN1, SLC35F1, AL136298.1, SFRP5, Z97205.2, AL358216.1, SOX10, MEGF10, SYT10, CADM2, SLITRK2, SOX2, CRTAC1, CHL1, ZNF536, FOXD3, PTPRZ1, GRIK3, TUBB2B, CMTM5, LINC01436, TTYH1, ADARB2, CDH2, TENM3, WNT6, ATP1A2, NRXN3, KCNMB4, TMEM132B, LPL, GFRA2, CHADL, FLRT1, CHST9, GJC3, Z95114.1, RHAG, FOXD3-AS1, BMS1P10, FAM19A5, FGFBP2
+
+Prior annotation results：
+ ### **Structured Summary of Prior Cell Type Annotation Analysis**  
+
+#### **1. Previously Identified Cell Type**  
+The primary cell type identified was **Enteric Glial Cells** from the human large intestine, with a likely subset exhibiting myelinating or myelin-like properties.  
+
+#### **2. Key Supporting Markers**  
+- **Glial Identity:**  
+  - *PLP1* (Proteolipid Protein 1, myelin component)  
+  - *SOX10* (neural crest/glial development)  
+  - *L1CAM*, *NRXN1/3* (neuronal interaction/adhesion)  
+  - *PTPRZ1*, *TUBB2B* (glial/neuronal structural markers)  
+- **Progenitor/Immature State:**  
+  - *SOX2*, *FOXD3* (stemness/neural crest maintenance)  
+- **Contextual Markers:**  
+  - *SPP1*, *LPL* (consistent with intestinal glial roles in inflammation/metabolism)  
+
+#### **3. Alternative Hypotheses**  
+- **General Enteric Glia vs. Specialized Subtypes:**  
+  - Myelinating glia (*PLP1* dominance) vs. supportive/non-myelinating glia.  
+  - Progenitor-like glia (*SOX2/FOXD3*) were considered but deemed a minor subset.  
+- **Non-Glial Contaminants:**  
+  - Neuronal (*SYT10*, *NRXN1/3*) or stromal (*SPP1*) signals were noted but ruled out due to overwhelming glial-specific markers.  
+
+#### **4. Remaining Uncertainties**  
+- **Functional Heterogeneity:**  
+  - Whether *PLP1+* cells are truly myelinating or adopt myelin-like roles in the ENS (where myelination is atypical).  
+- **Progenitor Activity:**  
+  - Significance of *SOX2/FOXD3*—whether these reflect transient states or a distinct progenitor pool.  
+- **Non-Glial Markers:**  
+  - Low-expression markers (*SPP1*, *LPL*) may hint at uncharacterized glial subpopulations or environmental cross-talk.  
+
+**Conclusion:** The annotation strongly supports enteric glia, with myelinating features as a dominant subtype. Further investigation could clarify functional subsets and resolve ambiguities around progenitor states and *PLP1* roles.  
+
+*(Word count: 250)*
+
+Your Task - DEPTH-FIRST ANALYSIS:
+
+1. Focused Evaluation – One concise paragraph that:
+    - Assess the current state of annotation based on available evidence
+    - Identify the SINGLE most promising hypothesis to investigate deeply
+    - Explain why this specific hypothesis deserves focused investigation
+
+2. Design ONE targeted follow-up check for your chosen hypothesis:
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers that will definitively validate or refute this specific hypothesis
+    - Include reasoning: why these specific genes, what expression pattern would confirm or refute the hypothesis, and what you will conclude based on different outcomes
+
+3. CRITICAL: After proposing genes to check, STOP and WAIT for the gene expression results.
+   - DO NOT say "FINAL ANNOTATION COMPLETED" until you have received and analyzed gene expression data
+   - DO NOT conclude the analysis without checking at least 2 rounds of genes
+   - You must wait for the system to provide the expression data for your requested genes
+
+4. Upon receiving gene expression results:
+    - If the hypothesis is CONFIRMED: Go deeper into subtype classification or functional states within this cell type
+    - If the hypothesis is REFUTED: Move to the next most likely alternative hypothesis
+    - If the results are INCONCLUSIVE: Design a more targeted follow-up to resolve the ambiguity
+    - Continue this focused approach until you have completed at least 2 rounds of gene checking
+
+5. Only say "FINAL ANNOTATION COMPLETED" when ALL of these conditions are met:
+   - You have completed at least 2 rounds of gene expression checking
+   - You have received and analyzed the expression data for your requested genes
+   - You are confident in your final conclusion based on the accumulated evidence
+   
+6. When you are ready to make a final determination (after meeting the above conditions), state: "FINAL ANNOTATION COMPLETED" followed by your conclusion paragraph that includes:
+    1. The final cell type
+    2. Confidence level (high, medium, or low)
+    3. Key markers supporting your conclusion
+    4. Alternative possibilities only if the confidence is not high, and what should the user do next
+
+Output Template：
+
+Focused Evaluation
+[One paragraph explaining your chosen hypothesis and rationale]
+
+Primary hypothesis to investigate:
+[Clear statement of the specific cell type or biological state being tested]
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these specific genes were chosen, what expression patterns you expect for confirmation vs. refutation, and how you will interpret different outcomes to guide the next step.
+</reasoning>
+
+Key Guidelines:
+- Focus on ONE hypothesis per iteration - resist the urge to test multiple ideas simultaneously
+- Go DEEP rather than broad - if a hypothesis shows promise, drill down into subtypes, activation states, or functional variants
+- Be decisive about moving on if a hypothesis is clearly refuted
+- Each iteration should build logically on the previous findings
+- Aim for definitive validation or refutation rather than partial evidence
+- NEVER say "FINAL ANNOTATION COMPLETED" immediately after requesting genes - always wait for the expression results first
+- Complete at least 2 rounds of gene checking before considering a final conclusion
+
+Tone & Style:
+- Methodical, focused, and systematic
+- Professional and evidence-based
+- Progressively deeper analysis of each chosen hypothesis
+- Clear decision-making about when to pivot vs. when to go deeper
+
+
+
+
+================================================================================
+
+## ASSISTANT
+
+### Focused Evaluation  
+The current annotation strongly supports **enteric glial cells (EGCs)** with myelinating or myelin-like properties, driven by markers like *PLP1*, *SOX10*, and *PTPRZ1*. However, the presence of *SOX2* and *FOXD3* raises a critical question: is there a distinct **progenitor-like glial subpopulation** within this cluster? This hypothesis deserves focused investigation because: (1) *SOX2/FOXD3* are canonical neural crest/glial progenitor markers, (2) their co-expression with mature glial markers (*PLP1*, *SOX10*) suggests potential heterogeneity, and (3) resolving this could clarify whether these cells represent a transient developmental state or a functionally distinct subset.  
+
+### Primary hypothesis to investigate:  
+**Progenitor-like enteric glial subpopulation** coexisting with mature myelinating glia.  
+
+<check_genes>SOX2,FOXD3,NGFR,GFAP,S100B,MPZ</check_genes>  
+
+<reasoning>  
+- **Positive markers for progenitor state**: *SOX2* and *FOXD3* (already detected) should co-express with *NGFR* (neural crest progenitor marker) but show low/no expression of mature glial markers (*GFAP*, *S100B*) or myelin-specific *MPZ*.  
+- **Negative markers for mature glia**: High *GFAP/S100B* would refute progenitor identity, while *MPZ* (peripheral myelin protein) would confirm myelinating maturity.  
+- **Expected outcomes**:  
+  - **Confirmation**: High *SOX2/FOXD3/NGFR* with low *GFAP/S100B/MPZ* → progenitor-like subpopulation.  
+  - **Refutation**: Uniform high *GFAP/S100B/MPZ* → mature glia without progenitor subset.  
+  - **Inconclusive**: Mixed expression → may require single-cell resolution or additional markers.  
+Next steps will depend on whether progenitor markers segregate distinctly or overlap with mature glial markers.  
+</reasoning>  
+
+(Waiting for gene expression results before proceeding.)
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+FOXD3       7.95  0.18  0.00  0.00e+00
+  MPZ       6.79  0.42  0.01  0.00e+00
+ NGFR       5.91  0.38  0.01  0.00e+00
+S100B       7.27  0.78  0.01  0.00e+00
+ SOX2       7.99  0.56  0.01  0.00e+00
+Note: The following genes are not in the differential expression list: GFAP
+
+
+================================================================================
+
+## ASSISTANT
+
+### Analysis of Gene Expression Results  
+
+The expression data reveals a **mixed signature**, complicating the progenitor hypothesis:  
+- **Progenitor markers**: *SOX2* (high log2FC=7.99, pct.1=56%) and *FOXD3* (log2FC=7.95, pct.1=18%) are strongly expressed, alongside *NGFR* (log2FC=5.91, pct.1=38%), supporting a progenitor-like state.  
+- **Mature glial markers**: *S100B* (log2FC=7.27, pct.1=78%) and *MPZ* (log2FC=6.79, pct.1=42%) are also highly expressed, indicating concurrent mature glial features.  
+
+**Interpretation**:  
+- The co-expression of progenitor (*SOX2/FOXD3/NGFR*) and mature (*S100B/MPZ*) markers suggests **either**:  
+  1. A transient progenitor-to-mature transition state, or  
+  2. Technical overlap (e.g., doublets or unresolved subclusters).  
+- *GFAP* absence is notable but inconclusive (may reflect ENS-specific glial biology).  
+
+### Next Step: Resolve Ambiguity  
+To distinguish between a **transitional state** vs. **distinct subpopulations**, we need markers that segregate progenitor and mature glia more sharply.  
+
+### Primary hypothesis to investigate:  
+**Are *SOX2+* cells a distinct progenitor subpopulation, or do all cells co-express mature glial markers?**  
+
+<check_genes>MKI67,ASCL1,OLIG1,ERBB3,CDH19</check_genes>  
+
+<reasoning>  
+- **Proliferation/active progenitor state**: *MKI67* (cell cycle), *ASCL1* (neuroglial commitment).  
+- **Glial lineage specificity**: *OLIG1* (oligodendrocyte progenitor), *ERBB3* (glial differentiation), *CDH19* (neural crest/glial adhesion, already in cluster markers).  
+- **Expected outcomes**:  
+  - **Distinct subpopulations**: *MKI67+/ASCL1+/OLIG1+* cells will lack *S100B/MPZ*.  
+  - **Transitional state**: Uniform co-expression of progenitor/mature markers.  
+  - **Technical artifact**: No clear separation (may require subclustering).  
+</reasoning>  
+
+(Waiting for gene expression results before proceeding.)
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+CDH19       8.87  1.00  0.01  0.00e+00
+ERBB3       2.85  0.59  0.26 4.04e-116
+MKI67       6.60  0.61  0.01  0.00e+00
+Note: The following genes are not in the differential expression list: ASCL1, OLIG1
+
+
+================================================================================
+
+## ASSISTANT
+
+### Analysis of Gene Expression Results  
+
+The follow-up data further supports **heterogeneity within the cluster**, but the progenitor vs. mature glia distinction remains ambiguous:  
+- **Proliferation/Progenitor State**: *MKI67* (log2FC=6.60, pct.1=61%) confirms actively cycling cells, but *ASCL1/OLIG1* absence limits oligodendrocyte-lineage specificity.  
+- **Glial Differentiation**: *ERBB3* (log2FC=2.85, pct.1=59%) is moderately expressed, consistent with glial differentiation but not exclusive to progenitors.  
+- **Neural Crest/Glial Adhesion**: *CDH19* (log2FC=8.87, pct.1=100%) is uniformly high, reinforcing neural crest-derived identity but not resolving maturation states.  
+
+**Key Conclusions**:  
+1. **Active Proliferation**: The high *MKI67* suggests a proliferative subset, but without *ASCL1/OLIG1*, these may not be classic oligodendrocyte progenitors.  
+2. **No Clear Subpopulation Split**: Co-expression of *MKI67* (proliferation) with *S100B/MPZ* (maturity) hints at a **transitional state** rather than distinct subsets.  
+3. **ENS-Specific Biology**: The lack of *GFAP* and ambiguous progenitor markers may reflect unique enteric glial properties.  
+
+### Final Annotation  
+
+**FINAL ANNOTATION COMPLETED**  
+
+**Cell Type**: **Proliferative Enteric Glial Cells with Myelin-like Features**  
+- **Confidence**: **Medium-High** (supported by marker overlap but limited by unresolved maturation dynamics).  
+- **Key Supporting Markers**:  
+  - Glial Identity: *PLP1, SOX10, S100B, PTPRZ1*.  
+  - Proliferation/Progenitor: *MKI67, SOX2, FOXD3*.  
+  - Maturation/Myelin-like: *MPZ, ERBB3*.  
+- **Alternative Possibilities**:  
+  - Minor contaminating neural crest progenitors (if *SOX2+/MKI67+* cells are rare but masked by bulk metrics).  
+  - Non-canonical glial activation state (e.g., injury response).  
+
+**Next Steps**:  
+- **Subclustering**: Separate *MKI67+* vs. *MPZ+* cells to confirm transitional states.  
+- **Functional Assays**: Validate proliferative capacity (e.g., EdU labeling) and myelin function (e.g., ultrastructure).  
+
+*(Word count: 250)*

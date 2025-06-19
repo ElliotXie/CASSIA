@@ -108,9 +108,112 @@ Please start by analyzing the provided markers and forming initial hypotheses.
     return prompt
 
 
+def prompt_hypothesis_generator_depth_first(major_cluster_info: str, comma_separated_genes: str, annotation_history: str) -> str:
+    """
+    Generate a prompt for depth-first iterative marker analysis without additional tasks.
+    Focus on one hypothesis at a time and go deeper.
+    
+    Args:
+        major_cluster_info: Information about the cluster being analyzed
+        comma_separated_genes: Comma-separated list of marker genes
+        annotation_history: Previous annotation history
+        
+    Returns:
+        str: Generated prompt text
+    """
+    prompt = f"""
+You are a careful senior computational biologist specializing in detailed, hypothesis-driven cell type annotation. Your approach is methodical and focused: you examine ONE specific hypothesis at a time and dive deep into its validation or refutation before moving to alternatives.
+
+CRITICAL WORKFLOW RULES:
+1. NEVER say "FINAL ANNOTATION COMPLETED" immediately after requesting genes to check
+2. You MUST wait for gene expression results before proceeding to any conclusion
+3. You MUST complete at least 2 rounds of gene checking before considering a final annotation
+4. Each round means: request genes → receive expression data → analyze results → either go deeper or pivot
+
+Context Provided to You:
+
+Cluster summary：{major_cluster_info}
+
+Top ranked markers (high → low)：
+ {comma_separated_genes}
+
+Prior annotation results：
+ {annotation_history}
+
+Your Task - DEPTH-FIRST ANALYSIS:
+
+1. Focused Evaluation – One concise paragraph that:
+    - Assess the current state of annotation based on available evidence
+    - Identify the SINGLE most promising hypothesis to investigate deeply
+    - Explain why this specific hypothesis deserves focused investigation
+
+2. Design ONE targeted follow-up check for your chosen hypothesis:
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers that will definitively validate or refute this specific hypothesis
+    - Include reasoning: why these specific genes, what expression pattern would confirm or refute the hypothesis, and what you will conclude based on different outcomes
+
+3. CRITICAL: After proposing genes to check, STOP and WAIT for the gene expression results.
+   - DO NOT say "FINAL ANNOTATION COMPLETED" until you have received and analyzed gene expression data
+   - DO NOT conclude the analysis without checking at least 2 rounds of genes
+   - You must wait for the system to provide the expression data for your requested genes
+
+4. Upon receiving gene expression results:
+    - If the hypothesis is CONFIRMED: Go deeper into subtype classification or functional states within this cell type
+    - If the hypothesis is REFUTED: Move to the next most likely alternative hypothesis
+    - If the results are INCONCLUSIVE: Design a more targeted follow-up to resolve the ambiguity
+    - Continue this focused approach until you have completed at least 2 rounds of gene checking
+
+5. Only say "FINAL ANNOTATION COMPLETED" when ALL of these conditions are met:
+   - You have completed at least 2 rounds of gene expression checking
+   - You have received and analyzed the expression data for your requested genes
+   - You are confident in your final conclusion based on the accumulated evidence
+   
+6. When you are ready to make a final determination (after meeting the above conditions), state: "FINAL ANNOTATION COMPLETED" followed by your conclusion paragraph that includes:
+    1. The final cell type
+    2. Confidence level (high, medium, or low)
+    3. Key markers supporting your conclusion
+    4. Alternative possibilities only if the confidence is not high, and what should the user do next
+
+Output Template：
+
+Focused Evaluation
+[One paragraph explaining your chosen hypothesis and rationale]
+
+Primary hypothesis to investigate:
+[Clear statement of the specific cell type or biological state being tested]
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these specific genes were chosen, what expression patterns you expect for confirmation vs. refutation, and how you will interpret different outcomes to guide the next step.
+</reasoning>
+
+Key Guidelines:
+- Focus on ONE hypothesis per iteration - resist the urge to test multiple ideas simultaneously
+- Go DEEP rather than broad - if a hypothesis shows promise, drill down into subtypes, activation states, or functional variants
+- Be decisive about moving on if a hypothesis is clearly refuted
+- Each iteration should build logically on the previous findings
+- Aim for definitive validation or refutation rather than partial evidence
+- NEVER say "FINAL ANNOTATION COMPLETED" immediately after requesting genes - always wait for the expression results first
+- Complete at least 2 rounds of gene checking before considering a final conclusion
+
+Tone & Style:
+- Methodical, focused, and systematic
+- Professional and evidence-based
+- Progressively deeper analysis of each chosen hypothesis
+- Clear decision-making about when to pivot vs. when to go deeper
+
+"""
+    return prompt
+
+
 def prompt_hypothesis_generator(major_cluster_info: str, comma_separated_genes: str, annotation_history: str) -> str:
     """
-    Generate a prompt for iterative marker analysis without additional tasks.
+    Generate a prompt for breadth-first iterative marker analysis without additional tasks.
     
     Args:
         major_cluster_info: Information about the cluster being analyzed
@@ -212,9 +315,89 @@ Progressively deepen the anlaysis, don't repeat the same hypothesis.
 
 
 
+def prompt_hypothesis_generator_additional_task_depth_first(major_cluster_info: str, comma_separated_genes: str, annotation_history: str, additional_task: str) -> str:
+    """
+    Generate a prompt for depth-first iterative marker analysis with an additional task.
+    Focus on one hypothesis at a time and go deeper.
+    
+    Args:
+        major_cluster_info: Information about the cluster being analyzed
+        comma_separated_genes: Comma-separated list of marker genes
+        annotation_history: Previous annotation history
+        additional_task: Additional analysis task to perform
+        
+    Returns:
+        str: Generated prompt text
+    """
+    prompt = f"""You are a careful professional biologist, specializing in single-cell RNA-seq analysis with a focused, depth-first approach. You examine ONE specific hypothesis at a time and dive deep into its validation before considering alternatives.
+
+CRITICAL WORKFLOW RULES:
+1. NEVER say "FINAL ANALYSIS COMPLETED" immediately after requesting genes to check
+2. You MUST wait for gene expression results before proceeding to any conclusion
+3. You MUST complete at least 2 rounds of gene checking before considering a final analysis
+4. Each round means: request genes → receive expression data → analyze results → either go deeper or pivot
+
+I'll provide you with some genes (comma-separated) from a cell type in {major_cluster_info} and I want you to help identify the cell type using a methodical, hypothesis-driven approach.
+
+Here are the marker genes that are differentially expressed in this cluster:
+{comma_separated_genes}
+
+Previous annotation/analysis:
+{annotation_history if annotation_history else "No previous annotation available."}
+
+Please follow these steps carefully with a DEPTH-FIRST approach:
+1. Based on the marker genes and previous analysis, identify the SINGLE most promising hypothesis about what cell type this might be.
+2. Provide supporting evidence from the marker genes for this specific hypothesis.
+3. Design ONE targeted validation check using the <check_genes>...</check_genes> tags to definitively confirm or refute this hypothesis.
+   **CRITICAL FORMATTING FOR <check_genes>:**
+   - Inside the tags, provide *ONLY* a comma-separated list of official gene symbols.
+   - Example: `<check_genes>TP53,KRAS,EGFR</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+   - Strict adherence to this format is ESSENTIAL.
+4. CRITICAL: After proposing genes to check, STOP and WAIT for the gene expression results.
+   - DO NOT say "FINAL ANALYSIS COMPLETED" until you have received and analyzed gene expression data
+   - DO NOT conclude the analysis without checking at least 2 rounds of genes
+   - You must wait for the system to provide the expression data for your requested genes
+
+5. After I provide additional gene information:
+   - If hypothesis is CONFIRMED: Go deeper into subtype classification or functional states
+   - If hypothesis is REFUTED: Move to the next most likely alternative
+   - If INCONCLUSIVE: Design more targeted follow-up to resolve ambiguity
+   
+6. Continue this focused process until you have completed at least 2 rounds of gene checking.
+
+7. {additional_task} - perform this analysis based on your final cell type determination and the marker gene expression patterns.
+
+8. Only say "FINAL ANALYSIS COMPLETED" when ALL of these conditions are met:
+   - You have completed at least 2 rounds of gene expression checking
+   - You have received and analyzed the expression data for your requested genes
+   - You are confident in your final conclusion based on the accumulated evidence
+
+9. When you are ready to make a final determination (after meeting the above conditions), state: "FINAL ANALYSIS COMPLETED" followed by your conclusion.
+
+Your final analysis should include:
+- General cell type
+- Specific cell subtype (if applicable)
+- Confidence level (high, medium, low)
+- Alternative possibilities if confidence is not high
+- Key markers supporting your conclusion
+- Analysis of the additional task: {additional_task}
+
+Guidelines for depth-first approach:
+- Focus on ONE hypothesis per iteration
+- Go deeper rather than broader when a hypothesis shows promise
+- Be decisive about pivoting when a hypothesis is clearly refuted
+- Build logically on previous findings
+- NEVER say "FINAL ANALYSIS COMPLETED" immediately after requesting genes - always wait for the expression results first
+- Complete at least 2 rounds of gene checking before considering a final conclusion
+
+Please start by analyzing the provided markers and identifying your primary hypothesis to investigate.
+"""
+    return prompt
+
+
 def prompt_hypothesis_generator_additional_task(major_cluster_info: str, comma_separated_genes: str, annotation_history: str, additional_task: str) -> str:
     """
-    Generate a prompt for iterative marker analysis with an additional task.
+    Generate a prompt for breadth-first iterative marker analysis with an additional task.
     
     Args:
         major_cluster_info: Information about the cluster being analyzed
@@ -571,7 +754,8 @@ def iterative_marker_analysis(
     provider: str = "openrouter",
     model: Optional[str] = None,
     additional_task: Optional[str] = None,
-    temperature: float = 0
+    temperature: float = 0,
+    search_strategy: str = "breadth"
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Perform iterative marker analysis using the specified LLM provider.
@@ -586,25 +770,41 @@ def iterative_marker_analysis(
         model: Specific model from the provider to use
         additional_task: Optional additional task to perform during analysis
         temperature: Sampling temperature (0-1)
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         
     Returns:
         tuple: (final_response_text, messages)
     """
-    # Select the appropriate prompt based on whether there's an additional task
+    # Select the appropriate prompt based on search strategy and whether there's an additional task
     if additional_task:
-        prompt = prompt_hypothesis_generator_additional_task(
-            major_cluster_info, 
-            comma_separated_genes, 
-            annotation_history, 
-            additional_task
-        )
+        if search_strategy.lower() == "depth":
+            prompt = prompt_hypothesis_generator_additional_task_depth_first(
+                major_cluster_info, 
+                comma_separated_genes, 
+                annotation_history, 
+                additional_task
+            )
+        else:  # breadth or any other value defaults to breadth
+            prompt = prompt_hypothesis_generator_additional_task(
+                major_cluster_info, 
+                comma_separated_genes, 
+                annotation_history, 
+                additional_task
+            )
         completion_marker = "FINAL ANALYSIS COMPLETED"
     else:
-        prompt = prompt_hypothesis_generator(
-            major_cluster_info, 
-            comma_separated_genes, 
-            annotation_history
-        )
+        if search_strategy.lower() == "depth":
+            prompt = prompt_hypothesis_generator_depth_first(
+                major_cluster_info, 
+                comma_separated_genes, 
+                annotation_history
+            )
+        else:  # breadth or any other value defaults to breadth
+            prompt = prompt_hypothesis_generator(
+                major_cluster_info, 
+                comma_separated_genes, 
+                annotation_history
+            )
         completion_marker = "FINAL ANNOTATION COMPLETED"
     
     # Initialize the conversation history
@@ -867,13 +1067,15 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
             
         return filename
 
-def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str) -> str:
+def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration") -> str:
     """
     Generate a summarized report from the raw conversation history.
     
     Args:
         conversation_history: List of conversation messages
         output_filename: Path to save the summary report
+        search_strategy: Search strategy used ("breadth" or "depth")
+        report_style: Style of report ("per_iteration" or "total_summary")
         
     Returns:
         str: Path to the saved HTML report
@@ -888,13 +1090,75 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
                 content = str(content)
             full_conversation += f"\n## {role.upper()}\n{content}\n"
         
-        # Craft the prompt for the LLM to generate a summary using simple tags
-        prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis. 
-        I will provide you a raw conversation history from a cell type annotation tool called CASSIA, which conducts iterative gene expression analysis.
+        # Determine analysis approach description
+        approach_description = "depth-first (focused, one hypothesis per iteration)" if search_strategy.lower() == "depth" else "breadth-first (multiple hypotheses per iteration)"
         
-        Your task is to generate a structured, concise summary report that highlights the key findings, hypotheses tested, and conclusions drawn.
-        
-        Use the following simple tag format exactly in your response:
+        # Generate different prompts based on report style
+        if report_style.lower() == "total_summary":
+            # Gene-focused summary style
+            prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis. 
+            I will provide you a raw conversation history from a cell type annotation tool called CASSIA, which conducts iterative gene expression analysis using a {approach_description} approach.
+            
+            Your task is to generate a streamlined, gene-focused summary that highlights what genes were checked and what conclusions were drawn. Focus on the scientific findings rather than the iteration structure.
+            
+            Use the following simple tag format exactly in your response:
+            
+            <OVERVIEW>
+            Brief overview of what was analyzed and the total scope of gene checking performed.
+            </OVERVIEW>
+            
+            <INITIAL_HYPOTHESIS>
+            What was the starting hypothesis or cell type being investigated?
+            </INITIAL_HYPOTHESIS>
+            
+            <GENES_ANALYZED>
+            <GENE_GROUP_1>
+            <TITLE>Purpose/Hypothesis Being Tested</TITLE>
+            <GENES>Gene1, Gene2, Gene3</GENES>
+            <FINDINGS>What the expression patterns revealed and conclusions drawn</FINDINGS>
+            </GENE_GROUP_1>
+            
+            <GENE_GROUP_2>
+            <TITLE>Purpose/Hypothesis Being Tested</TITLE>
+            <GENES>Gene4, Gene5, Gene6</GENES>
+            <FINDINGS>What the expression patterns revealed and conclusions drawn</FINDINGS>
+            </GENE_GROUP_2>
+            
+            # Continue for each distinct group of genes checked...
+            </GENES_ANALYZED>
+            
+            <FINAL_CONCLUSION>
+            The definitive cell type annotation reached, confidence level, and key supporting evidence.
+            </FINAL_CONCLUSION>
+            
+            <KEY_INSIGHTS>
+            Most important biological insights gained from the gene expression analysis.
+            </KEY_INSIGHTS>
+            
+            <VALIDATION_STATUS>
+            Whether the analysis was complete, any remaining uncertainties, or recommendations for further validation.
+            </VALIDATION_STATUS>
+            
+            Guidelines:
+            1. Group genes by their biological function or the hypothesis they were testing
+            2. Focus on what was learned from each gene group rather than when it was checked
+            3. Make the biological story clear and readable
+            4. Use exact gene names with proper capitalization
+            5. Keep the focus on scientific conclusions rather than process details
+            6. Make sure all tags are properly closed and formatted for HTML rendering
+            
+            Here's the conversation history to summarize:
+            
+            {full_conversation}
+            """
+        else:
+            # Original per-iteration style
+            prompt = f"""You are a specialized scientific report generator focusing on gene expression analysis. 
+            I will provide you a raw conversation history from a cell type annotation tool called CASSIA, which conducts iterative gene expression analysis using a {approach_description} approach.
+            
+            Your task is to generate a structured, concise summary report that highlights the key findings, hypotheses tested, and conclusions drawn.
+            
+            Use the following simple tag format exactly in your response:
         
         <OVERVIEW>
         Brief overview of what was analyzed and how many iterations were performed.
@@ -958,7 +1222,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         )
         
         # Convert to HTML and save
-        html_path = format_summary_to_html(summary, output_filename)
+        html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style)
         print(f"Summary report saved to {html_path}")
         
         # Return the HTML file path
@@ -982,7 +1246,9 @@ def runCASSIA_annotationboost(
     model: Optional[str] = None,
     provider: str = "openrouter",
     temperature: float = 0,
-    conversation_history_mode: str = "final"
+    conversation_history_mode: str = "final",
+    search_strategy: str = "breadth",
+    report_style: str = "per_iteration"
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
@@ -993,11 +1259,13 @@ def runCASSIA_annotationboost(
         cluster_name: Name of the cluster to analyze
         major_cluster_info: General information about the dataset (e.g., "Human PBMC")
         output_name: Base name for the output HTML file
-        num_iterations: Number of iterations for marker analysis (default=5)
+        num_iterations: Number of iterations for marker analysis (default=10)
         model: Model to use for analysis - if None, uses the provider's default
         provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
         temperature: Sampling temperature (0-1)
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style: Style of report ("per_iteration" or "total_summary")
     
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1024,7 +1292,8 @@ def runCASSIA_annotationboost(
             num_iterations=num_iterations,
             provider=provider,
             model=model,
-            temperature=temperature
+            temperature=temperature,
+            search_strategy=search_strategy
         )
         
         # Generate paths for reports - only summary HTML and raw conversation text
@@ -1047,7 +1316,7 @@ def runCASSIA_annotationboost(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")
@@ -1091,7 +1360,9 @@ def runCASSIA_annotationboost_additional_task(
     provider: str = "openrouter",
     additional_task: str = "check if this is a cancer cluster",
     temperature: float = 0,
-    conversation_history_mode: str = "final"
+    conversation_history_mode: str = "final",
+    search_strategy: str = "breadth",
+    report_style: str = "per_iteration"
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.
@@ -1108,6 +1379,8 @@ def runCASSIA_annotationboost_additional_task(
         additional_task: Additional task to perform during analysis
         temperature: Sampling temperature (0-1)
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style: Style of report ("per_iteration" or "total_summary")
     
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1135,7 +1408,8 @@ def runCASSIA_annotationboost_additional_task(
             provider=provider,
             model=model,
             additional_task=additional_task,
-            temperature=temperature
+            temperature=temperature,
+            search_strategy=search_strategy
         )
         
         # Generate paths for reports - only summary HTML and raw conversation text
@@ -1158,7 +1432,7 @@ def runCASSIA_annotationboost_additional_task(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")
@@ -1191,13 +1465,15 @@ def runCASSIA_annotationboost_additional_task(
             'analysis_text': None
         }
 
-def format_summary_to_html(summary_text: str, output_filename: str) -> str:
+def format_summary_to_html(summary_text: str, output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration") -> str:
     """
     Convert the tagged summary into a properly formatted HTML report.
     
     Args:
-        summary_text: Text with tags like <OVERVIEW>, <ITERATION_1>, etc.
+        summary_text: Text with tags like <OVERVIEW>, <ITERATION_1>, etc. or gene-focused tags
         output_filename: Path to save the HTML report
+        search_strategy: Search strategy used ("breadth" or "depth")
+        report_style: Style of report ("per_iteration" or "total_summary")
         
     Returns:
         str: Path to the saved HTML report
@@ -1263,17 +1539,28 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
             # If no patterns match, just return the original text
             return text
             
-        # Extract sections using regex
+        # Extract sections using regex based on report style
         sections = {}
         
-        # Define the sections to extract
-        section_patterns = {
-            'overview': r'<OVERVIEW>\s*([\s\S]*?)\s*</OVERVIEW>',
-            'initial_assessment': r'<INITIAL_ASSESSMENT>\s*([\s\S]*?)\s*</INITIAL_ASSESSMENT>',
-            'final_annotation': r'<FINAL_ANNOTATION>\s*([\s\S]*?)\s*</FINAL_ANNOTATION>',
-            'marker_summary': r'<MARKER_SUMMARY>\s*([\s\S]*?)\s*</MARKER_SUMMARY>',
-            'recommendations': r'<RECOMMENDATIONS>\s*([\s\S]*?)\s*</RECOMMENDATIONS>',
-        }
+        if report_style.lower() == "total_summary":
+            # Gene-focused report sections
+            section_patterns = {
+                'overview': r'<OVERVIEW>\s*([\s\S]*?)\s*</OVERVIEW>',
+                'initial_hypothesis': r'<INITIAL_HYPOTHESIS>\s*([\s\S]*?)\s*</INITIAL_HYPOTHESIS>',
+                'genes_analyzed': r'<GENES_ANALYZED>\s*([\s\S]*?)\s*</GENES_ANALYZED>',
+                'final_conclusion': r'<FINAL_CONCLUSION>\s*([\s\S]*?)\s*</FINAL_CONCLUSION>',
+                'key_insights': r'<KEY_INSIGHTS>\s*([\s\S]*?)\s*</KEY_INSIGHTS>',
+                'validation_status': r'<VALIDATION_STATUS>\s*([\s\S]*?)\s*</VALIDATION_STATUS>',
+            }
+        else:
+            # Original per-iteration sections
+            section_patterns = {
+                'overview': r'<OVERVIEW>\s*([\s\S]*?)\s*</OVERVIEW>',
+                'initial_assessment': r'<INITIAL_ASSESSMENT>\s*([\s\S]*?)\s*</INITIAL_ASSESSMENT>',
+                'final_annotation': r'<FINAL_ANNOTATION>\s*([\s\S]*?)\s*</FINAL_ANNOTATION>',
+                'marker_summary': r'<MARKER_SUMMARY>\s*([\s\S]*?)\s*</MARKER_SUMMARY>',
+                'recommendations': r'<RECOMMENDATIONS>\s*([\s\S]*?)\s*</RECOMMENDATIONS>',
+            }
         
         # Extract each section
         for key, pattern in section_patterns.items():
@@ -1283,27 +1570,50 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
             else:
                 sections[key] = "No information available"
         
-        # Extract iterations
+        # Extract iterations (only for per_iteration style)
         iterations = []
-        iter_pattern = r'<ITERATION_(\d+)>\s*([\s\S]*?)\s*</ITERATION_\1>'
-        for match in re.finditer(iter_pattern, summary_text):
-            iter_num = match.group(1)
-            iter_content = match.group(2)
-            
-            # Extract subsections within each iteration
-            hypotheses = re.search(r'<HYPOTHESES>\s*([\s\S]*?)\s*</HYPOTHESES>', iter_content)
-            genes_checked = re.search(r'<GENES_CHECKED>\s*([\s\S]*?)\s*</GENES_CHECKED>', iter_content)
-            key_findings = re.search(r'<KEY_FINDINGS>\s*([\s\S]*?)\s*</KEY_FINDINGS>', iter_content)
-            
-            iterations.append({
-                'number': iter_num,
-                'hypotheses': hypotheses.group(1).strip() if hypotheses else "No information available",
-                'genes_checked': genes_checked.group(1).strip() if genes_checked else "No information available",
-                'key_findings': key_findings.group(1).strip() if key_findings else "No information available"
-            })
+        gene_groups = []
         
-        # Sort iterations by number
-        iterations.sort(key=lambda x: int(x['number']))
+        if report_style.lower() == "per_iteration":
+            iter_pattern = r'<ITERATION_(\d+)>\s*([\s\S]*?)\s*</ITERATION_\1>'
+            for match in re.finditer(iter_pattern, summary_text):
+                iter_num = match.group(1)
+                iter_content = match.group(2)
+                
+                # Extract subsections within each iteration
+                hypotheses = re.search(r'<HYPOTHESES>\s*([\s\S]*?)\s*</HYPOTHESES>', iter_content)
+                genes_checked = re.search(r'<GENES_CHECKED>\s*([\s\S]*?)\s*</GENES_CHECKED>', iter_content)
+                key_findings = re.search(r'<KEY_FINDINGS>\s*([\s\S]*?)\s*</KEY_FINDINGS>', iter_content)
+                
+                iterations.append({
+                    'number': iter_num,
+                    'hypotheses': hypotheses.group(1).strip() if hypotheses else "No information available",
+                    'genes_checked': genes_checked.group(1).strip() if genes_checked else "No information available",
+                    'key_findings': key_findings.group(1).strip() if key_findings else "No information available"
+                })
+            
+            # Sort iterations by number
+            iterations.sort(key=lambda x: int(x['number']))
+        else:
+            # Extract gene groups for total_summary style
+            genes_analyzed_content = sections.get('genes_analyzed', '')
+            gene_group_pattern = r'<GENE_GROUP_\d+>\s*([\s\S]*?)\s*</GENE_GROUP_\d+>'
+            for match in re.finditer(gene_group_pattern, genes_analyzed_content):
+                group_content = match.group(1)
+                
+                # Extract subsections within each gene group
+                title = re.search(r'<TITLE>\s*([\s\S]*?)\s*</TITLE>', group_content)
+                genes = re.search(r'<GENES>\s*([\s\S]*?)\s*</GENES>', group_content)
+                findings = re.search(r'<FINDINGS>\s*([\s\S]*?)\s*</FINDINGS>', group_content)
+                
+                gene_groups.append({
+                    'title': title.group(1).strip() if title else "Gene Analysis",
+                    'genes': genes.group(1).strip() if genes else "No genes listed",
+                    'findings': findings.group(1).strip() if findings else "No findings available"
+                })
+        
+        # Determine strategy description for display
+        strategy_display = f"({search_strategy.title()}-First Analysis)" if search_strategy.lower() in ['breadth', 'depth'] else ""
         
         # HTML template with CSS styling
         html = f"""
@@ -1312,7 +1622,7 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>CASSIA Cell Type Annotation Summary</title>
+            <title>CASSIA Cell Type Annotation Summary {strategy_display}</title>
             <style>
                 :root {{
                     --primary-color: #2563eb;
@@ -1481,7 +1791,7 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
         <body>
             <div class="container">
                 <header>
-                    <h1>CASSIA Cell Type Annotation Summary</h1>
+                    <h1>CASSIA Cell Type Annotation Summary {strategy_display}</h1>
                     <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
                 </header>
                 
@@ -1493,77 +1803,132 @@ def format_summary_to_html(summary_text: str, output_filename: str) -> str:
                 </section>
                 
                 <section>
-                    <h2>Initial Assessment</h2>
+                    <h2>{('Initial Hypothesis' if report_style.lower() == 'total_summary' else 'Initial Assessment')}</h2>
                     <div class="content">
-                        {sections['initial_assessment']}
+                        {sections.get('initial_hypothesis' if report_style.lower() == 'total_summary' else 'initial_assessment', 'No information available')}
                     </div>
                 </section>
         """
         
-        # Add iterations
-        for iteration in iterations:
-            # Format genes checked as badges
-            genes = iteration['genes_checked']
-            gene_badges = ""
-            if genes and genes != "No information available":
-                gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
-                gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
-            
-            html += f"""
-                <section>
-                    <h2>Iteration {iteration['number']}</h2>
-                    
-                    <div class="sub-section">
-                        <h3>Hypotheses</h3>
-                        <div class="content">
-                            {format_hypotheses(iteration['hypotheses'])}
+        # Add content based on report style
+        if report_style.lower() == "total_summary":
+            # Add gene groups for total summary style
+            for i, group in enumerate(gene_groups, 1):
+                # Format genes as badges
+                genes = group['genes']
+                gene_badges = ""
+                if genes and genes != "No genes listed":
+                    gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
+                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                
+                html += f"""
+                    <section>
+                        <h2>Gene Analysis {i}: {group['title']}</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Analyzed</h3>
+                            {gene_badges}
                         </div>
-                    </div>
-                    
-                    <div class="sub-section">
-                        <h3>Genes Checked</h3>
-                        {gene_badges}
-                    </div>
-                    
-                    <div class="sub-section">
-                        <h3>Key Findings</h3>
-                        <div class="content">
-                            {iteration['key_findings']}
+                        
+                        <div class="sub-section">
+                            <h3>Findings & Conclusions</h3>
+                            <div class="content">
+                                {group['findings']}
+                            </div>
                         </div>
-                    </div>
-                </section>
-            """
+                    </section>
+                """
+        else:
+            # Add iterations for per-iteration style
+            for iteration in iterations:
+                # Format genes checked as badges
+                genes = iteration['genes_checked']
+                gene_badges = ""
+                if genes and genes != "No information available":
+                    gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
+                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                
+                html += f"""
+                    <section>
+                        <h2>Iteration {iteration['number']}</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                {format_hypotheses(iteration['hypotheses'])}
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            {gene_badges}
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                {iteration['key_findings']}
+                            </div>
+                        </div>
+                    </section>
+                """
         
         # Add final annotation (highlighted)
+        final_section_key = 'final_conclusion' if report_style.lower() == 'total_summary' else 'final_annotation'
+        final_section_title = 'Final Conclusion' if report_style.lower() == 'total_summary' else 'Final Annotation'
         html += f"""
                 <section class="final-annotation">
-                    <h2>Final Annotation</h2>
+                    <h2>{final_section_title}</h2>
                     <div class="content">
-                        {sections['final_annotation']}
+                        {sections.get(final_section_key, 'No information available')}
                     </div>
                 </section>
         """
         
-        # Add marker summary
-        html += f"""
-                <section>
-                    <h2>Key Marker Genes</h2>
-                    <div class="content">
-                        {sections['marker_summary']}
-                    </div>
-                </section>
-        """
-        
-        # Add recommendations if available
-        if sections['recommendations'] and sections['recommendations'] != "No information available":
-            html += f"""
-                <section>
-                    <h2>Recommendations</h2>
-                    <div class="content">
-                        {sections['recommendations']}
-                    </div>
-                </section>
-            """
+        if report_style.lower() == "total_summary":
+            # Add sections specific to total summary style
+            if sections.get('key_insights') and sections['key_insights'] != "No information available":
+                html += f"""
+                    <section>
+                        <h2>Key Insights</h2>
+                        <div class="content">
+                            {sections['key_insights']}
+                        </div>
+                    </section>
+                """
+            
+            if sections.get('validation_status') and sections['validation_status'] != "No information available":
+                html += f"""
+                    <section>
+                        <h2>Validation Status</h2>
+                        <div class="content">
+                            {sections['validation_status']}
+                        </div>
+                    </section>
+                """
+        else:
+            # Add sections specific to per-iteration style
+            # Add marker summary
+            if sections.get('marker_summary') and sections['marker_summary'] != "No information available":
+                html += f"""
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            {sections['marker_summary']}
+                        </div>
+                    </section>
+                """
+            
+            # Add recommendations if available
+            if sections.get('recommendations') and sections['recommendations'] != "No information available":
+                html += f"""
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            {sections['recommendations']}
+                        </div>
+                    </section>
+                """
         
         # Close the HTML
         html += """

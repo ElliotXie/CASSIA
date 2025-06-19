@@ -466,7 +466,7 @@ def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provide
         return None
 
 # --------------------- Step 6: Annotation Boost ---------------------
-def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provider_test=None, debug_mode=False, test_genes=None, conversation_history_mode="final"):
+def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provider_test=None, debug_mode=False, test_genes=None, conversation_history_mode="final", search_strategy="breadth", report_style="per_iteration"):
     """
     Run annotation boost for a specific cluster.
     
@@ -478,6 +478,8 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         debug_mode: Enable debug mode for diagnostics
         test_genes: List of test genes to check in the marker data
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style: Style of report generation ("per_iteration" or "total_summary")
     """
     print(f"\n=== Running Annotation Boost for {cluster_name} ===")
     
@@ -565,6 +567,8 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         # Now run with the exact cluster name
         print(f"Running annotation boost with {test_provider} provider")
         print(f"Using conversation history mode: {conversation_history_mode}")
+        print(f"Using search strategy: {search_strategy}")
+        print(f"Using report style: {report_style}")
         result = runCASSIA_annotationboost(
             full_result_path = full_csv,
             marker = marker_data,
@@ -574,7 +578,9 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
             num_iterations = 5,
             model = model_name,
             provider = test_provider,
-            conversation_history_mode = conversation_history_mode
+            conversation_history_mode = conversation_history_mode,
+            search_strategy = search_strategy,
+            report_style = report_style
         )
         
         # Check if the result is successful
@@ -755,7 +761,7 @@ def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell
     print("\n=== Subclustering Provider Tests Complete ===")
 
 # --------------------- Step 9: Annotation Boost with Additional Task ---------------------
-def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None, provider_test=None, conversation_history_mode="final"):
+def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None, provider_test=None, conversation_history_mode="final", search_strategy="breadth", report_style="per_iteration"):
     """
     Run annotation boost with an additional task for a cluster.
     
@@ -766,6 +772,8 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         additional_task: Optional task description (default: infer cell state and function)
         provider_test: Optional provider to test (default: uses global provider)
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style: Style of report generation ("per_iteration" or "total_summary")
     """
     # Default cluster to analyze if not specified
     if cluster_name is None:
@@ -824,6 +832,7 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         print(f"Additional task: {additional_task}")
         print(f"Running annotation boost with {test_provider} provider")
         print(f"Using conversation history mode: {conversation_history_mode}")
+        print(f"Using search strategy: {search_strategy}")
         
         # Call the annotation boost function with the exact cluster name from the file
         result = runCASSIA_annotationboost_additional_task(
@@ -836,7 +845,9 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
             model = model_name,
             provider = test_provider,
             additional_task = additional_task,
-            conversation_history_mode = conversation_history_mode
+            conversation_history_mode = conversation_history_mode,
+            search_strategy = search_strategy,
+            report_style = report_style
         )
         
         # Check if the result is successful
@@ -995,8 +1006,82 @@ def test_full_pipeline_providers(marker_data):
     
     print("\n=== Full Pipeline Provider Tests Complete ===")
 
+# --------------------- New: Compare Search Strategies ---------------------
+def compare_search_strategies(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final", report_style="per_iteration"):
+    """
+    Compare breadth-first vs depth-first search strategies for annotation boost.
+    This function demonstrates the differences between the two approaches.
+    
+    Args:
+        marker_data: Marker data DataFrame
+        full_csv: Path to the CSV file with annotation results
+        cluster_name: Name of the cluster to analyze (default: "monocyte")
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        report_style: Style of report generation ("per_iteration" or "total_summary")
+    """
+    print(f"\n=== Comparing Search Strategies for {cluster_name} ===")
+    print(f"This will run the same cluster with both breadth-first and depth-first approaches")
+    print(f"Using conversation history mode: {conversation_history_mode}")
+    print(f"Using report style: {report_style}")
+    
+    # Test breadth-first approach
+    print("\n" + "="*60)
+    print("BREADTH-FIRST APPROACH")
+    print("="*60)
+    print("• Tests multiple hypotheses per iteration (up to 3)")
+    print("• Explores various possibilities quickly")
+    print("• Good for initial screening and comprehensive coverage")
+    print("• Original CASSIA behavior")
+    print()
+    
+    try:
+        run_annotation_boost(
+            marker_data, 
+            full_csv, 
+            cluster_name, 
+            search_strategy="breadth",
+            conversation_history_mode=conversation_history_mode,
+            report_style=report_style
+        )
+        print("✅ Breadth-first analysis completed successfully")
+    except Exception as e:
+        print(f"❌ Error with breadth-first approach: {str(e)}")
+    
+    # Test depth-first approach
+    print("\n" + "="*60)
+    print("DEPTH-FIRST APPROACH")
+    print("="*60)
+    print("• Focuses on one hypothesis per iteration")
+    print("• Goes deeper into each hypothesis before moving to alternatives")
+    print("• Better for complex cell types requiring detailed investigation")
+    print("• Avoids hypothesis overload and provides more focused analysis")
+    print()
+    
+    try:
+        run_annotation_boost(
+            marker_data, 
+            full_csv, 
+            cluster_name, 
+            search_strategy="depth",
+            conversation_history_mode=conversation_history_mode,
+            report_style=report_style
+        )
+        print("✅ Depth-first analysis completed successfully")
+    except Exception as e:
+        print(f"❌ Error with depth-first approach: {str(e)}")
+    
+    print("\n" + "="*60)
+    print("COMPARISON COMPLETE")
+    print("="*60)
+    print("Compare the generated reports to see the differences:")
+    print("• Breadth-first reports will show '(Breadth-First Analysis)' in the title")
+    print("• Depth-first reports will show '(Depth-First Analysis)' in the title")
+    print("• Check the iteration patterns and hypothesis exploration strategies")
+    print("• Notice how depth-first builds understanding progressively")
+    print("• Observe how breadth-first explores multiple directions simultaneously")
+
 # --------------------- New: Test All Annotation Boost Providers ---------------------
-def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final"):
+def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final", search_strategy="breadth", report_style="per_iteration"):
     """
     Test the annotation boost functionality with different providers.
     This function helps validate that the unified annotation boost implementation 
@@ -1007,28 +1092,31 @@ def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyt
         full_csv: Path to the CSV file with annotation results
         cluster_name: Name of the cluster to analyze (default: "monocyte")
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style: Style of report generation ("per_iteration" or "total_summary")
     """
     print("\n=== Testing Annotation Boost with Multiple Providers ===")
     print(f"Using conversation history mode: {conversation_history_mode}")
+    print(f"Using search strategy: {search_strategy}")
     
     # Test with OpenAI provider
     print("\n----- Testing with OpenAI provider -----")
     try:
-        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openai", conversation_history_mode=conversation_history_mode)
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openai", conversation_history_mode=conversation_history_mode, search_strategy=search_strategy, report_style=report_style)
     except Exception as e:
         print(f"Error with OpenAI provider: {str(e)}")
     
     # Test with Anthropic provider
     print("\n----- Testing with Anthropic provider -----")
     try:
-        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="anthropic", conversation_history_mode=conversation_history_mode)
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="anthropic", conversation_history_mode=conversation_history_mode, search_strategy=search_strategy, report_style=report_style)
     except Exception as e:
         print(f"Error with Anthropic provider: {str(e)}")
     
     # Test with OpenRouter provider
     print("\n----- Testing with OpenRouter provider -----")
     try:
-        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openrouter", conversation_history_mode=conversation_history_mode)
+        run_annotation_boost(marker_data, full_csv, cluster_name, provider_test="openrouter", conversation_history_mode=conversation_history_mode, search_strategy=search_strategy, report_style=report_style)
     except Exception as e:
         print(f"Error with OpenRouter provider: {str(e)}")
     
@@ -1041,7 +1129,9 @@ def test_annotation_boost_providers(marker_data, full_csv, cluster_name="monocyt
             cluster_name, 
             additional_task="check if this cell type expresses cancer markers", 
             provider_test="openrouter",
-            conversation_history_mode=conversation_history_mode
+            conversation_history_mode=conversation_history_mode,
+            search_strategy=search_strategy,
+            report_style=report_style
         )
     except Exception as e:
         print(f"Error with additional task: {str(e)}")
@@ -1096,7 +1186,7 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1113,6 +1203,10 @@ def main():
                       help='Comma-separated list of genes to test for the debug_genes step')
     parser.add_argument('--history_mode', type=str, default="final",
                       help='Conversation history mode for annotation boost: "full", "final", or "none"')
+    parser.add_argument('--search_strategy', type=str, default="breadth",
+                      help='Search strategy for annotation boost: "breadth" (multiple hypotheses) or "depth" (one hypothesis at a time)')
+    parser.add_argument('--report_style', type=str, default="per_iteration",
+                      help='Report style for annotation boost: "per_iteration" (detailed by iteration) or "total_summary" (gene-focused summary)')
     parser.add_argument('--iterations', type=int, default=5,
                       help='Number of iterations for single_cluster_uncertainty (default: 5)')
     parser.add_argument('--major_cluster', type=str, default="cd8 t cell",
@@ -1196,20 +1290,20 @@ def main():
             n_iterations=args.iterations
         )
     elif args.step == 'boost':
-        run_annotation_boost(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
+        run_annotation_boost(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode, search_strategy=args.search_strategy, report_style=args.report_style)
     elif args.step == 'compare':
         run_celltype_comparison()
     elif args.step == 'subcluster':
         run_subclustering(subcluster)
     elif args.step == 'boost_task':
         try:
-            run_annotation_boost_with_task(unprocessed, input_csv, args.cluster, args.task, conversation_history_mode=args.history_mode)
+            run_annotation_boost_with_task(unprocessed, input_csv, args.cluster, args.task, conversation_history_mode=args.history_mode, search_strategy=args.search_strategy, report_style=args.report_style)
         except Exception as e:
             print(f"Error in annotation boost with task: {str(e)}")
     elif args.step == 'test_boost':
         # New option to test the unified annotation boost functionality
         try:
-            test_annotation_boost_providers(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
+            test_annotation_boost_providers(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode, search_strategy=args.search_strategy, report_style=args.report_style)
         except Exception as e:
             print(f"Error testing annotation boost: {str(e)}")
     elif args.step == 'debug_genes':
@@ -1250,7 +1344,7 @@ def main():
             
             # Test with a specific cluster
             if args.cluster:
-                run_annotation_boost(unprocessed, input_csv, args.cluster, debug_mode=True, test_genes=test_genes)
+                run_annotation_boost(unprocessed, input_csv, args.cluster, debug_mode=True, test_genes=test_genes, search_strategy=args.search_strategy)
             
         except Exception as e:
             print(f"Error in gene extraction diagnostics: {str(e)}")
@@ -1271,9 +1365,21 @@ def main():
             test_full_pipeline_providers(unprocessed)
         except Exception as e:
             print(f"Error testing full pipeline: {str(e)}")
+    elif args.step == 'compare_strategies':
+        # New option to compare breadth-first vs depth-first search strategies
+        try:
+            compare_search_strategies(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode, report_style=args.report_style)
+        except Exception as e:
+            print(f"Error comparing search strategies: {str(e)}")
+    elif args.step == 'test_total_summary':
+        # New option to test total_summary report style with different providers
+        try:
+            test_total_summary_reports(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
+        except Exception as e:
+            print(f"Error testing total summary reports: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
 
 
 if __name__ == "__main__":
@@ -1362,11 +1468,165 @@ if __name__ == "__main__":
     # For testing the full pipeline with a custom provider like DeepSeek:
     # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY
     
-    # Examples for testing subclustering with custom APIs:
-    # One-line command for direct subclustering with DeepSeek:
-    # python -c "import os; os.environ['CUSTERMIZED_API_KEY']='YOUR_API_KEY'; from subclustering import runCASSIA_subclusters; import pandas as pd; runCASSIA_subclusters(pd.read_csv('data/subcluster_results.csv'), 'cd8 t cell', 'deepseek_result', model='deepseek-chat', provider='https://api.deepseek.com')"
+    # Examples for using different search strategies with annotation boost:
+    # Breadth-first approach (default - tests multiple hypotheses per iteration):
+    # python CASSIA_python_tutorial.py --step boost --search_strategy breadth
+    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth
     
-    # More secure approach using environment variables for API key:
-    # export CUSTERMIZED_API_KEY=YOUR_API_KEY  # Linux/Mac
-    # $env:CUSTERMIZED_API_KEY="YOUR_API_KEY"  # Windows PowerShell
-    # python -c "from subclustering import runCASSIA_subclusters; import pandas as pd; runCASSIA_subclusters(pd.read_csv('data/subcluster_results.csv'), 'cd8 t cell', 'secure_result', model='deepseek-chat', provider='https://api.deepseek.com')"
+    # Depth-first approach (focused - one hypothesis at a time):
+    # python CASSIA_python_tutorial.py --step boost --search_strategy depth
+    # python CASSIA_python_tutorial.py --step boost_task --search_strategy depth
+    
+    # Examples for using different report styles with annotation boost:
+    # Per-iteration report style (default - shows detailed analysis by iteration):
+    # python CASSIA_python_tutorial.py --step boost --report_style per_iteration
+    # python CASSIA_python_tutorial.py --step boost_task --report_style per_iteration
+    
+    # Total summary report style (gene-focused - summarizes by genes checked and conclusions):
+    # python CASSIA_python_tutorial.py --step boost --report_style total_summary
+    # python CASSIA_python_tutorial.py --step boost_task --report_style total_summary
+    
+    # Combine different search strategies and report styles:
+    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --report_style total_summary
+    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth --report_style per_iteration
+    
+    # Compare both strategies side by side:
+    # python CASSIA_python_tutorial.py --step compare_strategies --cluster monocyte
+    # python CASSIA_python_tutorial.py --step compare_strategies --cluster "cd8-positive, alpha-beta t cell"
+
+    # Examples with custom providers and search strategies:
+    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth --provider openrouter
+    # python CASSIA_python_tutorial.py --step compare_strategies --provider anthropic
+    
+    # Examples with custom providers and total_summary report style:
+    # Use DeepSeek with gene-focused summary reports:
+    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
+    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
+    
+    # Combine depth-first search with gene-focused reports and custom provider:
+    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --report_style total_summary --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+    
+    # Test all providers with gene-focused reports:
+    # python CASSIA_python_tutorial.py --step test_boost --report_style total_summary --provider openrouter
+    # python CASSIA_python_tutorial.py --step test_boost --report_style total_summary --provider anthropic
+    
+    # Compare strategies using custom provider with gene-focused reports:
+    # python CASSIA_python_tutorial.py --step compare_strategies --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
+    
+    # Real example with DeepSeek API key format (replace with your actual key):
+    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary --search_strategy depth
+    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary --cluster "cd8-positive, alpha-beta t cell"
+    
+    # Comprehensive testing with different combinations:
+    # Test breadth-first + per_iteration with OpenAI:
+    # python CASSIA_python_tutorial.py --step boost --provider openai --search_strategy breadth --report_style per_iteration
+    
+    # Test depth-first + total_summary with Anthropic:
+    # python CASSIA_python_tutorial.py --step boost --provider anthropic --search_strategy depth --report_style total_summary
+    
+    # Test all combinations with OpenRouter:
+    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy breadth --report_style per_iteration
+    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy breadth --report_style total_summary
+    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy depth --report_style per_iteration
+    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy depth --report_style total_summary
+    
+    # Examples for testing subclustering with custom APIs:
+
+    # --------------------- New: Test Total Summary Report Style ---------------------
+    def test_total_summary_reports(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final"):
+        """
+        Test the new total_summary report style with different providers and search strategies.
+        This function demonstrates how gene-focused summaries work with various configurations.
+        
+        Args:
+            marker_data: Marker data DataFrame
+            full_csv: Path to the CSV file with annotation results
+            cluster_name: Name of the cluster to analyze (default: "monocyte")
+            conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        """
+        print(f"\n=== Testing Total Summary Report Style for {cluster_name} ===")
+        print("This will test gene-focused summary reports with different providers and search strategies")
+        print(f"Using conversation history mode: {conversation_history_mode}")
+        
+        # Test 1: OpenRouter with breadth-first search and total_summary
+        print("\n" + "="*70)
+        print("TEST 1: OpenRouter + Breadth-First + Total Summary")
+        print("="*70)
+        print("• Multiple hypotheses per iteration with gene-focused summary")
+        print()
+        
+        try:
+            run_annotation_boost(
+                marker_data, 
+                full_csv, 
+                cluster_name, 
+                provider_test="openrouter",
+                search_strategy="breadth",
+                conversation_history_mode=conversation_history_mode,
+                report_style="total_summary"
+            )
+            print("✅ OpenRouter + Breadth + Total Summary completed successfully")
+        except Exception as e:
+            print(f"❌ Error with OpenRouter + Breadth + Total Summary: {str(e)}")
+        
+        # Test 2: DeepSeek with depth-first search and total_summary
+        print("\n" + "="*70)
+        print("TEST 2: DeepSeek + Depth-First + Total Summary")
+        print("="*70)
+        print("• Focused hypothesis testing with gene-focused summary")
+        print("• Using custom provider (DeepSeek)")
+        print()
+        
+        try:
+            # Check if DeepSeek API key is available
+            deepseek_api_key = os.environ.get("CUSTERMIZED_API_KEY", "sk-afb39114f1334ba486505d9425937d16")
+            if deepseek_api_key:
+                os.environ["CUSTERMIZED_API_KEY"] = deepseek_api_key
+                run_annotation_boost(
+                    marker_data, 
+                    full_csv, 
+                    cluster_name, 
+                    provider_test="https://api.deepseek.com",
+                    search_strategy="depth",
+                    conversation_history_mode=conversation_history_mode,
+                    report_style="total_summary"
+                )
+                print("✅ DeepSeek + Depth + Total Summary completed successfully")
+            else:
+                print("⚠️ Skipping DeepSeek test - no API key available")
+        except Exception as e:
+            print(f"❌ Error with DeepSeek + Depth + Total Summary: {str(e)}")
+        
+        # Test 3: Anthropic with annotation boost task and total_summary
+        print("\n" + "="*70)
+        print("TEST 3: Anthropic + Additional Task + Total Summary")
+        print("="*70)
+        print("• Annotation boost with additional task using gene-focused summary")
+        print()
+        
+        try:
+            run_annotation_boost_with_task(
+                marker_data, 
+                full_csv, 
+                cluster_name,
+                additional_task="determine the activation state and functional characteristics of this cell type",
+                provider_test="anthropic",
+                conversation_history_mode=conversation_history_mode,
+                search_strategy="breadth",
+                report_style="total_summary"
+            )
+            print("✅ Anthropic + Additional Task + Total Summary completed successfully")
+        except Exception as e:
+            print(f"❌ Error with Anthropic + Additional Task + Total Summary: {str(e)}")
+        
+        print("\n" + "="*70)
+        print("TOTAL SUMMARY REPORT TESTING COMPLETE")
+        print("="*70)
+        print("Compare the generated reports to see the differences:")
+        print("• All reports will show '(Breadth-First Analysis)' or '(Depth-First Analysis)' in titles")
+        print("• Gene-focused summaries organize findings by biological function rather than iteration")
+        print("• Check how different providers handle the gene-focused format")
+        print("• Notice how the total_summary style makes results more accessible")
+
+    # --------------------- New: Test Full Pipeline with Different Providers ---------------------
