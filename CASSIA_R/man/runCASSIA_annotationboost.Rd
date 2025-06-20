@@ -11,12 +11,18 @@ runCASSIA_annotationboost(
   major_cluster_info,
   output_name,
   num_iterations = 5,
-  model = "gpt-4o",
-  provider = "openai"
+  model = "google/gemini-2.5-flash-preview",
+  provider = "openrouter",
+  temperature = 0,
+  conversation_history_mode = "final",
+  search_strategy = "breadth",
+  report_style = "per_iteration"
 )
 }
 \arguments{
 \item{full_result_path}{Path to the full results CSV file}
+
+\item{marker}{Path to the marker genes CSV file or data frame with marker data}
 
 \item{cluster_name}{Name of the cluster to analyze}
 
@@ -26,14 +32,20 @@ runCASSIA_annotationboost(
 
 \item{num_iterations}{Number of iterations for marker analysis (default=5)}
 
-\item{model}{Model to use for analysis (default="gpt-4o")}
+\item{model}{Model to use for analysis (default="google/gemini-2.5-flash-preview")}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 
-\item{marker_path}{Path to the marker genes CSV file}
+\item{temperature}{Sampling temperature (0-1)}
+
+\item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none")}
+
+\item{search_strategy}{Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
+
+\item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
 }
 \value{
-None
+None. This function generates output files.
 }
 \description{
 Generate Cell Type Analysis Report

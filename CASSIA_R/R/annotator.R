@@ -502,6 +502,8 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param temperature Sampling temperature (0-1)
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #'
 #' @return None. This function generates output files.
 #' @export
@@ -514,7 +516,9 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      model = "google/gemini-2.5-flash-preview",
                                      provider = "openrouter",
                                      temperature = 0,
-                                     conversation_history_mode = "final") {
+                                     conversation_history_mode = "final",
+                                     search_strategy = "breadth",
+                                     report_style = "per_iteration") {
 
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
@@ -535,7 +539,9 @@ runCASSIA_annotationboost <- function(full_result_path,
       model = model,
       provider = provider,
       temperature = as.numeric(temperature),
-      conversation_history_mode = conversation_history_mode
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = report_style
     )
     
     invisible(NULL)
@@ -562,6 +568,8 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param additional_task Additional task to perform during analysis
 #' @param temperature Sampling temperature (0-1)
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #' 
 #' @return None. This function generates output files.
 #' @export
@@ -575,7 +583,9 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      provider = "openrouter",
                                                      additional_task = "check if this is a cancer cluster",
                                                      temperature = 0,
-                                                     conversation_history_mode = "final") {
+                                                     conversation_history_mode = "final",
+                                                     search_strategy = "breadth",
+                                                     report_style = "per_iteration") {
 
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
@@ -597,7 +607,9 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       provider = provider,
       additional_task = additional_task,
       temperature = as.numeric(temperature),
-      conversation_history_mode = conversation_history_mode
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = report_style
     )
     
     invisible(NULL)
@@ -700,6 +712,8 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
 #' @param merge_provider Provider to use for merging annotations (default: "openrouter")
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
+#' @param search_strategy Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -721,7 +735,9 @@ runCASSIA_pipeline <- function(
     do_merge_annotations = TRUE,
     merge_model = "deepseek/deepseek-chat-v3-0324",
     merge_provider = "openrouter",
-    conversation_history_mode = "final"
+    conversation_history_mode = "final",
+    search_strategy = "breadth",
+    report_style = "per_iteration"
 ) {
   # Convert marker data frame if necessary
   if (is.data.frame(marker)) {
@@ -750,7 +766,9 @@ runCASSIA_pipeline <- function(
       merge_annotations = do_merge_annotations,
       merge_model = merge_model,
       merge_provider = merge_provider,
-      conversation_history_mode = conversation_history_mode
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = report_style
     )
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",

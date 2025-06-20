@@ -10,8 +10,8 @@ runCASSIA_similarity_score_batch(
   output_name,
   celltype_column = NULL,
   max_workers = 10,
-  model = "gpt-4o",
-  provider = "openai",
+  model = "google/gemini-2.5-flash-preview",
+  provider = "openrouter",
   main_weight = 0.5,
   sub_weight = 0.5
 )

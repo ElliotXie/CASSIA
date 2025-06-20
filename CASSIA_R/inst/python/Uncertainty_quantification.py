@@ -1,7 +1,15 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from tools_function import *
+try:
+    from .tools_function import *
+except ImportError:
+    from tools_function import *
+
 import time
-from llm_utils import *
+
+try:
+    from .llm_utils import *
+except ImportError:
+    from llm_utils import *
 import re
 
 

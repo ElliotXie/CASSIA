@@ -10,10 +10,10 @@ runCASSIA_n_times_similarity_score(
   additional_info,
   temperature,
   marker_list,
-  model,
+  model = "google/gemini-2.5-flash-preview",
   max_workers,
   n,
-  provider = "openai"
+  provider = "openrouter"
 )
 }
 \arguments{

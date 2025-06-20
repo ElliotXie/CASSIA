@@ -1,0 +1,389 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Marker Number,Marker List,Iterations,Model,Provider,Tissue,Species,Additional Info,Conversation History
+"cd8-positive, alpha-beta t cell",Cytotoxic Lymphocyte,"CD8+ T Cells, Gamma Delta (γδ) T Cells, Natural Killer (NK) Cells","CD8+ Cytotoxic T Lymphocytes, CD8+ Gamma Delta T Cells",50,"KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1, GZMH, CD160, CD8B, NKG7, GZMA, GZMB, GZMK, CD8A, TRGC2, SLA2, TIGIT, TNFRSF9, GPR18, CCL4, PRF1, ATP8B4, APBA2, CCL4L2, DUSP4, CTSW, TMIGD2, TRGC1, CCL5, ABI3, IL21R, IFNG, CD7, CLIC3, ENTPD1, LDLRAD4, PTPN22, HOPX, GZMM, CST7, PARD6G, ZEB2, SH2D1A, LAYN, LAG3, PRKCH, AOAH, IKZF2",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, let's analyze this list of highly expressed markers from a single-cell cluster in human large intestine tissue to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+Here are some key functional markers from the list and their roles:
+
+*   **GZMH, GZMA, GZMB, GZMK, GZMM:** These are Granzymes, serine proteases found in the granules of cytotoxic lymphocytes (like NK cells and cytotoxic T cells). They are crucial for inducing apoptosis in target cells. Their presence strongly suggests a cytotoxic function.
+*   **PRF1:** Perforin, a protein also found in cytotoxic granules. It forms pores in the membrane of target cells, allowing granzymes to enter and initiate apoptosis. This further supports a cytotoxic role.
+*   **XCL1, XCL2, CCL4, CCL4L2, CCL5:** These are Chemokines. XCL1 and XCL2 are lymphotactins, attracting lymphocytes. CCL4 (MIP-1β), CCL4L2, and CCL5 (RANTES) are inflammatory chemokines that recruit various immune cells, including T cells, NK cells, and macrophages, to sites of inflammation. Their expression indicates the cells are involved in immune signaling and recruitment.
+*   **IFNG:** Interferon-gamma, a potent cytokine produced by T cells and NK cells. It plays a critical role in innate and adaptive immunity, activating macrophages, increasing MHC class I expression, and promoting Th1 differentiation. Its presence points towards an active immune response.
+*   **NKG7:** Natural Killer Cell Granule Protein 7, a transmembrane protein found in the granules of NK cells and cytotoxic T lymphocytes. Its function is not fully elucidated but is associated with cytotoxic activity.
+*   **CTSW:** Cathepsin W, a cysteine protease found in cytotoxic lymphocytes. It is involved in processing granzymes and other granule proteins.
+*   **CST7:** Cystatin F, a cysteine protease inhibitor. Its role in cytotoxic lymphocytes is not fully understood but may be involved in regulating protease activity.
+*   **TIGIT, LAG3:** These are immune checkpoint receptors. TIGIT (T cell immunoreceptor with Ig and ITIM domains) and LAG3 (Lymphocyte-activation gene 3) are inhibitory receptors expressed on T cells and NK cells. Their expression can indicate a state of exhaustion or regulation of the immune response.
+*   **TNFRSF9 (4-1BB):** Tumor necrosis factor receptor superfamily member 9, a costimulatory receptor expressed on activated T cells and NK cells. Ligation of 4-1BB enhances proliferation, survival, and cytotoxic function. Its presence suggests activation.
+*   **CD160:** Cluster of Differentiation 160, a receptor expressed on NK cells, T cells, and other immune cells. It can have both inhibitory and activating functions depending on the context.
+*   **ENTPD1 (CD39):** Ectonucleoside triphosphate diphosphohydrolase 1, an enzyme that hydrolyzes ATP and ADP to AMP. Expressed on regulatory T cells and other immune cells, it is involved in purinergic signaling and can contribute to immunosuppression. Its presence here is interesting given the other cytotoxic markers.
+*   **PTPN22:** Protein Tyrosine Phosphatase Non-Receptor Type 22, a phosphatase involved in regulating T cell signaling. Mutations in PTPN22 are associated with autoimmune diseases.
+*   **SH2D1A:** SH2 Domain Containing 1A, also known as SAP (SLAM-associated protein). It is a crucial adaptor protein involved in signaling through the SLAM family receptors, important for T cell and NK cell activation and function. Mutations in SH2D1A cause X-linked lymphoproliferative disease.
+
+**Step 2: List the Key Cell Type Markers**
+
+Here are some key cell type markers from the list and their roles:
+
+*   **CD8A, CD8B:** These are subunits of the CD8 co-receptor, which is typically expressed on cytotoxic T lymphocytes (CTLs) and a subset of NK cells. CD8 binds to MHC class I molecules on target cells, enhancing T cell receptor signaling and cytotoxic activity. The presence of both CD8A and CD8B strongly points towards CD8+ T cells.
+*   **KLRK1 (NKG2D), KLRC2 (NKG2C), KLRC4 (NKG2E), KLRD1 (CD94):** These are Killer Cell Lectin-like Receptors. NKG2D is an activating receptor expressed on NK cells, CD8+ T cells, and γδ T cells, recognizing stress-induced ligands on target cells. NKG2C, NKG2E, and CD94 form heterodimers with NKG2A (not on the list) and are expressed on NK cells and some T cell subsets. CD94/NKG2A is typically inhibitory, while CD94/NKG2C and CD94/NKG2E can be activating. Their presence suggests either NK cells or specific subsets of T cells.
+*   **CRTAM:** Class I-restricted T cell-associated molecule, a receptor expressed on activated CD8+ T cells and NK cells. It is involved in cell-cell adhesion and signaling.
+*   **TRGC1, TRGC2:** These are genes encoding the constant regions of the T cell receptor gamma chain. Their presence indicates the expression of gamma delta (γδ) T cell receptors. γδ T cells are a distinct lineage of T cells that play roles in innate and adaptive immunity, particularly at mucosal surfaces like the intestine.
+*   **CD7:** Cluster of Differentiation 7, a transmembrane protein expressed on T cells, NK cells, and hematopoietic stem cells. It is a pan-T cell marker but also found on NK cells.
+*   **GPR18:** G protein-coupled receptor 18, a receptor for oxysterols. Its expression has been associated with specific immune cell subsets, including some T cell populations.
+*   **TMIGD2 (CD28H):** Transmembrane and immunoglobulin domain containing 2, a costimulatory molecule expressed on T cells and NK cells. It interacts with B7-H7 (B7x) and promotes T cell activation.
+*   **HOPX:** Homeodomain Only Protein X, a transcriptional regulator. Its expression has been observed in various cell types, including some immune cells, and its role can be context-dependent.
+*   **ZEB2:** Zinc Finger E-box Binding Homeobox 2, a transcriptional repressor involved in epithelial-mesenchymal transition and immune cell development and function. Its expression in immune cells can be associated with specific differentiation states.
+*   **IKZF2 (Helios):** Ikaros Family Zinc Finger 2, a transcription factor. Helios is often expressed in regulatory T cells (Tregs) but can also be found in activated conventional T cells and other immune cells. Its presence here, alongside cytotoxic markers, is notable and might suggest a specific subset or activation state.
+
+**Step 3: Cross-reference Known Databases**
+
+Cross-referencing these markers with scRNA-seq databases (like the Human Cell Atlas, PanglaoDB, CellMarker) and relevant literature on intestinal immunity reveals strong associations with cytotoxic lymphocytes. The co-expression of Granzymes, Perforin, CD8A/B, and various Killer Cell Lectin-like Receptors is a hallmark of cytotoxic T cells and NK cells. The presence of TRGC1/TRGC2 is a key indicator of γδ T cells. The expression of chemokines and IFNG further supports an immune cell identity involved in inflammatory responses.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Based on the overwhelming presence of cytotoxic granule proteins (Granzymes, Perforin), cytotoxic co-receptors (CD8A/B), and receptors associated with cytotoxicity and immune activation (KLRs, CRTAM, TNFRSF9), the most probable general cell type is **Cytotoxic Lymphocyte**.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Now, let's refine the annotation based on the specific markers:
+
+1.  **CD8+ T Cells:** The strong expression of CD8A and CD8B is a primary characteristic of cytotoxic T lymphocytes (CTLs). The presence of Granzymes, Perforin, IFNG, and costimulatory molecules like TNFRSF9 aligns perfectly with the function of activated CTLs. Many of the KLRs (like NKG2D) are also expressed on CD8+ T cells.
+2.  **Gamma Delta (γδ) T Cells:** The clear expression of TRGC1 and TRGC2 is definitive for γδ T cells. γδ T cells are abundant in mucosal tissues like the intestine and can exhibit cytotoxic activity, expressing Granzymes and Perforin. Some γδ T cell subsets also express CD8. The presence of KLRs is also consistent with γδ T cells.
+3.  **Natural Killer (NK) Cells:** NK cells are another major type of cytotoxic lymphocyte. They express many of the same cytotoxic markers (Granzymes, Perforin, NKG7, IFNG, chemokines) and KLRs (NKG2D, CD94/NKG2C/E). However, the prominent expression of CD8A/B and TRGC1/TRGC2 makes NK cells less likely as the primary population, although a subset of NK cells can express CD8.
+
+Considering the high expression of CD8A/B and the presence of TRGC1/TRGC2 alongside the cytotoxic machinery, this cluster likely represents a mix or a specific subset of cytotoxic T lymphocytes. The co-expression of CD8 and γδ TCR is known to occur in certain γδ T cell subsets, particularly in mucosal tissues.
+
+Therefore, the top three most probable sub cell types, ranked from most likely to least likely, are:
+
+1.  **CD8+ T Cells (specifically Cytotoxic T Lymphocytes)**
+2.  **Gamma Delta (γδ) T Cells (potentially CD8+ subsets)**
+3.  **Natural Killer (NK) Cells (less likely as the dominant population due to CD8 and TRGC expression)**
+
+Based on the combined evidence, particularly the strong expression of CD8A/B and the cytotoxic markers, the most likely specific subtype is **CD8+ Cytotoxic T Lymphocytes**, with a significant possibility of including a population of **CD8+ Gamma Delta T Cells** given the TRGC expression. It's possible this cluster represents a heterogeneous population of cytotoxic T cells.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+This single-cell cluster from human large intestine tissue is characterized by high expression of genes associated with cytotoxicity, immune signaling, and specific lymphocyte lineages. Key functional markers include Granzymes (GZMH, GZMA, GZMB, GZMK, GZMM), Perforin (PRF1), chemokines (XCL1, XCL2, CCL4, CCL5), and IFNG, indicating a cytotoxic and inflammatory role. Key cell type markers include CD8A/B, Killer Cell Lectin-like Receptors (KLRK1, KLRC2, KLRC4, KLRD1), and T cell receptor gamma chain constant regions (TRGC1, TRGC2). The strong expression of CD8A/B, Granzymes, and Perforin points towards a cytotoxic T lymphocyte identity. The presence of TRGC1/TRGC2 indicates the inclusion of γδ T cells, potentially CD8+ subsets. Cross-referencing with databases confirms this marker profile is consistent with cytotoxic lymphocytes found in mucosal tissues. The most probable general cell type is Cytotoxic Lymphocyte. The top three most probable sub cell types are CD8+ T Cells, Gamma Delta (γδ) T Cells, and Natural Killer (NK) Cells. Based on the prominent CD8A/B and cytotoxic marker expression, the most likely specific subtype is **CD8+ Cytotoxic T Lymphocytes**, potentially including CD8+ γδ T cells.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""Cytotoxic Lymphocyte"",
+  ""sub_cell_types"": [
+    ""CD8+ T Cells"",
+    ""Gamma Delta (\u03b3\u03b4) T Cells"",
+    ""Natural Killer (NK) Cells""
+  ],
+  ""possible_mixed_cell_types"": [
+    ""CD8+ Cytotoxic T Lymphocytes"",
+    ""CD8+ Gamma Delta T Cells""
+  ],
+  ""num_markers"": 50
+}"
+intestinal crypt stem cell,Intestinal Stem Cell,"LGR5+ Crypt Base Columnar (CBC) Stem Cells, Transit-Amplifying (TA) Cells, Early Enterocyte Progenitors",,50,"AL031284.1, AC012085.1, IGFBPL1, HMGN2P6, CHCHD2P9, PPIAP40, LGR5, RPL7P54, AC010132.3, EIF5AP4, AC008694.2, COX5AP2, TDGF1, ASCL2, AC092670.1, NPM1P6, PPIAP11, AC090498.1, RPL41P1, CYCSP55, HMGN2P4, TPI1P1, RPL41P5, AL162151.2, PPIAP29, HNRNPA1P4, AC016596.2, AL603825.1, RPL9P21, AC005884.2, PPIAP31, HMGN1P36, HMGN2P41, AL035411.1, RPS26P39, FABP5P7, SDHDP6, ATP5PFP1, EEF1A1P5, RPSAP8, HMGN2P3, SLC39A2, KRT8P13, RPL21P16, RPSAP15, HMGN1P38, AF279873.1, RPL7P6, AC112491.1, AC022968.1",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, I will analyze the provided list of highly expressed markers from a single-cell cluster in a human large intestine dataset to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+Based on the provided list, the key functional markers are:
+
+*   **LGR5 (Leucine-rich repeat-containing G protein-coupled receptor 5):** A well-established marker for actively cycling stem cells in various tissues, including the intestinal epithelium. It is a receptor for R-spondins, which are crucial for Wnt signaling and stem cell maintenance.
+*   **ASCL2 (Achaete-scute family BHLH transcription factor 2):** A basic helix-loop-helix (bHLH) transcription factor that is essential for maintaining the intestinal stem cell state and driving proliferation. It is a direct target of Wnt signaling.
+*   **TDGF1 (Teratocarcinoma-derived growth factor 1):** Also known as Cripto, this protein is a co-receptor for Nodal and Activin signaling pathways and is involved in embryonic development and stem cell maintenance. It is expressed in intestinal stem cells and contributes to their self-renewal.
+*   **SLC39A2 (Solute carrier family 39 member 2):** Encodes a zinc transporter (ZIP2). While not a canonical stem cell marker, zinc homeostasis is important for cell proliferation and differentiation, and specific zinc transporters can be enriched in certain cell states. Its high expression here might reflect metabolic requirements of actively dividing cells.
+*   **IGFBPL1 (Insulin-like growth factor binding protein-like 1):** A secreted protein that can bind IGFs. IGF signaling is known to play roles in cell growth, proliferation, and survival, which are relevant to stem cell function.
+
+Many other genes in the list appear to be pseudogenes (indicated by ""P"" in the name, e.g., `FABP5P7`, `KRT8P13`, `RPL7P54`, `HMGN2P6`, `PPIAP40`, etc.), ribosomal proteins (`RPL*`, `RPS*`), or genes involved in basic cellular processes like metabolism (`TPI1P1`, `SDHDP6`, `ATP5PFP1`, `COX5AP2`), protein synthesis (`EEF1A1P5`, `EIF5AP4`), or nuclear structure/chromatin (`HMGN*`, `NPM1P6`, `HNRNPA1P4`). The high expression of ribosomal proteins and genes involved in protein synthesis and metabolism is characteristic of actively proliferating cells, which aligns with the nature of stem cells. Pseudogenes can sometimes be expressed and function as non-coding RNAs or regulate the expression of their parent genes, but their specific functional roles are often less clear than protein-coding genes like LGR5 or ASCL2.
+
+**Step 2: List the Key Cell Type Markers**
+
+Based on the provided list and the context of the large intestine tissue, the key cell type markers are:
+
+*   **LGR5:** The primary and most specific marker in this list for intestinal stem cells located at the base of the crypts.
+*   **ASCL2:** A critical transcription factor marker for intestinal stem cells, working in conjunction with LGR5.
+*   **TDGF1:** Another marker associated with intestinal stem cells and their maintenance.
+
+The other genes, while highly expressed, are either functional markers supporting the stem cell state (like `SLC39A2`, `IGFBPL1`) or general markers of highly proliferative cells (ribosomal proteins, metabolic genes, pseudogenes) rather than markers specific to a differentiated cell type in the large intestine epithelium (e.g., enterocytes, goblet cells, enteroendocrine cells, Paneth cells - although Paneth cells are rare/absent in the large intestine).
+
+**Step 3: Cross-reference Known Databases**
+
+Cross-referencing these markers with scRNA-seq databases (like the Human Cell Atlas, PanglaoDB, CellMarker) and relevant literature on intestinal epithelium confirms the strong association of `LGR5`, `ASCL2`, and `TDGF1` with intestinal stem cells.
+
+*   **LGR5:** Universally recognized as a marker for crypt base columnar (CBC) stem cells in the small and large intestine.
+*   **ASCL2:** Consistently found to be highly expressed in LGR5+ intestinal stem cells and crucial for their identity and function.
+*   **TDGF1:** Also reported in intestinal stem cells and involved in maintaining their properties.
+*   **SLC39A2:** While not a primary stem cell marker, some studies have noted its expression in proliferative compartments of the intestine.
+*   **IGFBPL1:** Less commonly cited as a primary stem cell marker compared to LGR5/ASCL2, but its role in growth factor signaling could be relevant to the stem cell niche.
+
+The high expression of ribosomal proteins and proliferation-associated genes further supports the identification of a rapidly dividing cell population, consistent with the nature of intestinal stem cells.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Based on the strong and consistent expression of key markers like `LGR5`, `ASCL2`, and `TDGF1`, the most probable general cell type of this cluster is **Intestinal Stem Cell**.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Within the general category of ""Intestinal Stem Cell"" in the large intestine, the primary subtype is the LGR5+ Crypt Base Columnar (CBC) stem cell. Other potential related populations could include transit-amplifying (TA) cells, which are progeny of stem cells and are also highly proliferative, or potentially quiescent stem cell populations (though LGR5 typically marks the active population).
+
+1.  **LGR5+ Crypt Base Columnar (CBC) Stem Cells:** This is the most likely subtype given the high expression of `LGR5`, `ASCL2`, and `TDGF1`. These cells reside at the base of the crypts and are responsible for generating all epithelial lineages. The high expression of proliferation-associated genes (ribosomal proteins, etc.) is also characteristic of these actively cycling cells.
+2.  **Transit-Amplifying (TA) Cells:** These cells are immediate progeny of stem cells and undergo rapid proliferation before differentiating. They share some markers with stem cells but typically express lower levels of LGR5 and higher levels of proliferation markers. While highly proliferative markers are present, the strong expression of *LGR5* and *ASCL2* places this cluster more firmly in the stem cell compartment rather than purely TA cells, although there can be a continuum.
+3.  **Early Enterocyte Progenitors:** These cells differentiate from TA cells and begin to express markers of the enterocyte lineage while still retaining some proliferative capacity. However, the provided markers are more indicative of the stem cell state than commitment to a specific lineage like enterocytes (which would typically involve markers like *KRT20*, *APOA1*, etc., which are not listed).
+
+Based on the specific markers provided, particularly the high ranking of `LGR5`, `ASCL2`, and `TDGF1`, the most likely subtype is **LGR5+ Crypt Base Columnar (CBC) Stem Cells**.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+The analysis of the provided marker list reveals high expression of canonical intestinal stem cell markers, including LGR5, ASCL2, and TDGF1. These genes are critical for the maintenance, proliferation, and identity of intestinal stem cells located at the base of the crypts. The cluster also shows high expression of genes related to protein synthesis and metabolism (ribosomal proteins, etc.), consistent with a highly proliferative cell population. Cross-referencing with known databases and literature confirms the strong association of these markers with intestinal stem cells. Therefore, the most probable general cell type is Intestinal Stem Cell, and the most likely specific subtype is LGR5+ Crypt Base Columnar (CBC) Stem Cells.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""Intestinal Stem Cell"",
+  ""sub_cell_types"": [
+    ""LGR5+ Crypt Base Columnar (CBC) Stem Cells"",
+    ""Transit-Amplifying (TA) Cells"",
+    ""Early Enterocyte Progenitors""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+intestinal enteroendocrine cell,Enteroendocrine Cell,"L Cell, Enterochromaffin (EC) Cell, S Cell","L Cell, Enterochromaffin (EC) Cell, S Cell",50,"GCG, PCSK1, AC090679.1, UCN3, PYY, INSL5, CHGA, LCN15, SCG2, FEV, CPLX2, NKX2-2, AL133325.3, C1orf127, LINC01014, SCGN, SLC18A1, SCG3, SCG5, TPH1, MARCH4, INSM1, RTN1, CRYBA2, SNAP25, CHGB, CRMP1, KCNB2, RFX6, AMER3, SLC32A1, CDK5R2, AVPR1B, VWA5B2, AC022893.2, ABCC8, RIMBP2, AL161658.1, COL2A1, CELF3, SCT, RIIAD1, SSTR5-AS1, RGS4, ARX, PRPH, INA, F5, AP003062.3, SLC5A8",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, let's analyze this list of highly expressed markers from a single-cell cluster in a human large intestine dataset to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+These markers are involved in the specific functions of the cells, particularly hormone production, processing, and secretion, and neuroendocrine signaling.
+
+*   **GCG (Glucagon):** A peptide hormone involved in glucose regulation, also produced by L cells in the gut.
+*   **PCSK1 (Proprotein convertase subtilisin/kexin type 1):** An enzyme essential for processing prohormones and neuropeptide precursors into their active forms. Highly characteristic of endocrine cells.
+*   **UCN3 (Urocortin 3):** A neuropeptide belonging to the corticotropin-releasing hormone family, expressed in specific enteroendocrine cell subtypes.
+*   **PYY (Peptide YY):** A peptide hormone produced by L cells, involved in regulating appetite and gut motility.
+*   **INSL5 (Insulin-like peptide 5):** A peptide hormone produced by L cells, particularly abundant in the colon, involved in gut motility and potentially other functions.
+*   **CHGA (Chromogranin A):** A general marker for neuroendocrine cells, involved in packaging and storing peptide hormones and neurotransmitters.
+*   **SCG2, SCGN, SCG3, SCG5 (Secretogranins):** Proteins found in secretory granules of neuroendocrine cells, involved in hormone storage and processing.
+*   **SLC18A1 (VMAT1 - Vesicular monoamine transporter 1):** Transports monoamines (like serotonin) into vesicles, characteristic of enterochromaffin (EC) cells.
+*   **TPH1 (Tryptophan hydroxylase 1):** The rate-limiting enzyme in the synthesis of serotonin (5-HT), a key marker for enterochromaffin (EC) cells.
+*   **CPLX2 (Complexin 2):** A protein involved in regulating synaptic vesicle exocytosis, indicating regulated secretion of hormones/neurotransmitters.
+*   **SNAP25 (Synaptosomal-associated protein 25):** A core component of the SNARE complex, essential for vesicle fusion and release, common in neuroendocrine cells.
+*   **CHGB (Chromogranin B):** Another general marker for neuroendocrine cells, similar function to CHGA.
+*   **SLC32A1 (VGAT - Vesicular GABA transporter):** Transports GABA into vesicles. While GABAergic signaling is less common in gut EECs compared to neurons, its presence suggests potential GABA synthesis or uptake and release.
+*   **SCT (Secretin):** A peptide hormone produced by S cells, primarily in the duodenum and jejunum, involved in regulating pancreatic secretions. Its presence in the large intestine is less typical but possible in specific subtypes or locations.
+
+**Step 2: List the Key Cell Type Markers**
+
+These markers are transcription factors and structural proteins associated with the identity and development of specific cell types, particularly neuroendocrine cells and their subtypes in the gut.
+
+*   **FEV (FEV transcription factor, ETS family member):** A transcription factor involved in the development and differentiation of neuroendocrine cells, including EECs.
+*   **NKX2-2 (NK2 homeobox 2):** A transcription factor crucial for the development and specification of various endocrine cell types, including pancreatic alpha and L cells, and gut EECs.
+*   **INSM1 (Insulinoma-associated protein 1):** A key transcription factor required for the specification and differentiation of all neuroendocrine cells.
+*   **RFX6 (Regulatory factor X6):** A transcription factor essential for the development of multiple endocrine cell lineages, including gut EECs.
+*   **ARX (Aristaless related homeobox):** A transcription factor involved in the development of various cell types, including pancreatic alpha cells and some gut EECs.
+*   **PRPH (Peripherin):** An intermediate filament protein typically found in peripheral neurons and some neuroendocrine cells.
+*   **INA (Internexin neuronal intermediate filament protein alpha):** Another neuronal intermediate filament protein, also found in some neuroendocrine cells.
+
+**Step 3: Cross-reference Known Databases and Literature**
+
+Cross-referencing these markers with established scRNA-seq datasets of the human large intestine (e.g., Human Cell Atlas, specific gut scRNA-seq studies) and relevant literature confirms that this marker profile is highly characteristic of **enteroendocrine cells (EECs)**.
+
+*   The co-expression of general neuroendocrine markers (CHGA, CHGB, Secretogranins, SNAP25, CPLX2) with transcription factors essential for neuroendocrine development (INSM1, FEV, NKX2-2, RFX6, ARX) is a hallmark of EECs.
+*   The presence of specific gut hormone genes (PYY, INSL5, GCG, UCN3, TPH1, SCT) further refines the identification to specific EEC subtypes.
+*   PYY and INSL5 are well-established markers for L cells, which are particularly abundant in the colon and rectum (part of the large intestine).
+*   TPH1 and SLC18A1 are definitive markers for enterochromaffin (EC) cells, the most numerous EEC subtype, producing serotonin.
+*   GCG is expressed in L cells (often co-expressed with PYY) and potentially other EEC subtypes.
+*   UCN3 marks a specific subset of colonic EECs, often overlapping with L cells.
+*   SCT marks S cells, typically found in the upper small intestine, but low-level expression or a minor population in the large intestine is possible.
+
+The presence of neuronal intermediate filaments (PRPH, INA) is consistent with the neuroendocrine nature of these cells, which share developmental origins and some molecular machinery with neurons.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Based on the overwhelming expression of general neuroendocrine markers, transcription factors driving neuroendocrine differentiation, and the presence of multiple gut peptide hormones, the most probable general cell type is **Enteroendocrine Cell (EEC)**.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Based on the specific combination of hormone and functional markers, we can infer the most likely subtypes present in this cluster.
+
+1.  **L Cells:** High expression of **PYY**, **INSL5**, and **GCG** (often co-expressed in L cells) strongly indicates the presence of L cells. UCN3 is also frequently associated with colonic L cells. L cells are abundant in the large intestine.
+2.  **Enterochromaffin (EC) Cells:** High expression of **TPH1** and **SLC18A1** (VMAT1) is definitive for EC cells, which produce serotonin. EC cells are the most common EEC subtype throughout the gut, including the large intestine.
+3.  **S Cells:** The presence of **SCT** suggests a potential population of S cells. While S cells are primarily found in the duodenum/jejunum, a minor population or a related subtype expressing secretin in the large intestine is possible, although less common than L or EC cells.
+
+**Most Likely Subtype:** Given the high ranking of **PYY** and **INSL5**, which are specific markers for L cells and are particularly abundant in the large intestine, and the co-expression of GCG and UCN3 which align with colonic L cells, the most likely predominant subtype in this cluster is **L Cell**. However, the significant expression of TPH1 and SLC18A1 indicates a substantial presence of EC cells as well, suggesting this cluster likely contains a mix of EEC subtypes, with L cells being the most prominent based on the top markers.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+This cell cluster from the human large intestine is identified as **Enteroendocrine Cells (EECs)**. This annotation is supported by the high expression of general neuroendocrine markers (CHGA, CHGB, Secretogranins, SNAP25, CPLX2), transcription factors essential for neuroendocrine development (INSM1, FEV, NKX2-2, RFX6, ARX), and specific gut hormone genes. The presence of **PYY**, **INSL5**, **GCG**, and **UCN3** strongly indicates a significant population of **L cells**, which are abundant in the large intestine. The expression of **TPH1** and **SLC18A1** also points to the presence of **enterochromaffin (EC) cells**. The marker profile suggests this cluster represents a mixed population of EEC subtypes, with **L cells** being the most likely predominant subtype, followed by **EC cells**. A minor population of **S cells** is also possible based on SCT expression.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""Enteroendocrine Cell"",
+  ""sub_cell_types"": [
+    ""L Cell"",
+    ""Enterochromaffin (EC) Cell"",
+    ""S Cell""
+  ],
+  ""possible_mixed_cell_types"": [
+    ""L Cell"",
+    ""Enterochromaffin (EC) Cell"",
+    ""S Cell""
+  ],
+  ""num_markers"": 50
+}"
+monocyte,Glial cells,"Myelinating Schwann Cells, Non-myelinating (Remak) Schwann Cells, Satellite Glial Cells",,50,"NKAIN3, SPP1, CDH19, TSPAN11, PLP1, L1CAM, MYOT, IGSF11, NRXN1, SLC35F1, AL136298.1, SFRP5, Z97205.2, AL358216.1, SOX10, MEGF10, SYT10, CADM2, SLITRK2, SOX2, CRTAC1, CHL1, ZNF536, FOXD3, PTPRZ1, GRIK3, TUBB2B, CMTM5, LINC01436, TTYH1, ADARB2, CDH2, TENM3, WNT6, ATP1A2, NRXN3, KCNMB4, TMEM132B, LPL, GFRA2, CHADL, FLRT1, CHST9, GJC3, Z95114.1, RHAG, FOXD3-AS1, BMS1P10, FAM19A5, FGFBP2",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, I will analyze the provided list of highly expressed markers from a single-cell cluster in a human large intestine dataset to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+This cluster expresses several genes related to neural function, cell adhesion, and myelination:
+
+*   **PLP1 (Proteolipid Protein 1):** A major structural component of myelin, essential for the formation and maintenance of the myelin sheath that insulates axons.
+*   **SOX10 (SRY-Box Transcription Factor 10):** A transcription factor critical for the development and maintenance of neural crest-derived cells, including glial cells like Schwann cells and oligodendrocytes, and is involved in regulating myelin gene expression.
+*   **FOXD3 (Forkhead Box D3):** Another transcription factor involved in neural crest development and the specification of various cell lineages, including glial cells.
+*   **L1CAM (L1 Cell Adhesion Molecule):** A cell adhesion molecule involved in neuron-neuron and neuron-glia interactions, neurite outgrowth, and myelination.
+*   **NRXN1 (Neurexin 1), NRXN3 (Neurexin 3):** Presynaptic cell adhesion molecules that interact with postsynaptic neuroligins to form synapses. In the context of glia, they are involved in glia-neuron communication and synapse modulation.
+*   **CADM2 (Cell Adhesion Molecule 2):** A synaptic cell adhesion molecule involved in synapse formation and maintenance.
+*   **SLITRK2 (SLIT and NTRK Like Family Member 2):** A transmembrane protein involved in neuronal development and synapse formation.
+*   **CHL1 (Cell Adhesion Molecule L1 Like):** A cell adhesion molecule involved in neuronal development, axon guidance, and myelination.
+*   **TENM3 (Teneurin Transmembrane Protein 3):** A transmembrane protein involved in neural circuit assembly and synapse formation.
+*   **PTPRZ1 (Protein Tyrosine Phosphatase Receptor Type Z1):** A receptor protein tyrosine phosphatase expressed in the nervous system, involved in neuronal development and glial function, including myelination.
+*   **GFRA2 (GDNF Family Receptor Alpha 2):** A receptor for neurturin, involved in the survival and development of various neuronal populations and their associated glia.
+*   **FLRT1 (Fibronectin Leucine Rich Transmembrane Protein 1):** A transmembrane protein involved in cell adhesion and signaling, expressed in the nervous system.
+*   **SPP1 (Secreted Phosphoprotein 1):** Involved in cell adhesion, migration, and immune responses. Can be expressed by Schwann cells in certain states, such as injury or development.
+
+**Step 2: List the Key Cell Type Markers**
+
+The most prominent cell type markers in this list point towards glial cells of the peripheral nervous system:
+
+*   **PLP1:** A canonical marker for myelinating glial cells (oligodendrocytes in CNS, Schwann cells in PNS). Its high expression is a strong indicator of myelination.
+*   **SOX10:** A definitive marker for neural crest-derived glial cells, including Schwann cells and satellite glial cells.
+*   **FOXD3:** Another marker for neural crest derivatives, including Schwann cells.
+*   **L1CAM, NRXN1, NRXN3, CADM2, SLITRK2, CHL1, TENM3, PTPRZ1, GFRA2, FLRT1:** While many of these are involved in neuronal function, their co-expression with PLP1, SOX10, and FOXD3 in the peripheral nervous system context is characteristic of Schwann cells, which intimately interact with axons and form myelin.
+
+**Step 3: Cross-reference Known Databases**
+
+Cross-referencing these markers (especially PLP1, SOX10, FOXD3) in scRNA-seq databases like the Human Cell Atlas, PanglaoDB, and CellMarker, as well as relevant literature on the peripheral nervous system and large intestine innervation, consistently identifies this marker profile with **Schwann cells**. PLP1 is a well-established marker for myelinating Schwann cells. SOX10 and FOXD3 are markers for the broader Schwann cell lineage. The presence of numerous neuron-interaction molecules further supports a cell type closely associated with axons.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Based on the strong expression of key glial markers (PLP1, SOX10, FOXD3) and numerous genes involved in neuron-glia interaction and myelination, the most probable general cell type is **Glial cells**, specifically those associated with the peripheral nervous system found within the large intestine tissue.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Within the peripheral nervous system, the main glial cell types are Schwann cells and Satellite glial cells. Schwann cells are further categorized into myelinating and non-myelinating (Remak) Schwann cells.
+
+1.  **Myelinating Schwann Cells:** These cells form the myelin sheath around large caliber axons in the PNS. They are characterized by high expression of myelin structural genes like PLP1, MPZ, and PMP22, as well as transcription factors like SOX10 and FOXD3. The high ranking of **PLP1** in the provided list is a strong indicator of this subtype.
+2.  **Non-myelinating (Remak) Schwann Cells:** These cells ensheath multiple small caliber axons but do not form myelin sheaths. They express SOX10 and FOXD3, and neuron-interaction markers, but typically have low or absent expression of myelin structural genes like PLP1.
+3.  **Satellite Glial Cells:** These cells surround neuronal cell bodies in ganglia. They express SOX10 and GFAP but are distinct from Schwann cells and do not express myelin markers like PLP1.
+
+Given the high expression of **PLP1**, the most likely subtype is **Myelinating Schwann Cells**.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+The single-cell cluster from the human large intestine dataset is characterized by the high expression of canonical Schwann cell markers, including PLP1, SOX10, and FOXD3. The presence of PLP1, a key component of myelin, strongly indicates a myelinating cell type. Furthermore, the cluster expresses numerous genes involved in neuron-glia adhesion and interaction (e.g., L1CAM, NRXN1, CADM2, PTPRZ1), consistent with the function of Schwann cells in supporting and interacting with peripheral axons. Based on this marker profile, the cluster is confidently identified as **Myelinating Schwann Cells**.
+
+FINAL ANNOTATION COMPLETED. | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""Glial cells"",
+  ""sub_cell_types"": [
+    ""Myelinating Schwann Cells"",
+    ""Non-myelinating (Remak) Schwann Cells"",
+    ""Satellite Glial Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+plasma cell,B cell lineage,"Plasma cells (predominantly IgA-producing), Plasma cells (other isotypes - IgG, IgM), Plasmablasts",,50,"IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, I will analyze the provided list of highly expressed markers from a single-cell RNA sequencing cluster from human large intestine tissue to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+This cluster shows a strong signature of genes involved in antibody production and secretion:
+
+*   **Immunoglobulin Genes (IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, IGHG3, IGHM, IGKV3-20, IGHA2):** This extensive list of immunoglobulin heavy chain (IGH), light chain (IGK, IGL), and joining chain (JCHAIN) genes is the most prominent feature. These genes encode the components of antibodies, indicating that these cells are actively producing and likely secreting large amounts of antibodies. JCHAIN is essential for the polymerization of IgA and IgM into their secreted forms. The presence of IGHA1 and IGHA2 indicates production of IgA, IGHG1 and IGHG3 indicate IgG, and IGHM indicates IgM.
+*   **MZB1 (Marginal zone B and B1 cell-specific protein 1):** This protein is involved in the assembly and secretion of immunoglobulins, particularly in plasma cells. Its high expression further supports the role of these cells in antibody production.
+*   **CCL3 (Chemokine (C-C motif) ligand 3):** Also known as MIP-1 alpha, this chemokine is involved in recruiting various immune cells, including monocytes, macrophages, and lymphocytes, to sites of inflammation. Its expression suggests these cells may play a role in modulating the local immune environment.
+*   **APOBEC3A (Apolipoprotein B mRNA editing enzyme, catalytic polypeptide-like 3A):** This enzyme is part of the innate immune defense system, involved in restricting retroviral replication and can be induced by interferons. While not a primary marker for antibody production, its expression suggests engagement with immune signaling pathways.
+
+**Step 2: List the Key Cell Type Markers**
+
+Based on the functional markers, we look for markers specific to B cell lineage, particularly antibody-producing cells:
+
+*   **TNFRSF17 (Tumor necrosis factor receptor superfamily, member 17):** Also known as BCMA (B cell maturation antigen), this receptor is expressed on mature B cells, plasmablasts, and plasma cells. Its high expression is a characteristic marker of plasma cells.
+*   **MZB1:** As mentioned above, while involved in function (Ig secretion), it is also a key marker highly specific to plasma cells.
+*   **GPRC5D (G protein-coupled receptor family C group 5 member D):** This is a known marker highly expressed on plasma cells, including both normal and malignant (e.g., multiple myeloma) plasma cells.
+*   **FCRL5 (Fc receptor-like 5):** This receptor is expressed on B cells and plasma cells and may play a role in regulating B cell activation and antibody production.
+*   **CCR10 (Chemokine (C-C motif) receptor 10):** This receptor is involved in the migration of cells expressing its ligand (CCL27, CCL28) to specific tissues, including mucosal sites like the intestine. Its expression is consistent with plasma cells residing in the gut lamina propria.
+*   **LILRB4 (Leukocyte immunoglobulin-like receptor subfamily B member 4):** Also known as ILT3, this inhibitory receptor is found on various immune cells, including monocytes, dendritic cells, and some B cell subsets and plasma cells. While not exclusively a plasma cell marker, its presence is compatible.
+
+**Step 3: Cross-reference Known Databases**
+
+Cross-referencing these markers with scRNA-seq databases like PanglaoDB, CellMarker, and reviewing literature on human large intestine scRNA-seq datasets confirms that the co-expression of high levels of immunoglobulin genes (especially IgA in the gut), JCHAIN, MZB1, TNFRSF17 (BCMA), GPRC5D, and CCR10 is the definitive signature of plasma cells residing in mucosal tissues. Studies of the human gut microbiome and immunity consistently identify plasma cells with this marker profile as major contributors to mucosal immunity.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Based on the overwhelming expression of immunoglobulin genes, JCHAIN, MZB1, TNFRSF17, GPRC5D, and FCRL5, the most probable general cell type is from the **B cell lineage**, specifically **antibody-producing cells**.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Based on the specific markers and the tissue context (large intestine):
+
+1.  **Plasma cells (predominantly IgA-producing):** This is the most likely subtype. The high expression of Ig heavy and light chains, JCHAIN, MZB1, TNFRSF17, and GPRC5D are all hallmarks of terminally differentiated plasma cells. The presence of IGHA1 and IGHA2, combined with the location in the large intestine (a major site of IgA production for mucosal immunity), strongly suggests that a significant proportion, if not the majority, of these cells are IgA-secreting plasma cells. CCR10 expression further supports their localization to mucosal tissues.
+2.  **Plasma cells (other isotypes - IgG, IgM):** While IgA is dominant in the gut, plasma cells producing other isotypes like IgG (IGHG1, IGHG3) and IgM (IGHM) are also present in the intestinal lamina propria. The expression of these genes indicates that this cluster likely contains plasma cells secreting these other antibody classes as well, or represents a population where multiple isotypes are expressed.
+3.  **Plasmablasts:** Plasmablasts are the proliferating precursors of plasma cells. They also express immunoglobulin genes, JCHAIN, and TNFRSF17. However, terminally differentiated plasma cells typically show higher expression of markers like MZB1 and GPRC5D and lower expression of proliferation markers (which are not prominent in this list). While some plasmablasts might be included in this cluster, the overall marker profile leans more towards mature, non-proliferating plasma cells.
+
+Based on the strong expression of terminal differentiation markers like MZB1 and GPRC5D, and the context of the large intestine, the most likely specific subtype is **Plasma cells (predominantly IgA-producing)**.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+The single-cell cluster from the human large intestine is characterized by the high expression of numerous immunoglobulin heavy and light chain genes, JCHAIN, MZB1, TNFRSF17 (BCMA), GPRC5D, and CCR10. This marker profile is a definitive signature of antibody-producing cells. Given the tissue origin and the presence of IgA heavy chain genes (IGHA1, IGHA2), these cells are most likely terminally differentiated plasma cells, predominantly involved in secreting IgA for mucosal immunity, although plasma cells producing other isotypes (IgG, IgM) are also likely present.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""B cell lineage"",
+  ""sub_cell_types"": [
+    ""Plasma cells (predominantly IgA-producing)"",
+    ""Plasma cells (other isotypes - IgG, IgM)"",
+    ""Plasmablasts""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"
+transit amplifying cell of large intestine,Proliferating Cells,"Transit-Amplifying (TA) Cells, Intestinal Stem Cells (ISCs), Proliferating Immune Cells",,50,"HJURP, UBE2C, CENPA, PBK, AURKB, DLGAP5, CKAP2L, KIF2C, KIF15, BIRC5, SPC25, ASPM, KIF18B, CEP55, DEPDC1, MKI67, CDC45, CDCA5, TOP2A, PCLAF, MND1, RRM2, ZNF695, CCNB2, NUF2, SKA3, SPC24, DTL, PKMYT1, CDCA3, TTK, DIAPH3, PLK1, IQGAP3, CDK1, TK1, POLQ, GTSE1, OIP5, FOXM1, TROAP, SKA1, NEK2, CDC25C, NCAPG, PIMREG, GINS2, RAD51AP1, CDT1, CCNA2",1,google/gemini-2.5-flash-preview,openrouter,large intestine,human,N/A,"Final Annotation Agent: Okay, let's analyze this list of highly expressed genes from your single-cell RNA sequencing cluster to identify the cell type.
+
+**Step 1: List the Key Functional Markers**
+
+This list is overwhelmingly dominated by genes involved in cell cycle progression, DNA replication, and mitosis.
+
+*   **Cell Cycle Progression and Mitosis:** UBE2C, CENPA, PBK, AURKB, DLGAP5, CKAP2L, KIF2C, KIF15, BIRC5, SPC25, ASPM, KIF18B, CEP55, DEPDC1, MKI67, CDC45, CDCA5, TOP2A, PCLAF, MND1, RRM2, CCNB2, NUF2, SKA3, SPC24, DTL, PKMYT1, CDCA3, TTK, DIAPH3, PLK1, IQGAP3, CDK1, TK1, POLQ, GTSE1, OIP5, FOXM1, TROAP, SKA1, NEK2, CDC25C, NCAPG, PIMREG, GINS2, RAD51AP1, CDT1, CCNA2. These genes represent a wide range of functions within the cell cycle, including:
+    *   **DNA Replication:** CDC45, RRM2, TK1, POLQ, GINS2, CDT1, RAD51AP1 (involved in DNA repair, often upregulated during replication stress).
+    *   **Mitotic Spindle Formation and Function:** AURKB, DLGAP5, CKAP2L, KIF2C, KIF15, BIRC5, SPC25, ASPM, KIF18B, CEP55, DEPDC1, NUF2, SKA3, SPC24, TTK, DIAPH3, PLK1, IQGAP3, TROAP, SKA1, NEK2, NCAPG.
+    *   **Chromosome Segregation:** CENPA, BIRC5, SPC25, SPC24, SKA3, SKA1.
+    *   **Cell Cycle Regulation and Checkpoints:** UBE2C, PBK, AURKB, BIRC5, MKI67, CDCA5, TOP2A, PCLAF, MND1, CCNB2, DTL, PKMYT1, CDCA3, TTK, CDK1, FOXM1, CDC25C, PIMREG, CCNA2. MKI67 is a classic proliferation marker. TOP2A is involved in resolving DNA tangles during replication and mitosis. FOXM1 is a key transcription factor regulating the expression of many cell cycle genes.
+    *   **Centrosome Function:** CEP55, NEK2.
+    *   **Cytokinesis:** DIAPH3, CEP55.
+
+*   **Other Markers:** HJURP is involved in centromere assembly. ZNF695 is a transcription factor, but its specific role in this context is less immediately clear compared to the cell cycle genes.
+
+**Step 2: List the Key Cell Type Markers**
+
+Based on this list, there are no immediately obvious markers for terminally differentiated cell types typically found in the large intestine (e.g., enterocytes, goblet cells, enteroendocrine cells, immune cells, stromal cells). The markers are overwhelmingly related to proliferation.
+
+**Step 3: Cross-reference Known Databases**
+
+Searching databases like the Human Protein Atlas, GeneCards, and scRNA-seq atlases (e.g., Tabula Sapiens, specific large intestine datasets) for these highly expressed genes confirms their strong association with actively dividing cells. Genes like MKI67, TOP2A, CDK1, CCNB2, and the various kinesins and spindle-associated proteins are canonical markers of proliferating populations across various tissues.
+
+**Step 4: Determine the Most Probable General Cell Type**
+
+Given the overwhelming expression of genes involved in cell cycle progression, DNA replication, and mitosis, the most probable general cell type is **Proliferating Cells**.
+
+**Step 5: Identify the Top 3 Most Probable Sub Cell Types**
+
+Within the context of the large intestine, proliferating cells are primarily found in the crypts, where stem cells and transit-amplifying cells reside.
+
+1.  **Transit-Amplifying (TA) Cells:** These cells are highly proliferative and are undergoing rapid cell division to produce the differentiated cells of the epithelium. The strong expression of a wide range of cell cycle genes is highly consistent with TA cells.
+2.  **Intestinal Stem Cells (ISCs):** ISCs are also proliferative, but they typically exhibit a more controlled and less rapid rate of division compared to TA cells. While they express some proliferation markers, the sheer breadth and intensity of the markers in this list are more indicative of the highly proliferative TA population. However, a subset of ISCs are actively dividing and would express these markers.
+3.  **Proliferating Immune Cells (e.g., Lymphocytes):** While immune cells are present in the large intestine and can proliferate (e.g., during an immune response), the specific set of markers here is more characteristic of epithelial cell proliferation rather than lymphocyte proliferation (which would involve markers like CD3, CD8, CD4, etc., and different sets of proliferation-associated genes depending on the immune cell type). Without any immune cell markers, this is less likely.
+
+Based on the extensive and high expression of a broad spectrum of cell cycle and mitotic genes, the most likely subtype is **Transit-Amplifying (TA) Cells**.
+
+**Step 6: Provide a Concise Summary of Your Analysis**
+
+The provided list of highly expressed genes is dominated by markers of cell cycle progression, DNA replication, and mitosis, including canonical proliferation markers such as MKI67, TOP2A, CDK1, and CCNB2, along with numerous genes involved in spindle formation and chromosome segregation. This expression profile is characteristic of actively dividing cells. In the context of the large intestine, these proliferating cells are primarily found in the crypts. Cross-referencing with known databases confirms the association of these genes with proliferating populations. Based on the breadth and intensity of the proliferation signature, the most probable general cell type is Proliferating Cells. Within the large intestine, the top three most probable subtypes are Transit-Amplifying (TA) Cells, Intestinal Stem Cells (ISCs), and Proliferating Immune Cells. The extensive and high expression of a wide range of cell cycle genes strongly points towards the highly proliferative Transit-Amplifying (TA) cell population as the most likely subtype.
+
+FINAL ANNOTATION COMPLETED | Coupling Validator: Validation result: VALIDATION PASSED | Formatting Agent: {
+  ""main_cell_type"": ""Proliferating Cells"",
+  ""sub_cell_types"": [
+    ""Transit-Amplifying (TA) Cells"",
+    ""Intestinal Stem Cells (ISCs)"",
+    ""Proliferating Immune Cells""
+  ],
+  ""possible_mixed_cell_types"": [],
+  ""num_markers"": 50
+}"

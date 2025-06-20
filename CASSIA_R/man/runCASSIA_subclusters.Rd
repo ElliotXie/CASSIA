@@ -8,9 +8,9 @@ runCASSIA_subclusters(
   marker,
   major_cluster_info,
   output_name,
-  model = "claude-3-5-sonnet-20241022",
+  model = "google/gemini-2.5-flash-preview",
   temperature = 0,
-  provider = "anthropic",
+  provider = "openrouter",
   n_genes = 50L
 )
 }

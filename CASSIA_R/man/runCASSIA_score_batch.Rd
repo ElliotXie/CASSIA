@@ -8,8 +8,8 @@ runCASSIA_score_batch(
   input_file,
   output_file = NULL,
   max_workers = 4,
-  model = "gpt-4o",
-  provider = "openai",
+  model = "deepseek/deepseek-chat-v3-0324",
+  provider = "openrouter",
   max_retries = 1
 )
 }

@@ -11,7 +11,8 @@ add_cassia_to_seurat(
   cassia_cluster_col = "True Cell Type",
   prefix = "CASSIA_",
   replace_existing = FALSE,
-  fuzzy_match = TRUE
+  fuzzy_match = TRUE,
+  columns_to_include = 1
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ add_cassia_to_seurat(
 \item{replace_existing}{Whether to replace existing annotations (default: FALSE)}
 
 \item{fuzzy_match}{Whether to perform fuzzy matching on cluster names (default: TRUE)}
+
+\item{columns_to_include}{Level of columns to include: 1 for only merged groupings, 2 for all metrics (default: 2)}
 }
 \value{
 A Seurat object with CASSIA annotations added as metadata columns

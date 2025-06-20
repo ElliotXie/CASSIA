@@ -5,13 +5,13 @@
 \title{Run Cell Type Analysis}
 \usage{
 runCASSIA(
-  model,
+  model = "google/gemini-2.5-flash-preview",
   temperature,
   marker_list,
   tissue,
   species,
   additional_info = NULL,
-  provider = "openai"
+  provider = "openrouter"
 )
 }
 \arguments{

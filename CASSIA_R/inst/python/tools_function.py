@@ -6,7 +6,11 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from main_function_code import *
+try:
+    from .main_function_code import *
+except ImportError:
+    from main_function_code import *
+
 import requests
 import threading
 import numpy as np
@@ -14,9 +18,21 @@ from importlib import resources
 import datetime
 import shutil
 from collections import Counter
-from llm_utils import *
-from merging_annotation_code import merge_annotations, merge_annotations_all
-from cell_type_comparison import compareCelltypes
+
+try:
+    from .llm_utils import *
+except ImportError:
+    from llm_utils import *
+
+try:
+    from .merging_annotation import *
+except ImportError:
+    from merging_annotation import *
+
+try:
+    from .cell_type_comparison import compareCelltypes
+except ImportError:
+    from cell_type_comparison import compareCelltypes
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -880,7 +896,9 @@ def runCASSIA_annotationboost_additional_task(
     additional_task="",
     provider=None,
     temperature=0,
-    conversation_history_mode="final"
+    conversation_history_mode="final",
+    search_strategy="breadth",
+    report_style="per_iteration"
 ):
     """
     Generate a detailed HTML report for cell type analysis of a specific cluster.
@@ -897,6 +915,8 @@ def runCASSIA_annotationboost_additional_task(
         provider (str): AI provider to use (default=None, will be inferred from model name)
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy (str): Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
         
     Returns:
         tuple: (analysis_result, messages_history)
@@ -910,7 +930,10 @@ def runCASSIA_annotationboost_additional_task(
     except ImportError:
         try:
             # Try relative import as fallback
-            from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+            try:
+                from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
+            except ImportError:
+                from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
         except ImportError:
             raise ImportError("Could not import annotation_boost module.")
     
@@ -933,7 +956,9 @@ def runCASSIA_annotationboost_additional_task(
         provider=provider,
         additional_task=additional_task,
         temperature=temperature,
-        conversation_history_mode=conversation_history_mode
+        conversation_history_mode=conversation_history_mode,
+        search_strategy=search_strategy,
+        report_style=report_style
     )
 
 
@@ -951,7 +976,9 @@ def runCASSIA_annotationboost(
     model="google/gemini-2.5-flash-preview",
     provider="openrouter",
     temperature=0,
-    conversation_history_mode="final"
+    conversation_history_mode="final",
+    search_strategy="breadth",
+    report_style="per_iteration"
 ):
     """
     Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
@@ -969,6 +996,8 @@ def runCASSIA_annotationboost(
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
+        search_strategy (str): Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
     
     Returns:
         tuple: (analysis_result, messages_history)
@@ -982,7 +1011,10 @@ def runCASSIA_annotationboost(
     except ImportError:
         try:
             # Try relative import as fallback
-            from annotation_boost import runCASSIA_annotationboost as run_annotationboost
+            try:
+                from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
+            except ImportError:
+                from annotation_boost import runCASSIA_annotationboost as run_annotationboost
         except ImportError:
             raise ImportError("Could not import annotation_boost module.")
     
@@ -996,7 +1028,9 @@ def runCASSIA_annotationboost(
         model=model,
         provider=provider,
         temperature=temperature,
-        conversation_history_mode=conversation_history_mode
+        conversation_history_mode=conversation_history_mode,
+        search_strategy=search_strategy,
+        report_style=report_style
     )
 
 
@@ -1513,7 +1547,9 @@ def runCASSIA_pipeline(
     merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
-    ascending: bool = None
+    ascending: bool = None,
+    search_strategy: str = "breadth",
+    report_style: str = "per_iteration"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -1539,6 +1575,8 @@ def runCASSIA_pipeline(
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
+        search_strategy (str): Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
+        report_style (str): Style of report generation ("per_iteration" or "total_summary")
     """
     # Create a main folder based on tissue and species for organizing reports
     main_folder_name = f"CASSIA_{tissue}_{species}"
@@ -1622,7 +1660,10 @@ def runCASSIA_pipeline(
         
         # Import the merge_annotations function dynamically
         try:
-            from merging_annotation_code import merge_annotations_all
+            try:
+                from .merging_annotation import merge_annotations_all
+            except ImportError:
+                from merging_annotation import merge_annotations_all
             
             # Sort the CSV file by True Cell Type before merging to ensure consistent order
             print("Sorting CSV by True Cell Type before merging...")
@@ -1749,7 +1790,9 @@ def runCASSIA_pipeline(
                     model=annotationboost_model,
                     provider=annotationboost_provider,
                     temperature=0,
-                    conversation_history_mode=conversation_history_mode
+                    conversation_history_mode=conversation_history_mode,
+                    search_strategy=search_strategy,
+                    report_style=report_style
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")
