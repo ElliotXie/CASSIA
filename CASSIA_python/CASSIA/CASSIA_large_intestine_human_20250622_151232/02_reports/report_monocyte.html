@@ -1,0 +1,264 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    Here's a detailed analysis to identify the cell type based on the provided ranked marker list from a human large intestine scRNA-seq dataset:<br><br>**Step 1. List the Key Functional Markers:**<br><br>*   **SPP1 (Osteopontin):** A secreted phosphoprotein involved in various biological processes, including cell adhesion, migration, immune response, and tissue remodeling. Often associated with macrophages, but also found in other cell types like fibroblasts and some epithelial cells, particularly in inflammatory or fibrotic contexts.<br>*   **CLU (Clusterin):** A chaperone protein involved in protein folding, apoptosis, and lipid transport. Expressed in various tissues and cell types, including epithelial cells, neurons, and astrocytes. Its role can be context-dependent.<br>*   **TIMP3 (TIMP metallopeptidase inhibitor 3):** A tissue inhibitor of metalloproteinases, regulating extracellular matrix (ECM) degradation. Important for tissue remodeling and maintaining ECM integrity. Expressed by various stromal cells, including fibroblasts and smooth muscle cells.<br>*   **GPX3 (Glutathione Peroxidase 3):** An antioxidant enzyme involved in protecting cells from oxidative damage. Primarily found in the extracellular space and associated with various cell types, including epithelial cells and some stromal cells.<br>*   **CRYAB (Crystallin Alpha B):** A small heat shock protein with chaperone activity, protecting cells from stress-induced damage. Expressed in various tissues, including muscle, brain, and heart.<br>*   **FGF2 (Fibroblast Growth Factor 2):** A potent mitogen and cell survival factor involved in angiogenesis, wound healing, and tissue development. Produced by various cell types, including fibroblasts, endothelial cells, and smooth muscle cells.<br>*   **HAND2 (Heart And Neural Crest Derivatives Expressed 2):** A basic helix-loop-helix transcription factor crucial for the development of various tissues, including the heart, neural crest, and enteric nervous system. Its presence is highly indicative of neural crest-derived cells or their derivatives.<br>*   **PCDH10 (Protocadherin 10):** A cell adhesion molecule involved in neuronal development and synaptic organization. Suggests a neural or neuro-related cell type.<br>*   **GRIK3 (Glutamate Ionotropic Receptor Kainate Type Subunit 3):** A subunit of kainate receptors, which are ion channels involved in excitatory neurotransmission. Strong indicator of neuronal cells.<br>*   **GFRA3 (GDNF Family Receptor Alpha 3):** A co-receptor for glial cell line-derived neurotrophic factor (GDNF) family ligands, important for neuronal survival and development. Another strong indicator of neural lineage.<br>*   **HEY2 (Hes Related Family BHLH Transcription Factor With YRPW Motif 2):** A transcriptional repressor involved in cell fate determination and differentiation, particularly in neural and vascular development.<br><br>**Step 2. List the Key Cell Type Markers:**<br><br>This list is highly enriched with markers characteristic of neural and glial cells, particularly those associated with the peripheral nervous system and Schwann cells.<br><br>*   **IGFBP7 (Insulin Like Growth Factor Binding Protein 7):** While expressed in various cell types, including fibroblasts and endothelial cells, it's also found in some neural and glial populations.<br>*   **CHL1 (Cell Adhesion Molecule L1 Like):** A cell adhesion molecule of the L1 family, primarily expressed in the nervous system, involved in neuronal migration, axon guidance, and myelination. Strong indicator of neural cells.<br>*   **NRXN3 (Neurexin 3), NRXN1 (Neurexin 1):** Presynaptic cell adhesion molecules crucial for synapse formation and function. Highly specific to neurons.<br>*   **PLP1 (Proteolipid Protein 1):** The most abundant protein in central nervous system myelin. While primarily CNS, its presence in the large intestine context, especially with other neural markers, points towards myelinating cells of the peripheral nervous system (Schwann cells).<br>*   **LGI4 (Leucine Rich Repeat LGI Family Member 4):** Involved in nervous system development and function, particularly in myelination. Associated with Schwann cells.<br>*   **GPM6B (Glycoprotein M6B):** A neuronal membrane glycoprotein involved in neurite outgrowth and neuronal differentiation.<br>*   **SCN7A (Sodium Voltage-Gated Channel Alpha Subunit 7):** A voltage-gated sodium channel, typically found in excitable cells like neurons.<br>*   **SPARCL1 (SPARC Like 1):** Also known as Hevin, a secreted protein involved in extracellular matrix organization and neuronal development. Expressed by astrocytes and some neurons.<br>*   **PMP22 (Peripheral Myelin Protein 22):** A major component of peripheral nervous system myelin. **This is a definitive marker for Schwann cells.**<br>*   **MPZ (Myelin Protein Zero):** The most abundant protein in peripheral nervous system myelin. **Another definitive marker for Schwann cells.**<br>*   **ARHGEF26 (Rho Guanine Nucleotide Exchange Factor 26):** While broadly expressed, it has roles in neuronal development and migration.<br>*   **TSPAN11 (Tetraspanin 11):** Less specific, but tetraspanins are involved in cell surface organization and signaling, including in the nervous system.<br>*   **HSPA12A (Heat Shock Protein Family A (Hsp70) Member 12A):** A heat shock protein, less specific, but can be expressed in various stressed or metabolically active cells, including neural cells.<br>*   **CAB39L (Calcium Binding Protein 39 Like):** Involved in cell signaling, less specific.<br>*   **SORCS1 (Sortilin Related VPS10 Domain Containing Receptor 1):** A neuronal receptor involved in protein trafficking and signaling.<br>*   **NCAM1 (Neural Cell Adhesion Molecule 1):** A classic and highly specific marker for neural cells, involved in cell-cell adhesion, neurite outgrowth, and synaptic plasticity.<br>*   **HAND2-AS1 (HAND2 Antisense RNA 1):** An antisense RNA associated with HAND2, further supporting the presence of HAND2-expressing cells.<br>*   **OGFRL1 (Opioid Growth Factor Receptor Like 1):** Less specific, but can be found in neural tissues.<br>*   **GLIS3 (GLIS Family Zinc Finger 3):** A transcription factor involved in various developmental processes, including neural development.<br>*   **CRIP2 (Cysteine Rich Protein 2):** Involved in cell differentiation and growth, found in various tissues including neural.<br>*   **ITGB8 (Integrin Subunit Beta 8):** An integrin subunit, involved in cell adhesion and signaling, expressed in various cell types including neurons and glia.<br>*   **PHYHIPL (Phytanoyl-CoA Hydroxylase Interacting Protein Like):** Less specific, but can be found in neural tissues.<br>*   **NKAIN3 (Na+/K+ ATPase Interacting 3):** Involved in ion transport, less specific.<br>*   **CHST9 (Carbohydrate Sulfotransferase 9):** Involved in glycosaminoglycan synthesis, less specific.<br>*   **FOXD3 (Forkhead Box D3):** A transcription factor crucial for neural crest development and maintenance. **Strongly supports a neural crest-derived cell type.**<br>*   **CMTM5 (Chemokine Like Receptor 5):** Less specific.<br>*   **TMEM132B (Transmembrane Protein 132B):** Less specific, but has been linked to neuronal function.<br>*   **INSC (Inscuteable Homolog):** Involved in asymmetric cell division, particularly in neural stem cells.<br>*   **CADM4 (Cell Adhesion Molecule 4):** A cell adhesion molecule, less specific.<br>*   **SHC4 (SHC Adaptor Protein 4):** Involved in signal transduction, less specific.<br><br>**Step 3. Cross-reference Known Databases:**<br><br>A rapid cross-referencing of the top markers (PLP1, PMP22, MPZ, NCAM1, CHL1, NRXN1/3, HAND2, FOXD3, GRIK3, GFRA3) with scRNA-seq atlases (e.g., Human Cell Atlas, Tabula Sapiens, specific gut scRNA-seq datasets) consistently points towards **neural cells, specifically Schwann cells and enteric neurons.**<br><br>*   **PLP1, PMP22, MPZ:** These are canonical markers for myelinating cells, particularly Schwann cells in the peripheral nervous system.<br>*   **NCAM1, CHL1, NRXN1/3, GPM6B, SCN7A, SORCS1, PCDH10, GRIK3, GFRA3:** These are all highly indicative of neuronal or neural-related cell types.<br>*   **HAND2, FOXD3:** These are critical transcription factors for neural crest development, the embryonic origin of enteric neurons and Schwann cells.<br><br>The co-expression of both neuronal markers (e.g., NRXN1/3, GRIK3, GFRA3, NCAM1) and definitive Schwann cell markers (PLP1, PMP22, MPZ) is highly significant. In the large intestine, the enteric nervous system (ENS) is a complex network of neurons and glial cells (enteric glia, which are functionally similar to Schwann cells). Schwann cells are the primary glial cells of the peripheral nervous system, responsible for myelination and support of peripheral nerves.<br><br>**Step 4. Determine the Most Probable General Cell Type:**<br><br>Based on the overwhelming presence of neural and glial markers, particularly those associated with myelination and neuronal function, the most probable general cell type is **Neural/Glial Cells**.<br><br>**Step 5. Identify the Top 3 Most Probable Sub Cell Types:**<br><br>1.  **Schwann Cells (Myelinating and Non-myelinating):** The presence of **PMP22, MPZ, and PLP1** as highly ranked markers is exceptionally strong evidence for Schwann cells. These are the primary myelin proteins in the peripheral nervous system. Schwann cells are abundant in the large intestine, forming the glial component of the enteric nervous system and ensheathing nerve fibers. The presence of other neural adhesion molecules (CHL1, NCAM1) and developmental factors (HAND2, FOXD3) is also consistent with Schwann cell identity, as they are neural crest-derived.<br>2.  **Enteric Neurons:** Markers like **NRXN1, NRXN3, GRIK3, GFRA3, SCN7A, PCDH10, GPM6B, SORCS1, NCAM1, and HAND2/FOXD3** are highly indicative of neuronal populations. The enteric nervous system contains a diverse array of neurons. The co-expression with Schwann cell markers suggests these cells are likely part of the same neural network within the gut.<br>3.  **Enteric Glial Cells (non-Schwann cell specific):** While Schwann cells are a specific type of enteric glia, the broader category of enteric glial cells (EGCs) also exists. EGCs share many markers with Schwann cells but may lack the high expression of definitive myelin proteins if they are non-myelinating or have different functional roles. Markers like NCAM1, CHL1, SPARCL1, and CLU can be found in EGCs. Given the strong myelin markers, a significant proportion of this cluster is likely myelinating Schwann cells, but other glial subtypes might also be present.<br><br>**Most Likely Subtype:**<br><br>Given the very high expression of **PMP22, MPZ, and PLP1**, the most likely specific subtype is **Schwann Cells**, particularly those involved in myelination or closely associated with nerve fibers in the large intestine. The presence of neuronal markers suggests that this cluster might also contain a subset of enteric neurons, or it represents a mixed population of closely interacting Schwann cells and neurons, which is common in scRNA-seq data where cell types are often clustered based on shared developmental origins and functional associations. However, the *definitive* markers point most strongly to Schwann cells.<br><br>**Step 6. Provide a Concise Summary of Your Analysis:**<br><br>This cell cluster from the human large intestine is identified as **Schwann Cells**, with strong evidence for their myelinating phenotype. Key markers such as **PMP22, MPZ, and PLP1** are highly expressed, unequivocally pointing to Schwann cell identity. The presence of other neural adhesion molecules (e.g., NCAM1, CHL1, NRXN1/3), neuronal functional markers (e.g., GRIK3, GFRA3, SCN7A), and neural crest developmental transcription factors (HAND2, FOXD3) further supports a neural lineage. While some neuronal markers are present, the dominance of definitive Schwann cell myelin markers makes Schwann cells the most probable primary cell type within this cluster, likely representing the glial component of the enteric nervous system.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                        <div class="agent-section formatting">
+                            <h2>📋 Summary</h2>
+                            
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <span class="summary-label">Main Cell Type:</span>
+                                <span class="summary-value">Schwann Cells</span>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Sub Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>Schwann Cells</li><li>Enteric Neurons</li><li>Enteric Glial Cells</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Possible Mixed Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>Schwann Cells</li><li>Enteric Neurons</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Number of Markers:</span>
+                                <span class="summary-value">50</span>
+                            </div>
+                        </div>
+                    
+                        </div>
+                    
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">95</div>
+                        <div class="scoring-content">
+                            The annotation process demonstrates a strong understanding of single-cell biology and marker interpretation, particularly in the context of the human large intestine. The agent systematically breaks down the marker list, identifies key functional and cell-type specific markers, and cross-references them effectively.<br><br>**Strengths:**<br><br>*   **Systematic Approach:** The step-by-step analysis (Key Functional Markers, Key Cell Type Markers, Cross-referencing, Determining General/Sub-types) is logical and thorough.<br>*   **Accurate Marker Interpretation:** The agent correctly identifies the significance of crucial markers like PMP22, MPZ, PLP1 as definitive Schwann cell markers, and HAND2, FOXD3 as neural crest developmental markers. The interpretation of neuronal markers (NRXN1/3, GRIK3, GFRA3, NCAM1) is also accurate.<br>*   **Contextual Awareness (Large Intestine):** The understanding that Schwann cells and enteric neurons are components of the enteric nervous system in the large intestine is critical and well-applied. The consideration of enteric glial cells as a broader category is also appropriate.<br>*   **Balanced Consideration of Markers:** While PMP22, MPZ, and PLP1 are highlighted as definitive, the agent doesn't solely rely on them. It integrates a wide array of neural and neural crest markers to build a comprehensive picture, acknowledging both neuronal and glial aspects. The presence of both neuronal and glial markers is explicitly discussed as potentially indicating a mixed population or closely interacting cells, which is a realistic interpretation of scRNA-seq clusters.<br>*   **Justification for "Most Likely Subtype":** The agent provides a clear and well-reasoned justification for prioritizing Schwann cells as the most likely primary cell type due to the dominance and specificity of their markers at the top of the list.<br>*   **Consideration of Marker Rank:** Although not explicitly stated as a "rule," the agent implicitly prioritizes higher-ranked markers by focusing on them in the initial analysis steps and using them to drive the primary annotation. For example, IGFBP7 is the top marker, and while it's mentioned, its interpretation acknowledges its broader expression while other, more specific, high-ranked markers (like the myelin proteins) are given more weight for cell type identification.<br><br>**Weaknesses/Minor Improvements:**<br><br>*   **Initial Marker IGFBP7:** While the agent notes that IGFBP7 is expressed in "various cell types, including fibroblasts and endothelial cells, [and] also found in some neural and glial populations," it is the *first* marker listed. A slightly more explicit discussion of why this highly ranked marker, which is not exclusively neural, doesn't derail the neural/glial annotation, would further strengthen the analysis. Perhaps mentioning that its expression can be context-dependent or that its presence alongside a strong suite of specific neural markers points towards a neural context. However, it implicitly handles this by giving more weight to the highly specific markers.<br>*   **"Overall Picture" Nuance:** The annotation leans heavily into "Schwann Cells" as the main type due to the strong myelin markers. While correct, the very strong presence of neuronal markers (NRXN1, NRXN3, GRIK3, GFRA3, SCN7A, PCDH10, SORCS1, NCAM1) suggests that "Enteric Neurons" are also a very significant component, potentially making the cluster truly a mixed "Enteric Neuron and Schwann Cell" cluster rather than primarily Schwann cells with some neuronal markers. The agent does list "Enteric Neurons" second in the sub-types and in "possible_mixed_cell_types," acknowledging this. The final summary leans more towards Schwann cells. This is a subtle point, but if the cluster truly contains a substantial number of both cell types, a more balanced "main cell type" could be "Enteric Neurons and Schwann Cells." However, given the *definitive* nature of the myelin markers for Schwann cells, and their high rank, the agent's decision to prioritize Schwann cells is justifiable.<br><br>**Overall Impression:**<br><br>The annotation is highly accurate and demonstrates expert-level knowledge in single-cell biology and marker interpretation. The analysis is comprehensive, well-structured, and provides strong evidence for its conclusions. The agent successfully captures the complex interplay of neural and glial cell types in the enteric nervous system. The potential for a mixed population is adequately addressed, and the reasoning for the primary annotation is sound.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

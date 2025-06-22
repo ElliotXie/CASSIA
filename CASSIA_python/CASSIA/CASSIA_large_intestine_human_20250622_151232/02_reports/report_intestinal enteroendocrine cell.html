@@ -1,0 +1,264 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    Here's a detailed analysis to identify the cell type based on the provided ranked marker list from a human large intestine tissue dataset.<br><br>**Step-by-Step Analysis:**<br><br>**1. List the Key Functional Markers:**<br><br>*   **Neuroendocrine/Secretory Pathway Markers:**<br>    *   **SCGN (Secretagogin):** A calcium-binding protein expressed in neuroendocrine cells, involved in regulated secretion.<br>    *   **CRYBA2 (Crystallin Beta A2):** While primarily known in the lens, its presence in neuroendocrine cells can be indicative of specific secretory granule content or stress responses. Less specific than other markers here.<br>    *   **SCG5 (Secretogranin V / 7B2):** A neuroendocrine protein involved in prohormone processing (e.g., pro-opiomelanocortin) and chaperone activity for prohormone convertases.<br>    *   **SCG2 (Secretogranin II / Chromogranin C):** A major granin family protein found in dense-core secretory granules of neuroendocrine cells.<br>    *   **CPE (Carboxypeptidase E):** An enzyme involved in the C-terminal processing of peptide hormones and neuropeptides within secretory granules.<br>    *   **CHGB (Chromogranin B):** A member of the granin family, co-stored and co-released with peptide hormones and neurotransmitters from neuroendocrine cells.<br>    *   **SCG3 (Secretogranin III):** Another granin family member, involved in secretory granule biogenesis and cargo sorting.<br>    *   **CHGA (Chromogranin A):** A ubiquitous marker for neuroendocrine cells, involved in secretory granule formation and storage of peptide hormones.<br>    *   **RAB3B (RAB3B, member RAS oncogene family):** A small GTPase involved in regulated exocytosis of synaptic vesicles and dense-core granules.<br>    *   **SNAP25 (Synaptosomal-associated protein 25):** A component of the SNARE complex, crucial for vesicle fusion and neurotransmitter/hormone release.<br>    *   **SLC18A1 (Solute Carrier Family 18 Member A1 / VMAT1):** Vesicular monoamine transporter 1, responsible for packaging monoamines into secretory vesicles.<br>    *   **CPLX2 (Complexin 2):** A protein involved in regulating SNARE-mediated exocytosis.<br>    *   **PCSK1 (Proprotein Convertase Subtilisin/Kexin Type 1 / PC1/3):** An enzyme responsible for the proteolytic processing of prohormones and proneuropeptides into their active forms.<br>    *   **VGF (VGF Nerve Growth Factor Inducible):** A neuropeptide precursor expressed in neuroendocrine cells, processed into various bioactive peptides.<br>    *   **SYT4 (Synaptotagmin 4):** A calcium sensor involved in regulated exocytosis.<br>    *   **RGS4 (Regulator of G-protein Signaling 4):** Involved in modulating G-protein coupled receptor signaling, often expressed in neuroendocrine cells.<br><br>*   **Hormone/Peptide Markers:**<br>    *   **GCG (Glucagon):** Precursor for glucagon, a hormone primarily known for glucose regulation, but also expressed in specific enteroendocrine cells (L-cells, A-cells).<br>    *   **SCT (Secretin):** A hormone produced by S cells in the duodenum, stimulating bicarbonate secretion.<br>    *   **UCN3 (Urocortin 3):** A neuropeptide of the corticotropin-releasing hormone family, expressed in specific enteroendocrine cells.<br><br>*   **Transcription Factors/Developmental Markers:**<br>    *   **FEV (Fos-related antigen 2):** A transcription factor involved in neuroendocrine differentiation.<br>    *   **CELF3 (CUGBP Elav-like family member 3):** RNA binding protein, involved in neuronal differentiation.<br>    *   **ST18 (ST18 C2HC-type zinc finger protein):** A transcription factor, potentially involved in neuroendocrine development.<br>    *   **ARX (Aristaless Related Homeobox):** A transcription factor crucial for pancreatic and neuroendocrine development.<br>    *   **RFX6 (Regulatory Factor X6):** A transcription factor essential for enteroendocrine and pancreatic islet cell development.<br>    *   **INSM1 (Insulinoma-associated protein 1):** A key neuroendocrine transcription factor, critical for the differentiation of various neuroendocrine cell types.<br>    *   **NKX2-2 (NK2 Homeobox 2):** A homeodomain transcription factor involved in neuroendocrine and pancreatic islet cell development.<br>    *   **PDX1 (Pancreatic and Duodenal Homeobox 1):** A master regulator of pancreatic development and beta-cell function, also expressed in some enteroendocrine cells.<br>    *   **ETV1 (ETS Variant 1):** A transcription factor involved in neuronal and neuroendocrine development.<br><br>*   **Ion Channels/Transporters:**<br>    *   **CACNA1A (Calcium Voltage-Gated Channel Subunit Alpha1 A):** A subunit of a voltage-gated calcium channel, crucial for excitation-secretion coupling in neuroendocrine cells.<br>    *   **ABCC8 (ATP Binding Cassette Subfamily C Member 8):** A subunit of the ATP-sensitive potassium channel (KATP channel), critical for glucose-stimulated insulin secretion in pancreatic beta cells, and also found in some enteroendocrine cells.<br>    *   **KCNB2 (Potassium Voltage-Gated Channel Subfamily B Member 2):** A voltage-gated potassium channel.<br>    *   **SLC29A4 (Solute Carrier Family 29 Member A4):** A nucleoside transporter.<br>    *   **KCNK3 (Potassium Two Pore Domain Channel Subfamily K Member 3):** A potassium channel.<br>    *   **SLC26A7 (Solute Carrier Family 26 Member A7):** An anion transporter.<br><br>*   **Other:**<br>    *   **RIMBP2 (RIM Binding Protein 2):** Involved in synaptic vesicle release.<br>    *   **VWA5B2 (Von Willebrand Factor A Domain Containing 5B2):** Function less clear in this context.<br>    *   **F5 (Coagulation Factor V):** Primarily involved in coagulation, less specific for cell type.<br>    *   **CDK5R2 (Cyclin Dependent Kinase 5 Regulatory Subunit Associated Protein 2):** Involved in neuronal development and function.<br>    *   **PRPH (Peripherin):** An intermediate filament protein found in peripheral neurons and some neuroendocrine cells.<br>    *   **CADPS (Calcium Dependent Secretion Activator):** Involved in dense-core vesicle exocytosis.<br>    *   **PAPPA2 (Pregnancy Associated Plasma Protein A2):** A metalloproteinase, less specific.<br>    *   **RTN1 (Reticulon 1):** Involved in ER structure and function, and can be expressed in neuroendocrine cells.<br>    *   **EYS (Eyes Shut Homolog):** Primarily involved in retinal development, less specific here.<br><br>**2. List the Key Cell Type Markers:**<br><br>Based on the functional markers, the overwhelming evidence points towards a neuroendocrine cell type. The large intestine contains a significant population of enteroendocrine cells (EECs).<br><br>*   **General Enteroendocrine Cell Markers:**<br>    *   **CHGA, CHGB, SCG2, SCG3, SCG5, SCGN:** These are classic pan-neuroendocrine markers, highly expressed in EECs.<br>    *   **CPE, PCSK1:** Enzymes crucial for prohormone processing, characteristic of secretory cells like EECs.<br>    *   **INSM1, RFX6, NKX2-2, ARX, PDX1, FEV, ETV1:** Transcription factors known to regulate enteroendocrine cell differentiation and maintenance.<br>    *   **SNAP25, RAB3B, CPLX2, SYT4, CADPS, RIMBP2:** Components of the exocytosis machinery, essential for hormone release from EECs.<br>    *   **CACNA1A, ABCC8, KCNB2, KCNK3:** Ion channels involved in regulating membrane potential and calcium influx, critical for stimulus-secretion coupling in EECs.<br>    *   **SLC18A1 (VMAT1):** While more prominent in monoamine-producing cells, its presence suggests vesicular packaging of neurotransmitters/hormones.<br>    *   **VGF, UCN3:** Neuropeptide precursors found in specific EEC subtypes.<br><br>*   **Specific Enteroendocrine Hormone Markers:**<br>    *   **GCG (Glucagon):** In the intestine, GCG is primarily expressed in L-cells, where it is processed into GLP-1 (Glucagon-like peptide 1) and GLP-2 (Glucagon-like peptide 2), rather than glucagon itself. This is a strong indicator of L-cells.<br>    *   **SCT (Secretin):** A definitive marker for S-cells.<br><br>**3. Cross-reference Known Databases:**<br><br>*   **Human Cell Atlas (HCA) / Tabula Sapiens:** Searching these databases for "large intestine enteroendocrine cells" consistently shows high expression of CHGA, CHGB, SCGN, INSM1, RFX6, NKX2-2, PCSK1, CPE, and various hormone precursors like GCG and SCT.<br>*   **PanglaoDB:** A common resource for scRNA-seq marker genes. Querying "enteroendocrine cells" or specific EEC subtypes (e.g., "L-cells," "S-cells") confirms the presence of many of the listed markers. For instance, GCG is a top marker for L-cells, and SCT for S-cells.<br>*   **Literature:** Numerous scRNA-seq studies of the human intestine consistently identify these markers as characteristic of enteroendocrine cell populations. The co-expression of pan-neuroendocrine markers with specific hormone precursors is the hallmark of these cells.<br><br>**4. Determine the Most Probable General Cell Type:**<br><br>The overwhelming presence of pan-neuroendocrine markers (CHGA, CHGB, SCGN, SCG2, SCG3, SCG5, INSM1, PCSK1, CPE), along with genes involved in regulated secretion (SNAP25, RAB3B, CACNA1A, CADPS) and specific hormone precursors (GCG, SCT, UCN3), strongly indicates that this cluster represents **Enteroendocrine Cells (EECs)**. These are specialized epithelial cells in the gut lining that sense luminal contents and secrete hormones to regulate digestion, metabolism, and gut motility.<br><br>**5. Identify the Top 3 Most Probable Sub Cell Types:**<br><br>Given the presence of specific hormone precursors, we can narrow down the subtypes:<br><br>1.  **L-cells (most likely):**<br>    *   **Key Marker:** **GCG** (Glucagon). In the intestine, GCG is processed into GLP-1 and GLP-2, which are crucial for glucose homeostasis and gut growth, respectively. L-cells are the most abundant EEC subtype in the large intestine.<br>    *   **Supporting Markers:** High expression of general neuroendocrine markers (CHGA, CHGB, SCGN, INSM1, PCSK1, CPE) and secretory machinery components. UCN3 is also expressed by a subset of L-cells.<br><br>2.  **S-cells (second most likely):**<br>    *   **Key Marker:** **SCT** (Secretin). S-cells are responsible for secretin production, which stimulates bicarbonate secretion from the pancreas and bile ducts. While more abundant in the duodenum, they are present throughout the small and large intestine.<br>    *   **Supporting Markers:** General neuroendocrine markers.<br><br>3.  **K-cells / I-cells / Other EECs (third most likely, as a broader category):**<br>    *   While specific markers for K-cells (GIP) or I-cells (CCK) are not explicitly high on this list, the general neuroendocrine signature and the presence of transcription factors like PDX1, ARX, RFX6, and NKX2-2, which are involved in the development of multiple EEC lineages, suggest the potential for other EEC subtypes or progenitor states. The high expression of *ABCC8* (KATP channel subunit) is particularly interesting as it is a key component in glucose-sensing cells like pancreatic beta cells and also found in some EECs, including L-cells and potentially others that respond to nutrient stimuli.<br><br>**Most Likely Subtype:**<br><br>Based on the provided ranked list, the most likely subtype is **L-cells**, primarily due to the high ranking of **GCG**. GCG is the defining marker for L-cells in the intestine, where it is processed into GLP-1 and GLP-2. The large intestine is particularly rich in L-cells. The presence of UCN3 further supports this, as UCN3 is known to be co-expressed in a subset of L-cells.<br><br>**6. Provide a Concise Summary of Your Analysis:**<br><br>This cell cluster from human large intestine tissue is definitively identified as **Enteroendocrine Cells (EECs)**. This annotation is strongly supported by the high expression of numerous pan-neuroendocrine markers (e.g., SCGN, SCG5, SCG2, CHGB, CHGA, INSM1, PCSK1, CPE), genes involved in regulated secretion (e.g., SNAP25, RAB3B, CACNA1A), and key neuroendocrine transcription factors (e.g., RFX6, NKX2-2, ARX, PDX1). Among the enteroendocrine subtypes, the most probable specific identity is **L-cells**, primarily driven by the prominent expression of **GCG**, which is processed into GLP-1 and GLP-2 in intestinal L-cells. The presence of SCT suggests a minor population or co-expression with S-cells, but GCG's higher ranking and L-cells' abundance in the large intestine make them the primary candidate.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                        <div class="agent-section formatting">
+                            <h2>📋 Summary</h2>
+                            
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <span class="summary-label">Main Cell Type:</span>
+                                <span class="summary-value">Enteroendocrine Cells (EECs)</span>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Sub Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li>L-cells</li><li>S-cells</li><li>K-cells / I-cells / Other EECs</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Possible Mixed Cell Types:</span>
+                                <ul class="summary-list">
+                                    <li class="empty-list">No mixed cell types identified</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <span class="summary-label">Number of Markers:</span>
+                                <span class="summary-value">50</span>
+                            </div>
+                        </div>
+                    
+                        </div>
+                    
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">98</div>
+                        <div class="scoring-content">
+                            The annotation provided is highly comprehensive and scientifically accurate, demonstrating a deep understanding of single-cell biology and neuroendocrine cell types within the human large intestine.<br><br>**Strengths:**<br><br>1.  **Thorough Marker Analysis:** The analysis meticulously breaks down the markers into functional categories (Neuroendocrine/Secretory, Hormone/Peptide, Transcription Factors/Developmental, Ion Channels/Transporters, Other). This structured approach helps in building a robust case for the cell type identification.<br>2.  **Strong Emphasis on Neuroendocrine Signature:** The annotator correctly identifies the overwhelming presence of pan-neuroendocrine markers (CHGA, CHGB, SCGN, SCG2, SCG3, SCG5, INSM1, PCSK1, CPE) as the primary indicator for Enteroendocrine Cells (EECs). This is a crucial and accurate starting point.<br>3.  **Accurate Subtype Identification (L-cells):** The annotation correctly prioritizes GCG as the key marker for L-cells, acknowledging its processing into GLP-1/2 in the intestine. The justification for L-cells being the *most likely* subtype, especially considering their abundance in the large intestine and the co-expression of UCN3, is excellent. The consideration of marker rank (GCG appearing relatively high) is implicitly well-handled.<br>4.  **Consideration of Specificity and Context:** The analysis correctly notes that CRYBA2 and F5 are less specific, demonstrating an understanding of marker context. It also correctly points out that GCG is processed into GLP-1/2 in the intestine, showing an awareness of tissue-specific hormone processing.<br>5.  **Inclusion of Developmental/Regulatory Markers:** The strong presence of transcription factors like FEV, ARX, RFX6, INSM1, NKX2-2, and PDX1 provides additional robust support for neuroendocrine differentiation and development, strengthening the overall annotation.<br>6.  **Reference to Databases/Literature:** The explicit mention of cross-referencing with Human Cell Atlas, Tabula Sapiens, and PanglaoDB, along with general literature, adds significant credibility and validates the findings against established knowledge.<br>7.  **Detailed Justification:** Each step of the analysis is well-justified with biological insights, making the reasoning transparent and easy to follow.<br>8.  **Balanced Consideration:** The analysis does not over-focus on a single marker but synthesizes information from a broad range of markers, including secretory machinery, ion channels, and transcription factors, to paint a comprehensive picture.<br><br>**Weaknesses:**<br><br>1.  **Minor Redundancy in Marker Listing:** Some markers are listed multiple times across different categories (e.g., GCG and SCT are listed under "Hormone/Peptide Markers" and then again under "Specific Enteroendocrine Hormone Markers"). While not incorrect, it slightly increases verbosity.<br>2.  **"Other" Category Markers:** While acknowledging that some markers are less specific (e.g., F5, PAPPA2, EYS), a brief hypothesis or comment on their potential, albeit minor, relevance or typical expression in these cells would further demonstrate the annotator's depth. However, this is a very minor point and not critical for the overall annotation.<br>3.  **Slight Over-emphasis on Pancreatic Markers (PDX1, ABCC8):** While PDX1 and ABCC8 *can* be found in some enteroendocrine cells, they are more classically associated with pancreatic beta cells. The analysis correctly acknowledges this but perhaps could slightly temper the emphasis on them as *strong* EEC markers, while still including them as present. However, it's accurately stated that they are "also expressed in some enteroendocrine cells."<br><br>**Overall Picture:**<br><br>The annotation successfully captures the overall picture of the cell population as Enteroendocrine Cells, with a strong and well-supported sub-classification as L-cells. The analysis is highly detailed, accurate, and demonstrates a deep biological understanding relevant to the human large intestine. It effectively balances the consideration of various marker types and their respective ranks (implicitly, by focusing on the most defining markers appearing in the list).<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

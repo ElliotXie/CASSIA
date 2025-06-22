@@ -1,0 +1,315 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes a gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved 3 iterations of hypothesis testing, examining a total of 29 unique genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial assessment of the cell cluster suggested a plausible Schwann cell identity due to strong expression of canonical myelin proteins (PMP22, MPZ, PLP1). However, the co-expression of numerous neuronal markers (NRXN1/3, GRIK3, GFRA3, SCN7A) introduced ambiguity, leading to hypotheses of a mixed population of Schwann cells and enteric neurons, a specific state of enteric glia with neuronal-like features, or a developmental stage where lineages are less distinct.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                No information available
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">TUBB3</span><span class="gene-badge">RBFOX3</span><span class="gene-badge">SYP</span><span class="gene-badge">ELAVL3</span><span class="gene-badge">GFAP</span><span class="gene-badge">S100B</span><span class="gene-badge">SOX10</span><span class="gene-badge">CDH19</span><span class="gene-badge">DES</span><span class="gene-badge">NES</span><span class="gene-badge">PMP22</span><span class="gene-badge">MPZ</span><span class="gene-badge">PLP1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                High expression of PMP22, MPZ, and PLP1 continued to support Schwann cell identity. High expression of S100B and SOX10 reinforced a glial, neural crest-derived identity. Notably, very high expression of CDH19 suggested a strong enteric glial component, and NES was also present. SYP, a neuronal marker, was detected but with lower average expression and percentage of cells compared to core glial markers. Key neuronal markers (TUBB3, RBFOX3, ELAVL3) and GFAP were not in the differential expression list.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further distinguish between mature myelinating Schwann cells and non-myelinating enteric glia, given the strong myelin protein expression and high CDH19.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To definitively assess the presence and potential subtype of any neuronal population, as SYP was detected but other pan-neuronal markers were not.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To explore the possibility of immature or precursor Schwann cells, or a developmental continuum, due to co-expression of myelin markers with CDH19 and NES, and initial presence of FOXD3.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MBP</span><span class="gene-badge">MOG</span><span class="gene-badge">KROX20</span><span class="gene-badge">FABP7</span><span class="gene-badge">CDH19</span><span class="gene-badge">GFAP</span><span class="gene-badge">NEUROD1</span><span class="gene-badge">DCX</span><span class="gene-badge">MAP2</span><span class="gene-badge">CHAT</span><span class="gene-badge">VIP</span><span class="gene-badge">NOS1</span><span class="gene-badge">SYP</span><span class="gene-badge">SOX2</span><span class="gene-badge">NGFR</span><span class="gene-badge">FOXD3</span><span class="gene-badge">MPZ</span><span class="gene-badge">PMP22</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                Continued strong expression of PMP22, MPZ, CDH19, SOX10, and S100B pointed to a glial identity. A critical finding was the negative avg_log2FC for MBP, strongly arguing against a mature myelinating Schwann cell population. High expression of SOX2, NGFR, FOXD3, and NEUROD1, along with MAP2 and SYP, suggested a population with significant neurogenic and glial precursor characteristics. The absence of other specific neuronal markers (CHAT, DCX, NOS1, VIP) and mature myelin markers (MOG, KROX20) was also noted.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To confirm the co-expression patterns of markers characteristic of immature or precursor enteric glial cells, given the high expression of SOX2, NGFR, FOXD3, CDH19, and NES, and low/absent MBP.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To assess if the co-expression of glial precursor markers (SOX2, NGFR, SOX10) with neuronal markers (NEUROD1, MAP2, SYP) indicates a neuro-glial progenitor population.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To conduct a focused check on the neuronal component to determine if a distinct subpopulation of immature/developing neurons exists.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">SOX10</span><span class="gene-badge">SOX2</span><span class="gene-badge">NGFR</span><span class="gene-badge">FOXD3</span><span class="gene-badge">CDH19</span><span class="gene-badge">NES</span><span class="gene-badge">GFAP</span><span class="gene-badge">NEUROD1</span><span class="gene-badge">MAP2</span><span class="gene-badge">SYP</span><span class="gene-badge">ASCL1</span><span class="gene-badge">DCX</span><span class="gene-badge">TUBB3</span><span class="gene-badge">RBFOX3</span><span class="gene-badge">ELAVL3</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                Consistent high expression of SOX10, SOX2, NGFR, FOXD3, CDH19, and NES, combined with low/absent mature myelin markers (MBP, MOG) and lack of robust pan-neuronal markers (TUBB3, RBFOX3, ELAVL3, DCX), strongly indicated an immature or progenitor population. The presence of NEUROD1, MAP2, and SYP was interpreted as indicative of neuronal potential within a predominantly glial precursor context. The absence of ASCL1 further supported a broader neuro-glial developmental program over a committed neuronal lineage.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type is **Enteric Neuro-Glial Progenitors / Immature Enteric Glia**.
+Confidence level: High.
+Key markers supporting this conclusion include the consistent high expression of SOX10, SOX2, NGFR, FOXD3, CDH19, and NES, which are characteristic of neural crest-derived glial precursors and immature enteric glia. The presence of NEUROD1, MAP2, and SYP, in the absence of more definitive mature neuronal markers or mature myelin markers (MBP, MOG), suggests a population with neurogenic potential or early neuronal differentiation within a predominantly glial progenitor context. The lack of GFAP further distinguishes this from mature or reactive astrocytes/glia.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Glial Precursor/Immature Glial Markers:**
+*   SOX10 (Transcription factor for neural crest derivatives, sustained in glia)
+*   SOX2 (Schwann cell precursor marker)
+*   NGFR (p75NTR, Schwann cell precursor/immature Schwann cell marker)
+*   FOXD3 (Neural crest specifier)
+*   CDH19 (Enteric glia associated marker)
+*   NES (Nestin, intermediate filament in neural progenitors and some glial cells)
+*   S100B (General glial marker)
+
+**Neurogenic/Early Neuronal Markers:**
+*   NEUROD1 (Proneural transcription factor)
+*   MAP2 (Microtubule-associated protein 2, immature and mature neurons)
+*   SYP (Synaptophysin, neuronal marker)
+
+**Absent/Low Expression (Key for exclusion):**
+*   PMP22 (Myelin protein)
+*   MPZ (Myelin protein zero)
+*   PLP1 (Proteolipid protein 1)
+*   MBP (Myelin basic protein, mature myelin)
+*   MOG (Myelin oligodendrocyte glycoprotein, mature myelin)
+*   KROX20 (EGR2, essential for Schwann cell myelination)
+*   TUBB3 (Beta-III tubulin, pan-neuronal)
+*   RBFOX3 (NeuN, pan-neuronal)
+*   ELAVL3 (HuC, pan-neuronal)
+*   DCX (Doublecortin, immature neuron marker)
+*   GFAP (Glial fibrillary acidic protein, mature/reactive glia)
+*   ASCL1 (Achaete-scute homolog 1, key neurogenic transcription factor)
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            The analysis suggests that visualizing co-expression at the single-cell level (e.g., using feature plots or violin plots for specific gene combinations) would be beneficial to confirm distinct populations or a continuum of differentiation.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

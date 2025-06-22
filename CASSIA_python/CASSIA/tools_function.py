@@ -261,12 +261,42 @@ def rerun_formatting_agent(agent, full_conversation_history):
 
 
 def safe_get(dict_obj, *keys):
+    """Safely get nested dictionary values"""
     for key in keys:
-        try:
+        if isinstance(dict_obj, dict) and key in dict_obj:
             dict_obj = dict_obj[key]
-        except (KeyError, TypeError):
-            return "N/A"
+        else:
+            return None
     return dict_obj
+
+
+def clean_conversation_history(history_text):
+    """
+    Clean conversation history for safe CSV storage.
+    
+    Args:
+        history_text (str): Raw conversation history text
+        
+    Returns:
+        str: Cleaned text safe for CSV storage
+    """
+    if not history_text:
+        return ""
+    
+    # Replace newlines with spaces (prevents row breaks in CSV)
+    cleaned = history_text.replace('\n', ' ').replace('\r', ' ')
+    
+    # Collapse multiple spaces into single spaces
+    cleaned = ' '.join(cleaned.split())
+    
+    # Remove or escape problematic characters for CSV
+    cleaned = cleaned.replace('"', "'")  # Replace quotes with apostrophes
+    
+    # Truncate if too long (prevents massive CSV cells)
+    if len(cleaned) > 10000:  # Limit to 10KB
+        cleaned = cleaned[:10000] + "... [truncated]"
+    
+    return cleaned
 
 
 def write_csv(filename, headers, row_data):
@@ -449,7 +479,9 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         marker_list = ', '.join(safe_get(details, 'analysis_result', 'marker_list') or [])
         iterations = safe_get(details, 'analysis_result', 'iterations')
         
-        conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
+        # Process and clean conversation history for safe CSV storage
+        raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
+        conversation_history = clean_conversation_history(raw_conversation_history)
         
         full_data.append([
             true_cell_type, 
