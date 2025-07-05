@@ -235,28 +235,114 @@ def extract_model_name(file_path: str) -> str:
         return model_name
     return "Unknown Model"
 
+def generate_subclustering_report(csv_path, html_report_path=None, model_name=None):
+    """
+    Generate a beautiful HTML report for subclustering batch results, showing annotation, reasoning, and top marker.
+    """
+    df = pd.read_csv(csv_path)
+    if html_report_path is None:
+        html_report_path = csv_path.replace('.csv', '.html')
+    if model_name is None:
+        model_name = os.path.basename(csv_path).replace('.csv', '')
+
+    # Build table rows with collapsible markers
+    rows = []
+    for idx, row in df.iterrows():
+        cluster = row.get('Result ID', '')
+        main_type = row.get('main_cell_type', '')
+        sub_type = row.get('sub_cell_type', '')
+        key_markers = row.get('key_markers', '')
+        reason = row.get('reason', '')
+        marker_id = f"marker_{idx+1}"
+        rows.append(f'''
+        <tr>
+            <td class="cluster-col">{cluster}</td>
+            <td class="annotation-col">
+                <div class="main-type">{main_type}</div>
+                <div class="sub-type">{sub_type}</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('{marker_id}')">Show Markers</button>
+                <div id="{marker_id}" class="marker-content" style="display:none;">{key_markers}</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">{reason}</div></td>
+        </tr>
+        ''')
+
+    html = f'''
+    <html>
+    <head>
+        <title>Subclustering Annotation Report - {model_name}</title>
+        <style>
+            body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fa; margin: 0; }}
+            .container {{ max-width: 1200px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 32px 32px 24px 32px; }}
+            h1 {{ color: #1976d2; margin-bottom: 8px; }}
+            .meta {{ color: #555; font-size: 15px; margin-bottom: 24px; }}
+            table {{ width: 100%; border-collapse: separate; border-spacing: 0; }}
+            th, td {{ padding: 12px 10px; text-align: left; }}
+            th {{ background: #1976d2; color: #fff; font-size: 16px; font-weight: 600; border-top-left-radius: 8px; border-top-right-radius: 8px; }}
+            tr {{ background: #fff; transition: background 0.2s; }}
+            tr:nth-child(even) {{ background: #f3f6fa; }}
+            tr:hover {{ background: #e3f2fd; }}
+            .cluster-col {{ width: 5%; font-weight: bold; color: #1976d2; font-size: 18px; }}
+            .annotation-col {{ width: 20%; }}
+            .main-type {{ font-weight: bold; color: #222; font-size: 16px; }}
+            .sub-type {{ color: #888; font-size: 14px; margin-top: 2px; }}
+            .marker-col {{ width: 20%; font-size: 13px; color: #888; }}
+            .marker-toggle {{ background: #e3f2fd; color: #1976d2; border: none; border-radius: 5px; padding: 3px 10px; font-size: 13px; cursor: pointer; margin-bottom: 4px; }}
+            .marker-toggle:hover {{ background: #bbdefb; }}
+            .marker-content {{ margin-top: 4px; font-size: 13px; color: #555; background: #f8fafc; border-radius: 5px; padding: 6px 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }}
+            .reasoning-col {{ width: 55%; }}
+            .reasoning-box {{ background: #fffde7; border-left: 5px solid #ffe082; border-radius: 7px; padding: 12px 16px; font-size: 15px; color: #444; box-shadow: 0 1px 4px rgba(255,193,7,0.07); }}
+        </style>
+        <script>
+        function toggleMarkers(id) {{
+            var el = document.getElementById(id);
+            if (el.style.display === 'none') {{
+                el.style.display = 'block';
+            }} else {{
+                el.style.display = 'none';
+            }}
+        }}
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Subclustering Annotation Report</h1>
+            <div class="meta"><b>Model:</b> {model_name} &nbsp; | &nbsp; <b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+            <table>
+                <tr>
+                    <th>Cluster</th>
+                    <th>Annotation<br><span style="font-weight:normal;font-size:12px">(Main / Subtype)</span></th>
+                    <th>Top Markers</th>
+                    <th>Reasoning</th>
+                </tr>
+                {''.join(rows)}
+            </table>
+        </div>
+    </body>
+    </html>
+    '''
+    with open(html_report_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print(f"Subclustering HTML report saved to {html_report_path}")
+
 def process_evaluation_csv(csv_path: str, overwrite: bool = False) -> None:
-    """Process a single evaluation CSV file and generate an HTML report."""
     try:
-        # Check if the file exists
         if not os.path.exists(csv_path):
             print(f"File not found: {csv_path}")
             return
-        
-        # Extract model name from the file path
         model_name = extract_model_name(csv_path)
-        
-        # Generate output HTML path
         html_path = csv_path.replace('.csv', '.html')
-        
-        # Skip if HTML already exists and overwrite is False
         if os.path.exists(html_path) and not overwrite:
             print(f"HTML report already exists for {model_name}. Skipping. Use --overwrite to regenerate.")
             return
-        
-        # Read the CSV file
         df = pd.read_csv(csv_path)
-        
+        # If subclustering format, use the new report
+        expected_cols = {'Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'}
+        if expected_cols.issubset(set(df.columns)):
+            generate_subclustering_report(csv_path, html_report_path=html_path, model_name=model_name)
+            return
         # Determine column names
         gold_col = "True Cell Type" if "True Cell Type" in df.columns else "gold_standard"
         pred_col = "Predicted Sub Cell Types" if "Predicted Sub Cell Types" in df.columns else "predicted_celltype"

@@ -247,49 +247,39 @@ def write_results_to_csv(results, output_name='subcluster_results'):
     
     # Handle different result formats
     if isinstance(results, list):
-        # Handle case where results is already a list of dictionaries (from custom APIs)
         try:
-            # Extract data from list of dictionaries
             rows = []
             for i, item in enumerate(results, 1):
-                # Try to extract data from different possible formats
                 if isinstance(item, dict):
-                    # Format 1: Dictionary with 'cluster' key
-                    if 'cluster' in item:
-                        cluster_id = str(item.get('cluster', i))
-                        main_type = item.get('most_likely_top2_cell_types', ['Unknown'])[0] if isinstance(item.get('most_likely_top2_cell_types'), list) else "Unknown"
-                        sub_type = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])[1] if isinstance(item.get('most_likely_top2_cell_types'), list) and len(item.get('most_likely_top2_cell_types')) > 1 else "Unknown"
-                        reason = item.get('explanation', '')
-                        rows.append([cluster_id, main_type, sub_type, reason])
-                    # Format 2: Dictionary with key like 'results1'
-                    elif any(key.startswith('result') for key in item.keys()):
-                        for key, value in item.items():
-                            if key.startswith('result'):
-                                result_id = ''.join(filter(str.isdigit, key)) or str(i)
-                                if isinstance(value, list) and len(value) >= 2:
-                                    main_type = value[0] if len(value) > 0 else ""
-                                    sub_type = value[1] if len(value) > 1 else ""
-                                    reason = value[2] if len(value) > 2 else ""
-                                    rows.append([result_id, main_type, sub_type, reason])
-                    # Format 3: Dictionary with 'key_markers', 'explanation', etc. (with underscores)
-                    elif 'key_markers' in item or 'explanation' in item or 'most_likely_top2_cell_types' in item:
-                        cluster_id = str(item.get('cluster', i))
-                        cell_types = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])
-                        main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
-                        sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        reason = item.get('explanation', '')
-                        rows.append([cluster_id, main_type, sub_type, reason])
-                    # Format 4: Dictionary with 'Key marker', 'Explanation', etc. (with spaces and capital letters)
-                    elif 'Key marker' in item or 'Explanation' in item or 'Most likely top2 cell types' in item:
-                        cluster_id = str(i)  # Use index as cluster ID since no cluster field
-                        cell_types = item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])
-                        main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
-                        sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        reason = item.get('Explanation', '')
-                        rows.append([cluster_id, main_type, sub_type, reason])
-            
+                    # Always check both capitalized and lowercase keys
+                    cluster_id = str(item.get('cluster', i))
+                    # Main type
+                    main_type = (
+                        item.get('most_likely_top2_cell_types', ['Unknown'])[0]
+                        if isinstance(item.get('most_likely_top2_cell_types'), list) and len(item.get('most_likely_top2_cell_types')) > 0
+                        else item.get('main_cell_type',
+                            item.get('Most likely top2 cell types', ['Unknown'])[0]
+                            if isinstance(item.get('Most likely top2 cell types', ['Unknown']), list) and len(item.get('Most likely top2 cell types', ['Unknown'])) > 0
+                            else item.get('Main cell type', 'Unknown')
+                        )
+                    )
+                    # Sub type
+                    sub_type = (
+                        item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])[1]
+                        if isinstance(item.get('most_likely_top2_cell_types'), list) and len(item.get('most_likely_top2_cell_types')) > 1
+                        else item.get('sub_cell_type',
+                            item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])[1]
+                            if isinstance(item.get('Most likely top2 cell types', ['Unknown', 'Unknown']), list) and len(item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])) > 1
+                            else item.get('Sub cell type', 'Unknown')
+                        )
+                    )
+                    # Key markers
+                    key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                    # Reason/explanation
+                    reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                    rows.append([cluster_id, main_type, sub_type, key_markers, reason])
             if rows:
-                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
+                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
                 df.to_csv(output_name, index=False)
                 print(f"Results have been written to {output_name}")
                 return df
@@ -302,7 +292,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
     # Process as string (original method)
     if isinstance(results, str):
         # Updated regex pattern to capture the reason
-        pattern = r"results(\\d+)\\(([^,]+),\\s*([^,]+),\\s*([^)]+)\\)"
+        pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
         matches = re.findall(pattern, results)
 
         if matches:
@@ -364,10 +354,20 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
     # Extract structured results from the analysis text
     results = extract_subcluster_results_with_llm(output_text, provider=provider, model=model, temperature=temperature)
-    print(results)
+    # print(results)  # Remove or comment out this line to avoid showing conversation history
     
     # Save results to CSV
     write_results_to_csv(results, output_name)
+
+    # --- Generate HTML report for the single run CSV ---
+    try:
+        from .generate_reports import process_evaluation_csv
+    except ImportError:
+        from generate_reports import process_evaluation_csv
+    import os
+    csv_file = output_name if output_name.lower().endswith('.csv') else output_name + '.csv'
+    if os.path.exists(csv_file):
+        process_evaluation_csv(csv_file, overwrite=True)
     
     return None
 
@@ -393,6 +393,9 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
     Returns:
         None: Results are saved to CSV files
     """
+    # Force temperature to 0.3 for all runs
+    temperature = 0.3
+    
     def run_single_analysis(i):
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info, 
@@ -504,14 +507,33 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(run_single_analysis, i): i for i in range(n)}
-        
+        result_files = []
         for future in as_completed(futures):
             i = futures[future]
             try:
                 result_file = future.result()
                 print(f"Results for iteration {i+1} have been written to {result_file}")
+                result_files.append(result_file)
             except Exception as exc:
                 print(f"Iteration {i+1} generated an exception: {exc}")
+
+    # --- Generate HTML reports for all batch CSVs ---
+    try:
+        from .generate_reports import process_evaluation_csv, create_index_html
+    except ImportError:
+        from generate_reports import process_evaluation_csv, create_index_html
+    import os
+
+    # Generate HTML report for each CSV
+    for csv_file in result_files:
+        if os.path.exists(csv_file):
+            process_evaluation_csv(csv_file, overwrite=True)
+
+    # Create an index.html summary in the same directory as the first result file
+    if result_files:
+        output_dir = os.path.dirname(result_files[0]) or '.'
+        create_index_html(result_files, output_dir)
+        print(f"Batch HTML reports and index generated in {output_dir}")
 
 
 def test_custom_api_parsing():

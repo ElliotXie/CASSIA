@@ -556,6 +556,11 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
     test_provider = provider_test or provider
     print(f"Using provider: {test_provider}")
     
+    # Set search strategy to 'depth' for custom providers like DeepSeek
+    if test_provider.startswith("http"):
+        search_strategy = "depth"
+        print(f"Custom provider detected. Automatically setting search strategy to: {search_strategy}")
+    
     # Import debug utilities if in debug mode
     if debug_mode:
         try:
@@ -695,22 +700,32 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
 
 # --------------------- Step 7: Compare Celltypes ---------------------
 def run_celltype_comparison():
-    print("\n=== Running Cell Type Comparison ===")
-    # The marker here are copied from CASSIA's previous results
-    marker = "IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1"
+    print("\n=== Running Cell Type Comparison (Multi-Model, Multi-Round) ===")
+    # Contradictory marker set to trigger discussion
+    marker = "CD19, CD20, CD38, SDC1, PAX5, IRF4, CD27, CD3"
+    celltypes = ["Naive B cell", "Plasma cell", "Plasmablast"]
+    
+    # Organized output path
+    base_results_dir = os.path.join(os.path.dirname(__file__), 'test_results', 'budget_discussion_mode_test')
+    os.makedirs(base_results_dir, exist_ok=True)
+    output_file = os.path.join(base_results_dir, 'results.csv')
+    html_file = os.path.join(base_results_dir, 'results_report.html')
 
-    # Generate organized output path
-    output_filename = get_output_path("celltype_comparison", filename="plasama_cell_subtype.html")
-
-    compareCelltypes(
+    from CASSIA.cell_type_comparison import compareCelltypes
+    comparison_results = compareCelltypes(
         tissue = tissue,
-        celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
+        celltypes = celltypes,
         marker_set = marker,
         species = species,
-        output_file = output_filename
+        model_preset = "budget",
+        discussion_mode = True,
+        discussion_rounds = 3,
+        generate_html_report = True,
+        output_file = output_file
     )
-    
-    print(f"✓ Cell type comparison results saved to: {get_output_path('celltype_comparison')}")
+    print(f"\nTest finished. All rounds (initial and discussion) are saved in: {base_results_dir}")
+    print(f"CSV: {output_file}")
+    print(f"HTML: {html_file}")
 
 # --------------------- Step 8: Subclustering ---------------------
 def run_subclustering(subcluster_data):
@@ -718,9 +733,6 @@ def run_subclustering(subcluster_data):
     
     # Generate organized output paths
     subclustering_output = get_output_path("subclustering", filename="subclustering_results")
-    subclustering_n_output = get_output_path("subclustering", filename="subclustering_results_n")
-    uncertainty_output = get_output_path("subclustering", filename="subclustering_uncertainty")
-    
     runCASSIA_subclusters(
         marker = subcluster_data,
         major_cluster_info = "cd8 t cell",
@@ -728,6 +740,14 @@ def run_subclustering(subcluster_data):
         model = model_name,
         provider = provider
     )
+    print(f"✓ Subclustering results saved to: {get_output_path('subclustering')}")
+
+# --------------------- Step 8b: Subclustering with Uncertainty Quantification ---------------------
+def run_subclustering_with_uncertainty(subcluster_data):
+    print("\n=== Running Subclustering with Uncertainty Quantification ===")
+    # Generate organized output paths
+    subclustering_n_output = get_output_path("subclustering", filename="subclustering_results_n")
+    uncertainty_output = get_output_path("subclustering", filename="subclustering_uncertainty")
 
     # Run multiple iterations for subclustering
     runCASSIA_n_subcluster(
@@ -753,102 +773,7 @@ def run_subclustering(subcluster_data):
         main_weight = 0.5,
         sub_weight = 0.5
     )
-    
-    print(f"✓ Subclustering results saved to: {get_output_path('subclustering')}")
-
-# --------------------- Step 8b: Single Subclustering Analysis ---------------------
-def run_single_subcluster(subcluster_data, major_cluster_info="cd8 t cell"):
-    """
-    Run a single subclustering analysis without multiple iterations.
-    Useful for testing custom API providers.
-    
-    Args:
-        subcluster_data: DataFrame containing marker data for subclusters
-        major_cluster_info: Description of the major cluster type
-    """
-    print(f"\n=== Running Single Subclustering Analysis for {major_cluster_info} ===")
-    print(f"Using provider: {provider}")
-    
-    # Generate organized output path
-    output_path = get_output_path("subclustering", filename="single_subclustering_result")
-    
-    # Run a single subclustering analysis
-    runCASSIA_subclusters(
-        marker=subcluster_data,
-        major_cluster_info=major_cluster_info,
-        output_name=output_path,
-        model=model_name,
-        provider=provider
-    )
-    
-    print(f"Single subclustering analysis completed. Results saved to {output_path}.csv")
-    print(f"✓ Single subclustering results saved to: {get_output_path('subclustering')}")
-
-# --------------------- New: Test Subclustering with Different Providers ---------------------
-def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell"):
-    """
-    Test the subclustering functionality with different providers.
-    This function helps validate that the subclustering implementation works correctly
-    with all supported providers, including custom API endpoints.
-    
-    Args:
-        subcluster_data: DataFrame containing marker data for subclusters
-        major_cluster_info: Description of the major cluster type (default: "cd8 t cell")
-    """
-    print("\n=== Testing Subclustering with Multiple Providers ===")
-    print(f"Using major cluster info: {major_cluster_info}")
-    
-    # Test with OpenAI provider
-    print("\n----- Testing Subclustering with OpenAI provider -----")
-    try:
-        openai_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_openai")
-        runCASSIA_subclusters(
-            marker=subcluster_data,
-            major_cluster_info=major_cluster_info,
-            output_name=openai_output,
-            model="gpt-4o",
-            provider="openai"
-        )
-        print("✅ Subclustering with OpenAI completed successfully")
-    except Exception as e:
-        print(f"❌ Error with OpenAI provider: {str(e)}")
-    
-    # Test with Anthropic provider
-    print("\n----- Testing Subclustering with Anthropic provider -----")
-    try:
-        anthropic_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_anthropic")
-        runCASSIA_subclusters(
-            marker=subcluster_data,
-            major_cluster_info=major_cluster_info,
-            output_name=anthropic_output,
-            model="claude-3-5-sonnet-20241022",
-            provider="anthropic"
-        )
-        print("✅ Subclustering with Anthropic completed successfully")
-    except Exception as e:
-        print(f"❌ Error with Anthropic provider: {str(e)}")
-    
-    # Test with OpenRouter provider
-    print("\n----- Testing Subclustering with OpenRouter provider -----")
-    try:
-        openrouter_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_openrouter")
-        runCASSIA_subclusters(
-            marker=subcluster_data,
-            major_cluster_info=major_cluster_info,
-            output_name=openrouter_output,
-            model="anthropic/claude-3.5-sonnet",
-            provider="openrouter"
-        )
-        print("✅ Subclustering with OpenRouter completed successfully")
-    except Exception as e:
-        print(f"❌ Error with OpenRouter provider: {str(e)}")
-    
-    # Test with custom provider (commented out as it requires an API key)
-    print("\n----- Custom Provider Test (Skipped - Requires API Key) -----")
-    print("To test with a custom provider like DeepSeek, use the command line option:")
-    print("python CASSIA_python_tutorial.py --step test_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY")
-    
-    print("\n=== Subclustering Provider Tests Complete ===")
+    print(f"✓ Subclustering with uncertainty results saved to: {get_output_path('subclustering')}")
 
 # --------------------- Step 9: Annotation Boost with Additional Task ---------------------
 def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, additional_task=None, provider_test=None, conversation_history_mode="final", search_strategy="breadth", report_style="per_iteration"):
@@ -872,7 +797,12 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
     # Use the specified provider or fall back to global setting
     test_provider = provider_test or provider
     print(f"Using provider: {test_provider}")
-        
+    
+    # Set search strategy to 'depth' for custom providers like DeepSeek
+    if test_provider.startswith("http"):
+        search_strategy = "depth"
+        print(f"Custom provider detected. Automatically setting search strategy to: {search_strategy}")
+    
     print(f"\n=== Running Annotation Boost with Additional Task for {cluster_name} ===")
     
     # Make sure the CSV file exists
@@ -1277,7 +1207,7 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1386,6 +1316,8 @@ def main():
         run_celltype_comparison()
     elif args.step == 'subcluster':
         run_subclustering(subcluster)
+    elif args.step == 'subclustering_uncertainty':
+        run_subclustering_with_uncertainty(subcluster)
     elif args.step == 'boost_task':
         try:
             run_annotation_boost_with_task(unprocessed, input_csv, args.cluster, args.task, conversation_history_mode=args.history_mode, search_strategy=args.search_strategy, report_style=args.report_style)
@@ -1470,7 +1402,7 @@ def main():
             print(f"Error testing total summary reports: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
 
 
 if __name__ == "__main__":
@@ -1511,6 +1443,7 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step boost                  # Annotation boost
 # python CASSIA_python_tutorial.py --step compare                # Cell type comparison
 # python CASSIA_python_tutorial.py --step subcluster             # Subclustering
+# python CASSIA_python_tutorial.py --step subclustering_uncertainty # Subclustering with uncertainty
 # python CASSIA_python_tutorial.py --step boost_task             # Boost with custom task
 
 # --------------------- 2. PROVIDER CUSTOMIZATION ---------------------

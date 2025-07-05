@@ -222,7 +222,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #' @param tissue Character string specifying the tissue type.
 #' @param species Character string specifying the species.
 #' @param additional_info Additional information as a character string.
-#' @param temperature Numeric value for temperature parameter.
+#' @param temperature Numeric value for temperature parameter. Default: 0.3 (updated to match Python).
 #' @param marker_list List of marker genes.
 #' @param model Character string specifying the model to use.
 #' @param max_workers Maximum number of workers for parallel processing.
@@ -230,7 +230,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #'
 #' @return A list containing results from multiple runs.
 #' @export
-runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, marker_list, 
+runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list, 
                            model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter") {
   tryCatch({
     result <- py_tools$runCASSIA_n_times(
@@ -518,7 +518,8 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      temperature = 0,
                                      conversation_history_mode = "final",
                                      search_strategy = "breadth",
-                                     report_style = "per_iteration") {
+                                     report_style = "per_iteration",
+                                     ...) {
 
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
@@ -541,7 +542,8 @@ runCASSIA_annotationboost <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style
+      report_style = report_style,
+      ...
     )
     
     invisible(NULL)
@@ -570,6 +572,7 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param ... Additional parameters for future compatibility
 #' 
 #' @return None. This function generates output files.
 #' @export
@@ -585,7 +588,8 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      temperature = 0,
                                                      conversation_history_mode = "final",
                                                      search_strategy = "breadth",
-                                                     report_style = "per_iteration") {
+                                                     report_style = "per_iteration",
+                                                     ...) {
 
   if (is.data.frame(marker)) {
     pd <- reticulate::import("pandas")
@@ -609,7 +613,8 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style
+      report_style = report_style,
+      ...
     )
     
     invisible(NULL)

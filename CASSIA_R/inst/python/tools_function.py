@@ -929,7 +929,6 @@ def runCASSIA_annotationboost_additional_task(
     provider=None,
     temperature=0,
     conversation_history_mode="final",
-    search_strategy="breadth",
     report_style="per_iteration"
 ):
     """
@@ -947,7 +946,6 @@ def runCASSIA_annotationboost_additional_task(
         provider (str): AI provider to use (default=None, will be inferred from model name)
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
-        search_strategy (str): Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
         
     Returns:
@@ -989,7 +987,6 @@ def runCASSIA_annotationboost_additional_task(
         additional_task=additional_task,
         temperature=temperature,
         conversation_history_mode=conversation_history_mode,
-        search_strategy=search_strategy,
         report_style=report_style
     )
 
@@ -1009,7 +1006,6 @@ def runCASSIA_annotationboost(
     provider="openrouter",
     temperature=0,
     conversation_history_mode="final",
-    search_strategy="breadth",
     report_style="per_iteration"
 ):
     """
@@ -1028,7 +1024,6 @@ def runCASSIA_annotationboost(
         provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
         temperature (float): Sampling temperature (0-1)
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
-        search_strategy (str): Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
     
     Returns:
@@ -1061,7 +1056,6 @@ def runCASSIA_annotationboost(
         provider=provider,
         temperature=temperature,
         conversation_history_mode=conversation_history_mode,
-        search_strategy=search_strategy,
         report_style=report_style
     )
 
@@ -1580,7 +1574,6 @@ def runCASSIA_pipeline(
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
     ascending: bool = None,
-    search_strategy: str = "breadth",
     report_style: str = "per_iteration"
 ):
     """
@@ -1607,7 +1600,6 @@ def runCASSIA_pipeline(
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
-        search_strategy (str): Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
     """
     # Create a main folder based on tissue and species for organizing reports
@@ -1823,7 +1815,6 @@ def runCASSIA_pipeline(
                     provider=annotationboost_provider,
                     temperature=0,
                     conversation_history_mode=conversation_history_mode,
-                    search_strategy=search_strategy,
                     report_style=report_style
                 )
             except IndexError:

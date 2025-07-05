@@ -1,0 +1,247 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved 1 iteration and examined a total of 15 genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was **CD8+ Cytotoxic T Cells (NK-like/Trm phenotype)**. This was supported by core markers (CD8A/B, cytotoxic effectors) and tissue-resident features (TIGIT, LAG3). Ambiguity arose from the co-expression of NK receptors (KLRC2, KLRD1, XCL1/2) and γδ-associated TRGC1/2, suggesting possibilities of NK/γδ contamination, hybrid NK-like CD8+ T cells, or unresolved doublets. The lack of TRDV1/2 weakened the γδ hypothesis.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To distinguish NK cells from γδ T cells and rule out significant contamination.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To confirm the tissue-resident memory (Trm) phenotype and explain NK receptor co-expression.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To rule out cycling cells or doublets, supporting a homogeneous population.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">NCAM1</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRDV2</span><span class="gene-badge">ITGAE</span><span class="gene-badge">CD69</span><span class="gene-badge">PDCD1</span><span class="gene-badge">HAVCR2</span><span class="gene-badge">MKI67</span><span class="gene-badge">TOP2A</span><span class="gene-badge">STMN1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The absence of NCAM1, TRDV1/2, and proliferation markers (MKI67, TOP2A) ruled out significant NK/γδ contamination or doublets. High expression of ITGAE and CD69 solidified the Trm call. The co-expression of NK receptors (KLRC2, KLRD1) was consistent with a tissue-adapted subset.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The cluster is confidently annotated as **CD8+ Tissue-Resident Memory T Cells (Trm) with NK-like features** (high confidence). This is supported by the presence of CD8A/B, GZMA/B/H, ITGAE, CD69, and NK receptors KLRC2/KLRD1, alongside the absence of markers for significant NK/γδ contamination or doublets.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Core T cell markers:** CD8A, CD8B
+**Cytotoxic effector markers:** GZMA, GZMB, GZMH
+**Tissue-resident memory markers:** ITGAE, CD69, TIGIT, LAG3
+**NK-like features:** KLRC2, KLRD1, XCL1, XCL2
+**Exhaustion markers (checked):** PDCD1, HAVCR2
+**Proliferation markers (checked):** MKI67, TOP2A, STMN1
+**NK/γδ exclusion markers (checked):** NCAM1, FCGR3A, TRDV1, TRDV2, TRGC1, TRGC2
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            TCR sequencing would be required to resolve alternative possibilities, such as rare γδ subsets, though the dominant population is clearly CD8+ Trm.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

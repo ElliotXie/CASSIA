@@ -1,0 +1,290 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved 1 main evaluation and 3 iterations of hypothesis testing, followed by a final validation check. A total of 25 unique genes were examined across all stages.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was Enteric Glial Cells (EGCs), supported by glial markers such as *SOX10, PLP1*, and *GFRA2*. However, the co-expression of neuronal markers (*NRXN1/3, L1CAM, SYT10*) introduced ambiguity, suggesting possibilities of a minor neuronal subpopulation, glial-neuronal transitional states, or doublets. The absence of canonical pan-neuronal markers (*ELAVL3, RBFOX3*) was noted as evidence against major neuronal contamination.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To definitively rule out neuronal contamination by checking for the absence of pan-neuronal markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To confirm EGC identity using glial-specific markers.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To investigate the significance of *CDH19* expression, which was present in top markers, potentially distinguishing glial subtypes or neural crest remnants.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">ELAVL3</span><span class="gene-badge">RBFOX3</span><span class="gene-badge">S100B</span><span class="gene-badge">MPZ</span><span class="gene-badge">CDH19</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                No information available
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To test for the presence of neuronal progenitors, which would indicate glial-neuronal transitional states or plasticity.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To assess for heterogeneity or stress states within the glial population by checking for markers of activated glia or immature glial states.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To investigate potential plasticity by checking for co-expression of *ASCL1* with *SOX10*.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">ASCL1</span><span class="gene-badge">PHOX2B</span><span class="gene-badge">PROX1</span><span class="gene-badge">GFAP</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                (Note: The conversation history does not explicitly state the results for this iteration, only the hypotheses and genes checked.) This iteration aimed to explore the possibility of transitional states or glial activation.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To reinforce the EGC identity by checking for additional Schwann/glial lineage markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To further assess potential contamination or developmental remnants by checking for markers expressed in both neuronal and glial lineages or neural crest.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">PMP22</span><span class="gene-badge">ERBB3</span><span class="gene-badge">NCAM1</span><span class="gene-badge">NGFR</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                High expression of *PMP22* and *ERBB3* would reinforce the EGC identity. (Note: The conversation history does not explicitly state the results for this iteration, only the hypotheses and genes checked.)
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The cluster is confidently annotated as **Enteric Glial Cells (EGCs)** (high confidence). This is primarily supported by the dominance of glial markers and the confirmed absence of pan-neuronal signals.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Glial Markers:** *SOX10, PLP1, GFRA2, S100B, MPZ, PMP22, ERBB3, SOX8*
+**Neuronal Markers (Absent/Low):** *ELAVL3, RBFOX3*
+**Neuronal Adhesion/Synaptic Modulation Markers (Present):** *NRXN1/3, L1CAM, SYT10*
+**Developmental/Progenitor/Heterogeneity Markers (Checked):** *CDH19, ASCL1, PHOX2B, PROX1, GFAP, NCAM1, NGFR, FOXB1, LMX1A*
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            For higher resolution, subclustering could be performed to assess *CDH19+* or *GFAP+* subpopulations.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

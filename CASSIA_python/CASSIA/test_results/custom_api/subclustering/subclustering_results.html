@@ -1,0 +1,132 @@
+
+    <html>
+    <head>
+        <title>Subclustering Annotation Report - Unknown Model</title>
+        <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fa; margin: 0; }
+            .container { max-width: 1200px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 32px 32px 24px 32px; }
+            h1 { color: #1976d2; margin-bottom: 8px; }
+            .meta { color: #555; font-size: 15px; margin-bottom: 24px; }
+            table { width: 100%; border-collapse: separate; border-spacing: 0; }
+            th, td { padding: 12px 10px; text-align: left; }
+            th { background: #1976d2; color: #fff; font-size: 16px; font-weight: 600; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+            tr { background: #fff; transition: background 0.2s; }
+            tr:nth-child(even) { background: #f3f6fa; }
+            tr:hover { background: #e3f2fd; }
+            .cluster-col { width: 5%; font-weight: bold; color: #1976d2; font-size: 18px; }
+            .annotation-col { width: 20%; }
+            .main-type { font-weight: bold; color: #222; font-size: 16px; }
+            .sub-type { color: #888; font-size: 14px; margin-top: 2px; }
+            .marker-col { width: 20%; font-size: 13px; color: #888; }
+            .marker-toggle { background: #e3f2fd; color: #1976d2; border: none; border-radius: 5px; padding: 3px 10px; font-size: 13px; cursor: pointer; margin-bottom: 4px; }
+            .marker-toggle:hover { background: #bbdefb; }
+            .marker-content { margin-top: 4px; font-size: 13px; color: #555; background: #f8fafc; border-radius: 5px; padding: 6px 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+            .reasoning-col { width: 55%; }
+            .reasoning-box { background: #fffde7; border-left: 5px solid #ffe082; border-radius: 7px; padding: 12px 16px; font-size: 15px; color: #444; box-shadow: 0 1px 4px rgba(255,193,7,0.07); }
+        </style>
+        <script>
+        function toggleMarkers(id) {
+            var el = document.getElementById(id);
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Subclustering Annotation Report</h1>
+            <div class="meta"><b>Model:</b> Unknown Model &nbsp; | &nbsp; <b>Generated:</b> 2025-07-05 03:32:47</div>
+            <table>
+                <tr>
+                    <th>Cluster</th>
+                    <th>Annotation<br><span style="font-weight:normal;font-size:12px">(Main / Subtype)</span></th>
+                    <th>Top Markers</th>
+                    <th>Reasoning</th>
+                </tr>
+                
+        <tr>
+            <td class="cluster-col">1</td>
+            <td class="annotation-col">
+                <div class="main-type">Memory CD8+ T cells</div>
+                <div class="sub-type">Tissue-resident memory CD8+ T cells (TRM)</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_1')">Show Markers</button>
+                <div id="marker_1" class="marker-content" style="display:none;">IL7R, CD8A, CD8B, CCL4, KLRB1, ITK</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">The presence of IL7R, CD8A, and CD8B suggests a CD8+ T cell identity. CCL4 is associated with cytotoxic function, while KLRB1 (CD161) and ITK indicate a memory-like or tissue-resident phenotype. The combination of these markers points towards a memory or tissue-resident CD8+ T cell subset.</div></td>
+        </tr>
+        
+        <tr>
+            <td class="cluster-col">2</td>
+            <td class="annotation-col">
+                <div class="main-type">Exhausted CD8+ T cells</div>
+                <div class="sub-type">Terminally differentiated effector CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_2')">Show Markers</button>
+                <div id="marker_2" class="marker-content" style="display:none;">LAYN, HAVCR2 (TIM-3), TIGIT, IKZF2, KLRC2, KLRC3</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">LAYN (Layilin) and HAVCR2 (TIM-3) are markers of exhausted or chronically stimulated CD8+ T cells. TIGIT and IKZF2 are also associated with exhaustion. KLRC2 and KLRC3 (NKG2C) suggest NK-like or cytotoxic activity. This cluster likely represents exhausted or terminally differentiated CD8+ T cells with residual cytotoxic potential.</div></td>
+        </tr>
+        
+        <tr>
+            <td class="cluster-col">3</td>
+            <td class="annotation-col">
+                <div class="main-type">Effector CD8+ T cells</div>
+                <div class="sub-type">Effector memory CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_3')">Show Markers</button>
+                <div id="marker_3" class="marker-content" style="display:none;">GZMK, GZMH, NKG7, PRF1, CCL3, CCR7</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">GZMK, GZMH, NKG7, and PRF1 are markers of cytotoxic activity. CCR7 and HLA-DRA suggest a potential transitional state between effector and memory phenotypes. This cluster likely represents effector CD8+ T cells with cytotoxic function and some memory-like features.</div></td>
+        </tr>
+        
+        <tr>
+            <td class="cluster-col">4</td>
+            <td class="annotation-col">
+                <div class="main-type">Aberrant or rare CD8+ T cell subset</div>
+                <div class="sub-type">Contaminating non-T cell (e.g., epithelial or stromal cell)</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_4')">Show Markers</button>
+                <div id="marker_4" class="marker-content" style="display:none;">CDX2, HOXD13, PPARG, HOXB13, MECOM, RARRES1</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">CDX2, HOXD13, and HOXB13 are transcription factors associated with developmental processes and are not typical for CD8+ T cells. PPARG and RARRES1 suggest metabolic or regulatory functions. This cluster may represent a rare or aberrant CD8+ T cell subset with developmental or regulatory features, or possibly contamination from another cell type.</div></td>
+        </tr>
+        
+        <tr>
+            <td class="cluster-col">5</td>
+            <td class="annotation-col">
+                <div class="main-type">NK-like CD8+ T cells</div>
+                <div class="sub-type">Activated CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_5')">Show Markers</button>
+                <div id="marker_5" class="marker-content" style="display:none;">KLRF1, GNLY, CD38, FCER1G, TYROBP, FGR</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">KLRF1 and GNLY are markers of NK cells or NK-like CD8+ T cells. CD38, FCER1G, and TYROBP suggest activation or myeloid-like features. This cluster likely represents NK-like or activated CD8+ T cells with cytotoxic potential.</div></td>
+        </tr>
+        
+        <tr>
+            <td class="cluster-col">6</td>
+            <td class="annotation-col">
+                <div class="main-type">Contaminating mesenchymal cells</div>
+                <div class="sub-type">Contaminating progenitor cells</div>
+            </td>
+            <td class="marker-col">
+                <button class="marker-toggle" onclick="toggleMarkers('marker_6')">Show Markers</button>
+                <div id="marker_6" class="marker-content" style="display:none;">LPL, SNAI2, HAND2, SOX2, NES, PDGFRA</div>
+            </td>
+            <td class="reasoning-col"><div class="reasoning-box">LPL and SNAI2 are associated with adipogenesis or epithelial-mesenchymal transition. HAND2, SOX2, and NES are developmental transcription factors. PDGFRA is a marker of mesenchymal cells. This cluster is unlikely to be a CD8+ T cell subset and may represent contamination from mesenchymal or progenitor cells.</div></td>
+        </tr>
+        
+            </table>
+        </div>
+    </body>
+    </html>
+    
