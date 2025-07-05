@@ -111,6 +111,44 @@ def list_available_markers():
     data_dir = os.path.join(script_dir, "data")
     return [f.replace('.csv', '') for f in os.listdir(data_dir) if f.endswith('.csv')]
 
+# --------------------- Output Path Organization ---------------------
+def get_output_path(result_type, provider_type=None, filename=None):
+    """
+    Get organized output path based on provider type and result category.
+    
+    Args:
+        result_type: Type of result ('batch_analysis', 'celltype_comparison', 'subclustering', 
+                    'annotation_boost', 'scoring', 'reports', 'uncertainty', 'merging')
+        provider_type: Provider type (None=use global, 'custom'=custom API, 'normal'=normal API)
+        filename: Optional filename (will use output_name if not provided)
+    
+    Returns:
+        Full path for the output file
+    """
+    # Determine if using custom API
+    if provider_type is None:
+        if provider.startswith("http"):
+            api_type = "custom_api"
+        else:
+            api_type = "normal_api"
+    elif provider_type == "custom":
+        api_type = "custom_api"
+    else:
+        api_type = "normal_api"
+    
+    # Create the base directory path
+    base_path = os.path.join(script_dir, "test_results", api_type, result_type)
+    
+    # Create directory if it doesn't exist
+    os.makedirs(base_path, exist_ok=True)
+    
+    # Return just the directory path if no filename specified
+    if filename is None:
+        return base_path
+    
+    # Return full file path
+    return os.path.join(base_path, filename)
+
 # --------------------- Step 1: Full Pipeline ---------------------
 def run_full_pipeline(marker_data):
     """
@@ -148,9 +186,13 @@ def run_full_pipeline(marker_data):
 # --------------------- Step 2: Batch Analysis Only ---------------------
 def run_batch_analysis(marker_data):
     print("\n=== Running Batch Analysis Only ===")
+    
+    # Get organized output path
+    output_path = get_output_path("batch_analysis", filename=output_name)
+    
     runCASSIA_batch(
         marker = marker_data,
-        output_name = output_name,
+        output_name = output_path,
         model = model_name,
         tissue = tissue,
         species = species,
@@ -159,6 +201,9 @@ def run_batch_analysis(marker_data):
         additional_info = None,
         provider = provider
     )
+    
+    print(f"✓ Batch analysis results saved to: {get_output_path('batch_analysis')}")
+    return output_path
 
 # --------------------- Merging Function ---------------------
 def run_merge(input_csv, detail_level="broad"):
@@ -178,9 +223,10 @@ def run_merge(input_csv, detail_level="broad"):
     
     print(f"\n=== Running Annotation Merging ({detail_level} level) ===")
     
-    # Generate output path with detail level
-    base_name = input_csv.replace(".csv", "")
-    output_path = f"{base_name}_merged_{detail_level}.csv"
+    # Generate output path with organized structure
+    base_name = os.path.basename(input_csv).replace(".csv", "")
+    output_filename = f"{base_name}_merged_{detail_level}.csv"
+    output_path = get_output_path("merging", filename=output_filename)
     
     # Additional context for the analysis
     additional_context = f"These are cell clusters from {species} {tissue}."
@@ -212,8 +258,10 @@ def run_merge_all(input_csv):
     
     print("\n=== Running All Levels of Annotation Merging ===")
     
-    # Generate output path
-    output_path = input_csv.replace(".csv", "_merged_all.csv")
+    # Generate output path with organized structure
+    base_name = os.path.basename(input_csv).replace(".csv", "")
+    output_filename = f"{base_name}_merged_all.csv"
+    output_path = get_output_path("merging", filename=output_filename)
     
     # Additional context for the analysis
     additional_context = f"These are cell clusters from {species} {tissue}."
@@ -234,8 +282,12 @@ def run_merge_all(input_csv):
 # --------------------- Step 3: Quality Scoring ---------------------
 def run_quality_scoring(input_csv, output_csv=None):
     print("\n=== Running Quality Scoring ===")
+    
     if output_csv is None:
-        output_csv = input_csv.replace(".csv", "_scored.csv")
+        # Generate organized output path
+        base_name = os.path.basename(input_csv).replace(".csv", "")
+        output_filename = f"{base_name}_scored.csv"
+        output_csv = get_output_path("scoring", filename=output_filename)
         
     runCASSIA_score_batch(
         input_file = input_csv,
@@ -244,18 +296,25 @@ def run_quality_scoring(input_csv, output_csv=None):
         model = model_name,
         provider = provider
     )
+    
+    print(f"✓ Quality scoring results saved to: {output_csv}")
     return output_csv
 
 # --------------------- Step 4: Generate Report ---------------------
 def generate_report(scored_csv, report_name=None):
     print("\n=== Generating Report ===")
+    
     if report_name is None:
-        report_name = scored_csv.replace("_scored.csv", "_report")
+        # Generate organized output path
+        base_name = os.path.basename(scored_csv).replace("_scored.csv", "")
+        report_name = get_output_path("reports", filename=f"{base_name}_report")
         
     runCASSIA_generate_score_report(
         csv_path = scored_csv,
         index_name = report_name
     )
+    
+    print(f"✓ Reports generated in: {get_output_path('reports')}")
 
 # --------------------- Step 5: Uncertainty Quantification ---------------------
 def run_uncertainty_quantification(marker_data, provider_test=None):
@@ -272,30 +331,38 @@ def run_uncertainty_quantification(marker_data, provider_test=None):
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
     
+    # Generate organized output path
+    uncertainty_output_name = get_output_path("uncertainty", filename=output_name + "_Uncertainty")
+    
     # Run multiple iterations
     iteration_results = runCASSIA_batch_n_times(
         n=4,
         marker=marker_data,
-        output_name=output_name + "_Uncertainty",
+        output_name=uncertainty_output_name,
         model=current_model,
         provider=test_provider,
         tissue=tissue,
         species=species,
         max_workers=6,
-        batch_max_workers=3  # Conservative setting for API rate limits
+        batch_max_workers=3,  # Conservative setting for API rate limits
+        temperature=0.3 # Set temperature here
     )
 
     # Calculate similarity scores
+    similarity_output_name = get_output_path("uncertainty", filename="intestine_uncertainty")
     similarity_scores = runCASSIA_similarity_score_batch(
         marker=marker_data,
-        file_pattern=output_name + "_Uncertainty_*_full.csv",
-        output_name="intestine_uncertainty",
+        file_pattern=f"{uncertainty_output_name}_*_full.csv",
+        output_name=similarity_output_name,
         max_workers=6,
         model=current_model,
         provider=test_provider,
         main_weight=0.5,
-        sub_weight=0.5
+        sub_weight=0.5,
+        temperature=0.3 # Set temperature here as well
     )
+    
+    print(f"✓ Uncertainty quantification results saved to: {get_output_path('uncertainty')}")
 
 # --------------------- Step 5b: Single Cluster Uncertainty Quantification ---------------------
 def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provider_test=None, n_iterations=5):
@@ -446,8 +513,10 @@ def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provide
         
         # Save results to file
         output_filename = f"{cluster_name.replace(' ', '_').replace(',', '')}_uncertainty.json"
+        output_path = get_output_path("uncertainty", filename=output_filename)
+        
         import json
-        with open(output_filename, 'w') as f:
+        with open(output_path, 'w') as f:
             # Convert any non-serializable objects to strings
             serializable_results = {}
             for k, v in results.items():
@@ -456,7 +525,7 @@ def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provide
                 else:
                     serializable_results[k] = str(v)
             json.dump(serializable_results, f, indent=2)
-        print(f"Results saved to {output_filename}")
+        print(f"Results saved to {output_path}")
         
         return results
     except Exception as e:
@@ -562,6 +631,7 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
     
     # Create a sanitized version for the output filename
     output_filename = f"{cluster_name.replace(',', '')}_annotationboost"
+    output_path = get_output_path("annotation_boost", filename=output_filename)
         
     try:
         # Now run with the exact cluster name
@@ -572,7 +642,7 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         result = runCASSIA_annotationboost(
             full_result_path = full_csv,
             marker = marker_data,
-            output_name = output_filename,  # Remove comma for filename only
+            output_name = output_path,  # Use organized path
             cluster_name = cluster_name,  # Use original format for data lookup
             major_cluster_info = f"{species.title()} {tissue.title()}",
             num_iterations = 5,
@@ -629,21 +699,32 @@ def run_celltype_comparison():
     # The marker here are copied from CASSIA's previous results
     marker = "IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1"
 
+    # Generate organized output path
+    output_filename = get_output_path("celltype_comparison", filename="plasama_cell_subtype.html")
+
     compareCelltypes(
         tissue = tissue,
         celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
         marker_set = marker,
         species = species,
-        output_file = "plasama_cell_subtype"
+        output_file = output_filename
     )
+    
+    print(f"✓ Cell type comparison results saved to: {get_output_path('celltype_comparison')}")
 
 # --------------------- Step 8: Subclustering ---------------------
 def run_subclustering(subcluster_data):
     print("\n=== Running Subclustering Analysis ===")
+    
+    # Generate organized output paths
+    subclustering_output = get_output_path("subclustering", filename="subclustering_results")
+    subclustering_n_output = get_output_path("subclustering", filename="subclustering_results_n")
+    uncertainty_output = get_output_path("subclustering", filename="subclustering_uncertainty")
+    
     runCASSIA_subclusters(
         marker = subcluster_data,
         major_cluster_info = "cd8 t cell",
-        output_name = "subclustering_results",
+        output_name = subclustering_output,
         model = model_name,
         provider = provider
     )
@@ -653,7 +734,7 @@ def run_subclustering(subcluster_data):
         n=5, 
         marker=subcluster_data,
         major_cluster_info="cd8 t cell", 
-        base_output_name="subclustering_results_n",
+        base_output_name=subclustering_n_output,
         model=model_name,
         temperature=0,
         provider=provider,
@@ -664,14 +745,16 @@ def run_subclustering(subcluster_data):
     # Calculate similarity scores for subclusters
     runCASSIA_similarity_score_batch(
         marker = subcluster_data,
-        file_pattern = "subclustering_results_n_*.csv",
-        output_name = "subclustering_uncertainty",
+        file_pattern = f"{subclustering_n_output}_*.csv",
+        output_name = uncertainty_output,
         max_workers = 6,
         model = model_name,
         provider = provider,
         main_weight = 0.5,
         sub_weight = 0.5
     )
+    
+    print(f"✓ Subclustering results saved to: {get_output_path('subclustering')}")
 
 # --------------------- Step 8b: Single Subclustering Analysis ---------------------
 def run_single_subcluster(subcluster_data, major_cluster_info="cd8 t cell"):
@@ -686,16 +769,20 @@ def run_single_subcluster(subcluster_data, major_cluster_info="cd8 t cell"):
     print(f"\n=== Running Single Subclustering Analysis for {major_cluster_info} ===")
     print(f"Using provider: {provider}")
     
+    # Generate organized output path
+    output_path = get_output_path("subclustering", filename="single_subclustering_result")
+    
     # Run a single subclustering analysis
     runCASSIA_subclusters(
         marker=subcluster_data,
         major_cluster_info=major_cluster_info,
-        output_name="single_subclustering_result",
+        output_name=output_path,
         model=model_name,
         provider=provider
     )
     
-    print(f"Single subclustering analysis completed. Results saved to single_subclustering_result.csv")
+    print(f"Single subclustering analysis completed. Results saved to {output_path}.csv")
+    print(f"✓ Single subclustering results saved to: {get_output_path('subclustering')}")
 
 # --------------------- New: Test Subclustering with Different Providers ---------------------
 def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell"):
@@ -714,10 +801,11 @@ def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell
     # Test with OpenAI provider
     print("\n----- Testing Subclustering with OpenAI provider -----")
     try:
+        openai_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_openai")
         runCASSIA_subclusters(
             marker=subcluster_data,
             major_cluster_info=major_cluster_info,
-            output_name="subclustering_results_openai",
+            output_name=openai_output,
             model="gpt-4o",
             provider="openai"
         )
@@ -728,10 +816,11 @@ def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell
     # Test with Anthropic provider
     print("\n----- Testing Subclustering with Anthropic provider -----")
     try:
+        anthropic_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_anthropic")
         runCASSIA_subclusters(
             marker=subcluster_data,
             major_cluster_info=major_cluster_info,
-            output_name="subclustering_results_anthropic",
+            output_name=anthropic_output,
             model="claude-3-5-sonnet-20241022",
             provider="anthropic"
         )
@@ -742,10 +831,11 @@ def test_subclustering_providers(subcluster_data, major_cluster_info="cd8 t cell
     # Test with OpenRouter provider
     print("\n----- Testing Subclustering with OpenRouter provider -----")
     try:
+        openrouter_output = get_output_path("subclustering", provider_type="normal", filename="subclustering_results_openrouter")
         runCASSIA_subclusters(
             marker=subcluster_data,
             major_cluster_info=major_cluster_info,
-            output_name="subclustering_results_openrouter",
+            output_name=openrouter_output,
             model="anthropic/claude-3.5-sonnet",
             provider="openrouter"
         )
@@ -823,6 +913,7 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
     # Replace commas, spaces and other problematic characters
     safe_cluster = re.sub(r'[,\s+]', '_', cluster_name)
     output_filename = f"{output_name}_{safe_cluster}_boosted"
+    output_path = get_output_path("annotation_boost", filename=output_filename)
     
     try:
         # Define the additional task if not specified
@@ -838,7 +929,7 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         result = runCASSIA_annotationboost_additional_task(
             full_result_path = full_csv,
             marker = marker_data,
-            output_name = output_filename,
+            output_name = output_path,
             cluster_name = cluster_name,  # Use original cluster name with comma
             major_cluster_info = f"{species.title()} {tissue.title()}",
             num_iterations = 5,
@@ -1403,230 +1494,207 @@ if __name__ == "__main__":
     main() 
 
 
-    # Example commands to test each case in a Windows terminal (Command Prompt or PowerShell):
-    # python CASSIA_python_tutorial.py --step all
-    # python CASSIA_python_tutorial.py --step batch
-    # python CASSIA_python_tutorial.py --step merge
-    # python CASSIA_python_tutorial.py --step score
-    # python CASSIA_python_tutorial.py --step report
-    # python CASSIA_python_tutorial.py --step uncertainty
-    # python CASSIA_python_tutorial.py --step boost
-    # python CASSIA_python_tutorial.py --step compare
-    # python CASSIA_python_tutorial.py --step subcluster
-    # python CASSIA_python_tutorial.py --step boost_task
-    # python CASSIA_python_tutorial.py --step test_boost
+# =====================================================================================
+# USAGE EXAMPLES - Organized by functionality and complexity
+# =====================================================================================
 
-    # To test with a custom provider API (for any step that supports --provider and --model):
-    # (Replace http://your-custom-api/v1/chat/completions with your actual endpoint)
-    # python CASSIA_python_tutorial.py --step all --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
-    # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step boost_task --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step test_boost --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step batch --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step merge --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step score --provider http://your-custom-api/v1/chat/completions --model your-model-name
-    # python CASSIA_python_tutorial.py --step uncertainty --provider http://your-custom-api/v1/chat/completions --model your-model-name
+# --------------------- 1. BASIC ANALYSIS STEPS ---------------------
+# Basic steps using default settings (OpenRouter + Gemini 2.5 Flash):
 
-    # You can also specify --api_key if your custom provider requires it:
-    # python CASSIA_python_tutorial.py --step boost --provider http://your-custom-api/v1/chat/completions --model your-model-name --api_key YOUR_API_KEY
+# python CASSIA_python_tutorial.py --step all                    # Complete pipeline
+# python CASSIA_python_tutorial.py --step batch                  # Batch analysis only
+# python CASSIA_python_tutorial.py --step merge                  # Merge annotations
+# python CASSIA_python_tutorial.py --step merge_all              # All merge levels
+# python CASSIA_python_tutorial.py --step score                  # Quality scoring
+# python CASSIA_python_tutorial.py --step report                 # Generate reports
+# python CASSIA_python_tutorial.py --step uncertainty            # Uncertainty analysis
+# python CASSIA_python_tutorial.py --step boost                  # Annotation boost
+# python CASSIA_python_tutorial.py --step compare                # Cell type comparison
+# python CASSIA_python_tutorial.py --step subcluster             # Subclustering
+# python CASSIA_python_tutorial.py --step boost_task             # Boost with custom task
 
-    # Examples with a real provider and API key (DeepSeek):
-    # Full pipeline with custom provider:
-    # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step test_boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com  --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step merge --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    
-    # Specific example for uncertainty quantification with DeepSeek:
-    # python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    
-    # Examples for subclustering:
-    # python CASSIA_python_tutorial.py --step subcluster
-    # python CASSIA_python_tutorial.py --step subcluster --provider openai
-    # python CASSIA_python_tutorial.py --step subcluster --provider anthropic
-    # python CASSIA_python_tutorial.py --step subcluster --provider openrouter
-    
-    # Examples for testing subclustering with multiple providers:
-    # python CASSIA_python_tutorial.py --step test_subcluster
-    # python CASSIA_python_tutorial.py --step test_subcluster --major_cluster "T cell"
-    
-    # Example for subclustering with a custom provider:
-    # python CASSIA_python_tutorial.py --step subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
-    # python CASSIA_python_tutorial.py --step test_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
-    
-    # Example for running a single subclustering result with a custom API:
-    # python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key YOUR_API_KEY
-    
-    # Examples for testing the full pipeline with multiple providers:
-    # python CASSIA_python_tutorial.py --step test_pipeline
-    # This will test OpenAI, Anthropic, and OpenRouter providers automatically
-    
-    # For testing the full pipeline with a custom provider like DeepSeek:
-    # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY
-    
-    # Examples for using different search strategies with annotation boost:
-    # Breadth-first approach (default - tests multiple hypotheses per iteration):
-    # python CASSIA_python_tutorial.py --step boost --search_strategy breadth
-    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth
-    
-    # Depth-first approach (focused - one hypothesis at a time):
-    # python CASSIA_python_tutorial.py --step boost --search_strategy depth
-    # python CASSIA_python_tutorial.py --step boost_task --search_strategy depth
-    
-    # Examples for using different report styles with annotation boost:
-    # Per-iteration report style (default - shows detailed analysis by iteration):
-    # python CASSIA_python_tutorial.py --step boost --report_style per_iteration
-    # python CASSIA_python_tutorial.py --step boost_task --report_style per_iteration
-    
-    # Total summary report style (gene-focused - summarizes by genes checked and conclusions):
-    # python CASSIA_python_tutorial.py --step boost --report_style total_summary
-    # python CASSIA_python_tutorial.py --step boost_task --report_style total_summary
-    
-    # Combine different search strategies and report styles:
-    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --report_style total_summary
-    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth --report_style per_iteration
-    
-    # Compare both strategies side by side:
+# --------------------- 2. PROVIDER CUSTOMIZATION ---------------------
+# Using different API providers:
+
+# Standard providers:
+# python CASSIA_python_tutorial.py --step [STEP] --provider openai
+# python CASSIA_python_tutorial.py --step [STEP] --provider anthropic
+# python CASSIA_python_tutorial.py --step [STEP] --provider openrouter
+
+# Custom API endpoints (replace YOUR_API_KEY with actual key):
+# python CASSIA_python_tutorial.py --step [STEP] --provider https://api.deepseek.com --api_key YOUR_API_KEY
+# python CASSIA_python_tutorial.py --step [STEP] --provider http://your-custom-api.com --api_key YOUR_API_KEY
+
+# --------------------- 3. ANNOTATION BOOST ADVANCED OPTIONS ---------------------
+# Search strategies:
+# python CASSIA_python_tutorial.py --step boost --search_strategy breadth    # Multiple hypotheses (default)
+# python CASSIA_python_tutorial.py --step boost --search_strategy depth      # Focused analysis
+
+# Report styles:
+# python CASSIA_python_tutorial.py --step boost --report_style per_iteration  # Iteration-based (default)
+# python CASSIA_python_tutorial.py --step boost --report_style total_summary  # Gene-focused summary
+
+# Conversation history modes:
+# python CASSIA_python_tutorial.py --step boost --history_mode final    # Final summary only (default)
+# python CASSIA_python_tutorial.py --step boost --history_mode full     # Complete conversation
+# python CASSIA_python_tutorial.py --step boost --history_mode none     # No conversation history
+
+# Cluster-specific analysis:
+# python CASSIA_python_tutorial.py --step boost --cluster monocyte
+# python CASSIA_python_tutorial.py --step boost --cluster "cd8-positive, alpha-beta t cell"
+
+# Custom tasks:
+# python CASSIA_python_tutorial.py --step boost_task --task "check if this is a cancer cell"
+# python CASSIA_python_tutorial.py --step boost_task --task "determine activation state"
+
+# --------------------- 4. UNCERTAINTY QUANTIFICATION ---------------------
+# Multiple iterations for uncertainty analysis:
+# python CASSIA_python_tutorial.py --step uncertainty --iterations 5
+
+# Single cluster uncertainty:
+# python CASSIA_python_tutorial.py --step single_cluster_uncertainty --cluster monocyte --iterations 3
+# python CASSIA_python_tutorial.py --step single_cluster_uncertainty --cluster "plasma cell" --iterations 5
+
+# --------------------- 5. SUBCLUSTERING ANALYSIS ---------------------
+# Basic subclustering:
+# python CASSIA_python_tutorial.py --step subcluster --major_cluster "cd8 t cell"
+# python CASSIA_python_tutorial.py --step single_subcluster --major_cluster "T cell"
+
+# Test multiple providers:
+# python CASSIA_python_tutorial.py --step test_subcluster --major_cluster "cd8 t cell"
+
+# --------------------- 6. TESTING AND COMPARISON FUNCTIONS ---------------------
+# Test multiple providers for annotation boost:
+# python CASSIA_python_tutorial.py --step test_boost --cluster monocyte
+
+# Compare search strategies:
     # python CASSIA_python_tutorial.py --step compare_strategies --cluster monocyte
-    # python CASSIA_python_tutorial.py --step compare_strategies --cluster "cd8-positive, alpha-beta t cell"
+# python CASSIA_python_tutorial.py --step compare_strategies --cluster "plasma cell"
 
-    # Examples with custom providers and search strategies:
-    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    # python CASSIA_python_tutorial.py --step boost_task --search_strategy breadth --provider openrouter
-    # python CASSIA_python_tutorial.py --step compare_strategies --provider anthropic
-    
-    # Examples with custom providers and total_summary report style:
-    # Use DeepSeek with gene-focused summary reports:
-    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
-    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
-    
-    # Combine depth-first search with gene-focused reports and custom provider:
-    # python CASSIA_python_tutorial.py --step boost --search_strategy depth --report_style total_summary --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-    
-    # Test all providers with gene-focused reports:
-    # python CASSIA_python_tutorial.py --step test_boost --report_style total_summary --provider openrouter
-    # python CASSIA_python_tutorial.py --step test_boost --report_style total_summary --provider anthropic
-    
-    # Compare strategies using custom provider with gene-focused reports:
-    # python CASSIA_python_tutorial.py --step compare_strategies --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary
-    
-    # Real example with DeepSeek API key format (replace with your actual key):
-    # python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary --search_strategy depth
-    # python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --report_style total_summary --cluster "cd8-positive, alpha-beta t cell"
-    
-    # Comprehensive testing with different combinations:
-    # Test breadth-first + per_iteration with OpenAI:
-    # python CASSIA_python_tutorial.py --step boost --provider openai --search_strategy breadth --report_style per_iteration
-    
-    # Test depth-first + total_summary with Anthropic:
-    # python CASSIA_python_tutorial.py --step boost --provider anthropic --search_strategy depth --report_style total_summary
-    
-    # Test all combinations with OpenRouter:
-    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy breadth --report_style per_iteration
-    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy breadth --report_style total_summary
-    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy depth --report_style per_iteration
-    # python CASSIA_python_tutorial.py --step boost --provider openrouter --search_strategy depth --report_style total_summary
-    
-    # Examples for testing subclustering with custom APIs:
+# Test full pipeline with multiple providers:
+# python CASSIA_python_tutorial.py --step test_pipeline
 
-    # --------------------- New: Test Total Summary Report Style ---------------------
-    def test_total_summary_reports(marker_data, full_csv, cluster_name="monocyte", conversation_history_mode="final"):
-        """
-        Test the new total_summary report style with different providers and search strategies.
-        This function demonstrates how gene-focused summaries work with various configurations.
-        
-        Args:
-            marker_data: Marker data DataFrame
-            full_csv: Path to the CSV file with annotation results
-            cluster_name: Name of the cluster to analyze (default: "monocyte")
-            conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
-        """
-        print(f"\n=== Testing Total Summary Report Style for {cluster_name} ===")
-        print("This will test gene-focused summary reports with different providers and search strategies")
-        print(f"Using conversation history mode: {conversation_history_mode}")
-        
-        # Test 1: OpenRouter with breadth-first search and total_summary
-        print("\n" + "="*70)
-        print("TEST 1: OpenRouter + Breadth-First + Total Summary")
-        print("="*70)
-        print("• Multiple hypotheses per iteration with gene-focused summary")
-        print()
-        
-        try:
-            run_annotation_boost(
-                marker_data, 
-                full_csv, 
-                cluster_name, 
-                provider_test="openrouter",
-                search_strategy="breadth",
-                conversation_history_mode=conversation_history_mode,
-                report_style="total_summary"
-            )
-            print("✅ OpenRouter + Breadth + Total Summary completed successfully")
-        except Exception as e:
-            print(f"❌ Error with OpenRouter + Breadth + Total Summary: {str(e)}")
-        
-        # Test 2: DeepSeek with depth-first search and total_summary
-        print("\n" + "="*70)
-        print("TEST 2: DeepSeek + Depth-First + Total Summary")
-        print("="*70)
-        print("• Focused hypothesis testing with gene-focused summary")
-        print("• Using custom provider (DeepSeek)")
-        print()
-        
-        try:
-            # Check if DeepSeek API key is available
-            deepseek_api_key = os.environ.get("CUSTERMIZED_API_KEY", "sk-afb39114f1334ba486505d9425937d16")
-            if deepseek_api_key:
-                os.environ["CUSTERMIZED_API_KEY"] = deepseek_api_key
-                run_annotation_boost(
-                    marker_data, 
-                    full_csv, 
-                    cluster_name, 
-                    provider_test="https://api.deepseek.com",
-                    search_strategy="depth",
-                    conversation_history_mode=conversation_history_mode,
-                    report_style="total_summary"
-                )
-                print("✅ DeepSeek + Depth + Total Summary completed successfully")
-            else:
-                print("⚠️ Skipping DeepSeek test - no API key available")
-        except Exception as e:
-            print(f"❌ Error with DeepSeek + Depth + Total Summary: {str(e)}")
-        
-        # Test 3: Anthropic with annotation boost task and total_summary
-        print("\n" + "="*70)
-        print("TEST 3: Anthropic + Additional Task + Total Summary")
-        print("="*70)
-        print("• Annotation boost with additional task using gene-focused summary")
-        print()
-        
-        try:
-            run_annotation_boost_with_task(
-                marker_data, 
-                full_csv, 
-                cluster_name,
-                additional_task="determine the activation state and functional characteristics of this cell type",
-                provider_test="anthropic",
-                conversation_history_mode=conversation_history_mode,
-                search_strategy="breadth",
-                report_style="total_summary"
-            )
-            print("✅ Anthropic + Additional Task + Total Summary completed successfully")
-        except Exception as e:
-            print(f"❌ Error with Anthropic + Additional Task + Total Summary: {str(e)}")
-        
-        print("\n" + "="*70)
-        print("TOTAL SUMMARY REPORT TESTING COMPLETE")
-        print("="*70)
-        print("Compare the generated reports to see the differences:")
-        print("• All reports will show '(Breadth-First Analysis)' or '(Depth-First Analysis)' in titles")
-        print("• Gene-focused summaries organize findings by biological function rather than iteration")
-        print("• Check how different providers handle the gene-focused format")
-        print("• Notice how the total_summary style makes results more accessible")
+# Test total summary report style:
+# python CASSIA_python_tutorial.py --step test_total_summary --cluster monocyte
 
-    # --------------------- New: Test Full Pipeline with Different Providers ---------------------
+# Debug gene extraction:
+# python CASSIA_python_tutorial.py --step debug_genes --test_genes "CD133,CD9,ChAT,DCLK1"
+
+# --------------------- 7. COMPLEX COMBINATIONS ---------------------
+# Combine multiple advanced options:
+
+# Custom provider + search strategy + report style:
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key YOUR_API_KEY --search_strategy depth --report_style total_summary
+
+# OpenAI with specific settings:
+# python CASSIA_python_tutorial.py --step boost --provider openai --search_strategy breadth --report_style per_iteration --cluster monocyte
+
+# Anthropic with custom task:
+# python CASSIA_python_tutorial.py --step boost_task --provider anthropic --search_strategy depth --task "analyze cell activation markers"
+
+# Custom API with uncertainty analysis:
+# python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key YOUR_API_KEY --iterations 4
+
+# Full pipeline with custom provider:
+# python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY
+
+# --------------------- 8. INPUT FILE SPECIFICATION ---------------------
+# For steps requiring input CSV files, use --input_csv:
+# python CASSIA_python_tutorial.py --step boost --input_csv /path/to/your/results.csv
+# python CASSIA_python_tutorial.py --step score --input_csv /path/to/your/results.csv
+# python CASSIA_python_tutorial.py --step boost_task --input_csv ./test_results/normal_api/batch_analysis/results_full.csv
+
+# =====================================================================================
+# NOTES:
+# - Replace [STEP] with any valid step name from section 1
+# - Replace YOUR_API_KEY with your actual API key
+# - All results are automatically organized in test_results/normal_api/ or test_results/custom_api/
+# - Custom providers require --api_key parameter
+# - For help: python CASSIA_python_tutorial.py --help
+# =====================================================================================
+
+
+# =====================================================================================
+# CUSTOMIZED EXAMPLES - Ready-to-use commands with explicit API keys
+# =====================================================================================
+
+# --------------------- DEEPSEEK API EXAMPLES (Custom Provider) ---------------------
+# Copy-paste ready commands with explicit DeepSeek API key:
+
+# Basic analysis with DeepSeek:
+# python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step merge --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+
+# Annotation boost with DeepSeek:
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster monocyte
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster "cd8-positive, alpha-beta t cell"
+# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --task "check if this is a cancer cell"
+
+# Advanced DeepSeek combinations:
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --search_strategy depth --report_style total_summary
+# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --search_strategy breadth --report_style per_iteration --task "determine activation state"
+# python CASSIA_python_tutorial.py --step compare_strategies --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster monocyte
+
+# Subclustering with DeepSeek:
+# python CASSIA_python_tutorial.py --step subcluster --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --major_cluster "cd8 t cell"
+# python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --major_cluster "T cell"
+
+# --------------------- OPENAI API EXAMPLES ---------------------
+# Using OpenAI with explicit models:
+
+# python CASSIA_python_tutorial.py --step all --provider openai
+# python CASSIA_python_tutorial.py --step batch --provider openai  
+# python CASSIA_python_tutorial.py --step boost --provider openai --cluster monocyte --search_strategy breadth
+# python CASSIA_python_tutorial.py --step boost_task --provider openai --task "analyze immune cell activation" --report_style total_summary
+# python CASSIA_python_tutorial.py --step uncertainty --provider openai --iterations 4
+# python CASSIA_python_tutorial.py --step subcluster --provider openai --major_cluster "cd8 t cell"
+
+# --------------------- ANTHROPIC API EXAMPLES ---------------------
+# Using Anthropic Claude models:
+
+# python CASSIA_python_tutorial.py --step all --provider anthropic
+# python CASSIA_python_tutorial.py --step batch --provider anthropic
+# python CASSIA_python_tutorial.py --step boost --provider anthropic --cluster "plasma cell" --search_strategy depth
+# python CASSIA_python_tutorial.py --step boost_task --provider anthropic --task "identify cell state markers" --report_style per_iteration
+# python CASSIA_python_tutorial.py --step uncertainty --provider anthropic --iterations 3
+# python CASSIA_python_tutorial.py --step compare_strategies --provider anthropic --cluster monocyte
+
+# --------------------- OPENROUTER API EXAMPLES ---------------------
+# Using OpenRouter (default provider):
+
+# python CASSIA_python_tutorial.py --step all --provider openrouter
+# python CASSIA_python_tutorial.py --step batch --provider openrouter
+# python CASSIA_python_tutorial.py --step boost --provider openrouter --cluster monocyte --search_strategy breadth --report_style total_summary
+# python CASSIA_python_tutorial.py --step boost_task --provider openrouter --task "check for exhaustion markers" --search_strategy depth
+# python CASSIA_python_tutorial.py --step test_boost --provider openrouter --cluster "intestinal crypt stem cell"
+
+# --------------------- WORKFLOW EXAMPLES ---------------------
+# Complete workflows for common use cases:
+
+# Standard workflow (OpenRouter):
+# python CASSIA_python_tutorial.py --step batch
+# python CASSIA_python_tutorial.py --step score --input_csv ./test_results/normal_api/batch_analysis/CASSIA_large_intestine_human_full.csv
+# python CASSIA_python_tutorial.py --step boost --input_csv ./test_results/normal_api/batch_analysis/CASSIA_large_intestine_human_full.csv --cluster monocyte
+
+# Custom API workflow (DeepSeek):
+# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv --cluster monocyte
+
+# Testing and comparison workflow:
+# python CASSIA_python_tutorial.py --step test_pipeline
+# python CASSIA_python_tutorial.py --step test_boost --cluster monocyte
+# python CASSIA_python_tutorial.py --step compare_strategies --cluster "cd8-positive, alpha-beta t cell"
+
+# =====================================================================================
+# QUICK START COMMANDS:
+# =====================================================================================
+# 1. Run complete pipeline: python CASSIA_python_tutorial.py --step all
+# 2. Quick batch analysis: python CASSIA_python_tutorial.py --step batch
+# 3. Test with DeepSeek: python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# 4. Boost analysis: python CASSIA_python_tutorial.py --step boost --cluster monocyte
+# 5. Compare providers: python CASSIA_python_tutorial.py --step test_boost
+# =====================================================================================

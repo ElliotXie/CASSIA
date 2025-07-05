@@ -1,0 +1,279 @@
+## USER
+
+
+You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
+
+Context Provided to You:
+
+Cluster summary：Human Large Intestine
+
+Top ranked markers (high → low)：
+ NKAIN3, SPP1, CDH19, TSPAN11, PLP1, L1CAM, MYOT, IGSF11, NRXN1, SLC35F1, AL136298.1, SFRP5, Z97205.2, AL358216.1, SOX10, MEGF10, SYT10, CADM2, SLITRK2, SOX2, CRTAC1, CHL1, ZNF536, FOXD3, PTPRZ1, GRIK3, TUBB2B, CMTM5, LINC01436, TTYH1, ADARB2, CDH2, TENM3, WNT6, ATP1A2, NRXN3, KCNMB4, TMEM132B, LPL, GFRA2, CHADL, FLRT1, CHST9, GJC3, Z95114.1, RHAG, FOXD3-AS1, BMS1P10, FAM19A5, FGFBP2
+
+Prior annotation results：
+ Here's a summary of the prior cell type annotation analysis:
+
+**Previously Identified Cell Type:** Enteric Glial Cells
+
+**Key Supporting Markers:**
+The identification was primarily supported by the strong expression of:
+*   **PLP1:** A major myelin component, highly indicative of glial cells, particularly myelinating types.
+*   **SOX10:** A crucial transcription factor for neural crest-derived cells, including Schwann cells and enteric glia.
+*   **L1CAM:** Involved in cell adhesion and neurite outgrowth, expressed in neural cells.
+*   **NRXN1/NRXN3:** Presynaptic adhesion molecules, indicating interaction with neurons.
+*   **SOX2 & FOXD3:** Associated with neural stem cells and glial progenitors, suggesting less differentiated or progenitor populations.
+*   **PTPRZ1:** A receptor protein tyrosine phosphatase expressed in glial cells.
+
+**Alternative Hypotheses:**
+No explicit alternative general cell types were strongly considered due to the overwhelming glial marker profile. However, within the glial category, the analysis explored:
+*   General/Supportive Enteric Glial Cells
+*   Myelinating Enteric Glial Cells
+*   Enteric Glial Progenitors/Immature Glia
+
+**Remaining Uncertainties:**
+The analysis noted that while PLP1 suggests myelinating characteristics, myelination in the ENS is less extensive than in the CNS, implying that "myelin-like" characteristics might also be represented. The exact proportion of myelinating vs. non-myelinating or progenitor glia within the cluster was not definitively quantified, requiring further investigation to precisely delineate these sub-populations. The functional markers (SPP1, LPL, WNT6, SFRP5, ATP1A2, RHAG) were noted as consistent with the intestinal environment and potential glial functions but did not specifically refine the glial subtype.
+
+What you should do:
+
+1. Brief Evaluation – One concise paragraph that:
+
+    - Highlights strengths, ambiguities, or contradictions in the current call.
+
+    - Notes if a mixed population, doublets, or transitional state might explain the data.
+
+2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
+
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers if that will clarify the call.
+
+    - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
+
+3. Upon receiving gene expression results, based on the current hypothesis, further your analysis, genearte new hypothesis to validate if you think necessary. Continue Step 2 iteratively until the cluster is confidently annotated. Once finalized, output the single line:
+"FINAL ANNOTATION COMPLETED"
+Then provide a conclusion paragraph that includes:
+
+1.The final cell type
+2.Confidence level (high, medium, or low)
+3.Key markers supporting your conclusion
+4.Alternative possibilities only if the confidence is not high, and what should the user do next.
+
+
+
+Output Template：
+
+Evaluation
+[One short paragraph]
+
+celltype to check 1
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these genes and what we expect to see.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>GENE4,GENE5</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>GENE6,GENE7</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+*Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
+*Provide no more than three total blocks (celltype + hypothesis combined).
+*For each hypothesis check no more than 7 genes.
+*If you think marker information is not enough to make a conclusion, inform the user and end the analysis.
+
+
+Tone & Style Guidelines
+
+Skeptical, critical, and careful
+Professional, succinct, and evidence‑based.
+Progressively deepen the anlaysis, don't repeat the same hypothesis.
+
+
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The current annotation of Enteric Glial Cells is strongly supported by several canonical glial markers such as PLP1, SOX10, and PTPRZ1. The presence of L1CAM, NRXN1/NRXN3, SOX2, and FOXD3 further reinforces a neural crest-derived, potentially progenitor or interacting glial population. However, the ambiguity regarding the precise sub-type (myelinating vs. non-myelinating vs. progenitor) and the functional significance of other highly expressed genes (e.g., SPP1, LPL, WNT6) remains. There is no strong indication of a mixed population or doublets based solely on the provided marker list, but the broad glial profile could encompass a spectrum of states.
+
+celltype to check 1: Myelinating Enteric Glial Cells
+
+<check_genes>MBP,MOG,MAG,CNP,MPZ</check_genes>
+
+<reasoning>
+Given the strong expression of PLP1, it is crucial to assess other canonical myelin-associated genes to determine the extent of myelinating characteristics. While PLP1 is a major component, the co-expression of MBP, MOG, MAG, CNP, and MPZ would provide more robust evidence for a myelinating phenotype, even if less extensive than in the CNS. Conversely, their absence or low expression would suggest a non-myelinating or immature glial population despite PLP1 expression.
+</reasoning>
+
+celltype to check 2: Enteric Glial Progenitors/Immature Glia
+
+<check_genes>GFAP,NES,PROM1,CD133,OLIG2,PDGFRA</check_genes>
+
+<reasoning>
+The presence of SOX2 and FOXD3 hints at a less differentiated or progenitor state. Checking for markers associated with glial progenitors or immature glia, such as GFAP (often expressed in mature glia but also progenitors), NES (Nestin, a neural stem cell marker), PROM1 (CD133, a stem cell marker), OLIG2 (oligodendrocyte lineage transcription factor, also found in some glial progenitors), and PDGFRA (a receptor expressed on glial progenitors), would help clarify the developmental stage of these cells. High expression of these markers would support a progenitor or immature glial population.
+</reasoning>
+
+hypothesis to check 3: Functional Glial Subtypes
+
+<check_genes>AQP4,S100B,CD44,CDH2,CDH19,SPP1,LPL</check_genes>
+
+<reasoning>
+The current list includes several functional markers (SPP1, LPL, WNT6, SFRP5, ATP1A2, RHAG) that are consistent with intestinal glial functions but do not specifically refine the glial subtype. To explore functional diversity, we should investigate markers associated with specific glial functions or states. AQP4 (aquaporin 4) is expressed in astrocytes and some glia, involved in water transport. S100B is a calcium-binding protein expressed in astrocytes and Schwann cells, involved in various functions including neurotrophic support. CD44 is a cell surface glycoprotein involved in cell adhesion and migration, often expressed on activated glia. CDH2 (N-cadherin) and CDH19 (cadherin 19) are cell adhesion molecules that could indicate specific cell-cell interactions. SPP1 (Osteopontin) and LPL (Lipoprotein Lipase) are highly expressed and warrant further investigation into their specific roles within this glial population, potentially indicating involvement in immune modulation or lipid metabolism, respectively. The pattern of expression of these genes could reveal distinct functional roles or states within the enteric glial population.
+</reasoning>
+
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+ CD44      -0.80  0.49  0.53  1.00e+00
+CDH19       8.87  1.00  0.01  0.00e+00
+ CDH2       7.78  0.27  0.00  0.00e+00
+  CNP       4.34  0.58  0.10  0.00e+00
+  LPL       7.60  0.45  0.01  0.00e+00
+  MBP      -4.56  0.01  0.35  5.79e-50
+  MPZ       6.79  0.42  0.01  0.00e+00
+  NES       4.89  0.22  0.01 4.43e-234
+PROM1      -3.15  0.01  0.11  2.43e-09
+S100B       7.27  0.78  0.01  0.00e+00
+ SPP1       9.00  0.85  0.01  0.00e+00
+Note: The following genes are not in the differential expression list: AQP4, CD133, GFAP, MAG, MOG, OLIG2, PDGFRA
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The new data provides crucial insights. The strong positive expression of CNP, MPZ, and S100B, alongside the previously identified PLP1, strongly supports a myelinating or myelin-associated glial phenotype. The high expression of NES, coupled with the low expression of PROM1, suggests a population with some progenitor characteristics but perhaps not a highly undifferentiated stem cell state. The very high expression of CDH19, CDH2, SPP1, and LPL points towards specific adhesion properties and metabolic/secretory functions that need further exploration within the glial context. The absence of MBP expression is notable and requires careful consideration, as it is a canonical myelin marker.
+
+celltype to check 1: Myelinating vs. Non-Myelinating Glia Refinement
+
+<check_genes>MBP,MOG,MAG,PMP22,KCNJ10,AQP4</check_genes>
+
+<reasoning>
+The current data shows strong expression of PLP1, CNP, and MPZ, which are all components of myelin. However, the absence of MBP expression is a significant point of ambiguity for a "myelinating" call, as MBP is a major structural component of compact myelin. We need to re-evaluate the expression of other key myelin components (MOG, MAG) and peripheral myelin protein 22 (PMP22), which is also found in Schwann cells. Additionally, KCNJ10 (Kir4.1) and AQP4 are often co-expressed with myelinating glia and could provide further context. If MBP remains low or absent while other myelin components are high, it might suggest a "myelin-associated" or "myelin-forming" state rather than fully mature compact myelin, or a specific type of glial cell that expresses these components without forming classical compact myelin.
+</reasoning>
+
+hypothesis to check 2: Enteric Glial Subtype Specificity
+
+<check_genes>GFAP,SOX9,ERBB3,NGFR,CDH1,CDH3,CDH5</check_genes>
+
+<reasoning>
+Given the strong expression of CDH19 and CDH2, we need to investigate other cadherins to understand the specific adhesion profile of these cells. CDH1 (E-cadherin), CDH3 (P-cadherin), and CDH5 (VE-cadherin) are expressed in various cell types, and their presence or absence could help distinguish specific glial subtypes or their interactions. Furthermore, while SOX10 is a general neural crest marker, SOX9 is also important in glial development. GFAP is a common marker for mature astrocytes and some Schwann cells, and its expression level would help distinguish mature glia from progenitors. ERBB3 and NGFR (p75NTR) are receptors involved in glial development and survival, and their expression could indicate specific developmental stages or signaling pathways active in these cells. This panel will help refine the specific subtype of enteric glia.
+</reasoning>
+
+hypothesis to check 3: Metabolic and Secretory Functions
+
+<check_genes>APOE,APOC1,FABP7,FABP5,LPL,SPP1,WNT6</check_genes>
+
+<reasoning>
+The high expression of LPL and SPP1, along with WNT6 from the initial list, suggests significant metabolic and secretory roles for this cluster. LPL is involved in lipid metabolism, and SPP1 (Osteopontin) is a cytokine involved in various processes including inflammation and tissue remodeling. We should investigate other genes involved in lipid metabolism and secretion, such as APOE and APOC1 (apolipoproteins), and fatty acid binding proteins like FABP7 and FABP5, which are expressed in glial cells and involved in lipid transport. Understanding the co-expression patterns of these genes will help characterize the specific metabolic and secretory functions of this enteric glial population, which could be crucial for their role in the intestinal microenvironment.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+APOC1       4.03  0.33  0.03 5.80e-255
+ APOE       1.61  0.36  0.07 2.43e-125
+ CDH1      -3.08  0.03  0.30  1.49e-33
+ERBB3       2.85  0.59  0.26 4.04e-116
+FABP5      -2.42  0.09  0.39  4.19e-37
+  LPL       7.60  0.45  0.01  0.00e+00
+  MBP      -4.56  0.01  0.35  5.79e-50
+ NGFR       5.91  0.38  0.01  0.00e+00
+PMP22       5.24  0.93  0.08  0.00e+00
+ SOX9      -2.07  0.04  0.21  8.42e-18
+ SPP1       9.00  0.85  0.01  0.00e+00
+ WNT6       7.77  0.45  0.00  0.00e+00
+Note: The following genes are not in the differential expression list: AQP4, CDH3, CDH5, FABP7, GFAP, KCNJ10, MAG, MOG
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The new data further refines our understanding. The strong expression of PMP22, alongside previously identified PLP1, CNP, and MPZ, solidifies the "myelin-associated" or "myelin-forming" characteristic, despite the continued low expression of MBP. The high expression of NGFR and ERBB3, coupled with the low SOX9, suggests a specific developmental stage or subtype of glia. The robust expression of APOC1, APOE, LPL, SPP1, and WNT6 strongly points towards significant lipid metabolism and secretory functions. The low expression of CDH1 further differentiates this population from epithelial cells.
+
+celltype to check 1: Myelin-Associated Glia vs. Schwann Cells
+
+<check_genes>S100B,GFAP,MPZ,PMP22,SOX10,KROX20,PRX</check_genes>
+
+<reasoning>
+Given the consistent expression of multiple myelin-associated genes (PLP1, CNP, MPZ, PMP22) but persistent low MBP, it's crucial to distinguish between general myelin-associated enteric glia and classical Schwann cells, which are the primary myelinating cells in the PNS. S100B, GFAP, MPZ, PMP22, and SOX10 are all expressed in Schwann cells. KROX20 (EGR2) is a master regulator of myelination in Schwann cells, and its expression would strongly support a myelinating Schwann cell identity. PRX (Periaxin) is another protein associated with peripheral myelin. High expression of KROX20 and PRX, in conjunction with the existing myelin-associated markers, would lean towards a Schwann cell-like population within the enteric nervous system.
+</reasoning>
+
+hypothesis to check 2: Lipid Metabolism and Secretion Profile
+
+<check_genes>LPL,SPP1,WNT6,APOE,APOC1,LRP1,CD36</check_genes>
+
+<reasoning>
+The consistent and high expression of LPL, SPP1, WNT6, APOE, and APOC1 highlights a significant role in lipid metabolism and secretion. To further characterize this, we should investigate receptors involved in lipid uptake and signaling. LRP1 (LDL Receptor Related Protein 1) is a major endocytic receptor for APOE-containing lipoproteins and is expressed in glial cells. CD36 is a fatty acid translocase and scavenger receptor involved in lipid uptake. Understanding the expression of these receptors will provide a more complete picture of how these cells handle and process lipids, and how their secretory functions (SPP1, WNT6) might be linked to their metabolic state.
+</reasoning>
+
+hypothesis to check 3: Glial Activation/Response State
+
+<check_genes>GFAP,CD44,ITGAM,ITGB2,TNF,IL6,CCL2</check_genes>
+
+<reasoning>
+The high expression of SPP1, which can be involved in inflammatory responses, prompts an investigation into whether this glial population exhibits signs of activation or involvement in immune modulation. GFAP can be upregulated in activated glia. CD44, while a general adhesion molecule, can also be associated with glial activation. Markers of immune cell infiltration or glial inflammatory response, such as ITGAM (CD11b) and ITGB2 (CD18) (components of Mac-1, often expressed on microglia/macrophages but can be induced in glia), and inflammatory cytokines/chemokines like TNF, IL6, and CCL2, would help determine if this cluster represents a reactive or immune-modulating glial state.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+APOC1       4.03  0.33  0.03 5.80e-255
+ APOE       1.61  0.36  0.07 2.43e-125
+ CCL2       3.86  0.53  0.08 2.26e-292
+ CD44      -0.80  0.49  0.53  1.00e+00
+  IL6       5.46  0.17  0.01 3.72e-147
+  LPL       7.60  0.45  0.01  0.00e+00
+ LRP1       1.57  0.32  0.15  8.18e-31
+  MPZ       6.79  0.42  0.01  0.00e+00
+PMP22       5.24  0.93  0.08  0.00e+00
+  PRX       3.74  0.12  0.02  4.25e-58
+S100B       7.27  0.78  0.01  0.00e+00
+SOX10       8.20  0.52  0.00  0.00e+00
+ SPP1       9.00  0.85  0.01  0.00e+00
+ WNT6       7.77  0.45  0.00  0.00e+00
+Note: The following genes are not in the differential expression list: CD36, GFAP, ITGAM, ITGB2, KROX20, TNF
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The latest data strongly reinforces the "myelin-associated" glial identity with high expression of MPZ, PMP22, PRX, S100B, and SOX10, despite the continued absence of MBP. The robust expression of LPL, APOE, APOC1, LRP1, SPP1, WNT6, CCL2, and IL6 points to a highly metabolically active and potentially immune-modulating glial population. The low CD44 expression is notable. The overall profile is increasingly consistent with a specialized type of enteric glia with both structural (myelin-associated) and functional (metabolic, immune-modulatory) roles.
+
+FINAL ANNOTATION COMPLETED
+The final cell type is Enteric Glial Cells, specifically a specialized subpopulation with strong myelin-associated characteristics and significant metabolic and immune-modulatory functions.
+Confidence level: High
+Key markers supporting your conclusion: PLP1, SOX10, PTPRZ1, L1CAM, NRXN1/NRXN3 (initial markers); CNP, MPZ, PMP22, PRX, S100B (myelin-associated); LPL, APOE, APOC1, LRP1 (lipid metabolism); SPP1, WNT6, CCL2, IL6 (secretory/immune-modulatory); NGFR, ERBB3 (developmental/receptor profile).
+Alternative possibilities: While the evidence strongly points to a specialized enteric glial cell, the persistent low expression of MBP suggests that these cells may not form classical compact myelin, but rather represent a "myelin-associated" or "myelin-forming" state, or a specific type of non-myelinating Schwann cell with similar gene expression. Further functional studies would be needed to definitively characterize their myelinating capacity and precise role in the ENS.

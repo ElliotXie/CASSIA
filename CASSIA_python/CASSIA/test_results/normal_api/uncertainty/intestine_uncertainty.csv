@@ -1,0 +1,98 @@
+Cell Type,General Cell Type LLM,Sub Cell Type LLM,Mixed Cell Types LLM,General Cell Type Oncology,Sub Cell Type Oncology,Mixed Cell Types Oncology,Similarity Score LLM,Similarity Score Oncology,LLM Generated Consensus Score LLM,LLM Generated Consensus Score Oncology,Count Consensus General Type LLM,Count Consensus Sub Type LLM,Count Consensus General Type Oncology,Count Consensus Sub Type Oncology,Unified Results LLM,Unified Results Oncology,Consensus Result LLM,Consensus Result Oncology,Original Non-Unified Results,Original General Type 1,Original Sub Type 1,Original General Type 2,Original Sub Type 2,Original General Type 3,Original Sub Type 3,Original General Type 4,Original Sub Type 4
+"cd8-positive, alpha-beta t cell",Cytotoxic Lymphocyte,Natural Killer Cell,,cytotoxic T cell,natural killer cell,,0.5,0.5,75,75,Cytotoxic Lymphocyte,Activated/Effector Natural Killer Cell Or Nk-Like T Cell (E.G.,cytotoxic T cell,activated type II NK T cell,"result1:(Cytotoxic Lymphocyte, Activated/Effector Natural Killer Cell Or Nk-Like T Cell (E.G.),result2:(Cytotoxic Lymphocyte, Natural Killer Cell),result3:(Cytotoxic Lymphocyte, Cd8+ Effector/Cytotoxic T Cell),result4:(Natural Killer Cell, Activated/Cytotoxic Nk Cell (Effector Nk Cell))","result1:('cytotoxic T cell', 'activated type II NK T cell'),result2:('cytotoxic T cell', 'natural killer cell'),result3:('cytotoxic T cell', 'CD8-positive, alpha-beta cytotoxic T cell'),result4:('natural killer cell', 'pro-NK cell')","<json>{
+""final_results"": [
+""Cytotoxic Lymphocyte"",
+""Natural Killer Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 75
+}</json>","<json>{
+""final_results"": [
+""cytotoxic T cell"",
+""natural killer cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 75
+}</json>","result1:('Cytotoxic Lymphocytes', 'Activated/Effector Natural Killer (NK) Cells or NK-like T cells (e.g.'),result2:('Cytotoxic Lymphocytes', 'Natural Killer (NK) Cells'),result3:('Cytotoxic Lymphocytes', 'CD8+ Effector/Cytotoxic T Cells'),result4:('Natural Killer (NK) Cells', 'Activated/Cytotoxic NK Cells (Effector NK Cells)')",Cytotoxic Lymphocytes,Activated/Effector Natural Killer (NK) Cells or NK-like T cells (e.g.,Cytotoxic Lymphocytes,Natural Killer (NK) Cells,Cytotoxic Lymphocytes,CD8+ Effector/Cytotoxic T Cells,Natural Killer (NK) Cells,Activated/Cytotoxic NK Cells (Effector NK Cells)
+intestinal enteroendocrine cell,Enteroendocrine Cell,L-Cell,,intestinal enteroendocrine progenitor,L cone cell,,1.0,0.875,100,75,Enteroendocrine Cell,L-Cell,intestinal enteroendocrine progenitor,L cone cell,"result1:(Enteroendocrine Cell, L-Cell),result2:(Enteroendocrine Cell, L-Cell),result3:(Enteroendocrine Cell, L-Cell),result4:(Enteroendocrine Cell, L-Cell)","result1:('enteroendocrine cell', 'L cone cell'),result2:('intestinal enteroendocrine progenitor', 'L cone cell'),result3:('intestinal enteroendocrine progenitor', 'L cone cell'),result4:('intestinal enteroendocrine progenitor', 'L cone cell')","<json>{
+""final_results"": [
+""Enteroendocrine Cell"",
+""L-Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""intestinal enteroendocrine progenitor"",
+""L cone cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 75
+}</json>","result1:('Enteroendocrine Cells', 'L-cells'),result2:('Enteroendocrine Cells (EECs)', 'L-cells'),result3:('Enteroendocrine Cells (EECs)', 'L-cells'),result4:('Enteroendocrine Cells (EECs)', 'L-cells')",Enteroendocrine Cells,L-cells,Enteroendocrine Cells (EECs),L-cells,Enteroendocrine Cells (EECs),L-cells,Enteroendocrine Cells (EECs),L-cells
+transit amplifying cell of large intestine,Proliferating Intestinal Epithelial Cell,Transit-Amplifying Cell,,cycling B cell,unspecified,"intestinal epithelial cell, cycling B cell",0.5,0.5,85,25,Proliferating Cell,Transit-Amplifying Cell,cycling B cell,transit amplifying cell of gut,"result1:(Proliferating Intestinal Epithelial Cell, Transit-Amplifying Cell),result2:(Proliferating Cell, Intestinal Transit-Amplifying Cell / Progenitor Cell),result3:(Proliferating Cell, Intestinal Stem Cell / Progenitor Cell),result4:(Proliferating Cell, Proliferating Epithelial Cell)","result1:('intestinal epithelial cell', 'transit amplifying cell of gut'),result2:('cycling B cell', 'transit amplifying cell'),result3:('cycling B cell', 'intestinal crypt stem cell'),result4:('cycling B cell', 'epithelial cell')","<json>{
+""final_results"": [
+""Proliferating Intestinal Epithelial Cell"",
+""Transit-Amplifying Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 85
+}</json>","<json>{
+""final_results"": [
+""cycling B cell"",
+""unspecified""
+],
+""possible_mixed_celltypes"": [
+""intestinal epithelial cell"",
+""cycling B cell""
+],
+""consensus_score"": 25
+}</json>","result1:('Proliferating Intestinal Epithelial Cells', 'Transit-Amplifying (TA) Cells'),result2:('Proliferating Cells', 'Intestinal Transit-Amplifying (TA) Cells / Progenitor Cells'),result3:('Proliferating Cells', 'Intestinal Stem Cells (ISCs) / Progenitor Cells'),result4:('Proliferating Cells', 'Proliferating Epithelial Cells')",Proliferating Intestinal Epithelial Cells,Transit-Amplifying (TA) Cells,Proliferating Cells,Intestinal Transit-Amplifying (TA) Cells / Progenitor Cells,Proliferating Cells,Intestinal Stem Cells (ISCs) / Progenitor Cells,Proliferating Cells,Proliferating Epithelial Cells
+monocyte,Schwann Cell,Schwann Cell,Enteric Glial Cell,Schwann cell,Schwann cell,,0.625,0.625,75,80,Schwann Cell,Schwann Cell,Schwann cell,Schwann cell,"result1:(Neural Cell, Schwann Cell),result2:(Enteric Glial Cell, Enteric Glial Cell),result3:(Schwann Cell, Schwann Cell),result4:(Schwann Cell, Schwann Cell)","result1:('neural cell', 'Schwann cell'),result2:('enteroglial cell', 'enteroglial cell'),result3:('Schwann cell', 'Schwann cell'),result4:('Schwann cell', 'Schwann cell')","<json>{
+""final_results"": [
+""Schwann Cell"",
+""Schwann Cell""
+],
+""possible_mixed_celltypes"": [
+""Enteric Glial Cell""
+],
+""consensus_score"": 75
+}</json>","<json>
+{
+""final_results"": [
+""Schwann cell"",
+""Schwann cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 80
+}
+</json>","result1:('Neural Cells', 'Schwann Cells'),result2:('Enteric Glial Cells', 'Enteric Glial Cells'),result3:('Schwann Cells', 'Schwann Cells'),result4:('Schwann Cells', 'Schwann Cells')",Neural Cells,Schwann Cells,Enteric Glial Cells,Enteric Glial Cells,Schwann Cells,Schwann Cells,Schwann Cells,Schwann Cells
+intestinal crypt stem cell,Intestinal Progenitor Cell,Lgr5+ Crypt Base Columnar Progenitor Cell,,intestinal epithelial cell,intestinal crypt stem cell,,0.375,0.9375,95,87,Intestinal Epithelial Cell,Lgr5+ Crypt Base Columnar Progenitor Cell,intestinal epithelial cell,intestinal crypt stem cell,"result1:(Intestinal Progenitor Cell, Lgr5+ Crypt Base Columnar Progenitor Cell),result2:(Intestinal Epithelial Cell, Intestinal Progenitor Cell / Crypt Base Columnar Cell),result3:(Intestinal Epithelial Progenitor Cell, Crypt Base Columnar Progenitor Cell),result4:(Intestinal Epithelial Cell, Lgr5+ Intestinal Progenitor Cell / Crypt Base Columnar Cell)","result1:('intestinal crypt stem cell', 'intestinal crypt stem cell'),result2:('intestinal epithelial cell', 'intestinal crypt stem cell'),result3:('intestinal epithelial cell', 'intestinal crypt stem cell'),result4:('intestinal epithelial cell', 'intestinal crypt stem cell')","<json>{
+""final_results"": [
+""Intestinal Progenitor Cell"",
+""Lgr5+ Crypt Base Columnar Progenitor Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 95
+}</json>","<json>{
+""final_results"": [
+""intestinal epithelial cell"",
+""intestinal crypt stem cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 87
+}</json>","result1:('Intestinal Stem Cells', 'LGR5+ Crypt Base Columnar (CBC) Stem Cells'),result2:('Intestinal Epithelial Cells', 'Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells'),result3:('Intestinal Epithelial Stem Cells', 'Crypt Base Columnar (CBC) Stem Cells'),result4:('Intestinal Epithelial Cells (with a stem cell phenotype)', 'LGR5+ Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells')",Intestinal Stem Cells,LGR5+ Crypt Base Columnar (CBC) Stem Cells,Intestinal Epithelial Cells,Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells,Intestinal Epithelial Stem Cells,Crypt Base Columnar (CBC) Stem Cells,Intestinal Epithelial Cells (with a stem cell phenotype),LGR5+ Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells
+plasma cell,Plasma Cell,Iga-Secreting Plasma Cell,,plasma cell,IgA plasma cell,,1.0,1.0,100,100,Plasma Cell,Iga-Secreting Plasma Cell,plasma cell,IgA plasma cell,"result1:(Plasma Cell, Iga-Secreting Plasma Cell),result2:(Plasma Cell, Iga-Secreting Plasma Cell),result3:(Plasma Cell, Iga-Secreting Plasma Cell),result4:(Plasma Cell, Iga-Secreting Plasma Cell)","result1:('plasma cell', 'IgA plasma cell'),result2:('plasma cell', 'IgA plasma cell'),result3:('plasma cell', 'IgA plasma cell'),result4:('plasma cell', 'IgA plasma cell')","<json>{
+""final_results"": [
+""Plasma Cell"",
+""Iga-Secreting Plasma Cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","<json>{
+""final_results"": [
+""plasma cell"",
+""IgA plasma cell""
+],
+""possible_mixed_celltypes"": [],
+""consensus_score"": 100
+}</json>","result1:('Plasma Cells', 'IgA-secreting Plasma Cells'),result2:('Plasma Cells', 'IgA-secreting Plasma Cells'),result3:('Plasma Cells', 'IgA-secreting Plasma Cells'),result4:('Plasma Cell', 'IgA-secreting Plasma Cells')",Plasma Cells,IgA-secreting Plasma Cells,Plasma Cells,IgA-secreting Plasma Cells,Plasma Cells,IgA-secreting Plasma Cells,Plasma Cell,IgA-secreting Plasma Cells

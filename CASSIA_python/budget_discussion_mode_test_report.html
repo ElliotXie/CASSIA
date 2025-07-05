@@ -1,0 +1,433 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Cell Type Comparison Report</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f7fa;
+                line-height: 1.6;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+                border-bottom: 3px solid #e74c3c;
+            }
+            .title {
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 0;
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .subtitle {
+                font-size: 1.2rem;
+                color: #7f8c8d;
+                margin-top: 10px;
+            }
+            .summary-section {
+                margin-bottom: 40px;
+                padding: 20px;
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border-radius: 8px;
+            }
+            .summary-title {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .score-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .score-table th {
+                background: linear-gradient(135deg, #34495e, #2c3e50);
+                color: white;
+                padding: 15px 12px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+            .score-table td {
+                padding: 12px;
+                text-align: center;
+                border-bottom: 1px solid #ddd;
+            }
+            .score-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+            .score-table tr:hover {
+                background-color: #e9ecef;
+            }
+            .majority-winner {
+                background-color: #d4edda !important;
+                border-left: 4px solid #28a745;
+            }
+            .majority-winner:hover {
+                background-color: #c3e6cb !important;
+            }
+            .cell-type-name {
+                font-weight: bold;
+                color: #2c3e50;
+                text-align: left !important;
+                padding-left: 20px !important;
+            }
+            .high-score {
+                background-color: #d4edda !important;
+                color: #155724;
+                font-weight: bold;
+                border-radius: 4px;
+            }
+            .medium-score {
+                background-color: #fff3cd !important;
+                color: #856404;
+                font-weight: bold;
+                border-radius: 4px;
+            }
+            .low-score {
+                background-color: #f8d7da !important;
+                color: #721c24;
+                font-weight: bold;
+                border-radius: 4px;
+            }
+            .model-section {
+                margin-bottom: 40px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            .model-header {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                padding: 15px 20px;
+                font-size: 1.4rem;
+                font-weight: bold;
+            }
+            .celltype-row {
+                padding: 20px;
+                border-bottom: 1px solid #eee;
+                background-color: white;
+            }
+            .celltype-row:last-child {
+                border-bottom: none;
+            }
+            .celltype-row:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+            .celltype-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e74c3c;
+            }
+            .celltype-name {
+                font-size: 1.3rem;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 25px;
+                font-size: 1rem;
+                font-weight: bold;
+            }
+            .reasoning-preview {
+                margin-bottom: 10px;
+                color: #666;
+                font-style: italic;
+                font-size: 0.95rem;
+            }
+            .reasoning-section {
+                margin-bottom: 15px;
+            }
+            .reasoning-text {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #e74c3c;
+                color: #555;
+                text-align: justify;
+                line-height: 1.6;
+                margin-top: 10px;
+            }
+            .toggle-button {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition: background-color 0.3s;
+            }
+            .toggle-button:hover {
+                background-color: #5a6268;
+            }
+            .details-title {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 40px 0 20px 0;
+                text-align: center;
+                border-bottom: 2px solid #e74c3c;
+                padding-bottom: 10px;
+            }
+        </style>
+        <script>
+            function toggleReasoning(buttonId, contentId) {
+                const content = document.getElementById(contentId);
+                const button = document.getElementById(buttonId);
+                if (content.style.display === 'none' || content.style.display === '') {
+                    content.style.display = 'block';
+                    button.textContent = 'Hide Reasoning';
+                } else {
+                    content.style.display = 'none';
+                    button.textContent = 'Show Full Reasoning';
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1 class="title">Cell Type Comparison Report</h1>
+                <p class="subtitle">Multi-Model Analysis Results</p>
+            </div>
+    
+            <div class="summary-section">
+                <div class="summary-title">📊 Summary Score Table</div>
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Cell Type</th>
+    <th>deepseek-chat-v3-0324</th><th>gemini-2.5-flash</th><th>grok-3-beta</th>
+                            <th>Average</th>
+                            <th>Majority Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    <tr class=""><td class="cell-type-name">Naive B cell</td><td>65</td><td>50</td><td>65</td><td class="medium-score"><strong>60.0</strong></td><td class="low-score"><strong>0/3</strong></td></tr><tr class=""><td class="cell-type-name">Plasma cell</td><td>92</td><td>90</td><td>88</td><td class="high-score"><strong>90.0</strong></td><td class="low-score"><strong>0/3</strong></td></tr><tr class="majority-winner"><td class="cell-type-name">Plasmablast</td><td>97</td><td>95</td><td>95</td><td class="high-score"><strong>95.7</strong></td><td class="high-score"><strong>3/3</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+    <div class="details-title">📝 Detailed Reasoning by Model</div>
+            <div class="model-section">
+                <div class="model-header">🤖 google/gemini-2.5-flash</div>
+        
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Naive B cell</span>
+                        <span class="score-badge">Score: 50/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Naive B cells are distinguished by their resting state, prior to antigen...</div>
+                    <button class="toggle-button" id="btn_0_Naive_B_cell" 
+                            onclick="toggleReasoning('btn_0_Naive_B_cell', 'reasoning_0_Naive_B_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_0_Naive_B_cell" style="display: none;">
+                        Naive B cells are distinguished by their resting state, prior to antigen encounter and differentiation. They are unequivocally positive for core B cell markers but negative for markers associated with plasma cell differentiation.
+
+*   **CD19, CD20 (MS4A1), CD79A:** These are definitive pan-B cell markers, highly and consistently expressed on naive B cells. Their strong presence in the marker set is a primary indicator for naive B cells.
+*   **CD38:** Naive B cells typically express CD38 at low or intermediate levels. High expression is more characteristic of activated B cells, plasmablasts, or plasma cells. If the "ranked" nature implies higher expression, this would slightly detract from a perfect naive B cell fit.
+*   **SDC1 (CD138):** Crucially, SDC1 is virtually absent on naive B cells. It is a hallmark of plasma cell differentiation. Its presence in the marker set, even as a low-ranked marker, is inconsistent with a pure naive B cell phenotype.
+*   **XBP1, IRF4, BLIMP1:** These are master regulators and effectors of plasma cell differentiation. They are either completely absent or expressed at negligible levels in naive B cells. Their inclusion in the marker set strongly argues against a naive B cell identity, as their presence even implies some level of transcriptional activity related to plasma cell fate.
+
+The initial analyses correctly identify CD19/CD20/CD79A as core naive B cell markers and SDC1/XBP1/IRF4/BLIMP1 as plasma cell markers absent in naive B cells. However, the initial scores (95, 70, 60) for naive B cells seem to vary significantly. The "ranked marker set" implies all listed markers are present to some extent. If markers like SDC1, XBP1, IRF4, and BLIMP1 are present at any detectable level, it indicates a departure from a strict naive B cell phenotype. While the early B cell markers fit perfectly, the complete absence of plasma cell markers is a defining feature of naive B cells. Their *inclusion* in the set, even if their expression level is low, means the set *as a whole* does not perfectly represent a naive B cell, which should be negative for these later markers. Therefore, none of the scores above the 60-70 range seem justified. I'm going with a lower score to reflect the presence of markers completely absent on true naive cells.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasma cell</span>
+                        <span class="score-badge">Score: 90/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Plasma cells are terminally differentiated and specialized for antibody secretion, characterized by...</div>
+                    <button class="toggle-button" id="btn_0_Plasma_cell" 
+                            onclick="toggleReasoning('btn_0_Plasma_cell', 'reasoning_0_Plasma_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_0_Plasma_cell" style="display: none;">
+                        Plasma cells are terminally differentiated and specialized for antibody secretion, characterized by a major shift in surface marker expression and high expression of specific transcription factors.
+
+*   **CD19:** Typically downregulated or lost in mature plasma cells, although some early plasma cells or plasmablasts can retain low levels. Its presence, especially if implied as high, moves away from a highly mature plasma cell.
+*   **CD20 (MS4A1):** This marker is classically lost on plasma cells. Its inclusion in the set, even if assumed to be low, is a departure from a pure plasma cell phenotype. This is a crucial distinction from B cells and plasmablasts.
+*   **CD79A:** Often significantly downregulated or lost as the BCR becomes less relevant for mature plasma cells.
+*   **CD38:** Highly expressed on plasma cells and is a key marker for their identification. This is a strong fit.
+*   **SDC1 (CD138):** A defining and highly expressed surface marker for mature plasma cells. Its presence is a strong indicator.
+*   **XBP1, IRF4, BLIMP1:** These are the indispensable master transcription factors that drive plasma cell differentiation, the unfolded protein response, and antibody production. Their high expression is paramount for plasma cell function. Their strong presence in the marker set is highly indicative of plasma cells.
+
+The analyses highlight the strong fit of CD38, SDC1, XBP1, IRF4, and BLIMP1 for plasma cells. The main detractor is the presence of CD20/MS4A1, which is typically absent. While CD19 and CD79A can be retained at low levels in some nascent plasma cells or subsets, CD20 is a definitive negative marker for mature plasma cells. The 'ranked' nature suggests all included markers are present to some degree. Therefore, a perfect score is not achievable for a *mature* plasma cell. However, the strong positive markers heavily outweigh the slight negatives, making it a very good match for a cell type on the plasma cell lineage. The scores ranged from 85 to 98. I agree that it's a strong fit, but the continued presence of CD20 is a significant differentiating factor from a fully mature plasma cell.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasmablast</span>
+                        <span class="score-badge">Score: 95/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Plasmablasts represent an intermediate, transitional stage between activated B cells and mature...</div>
+                    <button class="toggle-button" id="btn_0_Plasmablast" 
+                            onclick="toggleReasoning('btn_0_Plasmablast', 'reasoning_0_Plasmablast')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_0_Plasmablast" style="display: none;">
+                        Plasmablasts represent an intermediate, transitional stage between activated B cells and mature plasma cells. They retain some B cell characteristics while acquiring increasing plasma cell features, making them often circulating and antibody-secreting.
+
+*   **CD19:** Generally expressed at intermediate to high levels on plasmablasts, often reduced compared to naive B cells but still present.
+*   **CD20 (MS4A1):** Critically, plasmablasts often retain low to intermediate levels of CD20, whereas mature plasma cells typically lose it. The presence of CD20 in the set is thus highly consistent with a plasmablast phenotype. This is where plasmablasts truly bridge the gap.
+*   **CD79A:** Present but often at lower levels than naive B cells, declining as differentiation progresses.
+*   **CD38:** Highly expressed on plasmablasts, making it a key positive marker alongside SDC1.
+*   **SDC1 (CD138):** Expressed on plasmablasts, usually at intermediate to high levels, often somewhat lower than in terminally differentiated plasma cells, but clearly present.
+*   **XBP1, IRF4, BLIMP1:** These crucial transcription factors are actively induced and highly expressed in plasmablasts, driving their differentiation and antibody secretion capacity. Their robust expression is a defining feature of plasmablasts maturing into plasma cells.
+
+This marker set perfectly captures the transitional nature of plasmablasts. The co-expression of B cell markers (CD19, CD20, CD79A – albeit possibly at modulated levels) with strong plasma cell differentiation markers (CD38, SDC1, XBP1, IRF4, BLIMP1) is the hallmark of a plasmablast. The presence of CD20, which is lost in mature plasma cells, makes this profile a better fit for plasmablasts than for mature plasma cells, while also distinguishing it from naive B cells (due to high expression of CD38, SDC1, and the transcription factors). This is arguably the *best* fit among the three cell types. All initial analyses scored plasmablast highly (80, 85, 99), and I concur that this is an excellent match. The combination of B-cell markers and highly induced plasma cell markers is textbook for a plasmablast.
+                    </div>
+                </div>
+            
+            </div>
+        
+            <div class="model-section">
+                <div class="model-header">🤖 deepseek/deepseek-chat-v3-0324</div>
+        
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Naive B cell</span>
+                        <span class="score-badge">Score: 65/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 The marker set includes strong pan-B cell markers (CD19, CD20/MS4A1, CD79A), which...</div>
+                    <button class="toggle-button" id="btn_1_Naive_B_cell" 
+                            onclick="toggleReasoning('btn_1_Naive_B_cell', 'reasoning_1_Naive_B_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_1_Naive_B_cell" style="display: none;">
+                        The marker set includes strong pan-B cell markers (CD19, CD20/MS4A1, CD79A), which are highly characteristic of naive B cells. However:
+- **Key strengths**: CD19/CD20/CD79A are **essential** for naive B cell identity and function (BCR signaling).
+- **Key weaknesses**: The inclusion of plasma cell markers (CD38, SDC1, XBP1, IRF4, BLIMP1) is biologically incongruent. Naive B cells should **not** express these differentiation markers at detectable levels.
+- **Critical nuance**: While CD38 can be expressed at low levels on naive B cells, its presence alongside SDC1/XBP1/IRF4/BLIMP1 suggests contamination with activated/differentiated cells. 
+
+Given the marker set's explicit inclusion of plasma cell-specific factors, this profile is **not purely naive B cell**. However, if the latter markers are low/absent experimentally (despite being listed), the score would improve.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasma cell</span>
+                        <span class="score-badge">Score: 92/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 The set captures canonical plasma cell markers with high specificity: - **CD38/SDC1**:...</div>
+                    <button class="toggle-button" id="btn_1_Plasma_cell" 
+                            onclick="toggleReasoning('btn_1_Plasma_cell', 'reasoning_1_Plasma_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_1_Plasma_cell" style="display: none;">
+                        The set captures canonical plasma cell markers with high specificity:
+- **CD38/SDC1**: **Gold-standard** surface markers for plasma cells.
+- **XBP1/IRF4/BLIMP1**: Master transcriptional regulators of plasma cell identity and antibody secretion.
+- **Contradictions**: CD20/MS4A1 should be **absent** in mature plasma cells. CD19/CD79A may persist at low levels in some subsets, but their prominence here is suboptimal.
+
+Despite the incongruent B cell markers, the **overwhelming presence** of plasma cell-defining markers (especially SDC1+XBP1+IRF4+Blimp1) makes this the **best match** biologically. The ranking likely reflects low/no CD20 expression in practice.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasmablast</span>
+                        <span class="score-badge">Score: 97/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 This set is **ideal** for plasmablasts due to their transitional state: -...</div>
+                    <button class="toggle-button" id="btn_1_Plasmablast" 
+                            onclick="toggleReasoning('btn_1_Plasmablast', 'reasoning_1_Plasmablast')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_1_Plasmablast" style="display: none;">
+                        This set is **ideal** for plasmablasts due to their transitional state:
+- **Expected positives**: 
+  - Retained B cell markers (CD19, dim CD20/MS4A1/CD79A).
+  - High CD38 (activation) + emerging SDC1 (early plasma commitment).
+  - Robust XBP1/IRF4/BLIMP1 (driving differentiation).
+- **Biological validation**: Plasmablasts **must** co-express both lineages' markers during transition. This set mirrors published human circulation plasmablast profiles exactly.
+
+The **balance** of markers (neither pure B cell nor pure plasma cell) makes this a **near-perfect** match. Minor deductions reflect variability in SDC1 expression levels across studies.
+                    </div>
+                </div>
+            
+            </div>
+        
+            <div class="model-section">
+                <div class="model-header">🤖 x-ai/grok-3-beta</div>
+        
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Naive B cell</span>
+                        <span class="score-badge">Score: 65/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Naive B cells are mature, resting B lymphocytes that have not yet...</div>
+                    <button class="toggle-button" id="btn_2_Naive_B_cell" 
+                            onclick="toggleReasoning('btn_2_Naive_B_cell', 'reasoning_2_Naive_B_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_2_Naive_B_cell" style="display: none;">
+                        Naive B cells are mature, resting B lymphocytes that have not yet encountered their specific antigen. They are defined by the expression of pan-B cell markers such as CD19, CD20 (encoded by MS4A1), and CD79A, which are integral to B cell identity and signaling through the B cell receptor (BCR). These markers are prominently featured at the top of the provided ranked marker set, strongly supporting a naive B cell identity. CD38 is typically expressed at low levels on naive B cells, which may still fit within this profile if its ranking reflects moderate rather than high expression. However, the inclusion of SDC1 (CD138), XBP1, IRF4, and BLIMP1—markers and transcription factors critical for plasma cell differentiation and function—poses a significant challenge to this identification. These markers are generally absent or expressed at negligible levels in naive B cells, as they are associated with terminal differentiation and antibody secretion. While the ranking of these plasma cell markers lower in the set might suggest reduced expression, their mere presence in the set implies relevance, which detracts from a pure naive B cell phenotype. After considering the perspectives of my peers, particularly the high scores from google/gemini-2.5-flash (95) versus the lower scores from deepseek/deepseek-chat-v3-0324 (70) and x-ai/grok-3-beta (60), I conclude that while the early B cell markers align strongly, the plasma cell-associated markers reduce the specificity for naive B cells. My score reflects a partial match, acknowledging the strength of the B cell markers but penalizing for the irrelevant differentiation markers.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasma cell</span>
+                        <span class="score-badge">Score: 88/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Plasma cells are terminally differentiated B cells specialized in high-level antibody secretion,...</div>
+                    <button class="toggle-button" id="btn_2_Plasma_cell" 
+                            onclick="toggleReasoning('btn_2_Plasma_cell', 'reasoning_2_Plasma_cell')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_2_Plasma_cell" style="display: none;">
+                        Plasma cells are terminally differentiated B cells specialized in high-level antibody secretion, characterized by a distinct marker profile that reflects their functional role. The provided marker set includes CD38, SDC1 (CD138), XBP1, IRF4, and BLIMP1, all of which are hallmark features of plasma cells. CD38 is highly expressed and often used in combination with SDC1 to identify plasma cells in flow cytometry, while XBP1, IRF4, and BLIMP1 are key transcription factors driving the unfolded protein response, immunoglobulin gene expression, and plasma cell commitment, respectively. Their presence, particularly later in the ranked list, may suggest high expression if ranking implies importance or abundance, aligning well with a plasma cell identity. However, plasma cells typically downregulate or lose early B cell markers such as CD20 (MS4A1), and often express CD19 and CD79A at reduced levels, if at all, as their focus shifts from surface BCR expression to secreted antibodies. The high ranking of CD19, CD20, MS4A1, and CD79A in the marker set therefore introduces some discrepancy, as their strong presence is atypical for mature plasma cells. Reflecting on the panel’s analyses, google/gemini-2.5-flash gave a near-perfect score (98), while deepseek/deepseek-chat-v3-0324 (90) and x-ai/grok-3-beta (85) were slightly more conservative, citing the mismatch with early B cell markers. I agree that the plasma cell-specific markers provide a strong match, but the prominence of early B cell markers suggests this might not be a fully mature plasma cell population. My score reflects a high degree of alignment with plasma cell identity, tempered by the presence of markers that are typically downregulated.
+                    </div>
+                </div>
+            
+                <div class="celltype-row">
+                    <div class="celltype-header">
+                        <span class="celltype-name">Plasmablast</span>
+                        <span class="score-badge">Score: 95/100</span>
+                    </div>
+                    <div class="reasoning-preview">💭 Plasmablasts represent a transitional stage between activated B cells and mature plasma...</div>
+                    <button class="toggle-button" id="btn_2_Plasmablast" 
+                            onclick="toggleReasoning('btn_2_Plasmablast', 'reasoning_2_Plasmablast')">
+                        Show Full Reasoning
+                    </button>
+                    <div class="reasoning-text" id="reasoning_2_Plasmablast" style="display: none;">
+                        Plasmablasts represent a transitional stage between activated B cells and mature plasma cells, exhibiting a hybrid phenotype with characteristics of both. They retain some B cell markers such as CD19 and CD20 (MS4A1) at intermediate to low levels, alongside CD79A, while upregulating markers of differentiation like CD38, SDC1 (CD138), XBP1, IRF4, and BLIMP1, which are critical for antibody secretion and plasma cell commitment. The provided marker set captures this duality exceptionally well, featuring both early B cell markers (CD19, CD20, MS4A1, CD79A) and plasma cell-associated markers (CD38, SDC1, XBP1, IRF4, BLIMP1). This combination reflects the transitional nature of plasmablasts, which are often found in peripheral blood during immune responses and are actively differentiating. The ranked order, with B cell markers at the top and differentiation markers following, could indicate a progression or a balanced expression profile typical of plasmablasts. Reviewing the panel’s scores, google/gemini-2.5-flash assigned the highest score (99), emphasizing the perfect fit of mixed markers, while deepseek/deepseek-chat-v3-0324 (85) and x-ai/grok-3-beta (80) were slightly lower, noting that SDC1 and transcription factor expression might lean more toward plasma cells. I find the marker set to be most consistent with plasmablasts, as it bridges both phenotypes without fully committing to the loss of B cell markers seen in mature plasma cells. My score reflects a strong match, recognizing plasmablasts as the best fit among the three cell types, with a minor deduction for potential ambiguity in SDC1 expression levels compared to full plasma cells.
+                    </div>
+                </div>
+            
+            </div>
+        
+        </div>
+    </body>
+    </html>
+    

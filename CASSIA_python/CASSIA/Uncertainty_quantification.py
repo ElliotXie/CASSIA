@@ -38,7 +38,7 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
         None: Results are saved to files
     """
     def single_batch_run(i):
-        output_json_name = f"{output_name}_{i}.json"
+        output_json_name = f"{output_name}_{i+1}.json"
         print(f"Starting batch run {i+1}/{n}")
         start_time = time.time()
         result = runCASSIA_batch(
@@ -755,7 +755,7 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
     return organized_results
 
 
-def process_cell_type_variance_analysis_batch(results, model=None, provider="openai", temperature=0, main_weight=0.5, sub_weight=0.5, include_ontology=True):
+def process_cell_type_variance_analysis_batch(results, model=None, provider="openai", temperature=0.0, main_weight=0.5, sub_weight=0.5, include_ontology=True):
     """
     Unified function to process cell type variance analysis for batch results.
     
@@ -821,7 +821,7 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
                     prompt=results, # Use the same original prompt
                     model=model,
                     provider=provider,
-                    temperature=temperature 
+                    temperature=temperature
                 )
                 # Retry standardization with the new depluralized string
                 result_unified_oncology = standardize_cell_types(results_depluar_retry)
@@ -953,7 +953,7 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     return result
 
 
-def process_cell_type_results(organized_results, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
+def process_cell_type_results(organized_results, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0):
     processed_results = {}
     
     def process_single_celltype(celltype, predictions):
@@ -975,7 +975,8 @@ def process_cell_type_results(organized_results, max_workers=10, model="google/g
             model=model,
             provider=provider,
             main_weight=main_weight,
-            sub_weight=sub_weight
+            sub_weight=sub_weight,
+            temperature=temperature
         )
         
         return celltype, result
@@ -1089,7 +1090,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1103,6 +1104,7 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     provider (str): LLM provider ("openai", "anthropic", "openrouter", or a custom URL).
     main_weight (float): Weight for the main cell type in similarity calculation.
     sub_weight (float): Weight for the sub cell type in similarity calculation.
+    temperature (float): Temperature for the LLM calls.
     """
 
     # Organize batch results
@@ -1113,7 +1115,7 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     )
 
     # Process cell type results
-    processed_results = process_cell_type_results(organized_results, max_workers=max_workers, model=model, provider=provider, main_weight=main_weight, sub_weight=sub_weight)
+    processed_results = process_cell_type_results(organized_results, max_workers=max_workers, model=model, provider=provider, main_weight=main_weight, sub_weight=sub_weight, temperature=temperature)
 
     # Create and save results dataframe
     create_and_save_results_dataframe(
@@ -1291,7 +1293,8 @@ Output in JSON format:
         prompt=standardized_results,
         system_prompt=system_prompt,
         model=model,
-        provider=provider
+        provider=provider,
+        temperature=0.3
     )
     
     # Extract consensus celltypes using the unified function

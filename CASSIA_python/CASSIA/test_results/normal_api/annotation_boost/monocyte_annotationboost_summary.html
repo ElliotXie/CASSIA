@@ -1,0 +1,292 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a specific cell population initially identified as Enteric Glial Cells. The analysis involved 3 iterations, examining a total of 49 distinct genes to refine the cell type annotation.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was Enteric Glial Cells, strongly supported by canonical glial markers such as PLP1, SOX10, and PTPRZ1. Additional markers like L1CAM, NRXN1/NRXN3, SOX2, and FOXD3 suggested a neural crest-derived, potentially progenitor or interacting glial population. Ambiguity remained regarding the precise sub-type (myelinating vs. non-myelinating vs. progenitor) and the functional significance of highly expressed genes like SPP1, LPL, and WNT6.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To assess the extent of myelinating characteristics given the strong PLP1 expression, by checking for other canonical myelin-associated genes.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To clarify the developmental stage (progenitor or immature glia) given the presence of SOX2 and FOXD3.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To explore functional diversity by investigating markers associated with specific glial functions or states, particularly for highly expressed genes like SPP1 and LPL.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MBP</span><span class="gene-badge">MOG</span><span class="gene-badge">MAG</span><span class="gene-badge">CNP</span><span class="gene-badge">MPZ</span><span class="gene-badge">GFAP</span><span class="gene-badge">NES</span><span class="gene-badge">PROM1</span><span class="gene-badge">CD133</span><span class="gene-badge">OLIG2</span><span class="gene-badge">PDGFRA</span><span class="gene-badge">AQP4</span><span class="gene-badge">S100B</span><span class="gene-badge">CD44</span><span class="gene-badge">CDH2</span><span class="gene-badge">CDH19</span><span class="gene-badge">SPP1</span><span class="gene-badge">LPL</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                Strong positive expression of CNP, MPZ, and S100B was observed, reinforcing a myelin-associated glial phenotype. High NES expression with low PROM1 suggested some progenitor characteristics but not a highly undifferentiated stem cell state. Very high expression of CDH19, CDH2, SPP1, and LPL indicated specific adhesion properties and metabolic/secretory functions. Notably, MBP expression was very low. Genes not found in the differential expression list were AQP4, CD133, GFAP, MAG, MOG, OLIG2, and PDGFRA.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To refine the distinction between myelinating and non-myelinating glia, especially considering the low MBP expression despite other myelin markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To investigate other cadherins and glial development markers to understand the specific adhesion profile and refine the glial subtype.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To further characterize the significant metabolic and secretory roles suggested by high LPL, SPP1, and WNT6 expression.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MBP</span><span class="gene-badge">MOG</span><span class="gene-badge">MAG</span><span class="gene-badge">PMP22</span><span class="gene-badge">KCNJ10</span><span class="gene-badge">AQP4</span><span class="gene-badge">GFAP</span><span class="gene-badge">SOX9</span><span class="gene-badge">ERBB3</span><span class="gene-badge">NGFR</span><span class="gene-badge">CDH1</span><span class="gene-badge">CDH3</span><span class="gene-badge">CDH5</span><span class="gene-badge">APOE</span><span class="gene-badge">APOC1</span><span class="gene-badge">FABP7</span><span class="gene-badge">FABP5</span><span class="gene-badge">LPL</span><span class="gene-badge">SPP1</span><span class="gene-badge">WNT6</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                Strong expression of PMP22, alongside previously identified PLP1, CNP, and MPZ, solidified a "myelin-associated" or "myelin-forming" characteristic, despite continued low MBP expression. High expression of NGFR and ERBB3, coupled with low SOX9, suggested a specific developmental stage or glial subtype. Robust expression of APOC1, APOE, LPL, SPP1, and WNT6 strongly indicated significant lipid metabolism and secretory functions. Low expression of CDH1 further differentiated this population from epithelial cells. Genes not found in the differential expression list were AQP4, CDH3, CDH5, FABP7, GFAP, KCNJ10, MAG, and MOG.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To distinguish between general myelin-associated enteric glia and classical Schwann cells, given the consistent expression of myelin-associated genes but persistent low MBP.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To further characterize the lipid metabolism and secretion profile by investigating receptors involved in lipid uptake and signaling.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To investigate whether this glial population exhibits signs of activation or involvement in immune modulation, prompted by high SPP1 expression.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">S100B</span><span class="gene-badge">GFAP</span><span class="gene-badge">MPZ</span><span class="gene-badge">PMP22</span><span class="gene-badge">SOX10</span><span class="gene-badge">KROX20</span><span class="gene-badge">PRX</span><span class="gene-badge">LPL</span><span class="gene-badge">SPP1</span><span class="gene-badge">WNT6</span><span class="gene-badge">APOE</span><span class="gene-badge">APOC1</span><span class="gene-badge">LRP1</span><span class="gene-badge">CD36</span><span class="gene-badge">CD44</span><span class="gene-badge">ITGAM</span><span class="gene-badge">ITGB2</span><span class="gene-badge">TNF</span><span class="gene-badge">IL6</span><span class="gene-badge">CCL2</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The data strongly reinforced a "myelin-associated" glial identity with high expression of MPZ, PMP22, PRX, S100B, and SOX10, despite the continued absence of MBP. Robust expression of LPL, APOE, APOC1, LRP1, SPP1, WNT6, CCL2, and IL6 pointed to a highly metabolically active and potentially immune-modulating glial population. CD44 expression was low. The overall profile was increasingly consistent with a specialized type of enteric glia with both structural (myelin-associated) and functional (metabolic, immune-modulatory) roles. Genes not found in the differential expression list were CD36, GFAP, ITGAM, ITGB2, KROX20, and TNF.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type is **Enteric Glial Cells, specifically a specialized subpopulation with strong myelin-associated characteristics and significant metabolic and immune-modulatory functions.**
+Confidence level: High
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Initial Glial Markers:** PLP1, SOX10, PTPRZ1, L1CAM, NRXN1/NRXN3
+**Myelin-Associated Markers:** CNP, MPZ, PMP22, PRX, S100B
+**Developmental/Receptor Profile:** NGFR, ERBB3
+**Lipid Metabolism Markers:** LPL, APOE, APOC1, LRP1
+**Secretory/Immune-Modulatory Markers:** SPP1, WNT6, CCL2, IL6
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            Further functional studies would be needed to definitively characterize their myelinating capacity and precise role in the ENS, especially considering the persistent low expression of MBP despite other myelin-associated markers. This suggests these cells may not form classical compact myelin but rather represent a "myelin-associated" or "myelin-forming" state, or a specific type of non-myelinating Schwann cell with similar gene expression.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        
