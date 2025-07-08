@@ -25,7 +25,7 @@ py_uncertainty <- NULL
     # Import Python modules
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-    py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+    py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
     py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
     py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
     py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
@@ -359,6 +359,13 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
+  # Determine the cluster column to check
+  cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+  # If the cluster column exists and is a factor, convert it to character
+  if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+    marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+  }
   pd <- reticulate::import("pandas")
   # Direct conversion with convert=TRUE
   marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -418,12 +425,19 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
                                   provider = "openrouter", max_retries = 1) {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
+    # Determine the cluster column to check
+    cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
 
   execution_time <- system.time({
     tryCatch({
@@ -464,12 +478,19 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
+    # Determine the cluster column to check
+    cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
 
   execution_time <- system.time({
     tryCatch({
@@ -522,6 +543,10 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      ...) {
 
   if (is.data.frame(marker)) {
+    # Factors can cause issues with reticulate, convert to character
+    if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
+      marker[["cluster"]] <- as.character(marker[["cluster"]])
+    }
     pd <- reticulate::import("pandas")
     # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -530,7 +555,7 @@ runCASSIA_annotationboost <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_tools$runCASSIA_annotationboost(
+    py_annotation_boost$runCASSIA_annotationboost(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -592,6 +617,10 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      ...) {
 
   if (is.data.frame(marker)) {
+    # Factors can cause issues with reticulate, convert to character
+    if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
+      marker[["cluster"]] <- as.character(marker[["cluster"]])
+    }
     pd <- reticulate::import("pandas")
     # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -600,7 +629,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_tools$runCASSIA_annotationboost_additional_task(
+    py_annotation_boost$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -696,7 +725,6 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 }
 
 
-
 #' Run Complete Cell Analysis Pipeline
 #'
 #' @param output_file_name Base name for output files
@@ -704,9 +732,9 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param species Species being analyzed
 #' @param marker Marker data (data frame or file path)
 #' @param max_workers Maximum number of concurrent workers (default: 4)
-#' @param annotation_model Model to use for initial annotation (default: "meta-llama/llama-4-maverick")
+#' @param annotation_model Model to use for initial annotation (default: "google/gemini-2.5-flash-preview")
 #' @param annotation_provider Provider for initial annotation (default: "openrouter")
-#' @param score_model Model to use for scoring (default: "google/gemini-2.5-pro-preview-03-25")
+#' @param score_model Model to use for scoring (default: "deepseek/deepseek-chat-v3-0324")
 #' @param score_provider Provider for scoring (default: "openrouter")
 #' @param annotationboost_model Model to use for boosting low-scoring annotations (default: "google/gemini-2.5-flash-preview")
 #' @param annotationboost_provider Provider for boosting low-scoring annotations (default: "openrouter")
@@ -719,6 +747,8 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
 #' @param search_strategy Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param ranking_method Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")
+#' @param ascending Sort direction (NULL uses default for each method) (default: NULL)
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -728,25 +758,40 @@ runCASSIA_pipeline <- function(
     species,
     marker,
     max_workers = 4,
-    annotation_model = "google/gemini-2.5-flash-preview",
+    annotation_model = "google/gemini-2.5-flash",
     annotation_provider = "openrouter",
-    score_model = "deepseek/deepseek-chat-v3-0324",
+    score_model = "google/gemini-2.5-flash",
     score_provider = "openrouter",
-    annotationboost_model = "google/gemini-2.5-flash-preview",
+    annotationboost_model = "google/gemini-2.5-flash",
     annotationboost_provider = "openrouter",
     score_threshold = 75,
     additional_info = NULL,
     max_retries = 1,
     do_merge_annotations = TRUE,
-    merge_model = "deepseek/deepseek-chat-v3-0324",
+    merge_model = "google/gemini-2.5-flash",
     merge_provider = "openrouter",
     conversation_history_mode = "final",
     search_strategy = "breadth",
-    report_style = "per_iteration"
+    report_style = "per_iteration",
+    ranking_method = "avg_log2FC",
+    ascending = NULL
 ) {
-  # Convert marker data frame if necessary
+  # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
+    # Determine the cluster column to check
+    cluster_col <- "cluster"
+    if ("cluster" %in% names(marker)) {
+      cluster_col <- "cluster"
+    } else if (length(names(marker)) > 0) {
+      cluster_col <- names(marker)[1]  # Use first column if no cluster column
+    }
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
     pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
@@ -757,7 +802,7 @@ runCASSIA_pipeline <- function(
       output_file_name = output_file_name,
       tissue = tissue,
       species = species,
-      marker_path = marker,
+      marker = marker,
       max_workers = as.integer(max_workers),
       annotation_model = annotation_model,
       annotation_provider = annotation_provider,
@@ -766,18 +811,24 @@ runCASSIA_pipeline <- function(
       annotationboost_model = annotationboost_model,
       annotationboost_provider = annotationboost_provider,
       score_threshold = as.numeric(score_threshold),
-      additional_info = if(is.null(additional_info)) "None" else additional_info,
+      additional_info = if (is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
       merge_annotations = do_merge_annotations,
       merge_model = merge_model,
       merge_provider = merge_provider,
       conversation_history_mode = conversation_history_mode,
-      search_strategy = search_strategy,
+      ranking_method = ranking_method,
+      ascending = ascending,
       report_style = report_style
     )
+    
+    invisible(NULL)
+    
   }, error = function(e) {
-    error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",
-                      "Python traceback:", reticulate::py_last_error())
+    error_msg <- paste("Error in runCASSIA_pipeline:", e$message)
+    if (!is.null(reticulate::py_last_error())) {
+      error_msg <- paste(error_msg, "\nPython traceback:", reticulate::py_last_error())
+    }
     stop(error_msg)
   })
 }

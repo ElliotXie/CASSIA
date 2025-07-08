@@ -1,0 +1,238 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    As a professional computational biologist, I will analyze the provided ranked marker list from a single-cell RNA sequencing dataset of human large intestine tissue to identify the cell type.<br><br>**Step-by-Step Analysis:**<br><br>**1. List the Key Functional Markers:**<br><br>*   **IGFBPL1 (Insulin-like Growth Factor Binding Protein-like 1):** While not exclusively a functional marker, IGFBPL1 has been implicated in cell proliferation and differentiation, and its expression can be associated with specific cell states, including those involved in tissue regeneration or stemness.<br>*   **TDGF1 (Teratocarcinoma-Derived Growth Factor 1, also known as Cripto-1):** A crucial co-receptor for TGF-beta and Nodal signaling pathways, TDGF1 plays a vital role in embryonic development, stem cell maintenance, and tissue regeneration. Its presence often indicates cells with high developmental plasticity or stem-like properties.<br>*   **ASCL2 (Achaete-scute homolog 2):** A basic helix-loop-helix (bHLH) transcription factor, ASCL2 is a well-established master regulator of intestinal stem cell (ISC) identity and proliferation. It is essential for maintaining the crypt stem cell niche and driving the differentiation of various intestinal epithelial lineages.<br>*   **SLC39A2 (Solute Carrier Family 39 Member 2, also known as ZIP2):** This gene encodes a zinc transporter. While zinc transport is a general cellular function, specific transporters can be enriched in certain cell types or states, potentially indicating unique metabolic or signaling requirements. Its high expression here warrants consideration in the context of highly active or proliferative cells.<br><br>**Functional Marker Summary:** The presence of **TDGF1** and especially **ASCL2** strongly points towards cells with stem cell characteristics and active involvement in tissue renewal and differentiation. IGFBPL1 further supports a role in proliferation/differentiation.<br><br>**2. List the Key Cell Type Markers:**<br><br>*   **LGR5 (Leucine-rich repeat-containing G protein-coupled receptor 5):** This is the most critical marker in the provided list. LGR5 is the canonical and widely accepted marker for actively cycling intestinal stem cells (ISCs) located at the bottom of the intestinal crypts. These cells are responsible for the continuous renewal of the intestinal epithelium. Its high expression is a definitive indicator of ISCs.<br>*   **ASCL2:** As mentioned above, ASCL2 is not only a functional regulator but also a key marker for intestinal stem cells, working in concert with LGR5 to define the ISC population.<br>*   **IGFBPL1:** While not exclusive, IGFBPL1 has been reported as a marker for certain stem cell populations, including those in the intestine, further supporting the stem cell hypothesis.<br>*   **TDGF1:** Similar to IGFBPL1, TDGF1 is associated with stemness and developmental plasticity, reinforcing the identification of stem-like cells.<br><br>**Cell Type Marker Summary:** The overwhelming evidence from **LGR5** and **ASCL2** unequivocally points to **Intestinal Stem Cells (ISCs)**. The other markers (IGFBPL1, TDGF1) are consistent with this identification. The remaining genes (e.g., ribosomal proteins like RPL7P54, RPL41P1, RPL9P21; pseudogenes like HMGN2P6, CHCHD2P9, PPIAP40, etc.) are largely ribosomal proteins or pseudogenes, which are often highly expressed in rapidly proliferating cells due to high protein synthesis demands, or are non-coding RNAs/pseudogenes with less specific cell type information in this context. Their high expression is consistent with the high proliferative activity of stem cells.<br><br>**3. Cross-reference Known Databases:**<br><br>*   **LGR5:** Numerous scRNA-seq databases (e.g., Human Cell Atlas, PanglaoDB, CellMarker, scRNAseqDB) consistently identify LGR5 as the primary marker for intestinal stem cells across various species and tissues, particularly in the small and large intestine.<br>*   **ASCL2:** Databases confirm ASCL2 as a critical transcription factor and marker for LGR5+ intestinal stem cells, essential for their maintenance and function.<br>*   **TDGF1:** Often found co-expressed with LGR5 in intestinal stem cells and progenitor cells, reflecting its role in maintaining stemness and regulating differentiation pathways.<br>*   **IGFBPL1:** While less specific than LGR5/ASCL2, IGFBPL1 has been reported in various stem cell populations, including intestinal stem cells, and its expression can be modulated during differentiation.<br><br>**4. Determine the Most Probable General Cell Type:**<br><br>Based on the strong and specific expression of **LGR5** and **ASCL2**, the most probable general cell type is **Intestinal Stem Cells (ISCs)**. These cells are the foundation of epithelial renewal in the large intestine.<br><br>**5. Identify the Top 3 Most Probable Sub Cell Types:**<br><br>Given the strong markers for intestinal stem cells, the "sub cell types" would likely refer to different states or subtypes *within* the intestinal stem cell compartment, or closely related progenitor cells.<br><br>1.  **LGR5+ Intestinal Stem Cells (Active/Cycling):** This is the **most likely** subtype. The high expression of LGR5, ASCL2, and ribosomal proteins (indicating high metabolic and proliferative activity) strongly points to actively cycling LGR5+ ISCs. These are the primary stem cells responsible for continuous epithelial turnover.<br>2.  **LGR5+ Intestinal Stem Cells (Quiescent/Reserve):** While LGR5 is primarily associated with active ISCs, a subset of LGR5+ cells can exist in a more quiescent or reserve state, particularly under homeostatic conditions or in response to injury. However, the high expression of ribosomal proteins and proliferation-associated genes in the provided list suggests a more active state rather than a deeply quiescent one.<br>3.  **Early Progenitor Cells (Transit-Amplifying Cells):** While LGR5 is the hallmark of stem cells, some early progenitor cells (transit-amplifying cells, TACs) that have recently divided from ISCs might still express low levels of LGR5 or other stemness markers as they begin to differentiate. However, the very high ranking of LGR5 and ASCL2 makes a pure stem cell population more likely than a progenitor population.<br><br>**Most Likely Subtype:** Based on the provided markers, the most likely subtype is **LGR5+ Intestinal Stem Cells (Active/Cycling)**. The high expression of LGR5 and ASCL2, coupled with numerous ribosomal proteins and pseudogenes (often indicative of high transcriptional and translational activity characteristic of rapidly dividing cells), strongly supports this annotation.<br><br>**6. Provide a Concise Summary of Your Analysis:**<br><br>The single-cell cluster from the human large intestine is confidently identified as **LGR5+ Intestinal Stem Cells (ISCs)**. This annotation is primarily driven by the high expression of canonical stem cell markers **LGR5** and **ASCL2**, which are essential for maintaining the intestinal crypt and driving epithelial renewal. The presence of **TDGF1** and **IGFBPL1** further supports a stem-like, proliferative, and developmentally plastic cell state. The abundance of ribosomal protein genes and pseudogenes in the top markers is consistent with the high metabolic and proliferative activity characteristic of actively cycling stem cells.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                    <div class="agent-section formatting">
+                        <h2>📋 Summary</h2>
+                        <p class="error-message">Error formatting data: Expecting value: line 1 column 1 (char 0)</p>
+                    </div>
+                
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">98</div>
+                        <div class="scoring-content">
+                            The annotation provided is exceptionally strong and accurate. The most critical marker, LGR5, is correctly identified as the canonical marker for intestinal stem cells (ISCs), and its high ranking in the provided list is appropriately emphasized. The analysis correctly identifies ASCL2 as another key ISC marker, reinforcing the initial identification.<br><br>**Strengths:**<br><br>1.  **Correct Identification of Key Markers:** The agent correctly identifies LGR5 and ASCL2 as the primary and most definitive markers for intestinal stem cells. This is crucial for accurate annotation in the context of the large intestine.<br>2.  **Emphasis on Marker Ranking:** The analysis implicitly understands that markers appearing earlier in the list are more important, as LGR5 is the first gene discussed in the "Key Cell Type Markers" section, and its significance is highlighted throughout.<br>3.  **Comprehensive Marker Analysis:** Beyond the primary markers, the agent considers TDGF1 and IGFBPL1, correctly associating them with stemness and proliferation, which further supports the ISC annotation.<br>4.  **Contextual Understanding:** The agent demonstrates a strong understanding of the biological context (human large intestine) and the function of the identified markers within this context (e.g., LGR5's role in continuous epithelial renewal).<br>5.  **Handling of Non-Specific Markers:** The agent appropriately dismisses the numerous ribosomal proteins and pseudogenes as less specific for cell type identification but correctly interprets their high expression as indicative of high metabolic and proliferative activity, which is consistent with active stem cells. This shows a nuanced understanding of gene expression patterns.<br>6.  **Database Cross-referencing:** The mention of cross-referencing with known databases adds credibility and confirms the widely accepted nature of the identified markers.<br>7.  **Logical Step-by-Step Approach:** The structured analysis, moving from functional markers to cell type markers, cross-referencing, and then refining to sub-cell types, is highly effective and easy to follow.<br>8.  **Identification of Sub-Cell Types:** The differentiation between active/cycling and quiescent/reserve LGR5+ ISCs, and the consideration of early progenitor cells, shows a deep understanding of the heterogeneity within the stem cell compartment. The justification for favoring active/cycling ISCs based on ribosomal protein expression is particularly insightful.<br><br>**Weaknesses (Minor):**<br><br>1.  **Redundancy in Marker Listing:** ASCL2, TDGF1, and IGFBPL1 are listed in both "Key Functional Markers" and "Key Cell Type Markers." While their dual role is explained, a slightly more streamlined presentation might be possible. However, this is a very minor point and arguably contributes to thoroughness.<br>2.  **"Pseudogenes" as "Functional Markers":** Listing pseudogenes like HMGN2P6, CHCHD2P9, PPIAP40 etc., in the initial raw marker list and then not explicitly discussing them in the "Key Functional Markers" section (aside from a general mention in the summary) could be seen as a slight oversight. However, the agent correctly identifies them as pseudogenes later and correctly dismisses their specific cell-type informative value, which is appropriate. The prompt asked to list all markers, and the agent then correctly filtered for informative ones in the analysis.<br><br>Overall, the annotation is highly accurate, well-justified, and demonstrates a comprehensive understanding of single-cell data analysis in the context of intestinal biology. The agent successfully captures the overall picture of the data, identifying the core cell type and plausible subtypes with strong evidence.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

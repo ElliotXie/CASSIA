@@ -1,0 +1,238 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    As a professional computational biologist, I will meticulously analyze the provided ranked list of marker genes to identify the cell type from a human large intestine tissue dataset. My analysis will be comprehensive, specific, and follow a step-by-step reasoning process.<br><br>**Input Marker List (ranked by expression intensity, high to low):**<br>KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1, GZMH, CD160, CD8B, NKG7, GZMA, GZMB, GZMK, CD8A, TRGC2, SLA2, TIGIT, TNFRSF9, GPR18, CCL4, PRF1, ATP8B4, APBA2, CCL4L2, DUSP4, CTSW, TMIGD2, TRGC1, CCL5, ABI3, IL21R, IFNG, CD7, CLIC3, ENTPD1, LDLRAD4, PTPN22, HOPX, GZMM, CST7, PARD6G, ZEB2, SH2D1A, LAYN, LAG3, PRKCH, AOAH, IKZF2<br><br>---<br><br>**1. List the Key Functional Markers:**<br><br>This list is rich in genes associated with cytotoxic function, immune activation, and cytokine signaling.<br><br>*   **Cytotoxicity/Granzyme Pathway:**<br>    *   **GZMH, GZMA, GZMB, GZMK, GZMM:** These are Granzymes, serine proteases crucial for inducing apoptosis in target cells. Their high expression is a hallmark of cytotoxic lymphocytes (e.g., NK cells, cytotoxic T cells).<br>    *   **PRF1 (Perforin 1):** Forms pores in target cell membranes, allowing granzymes to enter. Essential for cytotoxic function.<br>    *   **NKG7:** A transmembrane protein found in the granules of cytotoxic lymphocytes, involved in granule exocytosis.<br>    *   **CTSW (Cathepsin W):** A cysteine protease expressed in cytotoxic lymphocytes, potentially involved in granule processing or target cell killing.<br>    *   **CST7 (Cystatin F):** A cysteine protease inhibitor, its role in cytotoxic cells can be complex, sometimes involved in regulating protease activity.<br><br>*   **Chemokines/Cytokines and Receptors:**<br>    *   **XCL2, XCL1:** Lymphotactin (XCL1/2) are C-motif chemokines, primarily expressed by activated NK cells and cytotoxic T cells, involved in recruiting other immune cells.<br>    *   **CCL4, CCL4L2, CCL5:** Chemokine (C-C motif) Ligands 4 and 5. Potent chemoattractants for various immune cells, including NK cells, T cells, and monocytes. Indicate an active immune response.<br>    *   **IFNG (Interferon Gamma):** A critical cytokine produced by NK cells and T cells, central to antiviral and antitumor immunity, and macrophage activation.<br>    *   **IL21R (Interleukin 21 Receptor):** IL-21 is a pleiotropic cytokine that plays a key role in the differentiation and function of various immune cells, including NK cells and T cells. Its receptor indicates responsiveness to IL-21.<br>    *   **TNFRSF9 (CD137/4-1BB):** A co-stimulatory receptor expressed on activated T cells and NK cells, important for their survival, proliferation, and effector function.<br><br>*   **Immune Checkpoints/Regulatory Molecules:**<br>    *   **TIGIT (T cell immunoreceptor with Ig and ITIM domains):** An inhibitory receptor expressed on NK cells and T cells, involved in immune suppression. Its presence suggests a regulatory aspect or a state of exhaustion/activation.<br>    *   **LAG3 (Lymphocyte-activation gene 3):** Another inhibitory receptor expressed on activated T cells and NK cells, contributing to immune exhaustion.<br><br>---<br><br>**2. List the Key Cell Type Markers:**<br><br>This list strongly points towards lymphocytes, specifically Natural Killer (NK) cells and cytotoxic T lymphocytes (CTLs), with a prominent NK cell signature.<br><br>*   **Natural Killer (NK) Cell Markers:**<br>    *   **KLRC2 (NKG2C), KLRK1 (NKG2D), KLRC4 (NKG2E), KLRD1 (CD94):** These are members of the Killer Cell Lectin-like Receptor (KLR) family, characteristic of NK cells. NKG2C/D/E and CD94 form heterodimers with NKG2A/B/C/E, playing roles in NK cell activation and inhibition. Their high expression is a strong indicator of NK cells.<br>    *   **CRTAM (Class I-restricted T cell-associated molecule):** Expressed on NK cells and some T cells, involved in cell-cell adhesion and activation.<br>    *   **CD160:** A receptor expressed on NK cells and some T cells, involved in NK cell activation and cytotoxicity.<br>    *   **GPR18:** A G protein-coupled receptor, also known as the "cannabinoid receptor 2-like" receptor, expressed on various immune cells including NK cells.<br>    *   **TRGC2, TRGC1:** T cell receptor gamma chain constant regions. While primarily associated with gamma-delta T cells, some NK cells can express TCR components, or there might be a small population of gamma-delta T cells. However, the overwhelming KLR expression points away from a dominant gamma-delta T cell population.<br>    *   **ZNF683 (Hobit/Zeb2):** While ZEB2 is a transcription factor with broad roles, ZNF683 (Hobit) is a key transcription factor for tissue-resident NK cells. Its presence (though listed as ZEB2, which is a broader gene, ZEB2 is known to be important for NK cell development and function, and is often co-expressed with Hobit in tissue-resident NK cells) is notable.<br>    *   **SH2D1A (SAP):** Signaling lymphocytic activation molecule (SLAM)-associated protein. Mutations cause X-linked lymphoproliferative syndrome. Expressed in NK cells and T cells, involved in signaling through SLAM family receptors.<br><br>*   **Cytotoxic T Lymphocyte (CTL) Markers (shared with NK cells or indicative of CTLs):**<br>    *   **CD8B, CD8A:** Components of the CD8 co-receptor, characteristic of cytotoxic T lymphocytes (CD8+ T cells). While NK cells are typically CD8-, a subset of NK cells can express CD8 (especially CD8alpha homodimer). However, the presence of both CD8A and CD8B strongly suggests CD8+ T cells.<br>    *   **CD7:** A pan-T cell marker, also expressed on NK cells and some myeloid cells.<br>    *   **TMIGD2 (CD28H):** A co-stimulatory molecule expressed on T cells and NK cells.<br><br>*   **General Lymphocyte/Immune Cell Markers:**<br>    *   **ABI3:** An adaptor protein involved in actin cytoskeleton regulation, expressed in various immune cells.<br>    *   **PTPN22:** A protein tyrosine phosphatase, associated with immune regulation and autoimmunity, expressed in lymphocytes.<br>    *   **ENTPD1 (CD39):** An ectonucleotidase, expressed on regulatory T cells, activated T cells, and NK cells, involved in ATP hydrolysis and adenosine production, contributing to immune suppression.<br>    *   **LAYN:** A protein involved in cell adhesion and migration, expressed in various immune cells.<br><br>---<br><br>**3. Cross-reference Known Databases:**<br><br>A quick cross-reference with scRNA-seq atlases (e.g., Human Cell Atlas, PanglaoDB, CellMarker, Azimuth/Seurat reference datasets) for large intestine tissue and general immune cell types confirms the strong association of these markers with NK cells and cytotoxic T cells.<br><br>*   **NK Cell Signature:** The combination of multiple KLR genes (KLRC2, KLRK1, KLRC4, KLRD1), XCL1/2, NKG7, GZMs, PRF1, and CD160 is a definitive NK cell signature.<br>*   **Cytotoxic T Cell Signature:** The presence of CD8A/B, GZMs, PRF1, NKG7, IFNG, CCL4/5, TIGIT, LAG3, and TNFRSF9 is highly characteristic of activated cytotoxic T cells.<br>*   **Overlap:** Many of these cytotoxic effector molecules (Granzymes, Perforin, NKG7, IFNG, CCLs) are shared between NK cells and cytotoxic T cells, reflecting their common effector functions. The key discriminators are the KLRs for NK cells and CD8A/B for cytotoxic T cells.<br><br>Given the high ranking of multiple KLR genes (KLRC2, KLRK1, KLRC4, KLRD1) at the very top of the list, this suggests a very strong NK cell component. The presence of CD8A/B further down indicates a significant contribution from CD8+ T cells, or a subset of NK cells expressing CD8.<br><br>---<br><br>**4. Determine the Most Probable General Cell Type:**<br><br>Based on the overwhelming presence of genes associated with cytotoxicity, immune activation, and specific lineage markers, the most probable general cell type is **Lymphocytes**, specifically **Cytotoxic Lymphocytes**.<br><br>---<br><br>**5. Identify the Top 3 Most Probable Sub Cell Types:**<br><br>Given the strong and diverse marker expression, we need to consider the nuances.<br><br>1.  **Natural Killer (NK) Cells:**<br>    *   **Reasoning:** The presence of multiple highly ranked NK-specific markers (KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160) at the very top of the list is extremely compelling. These are definitive markers for NK cells. The high expression of cytotoxic machinery (GZMs, PRF1, NKG7) and chemokines (XCL1/2, CCL4/5) further supports an active NK cell population. The presence of ZEB2 (important for NK cell development/function, and often co-expressed with Hobit in tissue-resident NK cells) and SH2D1A also aligns with NK cell biology.<br><br>2.  **CD8+ Cytotoxic T Lymphocytes (CTLs):**<br>    *   **Reasoning:** The clear presence of CD8B and CD8A, along with a robust cytotoxic gene signature (GZMH, GZMA, GZMB, GZMK, PRF1, NKG7, IFNG), co-stimulatory/inhibitory receptors (TIGIT, TNFRSF9, LAG3), and chemokines (CCL4, CCL5), strongly indicates the presence of CD8+ CTLs. These cells are also highly abundant in the large intestine, particularly in the intraepithelial lymphocyte (IEL) compartment.<br><br>3.  **Gamma-Delta (γδ) T Cells:**<br>    *   **Reasoning:** The presence of TRGC2 and TRGC1 (TCR gamma chain constant regions) suggests the possibility of gamma-delta T cells. These cells are enriched in mucosal tissues like the large intestine and can exhibit cytotoxic functions, expressing granzymes and perforin. They also share some markers with NK cells and alpha-beta T cells. However, the very strong KLR signature (NK cell specific) and CD8A/B (alpha-beta T cell specific) are more dominant in this list, making gamma-delta T cells less likely to be the *primary* cell type compared to NK cells and CD8+ T cells, but certainly a plausible component of the cytotoxic lymphocyte population.<br><br>**Most Likely Subtype:**<br><br>Based on the ranking and specificity of the markers, the **most likely subtype is Natural Killer (NK) Cells**. The top-ranked genes are overwhelmingly NK-specific (KLRC2, XCL2, KLRK1, KLRC4, KLRD1, XCL1, CRTAM). While CD8A/B are present, they appear further down the list, suggesting that while CD8+ T cells are likely present and contribute to the overall cytotoxic signature, the dominant signal at the highest expression levels points to NK cells. It is also possible that this cluster represents a mixed population of highly similar cytotoxic lymphocytes, or a specific subset of NK cells (e.g., tissue-resident NK cells) that might express some shared markers with T cells. However, the *strongest* and *most specific* signal at the top of the list is for NK cells.<br><br>---<br><br>**6. Concise Summary of Your Analysis:**<br><br>The single-cell cluster from the human large intestine tissue is identified as **Natural Killer (NK) Cells**, with a significant contribution from **CD8+ Cytotoxic T Lymphocytes (CTLs)**. The annotation is primarily driven by the high expression of multiple Killer Cell Lectin-like Receptors (KLRC2, KLRK1, KLRC4, KLRD1), lymphotactins (XCL2, XCL1), and other NK cell-associated markers (CRTAM, CD160) at the top of the ranked list. Concurrently, a robust cytotoxic effector gene signature, including various Granzymes (GZMH, GZMA, GZMB, GZMK, GZMM), Perforin (PRF1), and NKG7, is highly expressed, characteristic of both NK cells and CTLs. The presence of CD8A and CD8B further down the list confirms the contribution of CD8+ T cells to this cytotoxic lymphocyte population. The expression of immune checkpoint molecules (TIGIT, LAG3) and inflammatory cytokines/chemokines (IFNG, CCL4, CCL5) indicates an activated and potentially regulatory state. While gamma-delta T cells are a possibility due to TRGC expression, the overwhelming NK and CD8 T cell specific markers make them less likely to be the primary cell type.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                    <div class="agent-section formatting">
+                        <h2>📋 Summary</h2>
+                        <p class="error-message">Error formatting data: Expecting value: line 1 column 1 (char 0)</p>
+                    </div>
+                
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">95</div>
+                        <div class="scoring-content">
+                            The annotation provided is of high quality, demonstrating a deep understanding of single-cell biology and marker gene interpretation.<br><br>**Strengths:**<br><br>1.  **Comprehensive Marker Analysis:** The agent meticulously lists and categorizes key functional and cell-type specific markers. This detailed breakdown (cytotoxicity, chemokines, immune checkpoints, NK markers, CTL markers, general lymphocyte markers) is excellent and shows a thorough understanding of the gene functions.<br>2.  **Accurate Interpretation of Marker Specificity:** The agent correctly identifies and emphasizes the strong NK cell signature from the KLR family genes (KLRC2, KLRK1, KLRC4, KLRD1) at the top of the list. Similarly, it accurately points out CD8A/B for CTLs and the shared cytotoxic machinery (Granzymes, Perforin) between NK and CTLs.<br>3.  **Consideration of Marker Ranking:** The agent explicitly states that the high ranking of KLR genes at the very top suggests a strong NK cell component, and that CD8A/B appearing further down indicates a significant but perhaps not dominant contribution from CD8+ T cells. This attention to marker ranking is crucial for accurate interpretation in single-cell analysis.<br>4.  **Logical Step-by-Step Reasoning:** The structured approach (listing key functional markers, key cell type markers, cross-referencing, determining general cell type, then specific subtypes) is highly effective and transparent.<br>5.  **Identification of Potential Mixed Populations:** The agent correctly identifies the possibility of a mixed population of highly similar cytotoxic lymphocytes or a specific subset of NK cells, which is a common and important consideration in scRNA-seq data. This shows an awareness of the complexity of biological samples.<br>6.  **Plausible Inclusion of Gamma-Delta T Cells:** While the agent correctly deduces that NK and CD8+ T cells are more dominant, the consideration of gamma-delta T cells due to TRGC expression is a valid and nuanced point, especially given their enrichment in mucosal tissues like the large intestine.<br>7.  **Biological Context (Human Large Intestine):** The agent implicitly considers the tissue context by mentioning intraepithelial lymphocytes (IELs) which are abundant in the large intestine and often include CD8+ T cells and NK cells.<br><br>**Weaknesses/Minor Improvements:**<br><br>1.  **LINC02446:** While the agent correctly identifies many markers, LINC02446, which is high on the list, is not discussed. While it might be a less characterized lncRNA, its high ranking suggests it could be cell-type relevant, or a general highly expressed gene. A brief mention, even if to state it's less characterized for cell type annotation, would be a minor improvement.<br>2.  **ZNF683 (Hobit/Zeb2) Clarification:** The agent mentions "ZNF683 (Hobit/Zeb2)" but only ZEB2 is in the input list. While ZEB2 is important for NK cell development and often co-expressed with Hobit, the direct mention of ZNF683/Hobit when only ZEB2 is present could be slightly confusing if not explicitly clarified that ZEB2 is the gene present and is *associated* with Hobit. The agent does clarify that ZEB2 itself is important for NK function.<br>3.  **ATP8B4 and APBA2:** These genes are not discussed in the analysis. While they might be less specific markers, their presence relatively high in the list could warrant a brief mention or justification for their exclusion from the discussion of key markers.<br><br>**Overall Assessment:**<br><br>The annotation is highly accurate and comprehensive. The agent demonstrates excellent critical thinking by weighing the evidence from different markers, considering their relative expression levels (ranking), and acknowledging the possibility of mixed populations. The reasoning is sound, and the final conclusion is well-supported by the provided marker list. The identified cell types (NK Cells and CD8+ CTLs) are highly plausible for a cytotoxic lymphocyte cluster in the human large intestine. The minor omissions do not detract significantly from the overall quality of the analysis.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

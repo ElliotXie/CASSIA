@@ -46,7 +46,31 @@ def run_cell_type_analysis_unified(model, temperature, marker_list, tissue, spec
         return conversation
 
     def coupling_validation(annotation_result, onboarding_data, system_prompt, model, temperature, provider):
-        validation_message = f"""Please validate the following annotation result:\n\nAnnotation Result:\n{annotation_result}\n\nContext:\n\nMarker List: {', '.join(onboarding_data['marker_list'])}\nAdditional Info: {onboarding_data.get('additional_info', 'None')}\n\nValidate the annotation based on this context.\n"""
+        # Handle different marker_list formats
+        marker_list = onboarding_data.get('marker_list', [])
+        
+        # If marker_list is a list with one element that contains commas, it's likely a single string with all genes
+        if (isinstance(marker_list, list) and 
+            len(marker_list) == 1 and 
+            isinstance(marker_list[0], str) and 
+            ',' in marker_list[0]):
+            
+            # Split the single string into individual genes
+            import re
+            markers = re.split(r',\s*', marker_list[0])
+            markers = [m.strip() for m in markers if m.strip()]
+            marker_list_str = ', '.join(markers)
+        elif isinstance(marker_list, list):
+            # Normal case: list of individual genes
+            marker_list_str = ', '.join(marker_list)
+        elif isinstance(marker_list, str):
+            # Single string case: use as-is
+            marker_list_str = marker_list
+        else:
+            # Fallback
+            marker_list_str = str(marker_list)
+        
+        validation_message = f"""Please validate the following annotation result:\n\nAnnotation Result:\n{annotation_result}\n\nContext:\n\nMarker List: {marker_list_str}\nAdditional Info: {onboarding_data.get('additional_info', 'None')}\n\nValidate the annotation based on this context.\n"""
         response = call_llm(
             prompt=validation_message,
             provider=provider,

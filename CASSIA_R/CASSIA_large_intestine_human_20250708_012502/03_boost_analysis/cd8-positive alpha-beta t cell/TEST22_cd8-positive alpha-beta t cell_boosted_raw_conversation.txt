@@ -1,0 +1,351 @@
+## USER
+
+
+You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
+
+Context Provided to You:
+
+Cluster summary：human large intestine
+
+Top ranked markers (high → low)：
+ KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1, GZMH, CD160, CD8B, NKG7, GZMA, GZMB, GZMK, CD8A, TRGC2, SLA2, TIGIT, TNFRSF9, GPR18, CCL4, PRF1, ATP8B4, APBA2, CCL4L2, DUSP4, CTSW, TMIGD2, TRGC1, CCL5, ABI3, IL21R, IFNG, CD7, CLIC3, ENTPD1, LDLRAD4, PTPN22, HOPX, GZMM, CST7, PARD6G, ZEB2, SH2D1A, LAYN, LAG3, PRKCH, AOAH, IKZF2
+
+Prior annotation results：
+ Here is a concise summary of the prior cell type annotation analysis:
+
+**Previously Identified Cell Type**: Natural Killer (NK) Cells
+
+**Key Supporting Markers**:
+*   **NK-specific**: KLRC2, KLRK1, KLRC4, KLRD1 (Killer Cell Lectin-like Receptors), XCL2, XCL1 (Lymphotactins), CRTAM, CD160. These were highly ranked, indicating a dominant NK cell signature.
+*   **Cytotoxic Effector**: GZMH, GZMA, GZMB, GZMK, GZMM (Granzymes), PRF1 (Perforin), NKG7. These are characteristic of both NK cells and CTLs.
+*   **CD8+ T cell**: CD8A, CD8B (present further down the ranked list).
+
+**Alternative Hypotheses**:
+*   **CD8+ Cytotoxic T Lymphocytes (CTLs)**: Strongly considered due to CD8A/B and shared cytotoxic markers.
+*   **Gamma-Delta (γδ) T Cells**: Considered due to TRGC1/2 expression, but deemed less likely to be the primary cell type compared to NK and CD8+ T cells given the stronger KLR and CD8 signatures.
+*   **Mixed Population**: A mixed population of highly similar cytotoxic lymphocytes or a specific subset of NK cells (e.g., tissue-resident NK cells) expressing shared T cell markers.
+
+**Remaining Uncertainties**:
+*   The exact proportion and interplay between NK cells and CD8+ CTLs within this cluster.
+*   Whether the cluster represents a truly homogeneous NK cell population or a specific NK cell subset that might exhibit some T cell-like characteristics or co-expression of certain markers.
+*   The precise contribution of gamma-delta T cells, despite their lower likelihood as the primary cell type.
+
+What you should do:
+
+1. Brief Evaluation – One concise paragraph that:
+
+    - Highlights strengths, ambiguities, or contradictions in the current call.
+
+    - Notes if a mixed population, doublets, or transitional state might explain the data.
+
+2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
+
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers if that will clarify the call.
+
+    - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
+
+3. Upon receiving gene expression results, based on the current hypothesis, further your analysis, genearte new hypothesis to validate if you think necessary. Continue Step 2 iteratively until the cluster is confidently annotated. Once finalized, output the single line:
+"FINAL ANNOTATION COMPLETED"
+Then provide a conclusion paragraph that includes:
+
+1.The final cell type
+2.Confidence level (high, medium, or low)
+3.Key markers supporting your conclusion
+4.Alternative possibilities only if the confidence is not high, and what should the user do next.
+
+
+
+Output Template：
+
+Evaluation
+[One short paragraph]
+
+celltype to check 1
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these genes and what we expect to see.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>GENE4,GENE5</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>GENE6,GENE7</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+*Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
+*Provide no more than three total blocks (celltype + hypothesis combined).
+*For each hypothesis check no more than 7 genes.
+*If you think marker information is not enough to make a conclusion, inform the user and end the analysis.
+
+
+Tone & Style Guidelines
+
+Skeptical, critical, and careful
+Professional, succinct, and evidence‑based.
+Progressively deepen the anlaysis, don't repeat the same hypothesis.
+
+
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The current annotation for this cluster as Natural Killer (NK) cells is supported by a strong presence of NK-specific markers (KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160) and general cytotoxic markers (Granzymes, PRF1, NKG7). However, the co-expression of CD8A/B and TRGC1/2, along with shared cytotoxic markers, introduces ambiguity regarding the precise contribution of CD8+ Cytotoxic T Lymphocytes (CTLs) and Gamma-Delta (γδ) T cells. This suggests the possibility of a mixed population, a specific NK cell subset with T-cell like features, or even a transitional state. The current data does not definitively rule out a dominant CD8+ CTL or γδ T cell population, or a significant proportion of either within the cluster.
+
+celltype to check 1
+
+<check_genes>CD3E,TRAC,TRBC1,TRBC2,KLRF1,NCR1,NCR3</check_genes>
+
+<reasoning>
+To better distinguish between NK cells and T cells, we need to assess pan-T cell markers and additional definitive NK cell markers. CD3E, TRAC, TRBC1, and TRBC2 are pan-T cell markers. High expression of these would strongly support a T cell population, while low or absent expression would favor NK cells. KLRF1, NCR1 (NKp46), and NCR3 (NKp30) are highly specific and commonly used markers for NK cells. Strong expression of these, especially in the absence of pan-T cell markers, would reinforce the NK cell annotation.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>CD4,FOXP3,IL2RA,CCR7,SELL,CD69,CD103</check_genes>
+
+<reasoning>
+Given the presence of CD8A/B, it's crucial to investigate the potential for CD4+ T cells and specific T cell subsets that might co-exist or be confused with cytotoxic populations. CD4, FOXP3, and IL2RA are key markers for T helper cells and regulatory T cells. Low or absent expression of these would help rule out significant contamination from these populations. CCR7 and SELL are central memory T cell markers, while CD69 and CD103 are markers for tissue-resident memory T cells. Examining these will help characterize any T cell component and distinguish between circulating and tissue-resident populations, which can have overlapping cytotoxic features with NK cells.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>TRDV1,TRGV9,CD1D,BTNL3,BTNL8</check_genes>
+
+<reasoning>
+To further clarify the contribution of gamma-delta T cells, we need to assess more specific markers beyond TRGC1/2. TRDV1 and TRGV9 are commonly expressed variable regions in human gamma-delta T cells, particularly the Vγ9Vδ2 subset which is abundant in peripheral blood. CD1D is an MHC-like molecule often recognized by NKT cells and some gamma-delta T cells. BTNL3 and BTNL8 are butyrophilin-like molecules expressed by epithelial cells and can interact with Vγ9Vδ2 T cells. High expression of these markers would strengthen the case for a significant gamma-delta T cell component, while low expression would further diminish their likelihood as the primary cell type.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+BTNL3       0.35  0.20  0.08  2.61e-03
+ CD3E      -5.41  0.02  0.34  3.95e-49
+ CD69      -4.57  0.02  0.28  5.25e-34
+ TRAC      -5.16  0.01  0.20  3.93e-24
+TRBC1      -5.37  0.02  0.24  1.34e-28
+TRBC2      -4.74  0.02  0.28  9.78e-35
+Note: The following genes are not in the differential expression list: BTNL8, CCR7, CD103, CD1D, CD4, FOXP3, IL2RA, KLRF1, NCR1, NCR3, SELL, TRDV1, TRGV9
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The current results strongly refute a significant pan-T cell population within the cluster, as evidenced by the very low expression and high negative log2FC for CD3E, TRAC, TRBC1, and TRBC2. This significantly reduces the likelihood of the cluster being primarily CD8+ CTLs or any other conventional T cell type. The absence of CD69, a common activation marker, also suggests a non-activated state or a specific subset. The low but present expression of BTNL3 is intriguing but not definitive for gamma-delta T cells without other supporting markers. The lack of data for many key markers (KLRF1, NCR1, NCR3 for NK; TRDV1, TRGV9 for gamma-delta; CD4, FOXP3, IL2RA for other T cell subsets) prevents a definitive conclusion and necessitates further investigation.
+
+celltype to check 1
+
+<check_genes>KLRF1,NCR1,NCR3,FCGR3A,NCAM1</check_genes>
+
+<reasoning>
+Given the strong negative results for pan-T cell markers, the focus should now shift to definitively confirming the NK cell identity. KLRF1, NCR1 (NKp46), and NCR3 (NKp30) are highly specific and widely accepted markers for NK cells. Their high expression would strongly support the NK cell annotation. FCGR3A (CD16) and NCAM1 (CD56) are also classic NK cell markers, with CD16 being particularly important for distinguishing NK cell subsets (e.g., CD56dimCD16+ cytotoxic NK cells). High expression of these markers would provide robust evidence for a dominant NK cell population.
+</reasoning>
+
+hypothesis to check 2
+
+<check_genes>CD3D,CD3G,CD247,ZAP70,LCK,ITK,CD2</check_genes>
+
+<reasoning>
+While pan-T cell markers were largely negative, it's prudent to ensure there isn't a very subtle or unusual T cell presence that might have been missed or is represented by a very small subset. CD3D, CD3G, and CD247 are additional components of the TCR complex. ZAP70, LCK, and ITK are key signaling molecules downstream of the TCR. CD2 is a pan-lymphocyte marker often expressed on T cells and NK cells. If these genes also show very low or absent expression, it would further solidify the conclusion that this cluster is not a conventional T cell population. Conversely, any significant expression would warrant re-evaluation of a minor T cell component.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>TRDV1,TRGV9,CD1D,KLRG1,CD94,NKG2A,NKG2C</check_genes>
+
+<reasoning>
+Although BTNL3 showed some expression, the absence of TRDV1 and TRGV9 data still leaves the gamma-delta T cell hypothesis somewhat open. We need to specifically check TRDV1 and TRGV9 to confirm or refute a significant gamma-delta T cell presence. Additionally, KLRG1, CD94, NKG2A, and NKG2C are markers expressed by both NK cells and some T cell subsets, including gamma-delta T cells. Their expression pattern, in conjunction with the NK-specific markers, can help differentiate between mature NK cells and certain T cell subsets, particularly if there's an overlap in cytotoxic function. CD1D is also included again to ensure its expression is definitively assessed.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+  CD2      -5.26  0.02  0.30  1.54e-40
+CD247      -4.22  0.01  0.14  1.14e-14
+ CD3D      -4.96  0.03  0.34  6.23e-48
+ CD3G      -7.63  0.00  0.20  5.07e-25
+  ITK      -5.14  0.00  0.12  3.49e-12
+  LCK      -5.60  0.00  0.13  1.75e-13
+NCAM1       7.13  0.81  0.02  0.00e+00
+ZAP70       2.14  0.13  0.03  1.22e-83
+Note: The following genes are not in the differential expression list: CD1D, CD94, FCGR3A, KLRF1, KLRG1, NCR1, NCR3, NKG2A, NKG2C, TRDV1, TRGV9
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The new data strongly reinforces the conclusion that this cluster is not a conventional T cell population, with very low or absent expression of all tested pan-T cell and TCR signaling components (CD2, CD247, CD3D, CD3G, ITK, LCK). The high expression of NCAM1 (CD56) is a significant positive indicator for NK cells. The presence of ZAP70, while typically associated with T cells, can also be expressed in some NK cell subsets, particularly in the context of activation or specific developmental stages, and its expression here is much lower than what would be expected for a dominant T cell population. The continued absence of data for key NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A) and gamma-delta T cell markers (TRDV1, TRGV9, CD1D) remains a critical gap.
+
+celltype to check 1
+
+<check_genes>KLRF1,NCR1,NCR3,FCGR3A,CD7,CD56</check_genes>
+
+<reasoning>
+With the strong negative evidence against T cells, the priority is to definitively confirm the NK cell identity. KLRF1, NCR1 (NKp46), and NCR3 (NKp30) are highly specific and robust NK cell markers. FCGR3A (CD16) is crucial for distinguishing NK cell subsets and is a hallmark of cytotoxic NK cells. CD7 is a pan-lymphoid marker often expressed on NK cells and T cells, and its presence would be consistent with NK cells. CD56 (NCAM1) was already shown to be highly expressed, and its inclusion here is to re-emphasize its importance as a core NK marker. High expression of these markers would provide conclusive evidence for a dominant NK cell population.
+</reasoning>
+
+hypothesis to check 2
+
+<check_genes>TRDV1,TRGV9,CD1D,CD161,KLRB1</check_genes>
+
+<reasoning>
+Despite the strong evidence against conventional T cells, the gamma-delta T cell hypothesis has not been fully resolved due to missing data. TRDV1 and TRGV9 are essential for confirming the presence of specific gamma-delta T cell subsets. CD1D is relevant for NKT cells and some gamma-delta T cells. CD161 (KLRB1) is expressed on a subset of T cells, including gamma-delta T cells, and NK cells. Its expression pattern in conjunction with other markers can help differentiate between these populations. If these markers remain low or absent, it would effectively rule out a significant gamma-delta T cell component.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>CD34,KIT,CD117,CD133,PROM1,CD45RA,CD45RO</check_genes>
+
+<reasoning>
+Given the large intestine context, it's prudent to consider the possibility of less differentiated or progenitor-like cells, or even a specific tissue-resident population with unusual marker expression. CD34, KIT (CD117), and PROM1 (CD133) are markers associated with hematopoietic stem and progenitor cells. While unlikely to be the primary identity of this cluster given the cytotoxic markers, their absence would confirm a more differentiated state. CD45RA and CD45RO are isoforms of CD45 that distinguish naive/effector from memory/activated lymphocytes. Their expression pattern could provide insights into the maturation and activation status of the NK cells, or reveal a mixed population with different differentiation states.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+  CD7      -5.70  0.01  0.30  4.78e-42
+KLRB1      -5.83  0.02  0.30  2.81e-39
+PROM1      -3.15  0.01  0.11  2.43e-09
+Note: The following genes are not in the differential expression list: CD117, CD133, CD161, CD1D, CD34, CD45RA, CD45RO, CD56, FCGR3A, KIT, KLRF1, NCR1, NCR3, TRDV1, TRGV9
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The continued absence of key NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A) from the differential expression list is concerning and prevents a definitive confirmation of the NK cell identity, despite the strong negative evidence against T cells. The very low expression of CD7 and KLRB1 further complicates the picture, as CD7 is often expressed on NK cells and KLRB1 (CD161) on a subset of NK cells and T cells. The low expression of PROM1 suggests the cluster is unlikely to be dominated by progenitor cells. The lack of data for CD56 (NCAM1) in this latest output is also problematic, as its previous high expression was a strong indicator. Without comprehensive data on the most definitive NK markers, the annotation remains somewhat speculative.
+
+celltype to check 1
+
+<check_genes>KLRF1,NCR1,NCR3,FCGR3A,CD56</check_genes>
+
+<reasoning>
+It is absolutely critical to obtain expression data for these core NK cell markers. KLRF1, NCR1 (NKp46), and NCR3 (NKp30) are considered the most specific and reliable positive markers for human NK cells. FCGR3A (CD16) is essential for distinguishing the major cytotoxic NK cell subset (CD56dimCD16+). CD56 (NCAM1) was previously shown to be highly expressed, and its re-confirmation is important. High expression of these genes would provide the strongest possible evidence for a dominant NK cell population, especially given the strong negative results for T cell markers.
+</reasoning>
+
+hypothesis to check 2
+
+<check_genes>TRDV1,TRGV9,CD1D,CD161,CD3D</check_genes>
+
+<reasoning>
+The gamma-delta T cell hypothesis has not been fully resolved due to persistent missing data for TRDV1 and TRGV9. These are crucial for identifying specific gamma-delta T cell subsets. CD1D is relevant for NKT cells and some gamma-delta T cells. CD161 (KLRB1) was previously shown to be low, but its re-evaluation in conjunction with TRDV1/TRGV9 is important. While CD3D was previously low, its inclusion here is to ensure that if any gamma-delta T cells are present, they are indeed CD3 positive. Definitive low or absent expression of TRDV1 and TRGV9 would effectively rule out a significant gamma-delta T cell component.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>CD45RA,CD45RO,CD27,CD28,CD57,KIR2DL1,KIR3DL1</check_genes>
+
+<reasoning>
+To further characterize the NK cell population, assuming it is indeed NK cells, we need to assess their maturation and functional state. CD45RA and CD45RO can help distinguish between naive/effector and memory/activated states. CD27 and CD28 are co-stimulatory molecules that can be expressed on NK cells and indicate different maturation stages. CD57 is a marker of highly differentiated, terminally mature NK cells. Killer Immunoglobulin-like Receptors (KIRs) such as KIR2DL1 and KIR3DL1 are expressed by subsets of NK cells and are crucial for their inhibitory and activating functions, providing further evidence for NK cell identity and functional diversity.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+gene avg_log2FC pct.1 pct.2 p_val_adj
+CD27       3.91  0.81  0.05  0.00e+00
+CD3D      -4.96  0.03  0.34  6.23e-48
+Note: The following genes are not in the differential expression list: CD161, CD1D, CD28, CD45RA, CD45RO, CD56, CD57, FCGR3A, KIR2DL1, KIR3DL1, KLRF1, NCR1, NCR3, TRDV1, TRGV9
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The continued absence of data for the most definitive NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A) is a significant impediment to a confident annotation. While the high expression of CD27 is interesting, as it can be found on NK cells, it is not exclusively an NK marker and does not compensate for the missing core markers. The repeated low expression of CD3D further solidifies the exclusion of conventional T cells. The persistent lack of data for TRDV1 and TRGV9 means the gamma-delta T cell hypothesis cannot be fully dismissed, although it remains less likely given the overall marker profile. Without the critical NK-specific markers, the annotation remains tentative.
+
+celltype to check 1
+
+<check_genes>KLRF1,NCR1,NCR3,FCGR3A,CD56</check_genes>
+
+<reasoning>
+It is absolutely paramount to obtain expression data for these five genes. KLRF1, NCR1 (NKp46), and NCR3 (NKp30) are the most specific and robust positive markers for human NK cells. FCGR3A (CD16) is critical for identifying the major cytotoxic NK cell subset. CD56 (NCAM1) is a classic NK cell marker. High expression of these markers is essential to definitively confirm the NK cell identity of this cluster, especially given the strong negative evidence against T cells. Without this data, any NK cell annotation remains an educated guess.
+</reasoning>
+
+hypothesis to check 2
+
+<check_genes>TRDV1,TRGV9,CD1D,CD161,CD3E</check_genes>
+
+<reasoning>
+The gamma-delta T cell hypothesis, while less likely, cannot be fully dismissed until TRDV1 and TRGV9 expression is assessed. These are the definitive markers for specific gamma-delta T cell receptor chains. CD1D is relevant for NKT cells and some gamma-delta T cells. CD161 (KLRB1) is expressed on some gamma-delta T cells and NK cells. CD3E is included again to ensure that if any gamma-delta T cells are present, they are indeed CD3 positive, as they are a subset of T cells. Low or absent expression of TRDV1 and TRGV9 would finally rule out a significant gamma-delta T cell component.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>CD57,KIR2DL1,KIR3DL1,NKG2A,NKG2C,NKG2D,CD94</check_genes>
+
+<reasoning>
+Assuming this cluster is indeed NK cells, it is important to characterize their maturation and functional potential. CD57 is a marker of highly differentiated, terminally mature NK cells. Killer Immunoglobulin-like Receptors (KIRs) such such as KIR2DL1 and KIR3DL1, and C-type lectin receptors like NKG2A, NKG2C, NKG2D, and CD94 are crucial for NK cell recognition and function. Their expression patterns provide insights into the specific NK cell subsets present and their potential roles (e.g., inhibitory vs. activating). This information is vital for a more granular and functionally relevant annotation of the NK cell population.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+gene avg_log2FC pct.1 pct.2 p_val_adj
+CD3E      -5.41  0.02  0.34  3.95e-49
+Note: The following genes are not in the differential expression list: CD161, CD1D, CD56, CD57, CD94, FCGR3A, KIR2DL1, KIR3DL1, KLRF1, NCR1, NCR3, NKG2A, NKG2C, NKG2D, TRDV1, TRGV9
+
+
+================================================================================
+
+## USER
+
+You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response.
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+Despite multiple iterations, the critical data for definitive NK cell markers (KLRF1, NCR1, NCR3, FCGR3A, CD56) remains unavailable. This is a significant limitation. While the repeated and strong negative expression of pan-T cell markers (CD3E, TRAC, TRBC1/2, CD2, CD247, CD3D, CD3G, ITK, LCK) robustly rules out conventional T cells, the lack of positive confirmation for NK-specific markers prevents a high-confidence NK cell annotation. The gamma-delta T cell hypothesis also remains unconfirmed due to missing TRDV1/TRGV9 data. The current information, while strongly suggestive of a non-T cell cytotoxic lymphocyte, lacks the final pieces for a definitive call.
+
+FINAL ANNOTATION COMPLETED
+
+The final cell type for this cluster is **Natural Killer (NK) Cells**.
+
+Confidence level: **Medium**
+
+Key markers supporting this conclusion include the initial strong presence of KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160, and the consistent high expression of cytotoxic effector molecules (Granzymes, PRF1, NKG7). Crucially, the repeated and robust absence of pan-T cell markers (CD3E, TRAC, TRBC1, TRBC2, CD2, CD247, CD3D, CD3G, ITK, LCK) strongly argues against a conventional T cell identity, including CD8+ CTLs. The high expression of NCAM1 (CD56) in an earlier check also supports an NK cell identity.
+
+Alternative possibilities: The confidence is not high due to the persistent lack of expression data for several highly specific and definitive NK cell markers (KLRF1, NCR1, NCR3, FCGR3A) despite multiple requests. While the evidence strongly points away from T cells, the absence of these key positive markers means the NK cell annotation relies heavily on the exclusion of other cell types and the presence of more general cytotoxic markers. Furthermore, the gamma-delta T cell hypothesis could not be definitively ruled out due to the consistent lack of data for TRDV1 and TRGV9.
+
+Next steps: To achieve high confidence, the user must prioritize obtaining expression data for KLRF1, NCR1, NCR3, FCGR3A, TRDV1, and TRGV9. High expression of the NK-specific markers would solidify the NK cell annotation, while high expression of TRDV1/TRGV9 would necessitate a re-evaluation towards a gamma-delta T cell population.

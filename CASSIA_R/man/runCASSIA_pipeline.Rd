@@ -10,21 +10,23 @@ runCASSIA_pipeline(
   species,
   marker,
   max_workers = 4,
-  annotation_model = "google/gemini-2.5-flash-preview",
+  annotation_model = "google/gemini-2.5-flash",
   annotation_provider = "openrouter",
-  score_model = "deepseek/deepseek-chat-v3-0324",
+  score_model = "google/gemini-2.5-flash",
   score_provider = "openrouter",
-  annotationboost_model = "google/gemini-2.5-flash-preview",
+  annotationboost_model = "google/gemini-2.5-flash",
   annotationboost_provider = "openrouter",
   score_threshold = 75,
   additional_info = NULL,
   max_retries = 1,
   do_merge_annotations = TRUE,
-  merge_model = "deepseek/deepseek-chat-v3-0324",
+  merge_model = "google/gemini-2.5-flash",
   merge_provider = "openrouter",
   conversation_history_mode = "final",
   search_strategy = "breadth",
-  report_style = "per_iteration"
+  report_style = "per_iteration",
+  ranking_method = "avg_log2FC",
+  ascending = NULL
 )
 }
 \arguments{
@@ -38,11 +40,11 @@ runCASSIA_pipeline(
 
 \item{max_workers}{Maximum number of concurrent workers (default: 4)}
 
-\item{annotation_model}{Model to use for initial annotation (default: "meta-llama/llama-4-maverick")}
+\item{annotation_model}{Model to use for initial annotation (default: "google/gemini-2.5-flash-preview")}
 
 \item{annotation_provider}{Provider for initial annotation (default: "openrouter")}
 
-\item{score_model}{Model to use for scoring (default: "google/gemini-2.5-pro-preview-03-25")}
+\item{score_model}{Model to use for scoring (default: "deepseek/deepseek-chat-v3-0324")}
 
 \item{score_provider}{Provider for scoring (default: "openrouter")}
 
@@ -67,6 +69,10 @@ runCASSIA_pipeline(
 \item{search_strategy}{Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
 
 \item{report_style}{Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")}
+
+\item{ranking_method}{Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")}
+
+\item{ascending}{Sort direction (NULL uses default for each method) (default: NULL)}
 }
 \value{
 None. Creates output files and generates reports.

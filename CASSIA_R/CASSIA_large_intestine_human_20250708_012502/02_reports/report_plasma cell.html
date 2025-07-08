@@ -1,0 +1,238 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    As a professional computational biologist, I will meticulously analyze the provided ranked list of marker genes to identify the cell type from a human large intestine tissue dataset. I will follow a step-by-step approach, providing detailed reasoning and cross-referencing known biological functions and cell type specificities.<br><br>**Analysis of Marker Genes for Cell Type Identification**<br><br>**1. List the Key Functional Markers:**<br><br>This list is dominated by immunoglobulin (IG) genes, which are crucial for adaptive immunity.<br><br>*   **IGLL5, IGLV6-57, IGLC3, IGLC2, IGHV3-7, IGKC, IGHG1, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, IGHG3, IGHV3-74, IGHM, IGKV3-20, IGHA2:** These are all immunoglobulin genes, representing various heavy (IGH) and light (IGL, IGK) chain variable (V) and constant (C) regions. Their high expression is a hallmark of cells actively producing antibodies.<br>    *   **IGHG1, IGHG3:** Immunoglobulin heavy constant gamma 1 and 3. Indicate production of IgG antibodies, which are the most abundant antibody isotype in serum and play a critical role in long-term immunity.<br>    *   **IGHA1, IGHA2:** Immunoglobulin heavy constant alpha 1 and 2. Indicate production of IgA antibodies, which are the primary antibodies found in mucosal secretions (like those in the large intestine) and are crucial for mucosal immunity.<br>    *   **IGHM:** Immunoglobulin heavy constant mu. Indicates production of IgM antibodies, typically the first antibody produced in a primary immune response.<br>    *   **IGLC2, IGLC3, IGKC:** Immunoglobulin light chain constant regions (lambda and kappa). Essential components of all antibody molecules.<br>    *   **IGLV6-57, IGHV3-7, IGHV3-23, IGKV4-1, IGKV1-5, IGLV3-1, IGLV2-11, IGHV3-74, IGKV3-20:** These are various immunoglobulin variable region genes, indicating the diversity of antibody specificities being produced.<br>*   **JCHAIN:** Joining chain. A small protein that links monomeric immunoglobulin units (like IgA and IgM) into polymeric forms (dimeric IgA, pentameric IgM). Its presence is essential for the secretion of polymeric antibodies, particularly in mucosal tissues.<br>*   **TNFRSF17 (BCMA - B-cell maturation antigen):** A receptor for BAFF and APRIL, crucial for B cell survival, proliferation, and differentiation into plasma cells. Its high expression is characteristic of plasma cells.<br>*   **MZB1 (Marginal zone B and B1 cell specific protein):** Involved in immunoglobulin secretion and retention in the endoplasmic reticulum. Highly expressed in plasma cells.<br>*   **DERL3 (Derlin 3):** Involved in ER-associated degradation (ERAD), a pathway for clearing misfolded proteins from the endoplasmic reticulum. Plasma cells have a highly developed ER due to massive antibody production, making ERAD components highly expressed.<br>*   **GPRC5D (G protein-coupled receptor class C group 5 member D):** While its exact function in plasma cells is still being elucidated, it has been identified as a plasma cell-specific surface marker and a target for multiple myeloma therapies.<br>*   **FCRL5 (Fc receptor-like 5):** An inhibitory receptor expressed on B cells and plasma cells, involved in regulating B cell activation and antibody production.<br>*   **CCL3 (MIP-1 alpha):** Chemokine (C-C motif) ligand 3. While not exclusively a plasma cell marker, some plasma cells can produce chemokines.<br>*   **BMP6 (Bone morphogenetic protein 6):** Involved in various developmental processes and immune regulation. Its role in plasma cells is less direct but can be context-dependent.<br>*   **TXNDC5 (Thioredoxin domain containing 5):** Involved in protein folding and disulfide bond formation in the ER, consistent with high protein synthesis in plasma cells.<br>*   **APOBEC3A (Apolipoprotein B mRNA editing enzyme, catalytic polypeptide-like 3A):** An enzyme involved in innate immunity, particularly against retroviruses. Its expression in plasma cells might be related to their immune function or specific activation states.<br><br>**2. List the Key Cell Type Markers:**<br><br>Based on the overwhelming presence of immunoglobulin genes and associated proteins, the primary cell type indicated is one involved in antibody production.<br><br>*   **Immunoglobulin Genes (IGLL5, IGLV6-57, JCHAIN, IGLC3, IGLC2, IGHV3-7, IGKC, IGHG1, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, IGHG3, IGHV3-74, IGHM, IGKV3-20, IGHA2):** These are definitive markers for B lineage cells, specifically those that have differentiated into antibody-secreting cells. The presence of both IgA (IGHA1, IGHA2) and IgG (IGHG1, IGHG3) indicates a mature, class-switched state.<br>*   **JCHAIN:** Specific to polymeric antibody secretion, characteristic of plasma cells, especially in mucosal tissues.<br>*   **TNFRSF17 (BCMA):** A well-established marker for plasma cells and late-stage B cells.<br>*   **MZB1:** Highly enriched in plasma cells.<br>*   **GPRC5D:** Emerging as a specific plasma cell surface marker.<br>*   **FCRL5:** Expressed on B cells and plasma cells.<br><br>**Genes less specific or potentially indicative of other processes/contaminants:**<br><br>*   **FAM92B, AC026369.3, AC104699.1, LINC02362, AL391056.1, UBE2QL1, LINC00309, AL133467.1, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, LINC02384:** Many of these are uncharacterized genes, lincRNAs, or pseudogenes. Their high expression might be due to transcriptional noise, cell-specific but uncharacterized functions, or proximity to highly expressed genes. They do not provide strong cell type-specific information at this stage.<br>*   **MYL2 (Myosin Light Chain 2):** Primarily associated with muscle contraction. Its presence here is unusual for immune cells. Could indicate a small degree of contamination from smooth muscle cells in the large intestine, or a very specific, uncharacterized role in a subset of these cells. However, given the overwhelming immune signature, it's likely a minor component or artifact.<br>*   **ANKRD36BP2 (Ankyrin Repeat Domain 36B Pseudogene 2):** A pseudogene. Its expression might be non-functional or reflect transcriptional activity in the region.<br>*   **AMPD1 (Adenosine Monophosphate Deaminase 1):** Involved in purine metabolism. While essential for all cells, its high expression here is not a primary cell type marker.<br>*   **LILRB4 (Leukocyte Immunoglobulin Like Receptor B4):** An inhibitory receptor expressed on myeloid cells (monocytes, macrophages, dendritic cells). Its presence here is intriguing. While plasma cells are B cell lineage, some interactions with myeloid cells or specific subsets might express this. However, it's not a canonical plasma cell marker. Could suggest a minor myeloid cell contamination or a specific immune context.<br>*   **CCR10 (C-C Chemokine Receptor Type 10):** A chemokine receptor. Expressed on various immune cells, including some B cells and plasma cells, particularly those involved in mucosal homing. This supports a mucosal immune cell identity.<br><br>**3. Cross-reference Known Databases:**<br><br>A quick search in scRNA-seq databases (e.g., Human Cell Atlas, PanglaoDB, CellMarker, Azimuth) for "plasma cell markers" or "B cell markers" consistently lists:<br>*   **Positive markers:** *IGHG1, IGHA1, IGHM, JCHAIN, TNFRSF17 (BCMA), MZB1, SDC1 (CD138), XBP1, PRDM1 (BLIMP1), IRF4, CD38, CD27, GPRC5D, FCRL5*.<br>*   The provided list strongly aligns with these known plasma cell markers, particularly the immunoglobulin genes, JCHAIN, TNFRSF17, MZB1, and GPRC5D. The presence of both IgA and IgG constant regions is highly indicative of terminally differentiated plasma cells, especially in a mucosal tissue like the large intestine.<br><br>**4. Determine the Most Probable General Cell Type:**<br><br>Based on the overwhelming expression of immunoglobulin genes (heavy and light chains, various isotypes including IgG, IgA, IgM), JCHAIN, TNFRSF17 (BCMA), MZB1, and GPRC5D, the most probable general cell type is **B Lymphocyte lineage**, specifically **Plasma Cells**.<br><br>**5. Identify the Top 3 Most Probable Sub Cell Types:**<br><br>Given the context of the large intestine and the specific markers:<br><br>1.  **Mucosal Plasma Cells (IgA-secreting Plasma Cells):** This is the **most likely** subtype. The high expression of **IGHA1** and **IGHA2** (IgA heavy chain constant regions) along with **JCHAIN** is a definitive signature of plasma cells specialized in producing dimeric IgA for secretion into the gut lumen. IgA is the predominant antibody in mucosal secretions and plays a critical role in maintaining gut homeostasis and defense against pathogens. The large intestine is a major site for IgA production.<br>2.  **IgG-secreting Plasma Cells:** The presence of **IGHG1** and **IGHG3** indicates the production of IgG antibodies. While IgA is dominant in the mucosa, IgG-secreting plasma cells are also present in the lamina propria of the large intestine, contributing to systemic immunity or local tissue protection. These cells might represent a subset that has undergone class switching to IgG.<br>3.  **Early/Transitional Plasma Cells or Plasmablasts:** While the overall signature points to mature plasma cells, the presence of IGHM (IgM) could suggest a small proportion of less differentiated plasmablasts or early plasma cells that still produce IgM, or cells that have recently undergone class switching. However, the dominance of IgA and IgG markers suggests a more mature, class-switched population.<br><br>**Most Likely Subtype:**<br><br>The most likely subtype is **Mucosal Plasma Cells (IgA-secreting Plasma Cells)** due to the prominent expression of **IGHA1, IGHA2, and JCHAIN**, which are critical for IgA secretion in mucosal environments like the large intestine. The presence of IgG markers indicates a broader plasma cell population, but the IgA signature is particularly strong and relevant for this tissue.<br><br>**6. Provide a Concise Summary of Your Analysis:**<br><br>The single-cell cluster from the human large intestine is unequivocally identified as **Plasma Cells**. This annotation is strongly supported by the high and specific expression of numerous immunoglobulin genes (IGHG1, IGHA1, IGHM, IGLC3, IGKC, etc.), the joining chain (JCHAIN) essential for polymeric antibody secretion, and key plasma cell-specific markers such as TNFRSF17 (BCMA), MZB1, and GPRC5D. The prominent expression of IgA heavy chain genes (IGHA1, IGHA2) in conjunction with JCHAIN strongly suggests that these are primarily **Mucosal Plasma Cells** specialized in producing IgA, which is crucial for immune defense in the large intestine. The presence of IgG heavy chain genes (IGHG1, IGHG3) indicates a diverse population, but the IgA signature is dominant and highly relevant for the tissue context.<br><br>FINAL ANNOTATION COMPLETED
+                </div>
+            
+                <div class="agent-section validator">
+                    <h2>✓ Validation Check</h2>
+                    <div class="validation-result">✅ VALIDATION PASSED</div>
+                    Validation result: VALIDATION PASSED
+                </div>
+            
+                    <div class="agent-section formatting">
+                        <h2>📋 Summary</h2>
+                        <p class="error-message">Error formatting data: Expecting value: line 1 column 1 (char 0)</p>
+                    </div>
+                
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">98</div>
+                        <div class="scoring-content">
+                            The annotation for this single-cell cluster is exceptionally strong, demonstrating a deep understanding of immunology and single-cell biology.<br><br>**Strengths:**<br><br>1.  **Correctness and Specificity:** The primary annotation of "Plasma Cells" is unequivocally correct given the marker gene list. The overwhelming presence of immunoglobulin genes (IGHV, IGLV, IGHG, IGHA, IGHM, IGLC, IGKC) along with JCHAIN, TNFRSF17 (BCMA), MZB1, GPRC5D, and DERL3 are hallmark markers of plasma cells.<br>2.  **Detailed Marker Analysis:** The analysis meticulously breaks down the function of key markers, particularly the various immunoglobulin genes and their implications for antibody isotype (IgA, IgG, IgM) and structure (JCHAIN). This demonstrates a thorough understanding of the underlying biology.<br>3.  **Contextual Awareness (Large Intestine):** The annotation expertly leverages the "human large intestine" context, highlighting the significance of IgA-secreting plasma cells. The emphasis on IGHA1/2 and JCHAIN for mucosal immunity is a critical and accurate insight, leading to the highly specific "Mucosal Plasma Cells (IgA-secreting Plasma Cells)" as the most likely subtype. This shows an ability to integrate tissue-specific knowledge.<br>4.  **Balanced Consideration of Markers:** The analysis doesn't just focus on the top few markers but considers the entire list. It correctly identifies the core immune markers and then intelligently discusses less specific or potentially contaminating genes (e.g., MYL2, LILRB4), explaining why they are less definitive or might indicate minor populations. This balanced approach avoids over-focusing on a single marker.<br>5.  **Consideration of Marker Rank:** The analysis implicitly considers the rank of markers by prioritizing the most abundant and functionally relevant immunoglobulin genes and plasma cell-specific markers that appear at the top of the list. The discussion of less specific markers (like MYL2, LILRB4) acknowledges their presence but correctly downplays their significance compared to the dominant plasma cell signature.<br>6.  **Comprehensive View:** The annotation provides a comprehensive view by identifying the main cell type, plausible subtypes with supporting evidence, and even considering potential minor mixed cell types. This holistic approach captures the general picture of the data well.<br>7.  **Supportive Evidence:** The cross-referencing with known databases further strengthens the annotation, confirming that the identified markers are indeed canonical for plasma cells.<br>8.  **Logical Flow and Reasoning:** The step-by-step approach is clear, logical, and easy to follow, with detailed reasoning provided for each conclusion.<br><br>**Weaknesses/Minor Points for Improvement:**<br><br>1.  **MYL2 and LILRB4 Interpretation:** While correctly identified as less specific, the interpretation of MYL2 as potential "smooth muscle cell contamination" is plausible but perhaps less likely given its low rank and the strong immune signature. Sometimes, non-canonical markers can be expressed at low levels or reflect specific activation states. Similarly, LILRB4 can be expressed on some B cell subsets, though it's more characteristic of myeloid cells. However, these are minor points and the overall conclusion remains robust.<br>2.  **Ankrd36bp2:** This is a pseudogene, and its expression might be transcriptional noise or read-through. The analysis correctly identifies it as a pseudogene but doesn't elaborate further on its potential implications (or lack thereof) for cell identity. However, this is a very minor detail.<br><br>Overall, the annotation is outstanding. It is highly accurate, detailed, contextually aware, and provides a comprehensive and balanced view of the cell population. The justification is thorough and demonstrates expert-level knowledge.<br>
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

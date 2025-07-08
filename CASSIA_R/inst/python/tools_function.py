@@ -481,7 +481,8 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         
         # Process and clean conversation history for safe CSV storage
         raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
-        conversation_history = clean_conversation_history(raw_conversation_history)
+        # conversation_history = clean_conversation_history(raw_conversation_history)
+        conversation_history = raw_conversation_history # User requested to remove cleaning step to preserve full history
         
         full_data.append([
             true_cell_type, 
@@ -1557,19 +1558,19 @@ def runCASSIA_pipeline(
     output_file_name: str,
     tissue: str,
     species: str,
-    marker_path: str,
+    marker,  # Can be DataFrame or file path string
     max_workers: int = 4,
-    annotation_model: str = "meta-llama/llama-4-maverick",
+    annotation_model: str = "google/gemini-2.5-flash",
     annotation_provider: str = "openrouter",
     score_model: str = "google/gemini-2.5-pro-preview-03-25",
     score_provider: str = "openrouter",
-    annotationboost_model: str = "google/gemini-2.5-flash-preview",
+    annotationboost_model: str = "google/gemini-2.5-flash",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
     additional_info: str = "None",
     max_retries: int = 1,
     merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324",
+    merge_model: str = "google/gemini-2.5-flash",
     merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
@@ -1583,7 +1584,7 @@ def runCASSIA_pipeline(
         output_file_name (str): Base name for output files
         tissue (str): Tissue type being analyzed
         species (str): Species being analyzed
-        marker_path (str): Path to marker file
+        marker: Marker data (pandas DataFrame or path to CSV file)
         max_workers (int): Maximum number of concurrent workers
         annotation_model (str): Model to use for initial annotation
         annotation_provider (str): Provider for initial annotation
@@ -1648,7 +1649,7 @@ def runCASSIA_pipeline(
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
     runCASSIA_batch(
-        marker=marker_path,
+        marker=marker,
         output_name=annotation_output,
         model=annotation_model,
         tissue=tissue,
@@ -1806,7 +1807,7 @@ def runCASSIA_pipeline(
                 # NOTE: Using the raw_full_csv path to ensure the CSV can be found
                 runCASSIA_annotationboost(
                     full_result_path=raw_full_csv,  # This is in the annotation_results_folder
-                    marker=marker_path,
+                    marker=marker,
                     cluster_name=original_cluster_name,
                     major_cluster_info=major_cluster_info,
                     output_name=cluster_output_name,

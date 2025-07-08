@@ -1,0 +1,341 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved 5 iterations, examining a total of 55 unique genes to refine the cell type annotation.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial hypothesis for this cluster was Natural Killer (NK) cells, supported by strong expression of NK-specific markers (KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160) and general cytotoxic markers (Granzymes, PRF1, NKG7). However, co-expression of CD8A/B and TRGC1/2, along with shared cytotoxic markers, introduced ambiguity, suggesting potential mixed populations of CD8+ Cytotoxic T Lymphocytes (CTLs) or Gamma-Delta (γδ) T cells, a specific NK cell subset with T-cell like features, or a transitional state.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To distinguish between NK cells and T cells by assessing pan-T cell markers (CD3E, TRAC, TRBC1, TRBC2) and additional definitive NK cell markers (KLRF1, NCR1, NCR3).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To investigate the potential for CD4+ T cells and specific T cell subsets (CD4, FOXP3, IL2RA, CCR7, SELL, CD69, CD103) given the presence of CD8A/B.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To clarify the contribution of gamma-delta T cells using more specific markers (TRDV1, TRGV9, CD1D, BTNL3, BTNL8).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">CD3E</span><span class="gene-badge">TRAC</span><span class="gene-badge">TRBC1</span><span class="gene-badge">TRBC2</span><span class="gene-badge">KLRF1</span><span class="gene-badge">NCR1</span><span class="gene-badge">NCR3</span><span class="gene-badge">CD4</span><span class="gene-badge">FOXP3</span><span class="gene-badge">IL2RA</span><span class="gene-badge">CCR7</span><span class="gene-badge">SELL</span><span class="gene-badge">CD69</span><span class="gene-badge">CD103</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRGV9</span><span class="gene-badge">CD1D</span><span class="gene-badge">BTNL3</span><span class="gene-badge">BTNL8</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The results strongly refuted a significant pan-T cell population, showing very low expression and high negative log2FC for CD3E, TRAC, TRBC1, and TRBC2. CD69 was also very low. BTNL3 showed low but present expression. Crucially, many key markers (BTNL8, CCR7, CD103, CD1D, CD4, FOXP3, IL2RA, KLRF1, NCR1, NCR3, SELL, TRDV1, TRGV9) were not in the differential expression list, preventing definitive conclusions.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To definitively confirm NK cell identity by checking highly specific NK cell markers (KLRF1, NCR1, NCR3, FCGR3A, NCAM1) given the strong negative results for pan-T cell markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To further solidify the conclusion that the cluster is not a conventional T cell population by checking additional TCR complex components and signaling molecules (CD3D, CD3G, CD247, ZAP70, LCK, ITK, CD2).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To confirm or refute a significant gamma-delta T cell presence by assessing TRDV1, TRGV9, CD1D, and markers expressed by both NK and some T cell subsets (KLRG1, CD94, NKG2A, NKG2C).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">KLRF1</span><span class="gene-badge">NCR1</span><span class="gene-badge">NCR3</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">NCAM1</span><span class="gene-badge">CD3D</span><span class="gene-badge">CD3G</span><span class="gene-badge">CD247</span><span class="gene-badge">ZAP70</span><span class="gene-badge">LCK</span><span class="gene-badge">ITK</span><span class="gene-badge">CD2</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRGV9</span><span class="gene-badge">CD1D</span><span class="gene-badge">KLRG1</span><span class="gene-badge">CD94</span><span class="gene-badge">NKG2A</span><span class="gene-badge">NKG2C</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The data strongly reinforced the exclusion of conventional T cells, with very low or absent expression of CD2, CD247, CD3D, CD3G, ITK, and LCK. NCAM1 (CD56) showed high expression, a significant positive indicator for NK cells. ZAP70 was present but at lower levels than expected for a dominant T cell population. However, key NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A) and gamma-delta T cell markers (TRDV1, TRGV9, CD1D) remained unassessed.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To definitively confirm NK cell identity by checking core NK cell markers (KLRF1, NCR1, NCR3, FCGR3A, CD7, CD56).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To fully resolve the gamma-delta T cell hypothesis by assessing TRDV1, TRGV9, CD1D, CD161 (KLRB1).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To consider the possibility of less differentiated or progenitor-like cells, or specific tissue-resident populations, by checking markers like CD34, KIT (CD117), PROM1 (CD133), CD45RA, and CD45RO.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">KLRF1</span><span class="gene-badge">NCR1</span><span class="gene-badge">NCR3</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">CD7</span><span class="gene-badge">CD56</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRGV9</span><span class="gene-badge">CD1D</span><span class="gene-badge">CD161</span><span class="gene-badge">KLRB1</span><span class="gene-badge">CD34</span><span class="gene-badge">KIT</span><span class="gene-badge">CD117</span><span class="gene-badge">CD133</span><span class="gene-badge">PROM1</span><span class="gene-badge">CD45RA</span><span class="gene-badge">CD45RO</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                CD7 and KLRB1 showed very low expression. PROM1 expression was low, suggesting the cluster is unlikely to be dominated by progenitor cells. The continued absence of key NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A) and gamma-delta T cell markers (TRDV1, TRGV9) from the differential expression list prevented definitive confirmation.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 4</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To obtain expression data for core NK cell markers (KLRF1, NCR1, NCR3, FCGR3A, CD56) to definitively confirm NK cell identity.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To fully resolve the gamma-delta T cell hypothesis by assessing TRDV1, TRGV9, CD1D, CD161, and re-checking CD3D.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To characterize the NK cell population's maturation and functional state by assessing CD45RA, CD45RO, CD27, CD28, CD57, KIR2DL1, and KIR3DL1.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">KLRF1</span><span class="gene-badge">NCR1</span><span class="gene-badge">NCR3</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">CD56</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRGV9</span><span class="gene-badge">CD1D</span><span class="gene-badge">CD161</span><span class="gene-badge">CD3D</span><span class="gene-badge">CD45RA</span><span class="gene-badge">CD45RO</span><span class="gene-badge">CD27</span><span class="gene-badge">CD28</span><span class="gene-badge">CD57</span><span class="gene-badge">KIR2DL1</span><span class="gene-badge">KIR3DL1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                CD27 showed high expression. CD3D continued to show very low expression, further solidifying the exclusion of conventional T cells. However, critical data for definitive NK-specific markers (KLRF1, NCR1, NCR3, FCGR3A, CD56) and gamma-delta T cell markers (TRDV1, TRGV9) remained unavailable.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 5</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To obtain expression data for the most specific and robust positive markers for human NK cells (KLRF1, NCR1, NCR3, FCGR3A, CD56).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To definitively rule out a significant gamma-delta T cell component by assessing TRDV1, TRGV9, CD1D, CD161, and CD3E.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To characterize the NK cell population's maturation and functional potential by assessing CD57, KIR2DL1, KIR3DL1, NKG2A, NKG2C, NKG2D, and CD94.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">KLRF1</span><span class="gene-badge">NCR1</span><span class="gene-badge">NCR3</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">CD56</span><span class="gene-badge">TRDV1</span><span class="gene-badge">TRGV9</span><span class="gene-badge">CD1D</span><span class="gene-badge">CD161</span><span class="gene-badge">CD3E</span><span class="gene-badge">CD57</span><span class="gene-badge">KIR2DL1</span><span class="gene-badge">KIR3DL1</span><span class="gene-badge">NKG2A</span><span class="gene-badge">NKG2C</span><span class="gene-badge">NKG2D</span><span class="gene-badge">CD94</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                CD3E continued to show very low expression. Despite repeated requests, critical data for definitive NK cell markers (KLRF1, NCR1, NCR3, FCGR3A, CD56) and gamma-delta T cell markers (TRDV1, TRGV9) remained unavailable.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type for this cluster is **Natural Killer (NK) Cells**.
+
+Confidence level: **Medium**
+
+Key markers supporting this conclusion include the initial strong presence of NK-specific markers (KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160) and general cytotoxic effector molecules (Granzymes, PRF1, NKG7). Crucially, the repeated and robust absence of pan-T cell markers (CD3E, TRAC, TRBC1, TRBC2, CD2, CD247, CD3D, CD3G, ITK, LCK) strongly argues against a conventional T cell identity, including CD8+ CTLs. The high expression of NCAM1 (CD56) in an earlier check also supports an NK cell identity.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Initial NK Markers:** KLRC2, KLRK1, KLRC4, KLRD1, XCL2, XCL1, CRTAM, CD160
+**General Cytotoxic Markers:** Granzymes, PRF1, NKG7
+**Supporting NK Markers:** NCAM1 (CD56), CD27
+**Markers Excluded for T-cells:** CD3E, TRAC, TRBC1, TRBC2, CD8A, CD8B, CD2, CD247, CD3D, CD3G, ITK, LCK, CD69
+**Markers with Low/Absent Expression (suggesting non-progenitor/non-gamma-delta T-cell):** BTNL3, CD7, KLRB1, PROM1
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            To achieve high confidence in the NK cell annotation, it is recommended to prioritize obtaining expression data for KLRF1, NCR1, NCR3, FCGR3A, TRDV1, and TRGV9. High expression of the NK-specific markers would solidify the NK cell annotation, while high expression of TRDV1/TRGV9 would necessitate a re-evaluation towards a gamma-delta T cell population.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        
