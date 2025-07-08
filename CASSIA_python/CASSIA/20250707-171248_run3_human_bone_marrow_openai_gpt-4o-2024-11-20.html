@@ -1,0 +1,1912 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA Hypothesis Generation Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .report-header p {
+            font-size: 1.1em;
+            color: #555;
+        }
+        .cluster-section {
+            background-color: #ffffff;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #eaf5ff;
+        }
+        details {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            color: #3498db;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1>CASSIA Hypothesis Generation Report</h1>
+        <p>Generated on: 2025-07-07 17:13:14</p>
+        <p>Source file: 20250707-171248_run3_human_bone_marrow_openai_gpt-4o-2024-11-20.json</p>
+    </div>
+
+    
+<div class="cluster-section">
+    <h2>Cluster: CD14 Mono</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Classical Monocytes (CD14+ Monocytes)</td>
+                    <td>Most abundant monocyte subtype, characterized by high CD14 and low/absent CD16, involved in inflammatory responses, and supported by markers like S100A8, S100A9, S100A12.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Intermediate Monocytes (CD14+CD16+ Monocytes)</td>
+                    <td>Express both CD14 and CD16, play roles in antigen presentation and inflammatory responses, and exhibit a pro-inflammatory cytokine profile.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Non-Classical Monocytes (CD16+ Monocytes)</td>
+                    <td>Characterized by low CD14 and high CD16, patrol vasculature, involved in tissue repair and immune surveillance, and are less inflammatory.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the marker genes provided, this cell cluster is most likely a population of **monocytes** or monocyte-derived cells, as the markers strongly align with known monocyte-associated genes. Here are the top 3 most likely detailed subtypes of cells this cluster could represent:
+
+---
+
+### **1. Classical Monocytes (CD14+ Monocytes)**
+- **Key markers supporting this subtype:** CD14, VCAN, S100A8, S100A9, S100A12, TREM1, FCN1, CLEC7A, TLR2, TLR4, CD163.
+- **Description:** Classical monocytes are the most abundant monocyte subtype in human blood and are characterized by high expression of CD14 and low or absent CD16. They are involved in inflammatory responses and are known to rapidly respond to infection or injury.
+  
+---
+
+### **2. Intermediate Monocytes (CD14+CD16+ Monocytes)**
+- **Key markers supporting this subtype:** CD14, CD163, TREM1, FCGR2A, VCAN, CLEC7A, TNFAIP2.
+- **Description:** Intermediate monocytes express both CD14 and CD16 and are thought to play roles in antigen presentation and inflammatory responses. They also exhibit a pro-inflammatory cytokine profile and are often associated with chronic inflammatory diseases.
+
+---
+
+### **3. Non-Classical Monocytes (CD16+ Monocytes)**
+- **Key markers supporting this subtype:** VCAN, CD163, CLEC4E, TREM1, FPR1, S100A8, S100A9, TLR4.
+- **Description:** Non-classical monocytes are characterized by low CD14 expression and high CD16 expression. They patrol the vasculature and are involved in tissue repair and immune surveillance. They are less inflammatory than classical monocytes.
+
+---
+
+### Additional Notes:
+- The presence of **S100A8, S100A9, and S100A12** suggests a strong inflammatory or antimicrobial profile, which is typical of classical monocytes.
+- Markers like **CD163, TREM1, and CLEC7A** are associated with monocyte activation and macrophage polarization, indicating that these cells may be transitioning or responding to specific stimuli.
+- Other markers, such as **TLR2, TLR4, and PLAUR**, suggest involvement in innate immune signaling and pathogen recognition.
+
+In conclusion, this cluster is most likely a subset of **monocytes**, with the top 3 subtypes being classical monocytes, intermediate monocytes, and non-classical monocytes. Further validation (e.g., protein-level markers like CD16 or functional assays) would be needed to distinguish between these subtypes.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD16 Mono</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Classical Monocytes (CD14+ Monocytes)</td>
+                    <td>Characterized by high expression of genes associated with phagocytosis, cytokine production, and immune surveillance, such as C1QA and CSF1R.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Non-Classical Monocytes (CD16+ Monocytes)</td>
+                    <td>Known for patrolling blood vessels and responding to inflammation, with hallmark expression of FCGR3A (CD16), CXCL16, and NR4A1.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Macrophages (Tissue-Resident or Differentiating)</td>
+                    <td>Differentiated monocytes involved in phagocytosis, tissue repair, and immune regulation, with markers like ADGRE1 (F4/80), CSF1R, and HMOX1 suggesting transition or tissue residency.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, this cell cluster is most likely associated with **monocyte/macrophage lineage** cells in human bone marrow. The markers indicate that the cells are involved in immune responses, phagocytosis, and antigen presentation. Here are the top 3 most likely detailed subtypes:
+
+### 1. **Classical Monocytes (CD14+ Monocytes)**
+   - **Key markers supporting this subtype**: **C1QA, CSF1R, MS4A7, SIGLEC10, LST1, MAFB, ADGRE1 (F4/80), HMOX1**
+   - Classical monocytes are characterized by high expression of genes associated with phagocytosis, cytokine production, and immune surveillance. These genes, such as **C1QA** and **CSF1R**, are commonly expressed in classical monocytes.
+
+### 2. **Non-Classical Monocytes (CD16+ Monocytes)**
+   - **Key markers supporting this subtype**: **FCGR3A (CD16), CXCL16, NR4A1, BATF3, MS4A4A**
+   - Non-classical monocytes are a subset of monocytes known for patrolling blood vessels and responding to inflammation. The expression of **FCGR3A (CD16)** is a hallmark of this subtype, along with **CXCL16** and **NR4A1**, which are involved in their migratory and inflammatory roles.
+
+### 3. **Macrophages (Tissue-Resident or Differentiating)**
+   - **Key markers supporting this subtype**: **ADGRE1, SIGLEC10, MAFB, HMOX1, C1QA, CDKN1C, CTSL, CSF1R**
+   - Macrophages are differentiated monocytes that reside in tissues and are involved in phagocytosis, tissue repair, and immune regulation. The presence of **ADGRE1** (F4/80), **CSF1R**, and **HMOX1** suggests that some of these cells might be transitioning into macrophages or are already tissue-resident macrophages.
+
+### Additional Notes:
+- Some of the markers, such as **LYPD2, VMO1, and CEACAM3**, are less commonly associated with monocytes/macrophages and could indicate a specialized or rare subtype.
+- If this is a bone marrow sample, it’s possible that these cells are in a transitional state, differentiating from progenitors into mature monocytes or macrophages.
+
+Let me know if you’d like further clarification or additional analysis!</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD4 Memory</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Effector Memory T Cells (Tem)</td>
+                    <td>Key markers like GATA3, IL7R, TNFRSF4 (OX40), CD40LG, RORA, KLRB1 (CD161), and PRDM1 (Blimp-1) are associated with T cell activation, differentiation, and memory functions, aligning with highly differentiated and activated T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>T Follicular Helper Cells (Tfh)</td>
+                    <td>Hallmark markers such as CD40LG, GATA3, IL7R, PRDM1, MAF, RORA, TNFRSF4 (OX40), GPR183 (EBI2), and FLT3LG strongly suggest this specialized subset of CD4+ T cells that support B cell function.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Th2 Cells (Type 2 Helper T Cells)</td>
+                    <td>Critical markers like GATA3, IL7R, IL32, TNFRSF4 (OX40), CD40LG, MAF, PBXIP1, and PTGER2 are indicative of Th2 cells, which are involved in humoral immunity and allergic responses, and their profile overlaps with the provided gene list.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, this cell cluster is most likely a subtype of **T cells** or **T lymphocytes**. The combination of marker genes strongly suggests that this cluster represents a population of immune cells, specifically within the T cell lineage. Below are the top 3 most likely detailed subtypes of T cells that this cluster could represent:
+
+---
+
+### 1. **Effector Memory T Cells (Tem)**
+   - **Key markers supporting this subtype:**
+     - **GATA3, IL7R, TNFRSF4 (OX40), CD40LG, RORA, KLRB1 (CD161)**: These are associated with T cell activation, differentiation, and memory functions.
+     - **PRDM1 (Blimp-1)**: A transcription factor involved in effector T cell differentiation.
+     - **TRAC, TRBC1, CD3G**: Core T cell receptor (TCR) components, confirming T cell identity.
+   - Effector memory T cells are highly differentiated and exhibit markers of activation and cytokine production, which aligns with the observed gene expression.
+
+---
+
+### 2. **T Follicular Helper Cells (Tfh)**
+   - **Key markers supporting this subtype:**
+     - **CD40LG, GATA3, IL7R, PRDM1, MAF, RORA, TNFRSF4 (OX40), GPR183 (EBI2)**: These are hallmark markers of Tfh cells, which assist in B cell maturation and antibody production.
+     - **FLT3LG**: Associated with interactions between Tfh cells and dendritic cells.
+   - Tfh cells are a specialized subset of CD4+ T cells that support B cell function, and the marker gene profile here suggests a strong possibility of this subtype.
+
+---
+
+### 3. **Th2 Cells (Type 2 Helper T Cells)**
+   - **Key markers supporting this subtype:**
+     - **GATA3, IL7R, IL32, TNFRSF4 (OX40), CD40LG, MAF**: These are critical markers of Th2 cells, which are involved in humoral immunity and allergic responses.
+     - **PBXIP1, PTGER2**: Associated with Th2 differentiation and function.
+   - Th2 cells are another subset of CD4+ T cells, and their marker profile overlaps with the provided gene list.
+
+---
+
+### Additional Notes:
+- The presence of **TNFRSF4 (OX40)**, **CD40LG**, and **GATA3** strongly indicates an activated T cell population, likely CD4+ T cells.
+- **KLRB1 (CD161)** suggests a potential innate-like T cell phenotype, commonly expressed in subsets such as mucosal-associated invariant T cells (MAIT) or natural killer T (NKT) cells, but the broader marker profile fits conventional T cells better.
+- **TRAC, TRBC1, CD3G** confirm the TCR complex, ruling out non-T cell lineages.
+
+### Conclusion:
+The top 3 most likely subtypes are:
+1. **Effector Memory T Cells (Tem)**
+2. **T Follicular Helper Cells (Tfh)**
+3. **Th2 Cells (Type 2 Helper T Cells)**
+
+Further validation using additional markers or functional assays (e.g., cytokine profiling) would help confirm the exact subtype.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD4 Naive</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Naive T Cells (CD4+ or CD8+)</td>
+                    <td>Marker genes such as CCR7, LEF1, TCF7, and CD3D/E/G are highly expressed in naive T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Central Memory T Cells (Tcm, CD4+ or CD8+)</td>
+                    <td>The expression of CCR7, CD27, and CD40LG suggests central memory T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Early Effector T Cells (CD4+ or CD8+)</td>
+                    <td>Genes like BCL11B, TXK, CAMK4, and CD3D/E/G suggest early activated T cells or effector T cells.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided list of marker genes, the cell cluster is most likely a subtype of **T cells**. Many of the listed genes are associated with T cell identity, development, and activation. For example:
+
+- **CD3D, CD3E, CD3G, TRAC, TRBC1, TRBC2**: These are hallmark genes of T cells, specifically components of the T cell receptor (TCR) complex.
+- **LEF1, TCF7, BCL11B**: These are transcription factors involved in T cell development and differentiation.
+- **CCR7, CD40LG, CD27**: These are markers of specific T cell subsets, such as naive and central memory T cells.
+- **TXK, CAMK4**: These are signaling molecules important for TCR signaling and T cell activation.
+
+### Top 3 Most Likely Subtypes of T Cells:
+1. **Naive T Cells (CD4+ or CD8+)**:
+   - Marker genes such as **CCR7, LEF1, TCF7**, and **CD3D/E/G** are highly expressed in naive T cells.
+   - These cells are typically found in secondary lymphoid organs and the circulation, and they are not yet activated.
+
+2. **Central Memory T Cells (Tcm, CD4+ or CD8+)**:
+   - The expression of **CCR7, CD27**, and **CD40LG** suggests central memory T cells, which retain the ability to migrate to lymphoid tissues and respond to antigen re-stimulation.
+
+3. **Early Effector T Cells (CD4+ or CD8+)**:
+   - Genes like **BCL11B, TXK, CAMK4**, and **CD3D/E/G** suggest early activated T cells or effector T cells that are transitioning from a naive or memory state.
+
+### Additional Notes:
+- The presence of **FLT3LG** might suggest some interaction with dendritic cells, as FLT3LG is often associated with dendritic cell development. However, this is likely due to signaling interactions rather than a different cell type.
+- The lack of strong cytotoxic markers (e.g., GZMB, PRF1) suggests these are not highly activated cytotoxic T cells (CTLs).
+
+Thus, the cell cluster is most likely a **T cell population**, with the top subtypes being **naive T cells, central memory T cells, or early effector T cells**. Further analysis, such as differential expression of CD4 versus CD8 markers, could refine the classification.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD56 bright NK</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic NK cells (CD56dim NK cells)</td>
+                    <td>Most abundant NK cell subtype in peripheral blood and bone marrow, specialized for cytotoxicity. Supported by markers like KLRD1 (CD94), GNLY, GZMK, NKG7, KIR2DL4, IL2RB, and IL18R1.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Helper-like NK cells (CD56bright NK cells)</td>
+                    <td>Less cytotoxic but produces cytokines. Suggested by markers such as IL18R1, TNFRSF18 (GITR), AREG, GATA3, and HOPX.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Innate lymphoid cells (ILC1-like cells)</td>
+                    <td>Closely related to NK cells, tissue-resident, non-circulating, focused on cytokine production. Indicated by markers like GATA3, ID2, BHLHE40, IL18RAP, XCL1, and XCL2.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, this cluster most likely represents **Natural Killer (NK) cells** or a related cytotoxic lymphocyte population. NK cells are innate immune cells with cytotoxic functions, and the presence of key markers like **KLRD1 (CD94)**, **GNLY (granulysin)**, **NKG7**, and **GZMK (granzyme K)** strongly supports this classification. Additional markers such as **XCL1**, **XCL2**, and **KLRB1** further indicate a cytotoxic lymphocyte phenotype, likely NK cells or innate lymphoid cells (ILCs). 
+
+Here are the top 3 most likely detailed subtypes:
+
+1. **Cytotoxic NK cells (CD56dim NK cells)**:
+   - These are the most abundant NK cell subtype in peripheral blood and bone marrow, specialized for cytotoxicity. Markers such as **KLRD1 (CD94)**, **GNLY**, **GZMK**, **NKG7**, and **KIR2DL4** support this subtype. The expression of **IL2RB** and **IL18R1** indicates activation potential, which is characteristic of cytotoxic NK cells.
+
+2. **Helper-like NK cells (CD56bright NK cells)**:
+   - This subtype is less cytotoxic but produces cytokines to regulate immune responses. Markers such as **IL18R1**, **TNFRSF18 (GITR)**, **AREG**, and **GATA3** suggest a helper-like NK cell phenotype. The presence of **HOPX**, a transcription factor associated with tissue-resident cells, could indicate a tissue-resident NK-like cell population in the bone marrow.
+
+3. **Innate lymphoid cells (ILC1-like cells)**:
+   - ILC1s are closely related to NK cells but are tissue-resident and non-circulating, with a focus on cytokine production rather than cytotoxicity. Markers like **GATA3**, **ID2**, **BHLHE40**, and **IL18RAP** suggest an ILC1-like population. The expression of **XCL1** and **XCL2** could indicate a shared lineage or functional overlap with NK cells.
+
+### Summary:
+The most likely identity of this cell cluster is **Natural Killer (NK) cells**, with the top subtypes being:
+1. Cytotoxic NK cells (CD56dim NK cells).
+2. Helper-like NK cells (CD56bright NK cells).
+3. ILC1-like cells.
+
+Further validation with additional data (e.g., protein markers, functional assays) would help confirm the exact subtype.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD8 Effector_1</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic CD8+ T cells (Effector or Memory Subtypes)</td>
+                    <td>Strongly supported by the presence of effector molecules like granzyme genes (e.g., GZMH, GZMA, GZMK), perforin (PRF1), cytotoxicity-related markers (e.g., NKG7, CST7), and transcription factors TBX21 (T-bet) and EOMES which regulate cytotoxic functions.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Natural Killer (NK) Cells</td>
+                    <td>Indicated by the expression of killer cell lectin-like receptors (e.g., KLRC2, KLRD1, KLRG1, KLRF1) and cytotoxic mediators (e.g., GZMH, PRF1), with S1PR5 further supporting this subtype.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Gamma Delta T Cells (γδ T Cells)</td>
+                    <td>Strongly indicated by the expression of TRGC2 and TRG-AS1, which are components of their unique T cell receptor, alongside shared cytotoxic markers.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The marker genes you provided strongly suggest that this cluster is composed of **cytotoxic lymphocytes**. Based on the gene expression profile, the top three most likely detailed subtypes of this cluster are:
+
+### 1. **Cytotoxic CD8+ T cells (Effector or Memory Subtypes)**
+   - **Key markers:** CD8A, CD8B, GZMH, GZMA, GZMK, GZMM, PRF1, NKG7, CCL4, CCL5, TBX21 (T-bet), EOMES.
+   - These cells are cytotoxic T lymphocytes (CTLs) and are characterized by their ability to kill infected or malignant cells. The presence of effector molecules like granzyme genes (e.g., GZMH, GZMA, GZMK), perforin (PRF1), and cytotoxicity-related markers (e.g., NKG7, CST7) strongly supports this identification. Additionally, TBX21 (T-bet) and EOMES are transcription factors that regulate cytotoxic functions in CD8+ T cells.
+
+### 2. **Natural Killer (NK) Cells**
+   - **Key markers:** KLRC2, KLRD1, KLRG1, KLRF1, NKG7, PRF1, GZMH, GZMA, CCL4, CCL5, XCL2.
+   - NK cells are innate lymphocytes with cytotoxic capabilities. The expression of killer cell lectin-like receptors (e.g., KLRC2, KLRD1, KLRG1, KLRF1) and cytotoxic mediators (e.g., GZMH, PRF1) strongly suggests an NK cell population. The presence of S1PR5 (important for NK cell migration) further supports this subtype.
+
+### 3. **Gamma Delta T Cells (γδ T Cells)**
+   - **Key markers:** TRGC2, TRG-AS1, GZMH, GZMA, GZMK, PRF1, NKG7, TBX21, CCL4, CCL5.
+   - Gamma delta T cells are a subset of T cells that express a T cell receptor (TCR) composed of gamma and delta chains (e.g., TRGC2). These cells are often cytotoxic and share functional similarities with both CD8+ T cells and NK cells. The expression of TRGC2 and TRG-AS1 is a strong indicator of γδ T cells in this cluster.
+
+### Summary:
+The most likely subtypes for this cluster are:
+1. **Cytotoxic CD8+ T cells** (Effector or Memory subtype).
+2. **Natural Killer (NK) cells**.
+3. **Gamma Delta T cells (γδ T cells)**.
+
+Further analysis, such as TCR sequencing or surface protein expression (e.g., flow cytometry for CD8, γδ TCR, or NK cell markers like CD56), would help confirm the identity of this cluster.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD8 Effector_2</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic Effector CD8+ T Cells</td>
+                    <td>Strong expression of CD8A, granzymes (GZMK, GZMA), PRDM1, and effector/exhaustion markers (KLRG1, TIGIT, CD160), along with chemokines (CCL3, CCL4, CCL5), indicating their role in killing infected/tumor cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Natural Killer (NK) Cells</td>
+                    <td>Presence of canonical NK cell markers (KLRD1, KLRC2), specific NK chemokines (XCL1, XCL2), granzymes (GZMA, GZMK), inhibitory receptors (CD160, TIGIT), and EOMES, characteristic of innate cytotoxic function.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Memory-like or Tissue-resident CD8+ T Cells</td>
+                    <td>Expression of tissue residency marker CD69, memory/exhaustion markers (TIGIT, KLRG1), transcription factors (EOMES, PRDM1), CXCR4 for homing, and chemokines (CCL3, CCL4, CCL5), suggesting long-lived, antigen-experienced cells in tissues.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster is highly likely to represent a subset of **cytotoxic lymphocytes**, particularly **natural killer (NK) cells** or **cytotoxic T cells**, given the strong expression of genes associated with cytotoxicity, chemokines, and immune regulation. Here's the reasoning and the top 3 most likely subtypes:
+
+---
+
+### **1. Cytotoxic Effector CD8+ T Cells**
+   - **Key markers**: 
+     - **CD8A**: A hallmark of CD8+ T cells.
+     - **GZMK, GZMA**: Granzyme family members, indicating cytotoxic activity.
+     - **PRDM1**: Associated with effector and terminally differentiated CD8+ T cells.
+     - **KLRG1, TIGIT, CD160**: Markers of effector or exhausted CD8+ T cells.
+     - **CCL3, CCL4, CCL5**: Chemokines expressed by activated CD8+ T cells.
+   - **Function**: These cells are cytotoxic effectors involved in killing virus-infected or tumor cells and are a major component of adaptive immunity.
+
+---
+
+### **2. Natural Killer (NK) Cells**
+   - **Key markers**:
+     - **KLRD1 (CD94), KLRC2 (NKG2C)**: Canonical NK cell markers.
+     - **XCL1, XCL2**: Chemokines specifically expressed by NK cells.
+     - **GZMA, GZMK**: Cytotoxic granules, characteristic of NK cells.
+     - **CD160, TIGIT**: Inhibitory receptors often expressed by NK cells.
+     - **CCL3, CCL4, CCL5**: Chemokines produced by NK cells to recruit other immune cells.
+     - **EOMES**: A transcription factor critical for NK cell development and function.
+   - **Function**: NK cells are innate lymphoid cells that mediate cytotoxicity and cytokine production, particularly in response to viral infections or malignancy.
+
+---
+
+### **3. Memory-like or Tissue-resident CD8+ T Cells**
+   - **Key markers**:
+     - **CD69**: A marker of tissue residency.
+     - **TIGIT, KLRG1**: Markers associated with memory or exhausted T cells.
+     - **EOMES, PRDM1**: Transcription factors indicative of memory or terminally differentiated T cells.
+     - **CXCR4**: Involved in tissue homing and retention.
+     - **CCL3, CCL4, CCL5**: Chemokines linked to immune recruitment and tissue residency.
+   - **Function**: These cells are long-lived, antigen-experienced T cells that reside in tissues and provide rapid responses to reinfection.
+
+---
+
+### Summary
+The top 3 most likely subtypes for this cluster are:
+1. **Cytotoxic effector CD8+ T cells**
+2. **Natural killer (NK) cells**
+3. **Memory-like or tissue-resident CD8+ T cells**
+
+Further confirmation could be obtained by examining protein expression of hallmark markers (e.g., CD8, CD94, NKG2C) or by functional assays to distinguish between NK and T cell populations.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD8 Memory_1</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Effector CD8+ T cells (Cytotoxic T cells)</td>
+                    <td>Marker genes such as GZMK, GZMA, CCL5, CXCR3, PRDM1, and CD8A/B suggest these cells are cytotoxic T cells in an effector state, playing a role in killing infected or malignant cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Memory CD8+ T cells (Central or Effector Memory T cells)</td>
+                    <td>Markers IL7R, CD27, and TIGIT, along with CXCR3 and IL7R, suggest a memory phenotype, which can be further divided into central memory (TCM) and effector memory (TEM) subsets.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Exhausted CD8+ T cells</td>
+                    <td>Co-expression of markers like TIGIT, PRDM1, RUNX3, and CD96 may suggest a more exhausted or dysfunctional phenotype, often seen in chronic infections or the tumor microenvironment, despite still expressing cytotoxic markers.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, this cluster likely represents a subtype of **T cells**, specifically **CD8+ T cells**, due to the presence of key markers such as **CD8A**, **CD8B**, **GZMK**, **GZMA**, **CCL5**, and **CXCR3**. These genes are characteristic of cytotoxic T cells, which are a major subset of T lymphocytes involved in immune responses.
+
+Here are the **top 3 most likely detailed subtypes** of this cell cluster:
+
+1. **Effector CD8+ T cells** (Cytotoxic T cells):
+   - Marker genes such as **GZMK**, **GZMA**, **CCL5**, **CXCR3**, **PRDM1**, and **CD8A/B** suggest that these cells are cytotoxic T cells in an effector state. Effector CD8+ T cells play a role in killing infected or malignant cells and are typically highly activated.
+
+2. **Memory CD8+ T cells** (Central or Effector Memory T cells):
+   - The markers **IL7R**, **CD27**, and **TIGIT** suggest a memory phenotype. Memory T cells can be further divided into central memory (TCM) and effector memory (TEM) subsets, depending on their homing and functional properties. The presence of **CXCR3** and **IL7R** leans toward a memory phenotype.
+
+3. **Exhausted CD8+ T cells**:
+   - The co-expression of markers like **TIGIT**, **PRDM1**, **RUNX3**, and **CD96** may suggest a more exhausted or dysfunctional phenotype, often seen in chronic infections or the tumor microenvironment. These cells still express cytotoxic markers but may have impaired functionality.
+
+### Summary:
+The most likely identity of this cluster is **CD8+ T cells**, with the top 3 subtypes being:
+1. Effector CD8+ T cells.
+2. Memory CD8+ T cells.
+3. Exhausted CD8+ T cells.
+
+Further analysis of functional markers, activation status, and transcriptomic signatures can help refine the classification.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD8 Memory_2</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic CD8+ T cells (Effector or Effector Memory Subtypes)</td>
+                    <td>Strongly supported by hallmark cytotoxic markers (granzymes, perforin), CD8A, specific chemokines (CCL5, CCL4, CCL3L3), and transcription factors (EOMES, BATF) associated with cytotoxic T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Natural Killer (NK) Cells</td>
+                    <td>Indicated by cytotoxic granule markers (GNLY, PRF1, GZMK, GZMM, GZMB, GZMA), and specific markers for mature NK cells (FGFBP2, KLRG1, FCRL6, S1PR5, NKG7, CST7).</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>γδ T Cells (Cytotoxic Subtype)</td>
+                    <td>Identified by the specific T cell receptor marker TRGC2, cytotoxic molecules (granzymes, perforin), and characteristic chemokines (XCL2, CCL4, CCL5, CCL3L3).</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The marker genes you provided strongly suggest that this cell cluster represents **cytotoxic lymphocytes**, specifically subsets of T cells or natural killer (NK) cells. Based on the marker genes, the top 3 most likely detailed subtypes are:
+
+---
+
+### 1. **Cytotoxic CD8+ T cells (Effector or Effector Memory Subtypes)**
+   - **Key supporting markers**: 
+     - GZMH, GZMK, GZMB, GZMA, PRF1 (granzymes and perforin, hallmark of cytotoxic activity)
+     - CD8A (CD8+ T cell marker)
+     - CCL5, CCL4, CCL3L3 (chemokines produced by cytotoxic T cells)
+     - NKG7, GNLY (granulysin, involved in cytotoxic granule function)
+     - EOMES, BATF (transcription factors associated with cytotoxic T cells).
+   - **Function**: These cells are responsible for killing infected or malignant cells via cytotoxic granules. Effector or effector memory CD8+ T cells are highly cytotoxic and produce inflammatory cytokines.
+
+---
+
+### 2. **Natural Killer (NK) Cells**
+   - **Key supporting markers**:
+     - GNLY, PRF1, GZMK, GZMM, GZMB, GZMA (cytotoxic granules, hallmark of NK cells)
+     - FGFBP2, KLRG1, FCRL6, S1PR5 (associated with mature NK cells)
+     - NKG7, CST7 (NK cell-specific markers)
+     - TIGIT, LAIR2 (inhibitory receptors expressed on NK cells).
+   - **Function**: NK cells are innate cytotoxic lymphocytes that kill virally infected or tumor cells without prior antigen sensitization. The presence of FGFBP2 and KLRG1 suggests these could be **mature cytotoxic NK cells**.
+
+---
+
+### 3. **γδ T Cells (Cytotoxic Subtype)**
+   - **Key supporting markers**:
+     - TRGC2 (T cell receptor gamma constant region, specific to γδ T cells)
+     - GZMH, GZMK, GZMB, GZMA, PRF1 (cytotoxic molecules)
+     - XCL2 (chemokine highly expressed in γδ T cells)
+     - CCL4, CCL5, CCL3L3 (chemokines produced by γδ T cells).
+   - **Function**: γδ T cells are a subset of T cells that bridge innate and adaptive immunity. They are known for their cytotoxic function and rapid response to stress signals, particularly in tissues like the bone marrow.
+
+---
+
+### Summary:
+Given the marker genes, the most likely subtypes for this cluster are:
+1. **Effector or Effector Memory CD8+ T cells**
+2. **Mature Cytotoxic NK cells**
+3. **Cytotoxic γδ T cells**
+
+Further confirmation could be achieved by analyzing expression levels of lineage-specific markers (e.g., CD3 for T cells vs. CD56 for NK cells) or integrating protein-level data if available (e.g., flow cytometry or CITE-seq).</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: CD8 Naive</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic CD8+ T cells (Effector or Memory)</td>
+                    <td>Strong presence of CD8A and CD8B, indicating CD8+ T cells, with CCR7 and LEF1 suggesting memory or naïve characteristics.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Naïve or Central Memory CD8+ T cells</td>
+                    <td>Characterized by the expression of CCR7 and LEF1, which are typical of less differentiated naïve or central memory T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Thymic-derived Developing T cells (Thymocytes)</td>
+                    <td>Indicated by the expression of BCL11B and LEF1, along with T-cell receptor components (CD3D, CD3E, CD3G), suggesting developing T cells.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster in question likely represents a T-cell subtype, as many of the marker genes are characteristic of T-cell identity and function. Specifically, the presence of **CD3D**, **CD3E**, **CD3G**, **CD8A**, **CD8B**, and **CCR7** strongly indicates a T-cell lineage. Additionally, other markers such as **LEF1**, **TCF7**, **BCL11B**, and **CD27** are associated with T-cell development and differentiation.
+
+Here are the top 3 most likely detailed subtypes based on the marker genes:
+
+### 1. **Cytotoxic CD8+ T cells (Effector or Memory)**
+   - Key markers: **CD8A**, **CD8B**, **CD3D**, **CD3E**, **CD3G**, **LEF1**, **TCF7**, **CCR7**, **BCL11B**, **CD27**
+   - These cells are cytotoxic T lymphocytes (CTLs) that play a role in killing virus-infected or cancerous cells. The presence of **CD8A** and **CD8B** strongly suggests CD8+ T cells, while **CCR7** and **LEF1** suggest that some of these cells might be memory or naïve T cells.
+
+### 2. **Naïve or Central Memory CD8+ T cells**
+   - Key markers: **CCR7**, **LEF1**, **TCF7**, **CD27**, **CD8A**, **CD8B**
+   - The expression of **CCR7** and **LEF1** is characteristic of naïve or central memory T cells, which are less differentiated and retain the ability to proliferate upon antigen stimulation. These cells circulate between blood and lymphoid tissues.
+
+### 3. **Thymic-derived Developing T cells (Thymocytes)**
+   - Key markers: **BCL11B**, **LEF1**, **CD3D**, **CD3E**, **CD3G**, **RUNX2**, **CCR7**
+   - The expression of **BCL11B** and **LEF1**, as well as the T-cell receptor (TCR) components (**CD3D**, **CD3E**, **CD3G**), suggests that this cluster may include developing T cells (thymocytes) undergoing selection in the thymus. **RUNX2** has also been implicated in thymocyte development.
+
+### Summary
+The cluster is most likely a population of T cells, with the top three subtypes being:
+1. Cytotoxic CD8+ T cells (effector or memory)
+2. Naïve or central memory CD8+ T cells
+3. Thymic-derived developing T cells (thymocytes)
+
+Further analysis, such as functional assays or comparison with known single-cell reference datasets, could help refine the exact subtype.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: GMP</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Promyelocytes (Granulocytic Precursors)</td>
+                    <td>Key marker genes like ELANE, PRTN3, MPO, AZU1, and CTSG are characteristic of promyelocytes, indicating immature granulocytic precursors involved in granule production.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Proliferating Myeloid Progenitors</td>
+                    <td>Marker genes such as MKI67, TOP2A, CDK1, UBE2C, TPX2, and PCNA indicate active cell cycle and proliferation, typical of rapidly dividing progenitor cells committed to granulocyte differentiation.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Myeloblasts</td>
+                    <td>The presence of MS4A3, RETN, and PRSS57 supports the identification of early myeloid precursors, which are the earliest identifiable precursors in the granulocytic lineage.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster appears to represent a population of **proliferating myeloid progenitors** or **granulocyte precursors**. Here's a breakdown of the most likely detailed subtypes:
+
+### 1. **Promyelocytes (Granulocytic Precursors)**
+   - Key marker genes like **ELANE (elastase)**, **PRTN3 (proteinase 3)**, **MPO (myeloperoxidase)**, **AZU1 (azurocidin)**, and **CTSG (cathepsin G)** are characteristic of promyelocytes, which are immature granulocytic precursors in the myeloid lineage.
+   - These genes are involved in the production of granules found in neutrophils and other granulocytes, indicating that this cluster is part of the granulopoiesis process.
+
+### 2. **Proliferating Myeloid Progenitors**
+   - Marker genes such as **MKI67**, **TOP2A**, **CDK1**, **UBE2C**, **TPX2**, and **PCNA** indicate active cell cycle and proliferation, which is typical of progenitor cells undergoing division.
+   - These genes suggest that the cluster includes rapidly dividing cells within the myeloid lineage, likely committed to granulocyte differentiation.
+
+### 3. **Myeloblasts**
+   - The presence of **MS4A3**, a well-known marker specific to myeloid progenitors, along with **RETN (resistin)** and **PRSS57**, supports the identification of early myeloid precursors, such as myeloblasts.
+   - Myeloblasts are the earliest identifiable precursors in the granulocytic lineage, and the expression of these genes suggests a role in early granulopoiesis.
+
+### Summary
+The top 3 most likely subtypes for this cluster are:
+1. **Promyelocytes**
+2. **Proliferating myeloid progenitors**
+3. **Myeloblasts**
+
+These cells are likely part of the granulopoietic pathway, as indicated by the combination of granule-related and proliferation-related marker genes.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: HSC</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Hematopoietic Stem Cells (HSCs)</td>
+                    <td>These are multipotent stem cells capable of self-renewal and differentiation into all blood cell lineages, marked by canonical markers like CD34 and PROM1, and critical transcription factors such as GATA2, MEIS1, and HOXA9.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Multipotent Progenitors (MPPs)</td>
+                    <td>Downstream of HSCs, MPPs retain multipotency but lose self-renewal capacity. They are characterized by markers like CD34, GATA2, BAALC, and EGFL7, with transcription factors like GATA2 and PBX1 regulating their transition from HSCs.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Common Myeloid Progenitors (CMPs)</td>
+                    <td>These progenitors give rise to myeloid lineages and are identified by markers such as CD34, GATA2, MMRN1, and MDK, which are associated with early myeloid differentiation and progenitor function.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the marker genes provided, the cell cluster most likely represents a population of **hematopoietic stem and progenitor cells (HSPCs)**, specifically enriched for early progenitor states. This conclusion is supported by the presence of key markers associated with stemness, early hematopoiesis, and lineage commitment. Here's a breakdown of the top 3 most likely subtypes:
+
+---
+
+### 1. **Hematopoietic Stem Cells (HSCs)**
+   - **Key markers:** CD34, PROM1 (also known as CD133), GATA2, HLF, ZNF521, MEIS1, HOXA9, HOXA10-AS
+   - **Description:** These are multipotent stem cells capable of self-renewal and differentiation into all blood cell lineages. CD34 and PROM1 are canonical markers of HSCs, while transcription factors like GATA2, MEIS1, and HOXA9 are critical regulators of stemness and early hematopoiesis. ZNF521 and HLF are also associated with primitive HSPCs.
+
+---
+
+### 2. **Multipotent Progenitors (MPPs)**
+   - **Key markers:** CD34, GATA2, BAALC, EGFL7, PBX1, SPINK2, TFPI, ANGPT1
+   - **Description:** MPPs are downstream of HSCs and have lost self-renewal capacity but retain multipotency. Markers like BAALC and EGFL7 are enriched in early hematopoietic progenitors, while ANGPT1 and SPINK2 are involved in cell survival and differentiation. GATA2 and PBX1 are transcription factors that regulate the transition from HSCs to MPPs.
+
+---
+
+### 3. **Common Myeloid Progenitors (CMPs)**
+   - **Key markers:** CD34, GATA2, MMRN1, MDK, CRHBP, NPR3, RBPMS
+   - **Description:** CMPs are progenitors that give rise to myeloid lineages, including granulocytes, monocytes, erythrocytes, and megakaryocytes. Markers like MMRN1 and MDK are associated with early myeloid differentiation, while NPR3 and CRHBP are linked to progenitor function and signaling.
+
+---
+
+### Supporting Evidence:
+- **Stemness-related genes:** CD34, PROM1, HLF, ZNF521, MEIS1, HOXA9, and GATA2 are hallmark markers of HSPCs.
+- **Progenitor-specific genes:** BAALC, EGFL7, SPINK2, and TFPI are enriched in early progenitors.
+- **Lineage priming:** The presence of genes like ANGPT1 (vascular support), NPR3 (signaling), and CRHBP (stress response) suggests early stages of lineage commitment.
+
+---
+
+### Summary:
+The top 3 most likely subtypes are:
+1. **Hematopoietic Stem Cells (HSCs)**
+2. **Multipotent Progenitors (MPPs)**
+3. **Common Myeloid Progenitors (CMPs)**
+
+This cluster likely represents an early hematopoietic population within the bone marrow, with a bias toward primitive stem and progenitor states. Further analysis (e.g., trajectory inference or functional assays) could refine this classification.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: LMPP</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Hematopoietic Stem and Progenitor Cells (HSPCs)</td>
+                    <td>Presence of classic markers like CD34 and PROM1 (CD133), along with HOXA7, BAALC, ERG, and KIT, strongly suggests this subtype.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Mast Cell Precursors</td>
+                    <td>Key markers such as CPA3, HPGDS, SPINK2, and KIT are expressed, indicating the presence of mast cell precursors.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Endothelial Progenitor Cells</td>
+                    <td>Expression of genes like EGFL7, ANGPT1, SPARC, and MDK (Midkine) points to this subtype.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>To determine the most likely subtypes of cells in this cluster based on the provided marker genes, we can analyze the expression patterns and known associations of these genes with specific human bone marrow cell types. Here's a detailed evaluation:
+
+### Top 3 Most Likely Subtypes:
+
+1. **Hematopoietic Stem and Progenitor Cells (HSPCs):**
+   - **Key markers supporting this subtype:**
+     - **CD34**: A classic marker for hematopoietic stem and progenitor cells.
+     - **PROM1 (CD133)**: Another well-known stem and progenitor cell marker.
+     - **HOXA7, BAALC, ERG**: Genes associated with early hematopoietic progenitors and stem cell maintenance.
+     - **KIT**: A marker of multipotent progenitor cells, particularly in early hematopoiesis.
+   - **Conclusion:** The presence of these markers strongly suggests that this cluster contains hematopoietic stem and progenitor cells.
+
+2. **Mast Cell Precursors:**
+   - **Key markers supporting this subtype:**
+     - **CPA3**: A classic marker for mast cells and their precursors.
+     - **HPGDS**: Encodes prostaglandin D2 synthase, which is highly expressed in mast cells.
+     - **SPINK2**: Known to be expressed in mast cells and involved in their function.
+     - **KIT**: Also expressed in mast cells and their precursors.
+   - **Conclusion:** The expression of these genes suggests the presence of mast cell precursors in this cluster.
+
+3. **Endothelial Progenitor Cells:**
+   - **Key markers supporting this subtype:**
+     - **EGFL7**: A gene associated with endothelial cells and angiogenesis.
+     - **ANGPT1**: A key factor in vascular development and endothelial cell function.
+     - **SPARC**: Involved in extracellular matrix remodeling, common in endothelial cells.
+     - **MDK (Midkine)**: Plays a role in angiogenesis and endothelial cell migration.
+   - **Conclusion:** The expression of these genes indicates the presence of endothelial progenitor cells in the cluster.
+
+### Summary:
+Based on the marker genes provided, the top 3 most likely subtypes for this cell cluster are:
+1. Hematopoietic Stem and Progenitor Cells (HSPCs).
+2. Mast Cell Precursors.
+3. Endothelial Progenitor Cells.
+
+If additional context about the dataset (e.g., single-cell RNA-seq, spatial localization, or other metadata) is available, it could further refine this interpretation.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: MAIT</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic CD8+ T cells (Effector/Memory Subtypes)</td>
+                    <td>Key markers like CD8A, granzymes (GZMK, GZMA, CTSW), chemokines (CCL5, CCL3L3), and transcription factors (EOMES, PRDM1) collectively suggest cytotoxic CD8+ T cells, potentially effector or memory subsets.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Natural Killer T (NKT) Cells</td>
+                    <td>Markers such as KLRB1, KLRG1, NCR3, granzymes (GZMK, GZMA), and transcription factors (RORA, ZBTB16) indicate innate-like T cells sharing features of both T cells and NK cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Innate Lymphoid Cells (ILC1 or ILC3 subsets)</td>
+                    <td>The presence of RORA, ZBTB16, granzymes (GZMK, GZMA), NCR3, IL7R, and chemokines (CCL5, CCL3L3) suggests this cluster might represent ILCs, particularly ILC1 or ILC3 subsets.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, this cell cluster is likely a subset of **T cells or innate lymphoid cells (ILCs)**, specifically pointing towards cytotoxic or helper subsets. Below are the top 3 most likely detailed subtypes based on the marker genes:
+
+### 1. **Cytotoxic CD8+ T cells (Effector/Memory Subtypes)**
+   - **Key supporting markers:**
+     - **CD8A**: A hallmark marker for CD8+ T cells.
+     - **GZMK, GZMA, CTSW**: Granzyme family members, indicating cytotoxic activity.
+     - **CCL5, CCL3L3**: Chemokines associated with effector T cell function.
+     - **KLRG1, KLRB1**: Markers of terminal differentiation or effector memory-like T cells.
+     - **IL7R**: Expressed in memory T cells.
+     - **EOMES, PRDM1 (Blimp-1)**: Transcription factors involved in cytotoxic T cell differentiation.
+
+   These markers collectively suggest this cluster represents cytotoxic CD8+ T cells, potentially effector or memory subsets.
+
+---
+
+### 2. **Natural Killer T (NKT) Cells**
+   - **Key supporting markers:**
+     - **KLRB1, KLRG1, NCR3**: Receptors commonly expressed in NKT cells and NK cells.
+     - **GZMK, GZMA**: Cytotoxic granules, indicating cytotoxic capabilities.
+     - **RORA**: A transcription factor important for NKT cell development.
+     - **IL18RAP**: A receptor subunit involved in IL-18 signaling, which is relevant for NKT cell activation.
+     - **ZBTB16 (PLZF)**: A transcription factor critical for NKT cell development.
+
+   This cluster could represent innate-like T cells such as NKT cells, which share features of both T cells and NK cells.
+
+---
+
+### 3. **Innate Lymphoid Cells (ILC1 or ILC3 subsets)**
+   - **Key supporting markers:**
+     - **RORA**: A transcription factor important in ILC3 differentiation.
+     - **ZBTB16**: Expressed in some ILC subsets.
+     - **GZMK, GZMA, NCR3**: Found in cytotoxic ILC1 subsets.
+     - **IL7R**: A key marker for ILCs, as they rely on IL-7 signaling for development and survival.
+     - **CCL5, CCL3L3**: Chemokines associated with ILC function.
+
+   The presence of these markers suggests this cluster might also represent ILCs, particularly ILC1 or ILC3 subsets.
+
+---
+
+### Summary:
+The top 3 most likely subtypes for this cluster are:
+1. **Cytotoxic CD8+ T cells (Effector/Memory subsets)**
+2. **Natural Killer T (NKT) cells**
+3. **Innate Lymphoid Cells (ILC1 or ILC3 subsets)**
+
+Further confirmation could involve looking at additional lineage-specific markers (e.g., TCR expression for T cells vs. absence in ILCs) or functional assays.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Memory B</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Memory B Cells</td>
+                    <td>Many listed genes are characteristic of B cells and their subtypes, with specific markers like FCRL2, FCRL5, FCGR2B, and transcription factors POU2AF1, EBF1, PAX5 supporting this subtype, indicating a subset of mature B cells primed for rapid response.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Naive B Cells</td>
+                    <td>While sharing common B cell markers with memory cells, the presence of highly expressed CD24 and transcription factors PAX5, EBF1 supports this subtype, representing mature B cells that have not yet encountered their specific antigen.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Plasmablasts (or Early Plasma Cells)</td>
+                    <td>Key markers like TNFRSF13B, TNFRSF13C, AIM2, BLK, SPIB, FCRL5, FCGR2B, and CD40 are associated with B cell activation and differentiation into plasmablasts/plasma cells, indicating activated B cells transitioning to antibody production.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The provided marker gene list suggests that the cell cluster is most likely of **B cell lineage**, as many of the listed genes are characteristic of B cells and their subtypes. Below are the top 3 most likely detailed subtypes, based on the marker genes provided:
+
+### 1. **Memory B Cells**
+   - **Key marker genes supporting this subtype**: 
+     - **MS4A1 (CD20)**: A classic marker for mature B cells, including memory B cells.
+     - **CD19, CD22, CD79A, CD79B**: Core B cell markers expressed in mature B cells.
+     - **FCRL2, FCRL5, FCGR2B**: These are markers associated with memory B cells and their regulatory functions.
+     - **POU2AF1, EBF1, PAX5**: Transcription factors critical for B cell development and memory differentiation.
+
+   Memory B cells are a subset of mature B cells that have undergone activation and are primed for rapid response upon antigen re-exposure.
+
+---
+
+### 2. **Naive B Cells**
+   - **Key marker genes supporting this subtype**:
+     - **MS4A1 (CD20), CD19, CD22, CD79A, CD79B**: Found in all mature B cells, including naive and memory subsets.
+     - **CD24**: Highly expressed in naive B cells and plays a role in their survival.
+     - **PAX5, EBF1**: Transcription factors essential for B cell identity and development.
+
+   Naive B cells are mature B cells that have not yet encountered their specific antigen. Their expression profile overlaps with memory B cells but lacks activation-induced changes.
+
+---
+
+### 3. **Plasmablasts (or Early Plasma Cells)**
+   - **Key marker genes supporting this subtype**:
+     - **TNFRSF13B (TACI), TNFRSF13C (BAFF-R)**: Receptors involved in B cell survival and differentiation into plasmablasts/plasma cells.
+     - **AIM2, BLK, SPIB**: Genes associated with B cell activation and early stages of plasma cell differentiation.
+     - **FCRL5, FCGR2B**: Markers of activated B cells and plasmablasts.
+     - **CD40**: A marker of B cell activation, often upregulated in plasmablasts.
+
+   Plasmablasts are activated B cells that are transitioning to plasma cells and are involved in antibody production.
+
+---
+
+### Summary
+The top 3 most likely subtypes, in order, are:
+1. **Memory B Cells**
+2. **Naive B Cells**
+3. **Plasmablasts**
+
+Further analysis, such as protein expression (e.g., flow cytometry) or functional assays, could help refine the classification. Additionally, the presence of certain activation markers (e.g., CD40) and transcriptional regulators (e.g., SPIB) might indicate a more activated or differentiated state.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: NK</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Cytotoxic CD56dim NK Cells</td>
+                    <td>They are the major subset in peripheral blood, highly cytotoxic, and express markers associated with degranulation (e.g., GNLY, PRF1, GZMB), with CD160 and KLRD1 supporting maturity and cytotoxicity.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>CD56bright NK Cells</td>
+                    <td>They are less cytotoxic, more involved in cytokine production, and express IL2RB and IL18RAP, indicating responsiveness to cytokines like IL-2 and IL-18.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Adaptive NK Cells (NKG2C+ or FcRγ-deficient NK Cells)</td>
+                    <td>They are a specialized subset arising after CMV infection, characterized by high expression of FCGR3A (CD16) and SH2D1B (EAT-2) involved in ADCC, and the presence of CCL4 and CCL3.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The provided list of marker genes strongly suggests that this cluster represents **natural killer (NK) cells**, specifically cytotoxic NK cells, due to the presence of genes associated with NK cell function and cytotoxicity. Here are the top three most likely detailed subtypes of NK cells based on the marker genes:
+
+---
+
+### 1. **Cytotoxic CD56dim NK Cells**
+   - **Key Marker Genes:** GNLY, PRF1, GZMB, GZMH, NKG7, KLRD1, CD160, FGFBP2, KLRF1, S1PR5, FCGR3A
+   - **Rationale:** CD56dim NK cells are the major subset of NK cells in peripheral blood and bone marrow. They are highly cytotoxic and express markers associated with degranulation (e.g., GNLY, PRF1, GZMB). The presence of CD160 and KLRD1 (CD94) further supports this subtype, as these are characteristic of mature and cytotoxic NK cells.
+
+---
+
+### 2. **CD56bright NK Cells**
+   - **Key Marker Genes:** TBX21, IL18RAP, IL2RB, PTGDR
+   - **Rationale:** CD56bright NK cells are less cytotoxic than CD56dim NK cells and are more involved in cytokine production. The expression of IL2RB (CD122) and IL18RAP indicates responsiveness to cytokines like IL-2 and IL-18, which are characteristic of this subset. TBX21 (T-bet) plays a role in NK cell development and function.
+
+---
+
+### 3. **Adaptive NK Cells (NKG2C+ or FcRγ-deficient NK Cells)**
+   - **Key Marker Genes:** FCGR3A, SH2D1B, FCRL6, CCL4, CCL3
+   - **Rationale:** Adaptive NK cells are a specialized subset that arises after cytomegalovirus (CMV) infection. They are characterized by high expression of FCGR3A (CD16) and SH2D1B (EAT-2), which are involved in antibody-dependent cellular cytotoxicity (ADCC). The presence of CCL4 and CCL3 (chemokines) also fits with the inflammatory and cytotoxic profile of these cells.
+
+---
+
+### Summary:
+Based on the marker genes, the top three most likely subtypes of this cluster are:
+1. **Cytotoxic CD56dim NK Cells**
+2. **CD56bright NK Cells**
+3. **Adaptive NK Cells**
+
+Further validation could be performed using flow cytometry or additional single-cell RNA-seq analysis to confirm the expression of key distinguishing markers like CD56, CD16, and NKG2C.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Naive B</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Naive B cells</td>
+                    <td>Characterized by expression of IGHD, TCL1A, and markers associated with early B cell activation and antigen-independent development.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Memory B cells</td>
+                    <td>Express markers involved in secondary immune responses and antigen recall, such as CD40, CD83, and FCGR2B.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Follicular B cells (germinal center B cells)</td>
+                    <td>Involved in germinal center reactions, indicated by markers like FCRLA, BLNK, and TNFRSF13C.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster is most likely a B cell population, as many of these genes are specific to B cell lineage and function. The marker genes include well-known B cell markers such as **CD19, CD79A, CD79B, MS4A1 (encoding CD20), CD72, CD22, PAX5, and FCRL family genes**, which are critical for B cell development, signaling, and function. Additionally, the presence of **IGHD** indicates immunoglobulin production, further pointing towards B cells.
+
+Here are the **top 3 most likely detailed subtypes** of this cell cluster:
+
+### 1. **Naive B cells**
+   - **Key markers**: IGHD, TCL1A, MS4A1 (CD20), CD79A, CD79B, CD19, PAX5
+   - Naive B cells are characterized by the expression of immunoglobulin D (IGHD) and markers associated with early B cell activation and antigen-independent development. TCL1A is also highly expressed in naive B cells.
+
+### 2. **Memory B cells**
+   - **Key markers**: CD19, CD72, CD22, MS4A1 (CD20), CD40, CD83, BANK1, FCGR2B
+   - Memory B cells express markers involved in secondary immune responses and antigen recall. CD40 and CD83 are associated with activation, while FCGR2B is involved in antibody feedback regulation.
+
+### 3. **Follicular B cells (germinal center B cells)**
+   - **Key markers**: CD19, CD79A, CD79B, PAX5, FCRLA, FCRL2, FCRL3, BLNK, TNFRSF13C (BAFF receptor), SWAP70
+   - Follicular B cells are involved in germinal center reactions, where they undergo somatic hypermutation and class switching. Markers like FCRLA, BLNK, and TNFRSF13C indicate their role in these processes.
+
+### Additional Notes:
+- The presence of **HLA-DOA and HLA-DOB** suggests antigen presentation, a function associated with B cells.
+- The expression of **IL4R** may indicate responsiveness to T cell help, particularly in germinal center or memory B cells.
+
+### Conclusion:
+The most likely identity of this cell cluster is a **B cell population**, with the top 3 subtypes being **naive B cells, memory B cells, and follicular B cells**. Further analysis, such as clustering with additional markers or functional studies, could help refine this classification.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Plasmablast</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Mature/Long-lived Plasma Cells</td>
+                    <td>These are fully differentiated antibody-secreting plasma cells residing in the bone marrow, responsible for long-term humoral immunity, and characterized by high expression of immunoglobulin heavy/light chains, CD138 (SDC1), TNFRSF17 (BCMA), and MZB1.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Plasmablasts</td>
+                    <td>These are intermediate cells between activated B cells and mature plasma cells, highly secretory but not fully differentiated, characterized by high immunoglobulin gene expression, JCHAIN, lower SDC1 (CD138) than mature plasma cells, and TXNDC5/DERL3.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>IgA-secreting Plasma Cells</td>
+                    <td>These are specialized plasma cells producing IgA, predominant in mucosal immunity, characterized by high expression of IGHA1/IGHA2, JCHAIN, SDC1 (CD138), and TNFRSF13B (TACI).</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The provided marker genes strongly suggest that this cell cluster is composed of **plasma cells**, which are terminally differentiated B cells specialized in antibody production. Plasma cells are commonly found in the bone marrow and are characterized by high expression of immunoglobulin genes and other markers associated with antibody synthesis and secretion.
+
+Here are the **top 3 most likely detailed subtypes** of plasma cells based on the marker genes:
+
+---
+
+### 1. **Mature/Long-lived Plasma Cells**
+   - **Key markers:** 
+     - Immunoglobulin heavy chains (e.g., IGHG1, IGHG2, IGHG3, IGHG4, IGHA1, IGHA2, IGHM)
+     - Immunoglobulin light chains (e.g., IGLC2, IGLC3, IGKC, IGKV1-12, IGLV6-57, IGLV3-1)
+     - CD138 (encoded by **SDC1**), a hallmark of mature plasma cells
+     - **TNFRSF17** (BCMA), a receptor critical for plasma cell survival
+     - **MZB1**, which is involved in immunoglobulin folding and secretion
+   - **Description:** These are fully differentiated antibody-secreting plasma cells that reside in the bone marrow and are responsible for long-term humoral immunity.
+
+---
+
+### 2. **Plasmablasts**
+   - **Key markers:** 
+     - High expression of immunoglobulin genes (e.g., IGHG1, IGHA1, IGHM)
+     - **JCHAIN**, which is involved in the assembly of polymeric antibodies like IgA and IgM
+     - Lower expression of **SDC1** (CD138) compared to mature plasma cells
+     - **TXNDC5** and **DERL3**, which are involved in protein folding and endoplasmic reticulum stress, reflecting a high rate of antibody production
+   - **Description:** Plasmablasts are intermediate cells between activated B cells and mature plasma cells. They are highly secretory but not yet fully differentiated. They are often found in circulation or in transitional niches.
+
+---
+
+### 3. **IgA-secreting Plasma Cells**
+   - **Key markers:** 
+     - High expression of **IGHA1** and **IGHA2** (immunoglobulin A heavy chains)
+     - **JCHAIN**, which is critical for polymeric IgA assembly
+     - **SDC1** (CD138), indicating plasma cell identity
+     - **TNFRSF13B** (TACI), which is involved in IgA class switching
+   - **Description:** IgA-secreting plasma cells are specialized plasma cells that produce IgA, the predominant antibody in mucosal immunity. These cells can also reside in the bone marrow and contribute to systemic IgA production.
+
+---
+
+### Summary
+The most likely identity of this cluster is **plasma cells**, with the top subtypes being:
+1. Mature/long-lived plasma cells
+2. Plasmablasts
+3. IgA-secreting plasma cells
+
+The expression of immunoglobulin genes, CD138 (SDC1), and other plasma cell-specific markers strongly supports this classification. Further validation could involve examining the expression of additional markers such as CD19, CD38, and CD27 or assessing functional properties like antibody secretion.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Prog_B 1</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Pro-B Cells</td>
+                    <td>Key evidence includes marker genes DNTT, RAG1, RAG2, VPREB1, IGLL1, and EBF1, involved in V(D)J recombination and immunoglobulin gene rearrangement, characteristic of early B-cell development, with additional support from CD24 and CD38 expression.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Pre-B Cells</td>
+                    <td>Genes like VPREB1, VPREB3, IGLL1, and EBF1 are expressed, along with CD24 and CD38. These cells are distinguished by the expression of the pre-B cell receptor after successful immunoglobulin heavy chain rearrangement.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Immature B Cells</td>
+                    <td>The presence of MME (CD10) and CD38 is indicative. While further along in differentiation and expressing surface IgM, the presence of DNTT, RAG1, and RAG2 suggests earlier stages are more likely, but immature B cells cannot be entirely ruled out.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The marker genes listed strongly suggest that this cell cluster represents immature lymphoid progenitors, specifically B-cell precursors. Based on the marker genes, here are the top three most likely subtypes of cells in this cluster:
+
+### 1. **Pro-B Cells**:
+   - **Key evidence**: Marker genes such as **DNTT**, **RAG1**, **RAG2**, **VPREB1**, **IGLL1**, and **EBF1** are highly characteristic of early B-cell development. These genes are involved in V(D)J recombination and immunoglobulin gene rearrangement, which are hallmarks of pro-B cells.
+   - **Additional support**: **CD24** and **CD38** are also expressed in early B-cell precursors, consistent with pro-B cells.
+
+### 2. **Pre-B Cells**:
+   - **Key evidence**: Genes like **VPREB1**, **VPREB3**, **IGLL1**, and **EBF1** are also expressed in pre-B cells, which are slightly more differentiated than pro-B cells. The presence of **CD24** and **CD38** further supports this stage. Pre-B cells are distinguished by the expression of the pre-B cell receptor, which forms as a result of successful immunoglobulin heavy chain rearrangement.
+
+### 3. **Immature B Cells**:
+   - **Key evidence**: The presence of **MME** (also known as CD10) and **CD38** is indicative of immature B cells. These cells are further along in differentiation compared to pro-B and pre-B cells, and they express surface immunoglobulin (IgM). However, the presence of genes like **DNTT**, **RAG1**, and **RAG2** suggests that this cluster is more likely to represent earlier stages (pro-B or pre-B cells), but immature B cells cannot be ruled out entirely.
+
+### Summary:
+The most likely detailed subtypes, in descending order of likelihood, are:
+1. **Pro-B Cells**  
+2. **Pre-B Cells**  
+3. **Immature B Cells**  
+
+These cells represent sequential stages in the B-cell development pathway in the bone marrow.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Prog_B 2</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Pro-B Cells (Early B-cell Precursors)</td>
+                    <td>Marker genes like VPREB1, RAG2, IGLL1, and DNTT are strongly associated with immunoglobulin heavy chain recombination, a hallmark of pro-B cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Pre-B Cells (Late B-cell Precursors)</td>
+                    <td>The presence of VPREB1, IGLL1, MME (CD10), and cell cycle-related genes (MKI67, AURKB, TYMS, STMN1) suggests transition to the pre-B cell stage with active proliferation.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Immature B Cells</td>
+                    <td>Markers like CD24 and MME (CD10) are expressed, and the presence of IGLC5 suggests some light chain rearrangement, characteristic of immature B cells.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster likely represents a population of **developing B cells** in the human bone marrow. Many of the markers listed are associated with early B-cell development, cell cycle activity, and immunoglobulin gene rearrangement. Here are the top 3 most likely detailed subtypes:
+
+---
+
+### 1. **Pro-B Cells (Early B-cell Precursors)**
+   - Marker genes like **VPREB1**, **RAG2**, and **IGLL1** are strongly associated with early B-cell development. These genes are involved in immunoglobulin heavy chain (IgH) recombination, a hallmark of pro-B cells.
+   - Additional markers like **DNTT** (terminal deoxynucleotidyl transferase) further indicate active V(D)J recombination, a key process in early B-cell maturation.
+
+---
+
+### 2. **Pre-B Cells (Late B-cell Precursors)**
+   - The presence of **VPREB1**, **IGLL1**, and **MME** (CD10) suggests a transition to the pre-B cell stage, where cells express a pre-B cell receptor (pre-BCR).
+   - Cell cycle-related genes like **MKI67**, **AURKB**, **TYMS**, and **STMN1** suggest active proliferation, which is a hallmark of pre-B cells undergoing clonal expansion.
+
+---
+
+### 3. **Immature B Cells**
+   - Markers such as **CD24** and **MME** (CD10) are also expressed in immature B cells, which are the stage following successful light chain rearrangement and expression of a functional B-cell receptor (BCR).
+   - The presence of genes like **IGLC5** (immunoglobulin lambda chain) suggests some degree of light chain rearrangement, which is characteristic of immature B cells.
+
+---
+
+### Summary:
+The most likely identity of this cluster is a population of **developing B cells**, with the top subtypes being:
+1. **Pro-B cells** (early B-cell precursors).
+2. **Pre-B cells** (late B-cell precursors).
+3. **Immature B cells** (post-rearrangement).
+
+These developmental stages are consistent with the bone marrow microenvironment, which is the primary site of B-cell development.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Prog_DC</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Proliferating Hematopoietic Progenitor Cells (HSPCs)</td>
+                    <td>Marker genes are strongly associated with cell cycle progression and mitotic activity, hallmarks of hematopoietic progenitor cells undergoing active proliferation.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Proliferating Myeloid Progenitor Cells</td>
+                    <td>Presence of genes like FCER1A (myeloid lineage bias) alongside high expression of proliferation-associated genes suggests actively dividing myeloid progenitors.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Proliferating Lymphoid Progenitor Cells</td>
+                    <td>High proliferative activity could correspond to lymphoid progenitors during their expansion phase, even without explicit lymphoid lineage markers.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>The list of marker genes provided is indicative of a highly proliferative cell population, as many of the genes are associated with cell cycle regulation, mitosis, and proliferation. This suggests that the cell cluster may represent a population of actively dividing cells in the human bone marrow. Based on this information, here are the top 3 most likely detailed subtypes:
+
+### 1. **Proliferating Hematopoietic Progenitor Cells (HSPCs)**
+   - Many of the marker genes (e.g., MKI67, TOP2A, AURKB, CDK1, BIRC5, PLK1, and FOXM1) are strongly associated with cell cycle progression and mitotic activity, which are hallmarks of hematopoietic progenitor cells undergoing active proliferation. These cells are critical for replenishing various lineages of blood cells and are commonly found in the bone marrow.
+
+### 2. **Proliferating Myeloid Progenitor Cells**
+   - The presence of genes such as FCER1A (which may indicate a myeloid lineage bias) alongside the high expression of proliferation-associated genes suggests that this cluster could represent myeloid progenitors, particularly those actively dividing and differentiating into granulocytes, monocytes, or other myeloid-derived cells.
+
+### 3. **Proliferating Lymphoid Progenitor Cells**
+   - Although the marker genes do not explicitly indicate a lymphoid lineage, the high proliferative activity could also correspond to lymphoid progenitors, particularly during their expansion phase. These cells give rise to B cells, T cells, and NK cells in the bone marrow.
+
+### Summary:
+The most likely identity of this cell cluster is a population of **proliferating hematopoietic progenitor cells**, with potential biases toward **myeloid** or **lymphoid progenitor subtypes** depending on additional lineage-specific markers. To confirm the exact subtype, further analysis (e.g., lineage-specific markers, surface protein expression, or functional assays) would be required.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Prog_Mk</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Mature Megakaryocytes</td>
+                    <td>Key markers like PF4, VWF, ITGA2B, SELP, GNG11, SDPR, TIMP3, MMRN1 are highly expressed and are hallmark markers of mature megakaryocytes, critical for platelet formation and function.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Immature Megakaryocytes / Megakaryocyte Progenitors</td>
+                    <td>These cells express transcription factors such as GATA2, MEIS1, and TAL1, which are crucial for early megakaryopoiesis, along with ANGPT1 and PBX1 linked to development and progenitor function.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Platelet Precursors / Proplatelet-Forming Megakaryocytes</td>
+                    <td>These cells are at late differentiation stages, actively forming proplatelets, sharing a similar marker profile with mature megakaryocytes (PF4, ITGA2B, VWF, SELP, SDPR, TIMP3, MMRN1) but with potentially lower expression of early transcription factors.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker genes, the cell cluster you are analyzing likely represents a population of **megakaryocyte lineage cells** or closely related subtypes. This conclusion is drawn from the presence of well-known megakaryocyte and platelet-associated markers (e.g., **PF4, VWF, ITGA2B, SELP, SDPR, GNG11, TIMP3, MMRN1**) as well as transcription factors and regulators involved in megakaryocyte differentiation (e.g., **GATA2, MEIS1, TAL1**). Below are the **top 3 most likely detailed subtypes** for this cell cluster:
+
+---
+
+### 1. **Mature Megakaryocytes**
+   - **Key markers**: PF4, VWF, ITGA2B, SELP, GNG11, SDPR, TIMP3, MMRN1
+   - **Explanation**: These genes are highly expressed in mature megakaryocytes, which are large polyploid cells responsible for producing platelets. PF4 and VWF are hallmark markers of megakaryocyte granules, ITGA2B (also known as CD41) and SELP (P-selectin) are critical for platelet formation, and SDPR and GNG11 are associated with megakaryocyte maturation and function.
+
+---
+
+### 2. **Immature Megakaryocytes / Megakaryocyte Progenitors**
+   - **Key markers**: GATA2, MEIS1, TAL1, ANGPT1, PBX1, CYTL1
+   - **Explanation**: Immature megakaryocytes or their progenitors would express transcription factors like GATA2, MEIS1, and TAL1, which are crucial for early megakaryopoiesis. These cells are less differentiated than mature megakaryocytes, but they still express lineage-specific markers. ANGPT1 and PBX1 are also linked to megakaryocyte development and progenitor function.
+
+---
+
+### 3. **Platelet Precursors / Proplatelet-Forming Megakaryocytes**
+   - **Key markers**: PF4, ITGA2B, VWF, SELP, SDPR, TIMP3, MMRN1
+   - **Explanation**: These cells are at the late stages of megakaryocyte differentiation, actively forming proplatelets. They share a similar marker profile with mature megakaryocytes but may have slightly lower expression of transcription factors like TAL1 and GATA2, as they are more focused on platelet production.
+
+---
+
+### Additional Considerations:
+- **CMTM5, SPARC, and NPR3**: These genes may be expressed in megakaryocytes but are also found in other stromal or endothelial cells. However, their co-expression with PF4, ITGA2B, and VWF strongly supports a megakaryocyte lineage.
+- **IL1B**: This may suggest some inflammatory signaling within the cluster, potentially reflecting activated states of these cells or nearby microenvironmental effects.
+
+In summary, the most likely identity of this cluster is **megakaryocytes or related subtypes**, with the top three detailed subtypes being **mature megakaryocytes, immature megakaryocytes/progenitors, and proplatelet-forming megakaryocytes**.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Prog_RBC</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Erythroblasts (Immature Red Blood Cell Precursors)</td>
+                    <td>Strong association with marker genes like GYPA, HBA1/HBA2, HBB, ALAS2, AHSP, and SLC4A1, indicating active hemoglobin synthesis and maturation.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Proerythroblasts (Early Erythroid Precursors)</td>
+                    <td>Express early-stage erythroid markers such as KLF1 and ALAS2, critical for initiating erythroid differentiation, along with SOX6 and TRIM10.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Reticulocytes (Late Erythroid Precursors)</td>
+                    <td>Associated with structural and functional markers like GYPA, SLC4A1, RHAG, and ANK1, representing the final stage before mature red blood cells.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the marker genes provided, this cell cluster appears to be associated with erythroid lineage cells, which are red blood cell precursors. The genes listed include several key markers of erythroid cells, such as **GYPA**, **HBA1**, **HBB**, **ALAS2**, **SLC4A1**, **AHSP**, and others, which are involved in hemoglobin production, erythrocyte membrane structure, and oxygen transport.
+
+Here are the **top 3 most likely detailed subtypes** of this cell cluster:
+
+### 1. **Erythroblasts (Immature Red Blood Cell Precursors)**  
+   - Marker genes such as **GYPA (glycophorin A)**, **HBA1/HBA2 (alpha-globin)**, **HBB (beta-globin)**, **ALAS2 (heme biosynthesis enzyme)**, **AHSP (alpha-hemoglobin stabilizing protein)**, and **SLC4A1 (Band 3 protein)** are strongly associated with erythroblasts. These cells are actively synthesizing hemoglobin and undergoing maturation to become reticulocytes and eventually erythrocytes.
+
+### 2. **Proerythroblasts (Early Erythroid Precursors)**  
+   - Early-stage erythroid precursors, such as proerythroblasts, express markers like **KLF1 (erythroid transcription factor)** and **ALAS2**, which are critical for initiating erythroid differentiation. Other markers like **SOX6** and **TRIM10** are also associated with early erythroid development.
+
+### 3. **Reticulocytes (Late Erythroid Precursors)**  
+   - Reticulocytes are the final stage of erythroid maturation before becoming mature red blood cells. Marker genes such as **GYPA**, **SLC4A1**, **RHAG**, and **ANK1** are associated with the structural and functional properties of these nearly mature red blood cells.
+
+### Summary
+The cell cluster is most likely part of the erythroid lineage, with the top subtypes being **erythroblasts**, **proerythroblasts**, and **reticulocytes**. The presence of key hemoglobin-related genes, membrane protein genes, and erythroid-specific transcription factors strongly supports this conclusion.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: Treg</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Regulatory T cells (Tregs)</td>
+                    <td>The presence of IL2RA (CD25), TIGIT, and GATA3 strongly suggests a population of regulatory T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Effector memory T cells (TEM)</td>
+                    <td>The expression of CD27, CD5, and ITGB7, along with TCR components, indicates a population of activated or memory T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>CD4+ helper T cells (likely Th2 subtype)</td>
+                    <td>The expression of GATA3, a master regulator of Th2 differentiation, along with IL32 and PRDM1, points to a population of CD4+ helper T cells, particularly Th2 cells.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>To determine the most likely identity of the cell cluster based on the provided marker genes, we need to analyze the expression of these genes and their known associations with specific cell types in human bone marrow. The listed genes strongly suggest that this cluster belongs to T cells, specifically subsets of mature T lymphocytes, due to the presence of key T-cell markers.
+
+### Key observations from the marker genes:
+1. **T-cell receptor (TCR) components and signaling molecules**:  
+   - **TRAC, TRBC1, TRBC2, CD3D, CD3E, CD3G**: These genes encode components of the T-cell receptor complex, which is critical for T-cell activation. Their presence is a hallmark of T cells.
+   - **LCK, ITK, RASGRP1, PAG1**: These are signaling molecules downstream of the TCR, further confirming T-cell identity.
+
+2. **T-cell surface markers**:  
+   - **CD2, CD3E, CD3G, CD5, CD6, CD27**: These are surface markers associated with T cells, particularly mature T cells. **CD27** is expressed on memory and activated T cells.
+
+3. **Transcription factors associated with T-cell differentiation**:  
+   - **GATA3, BCL11B, LEF1, PRDM1**: These transcription factors are critical for T-cell lineage specification and function. For example, **GATA3** is associated with Th2 helper T cells, and **BCL11B** is a master regulator of T-cell commitment.
+
+4. **Cytokine receptors and immune-related genes**:  
+   - **IL2RA (CD25)**: This is the alpha chain of the IL-2 receptor, a marker of activated or regulatory T cells (Tregs).
+   - **TIGIT**: A co-inhibitory receptor expressed on subsets of T cells, including Tregs and exhausted T cells.
+
+5. **Other immune-related genes**:  
+   - **S1PR4**: A sphingosine-1-phosphate receptor involved in T-cell migration.
+   - **GBP2, PIM2, SLFN5**: Genes associated with immune responses and T-cell activation.
+
+### Top 3 most likely detailed subtypes of this cell cluster:
+1. **Regulatory T cells (Tregs)**:  
+   - The presence of **IL2RA (CD25)**, **TIGIT**, and **GATA3** strongly suggests a population of regulatory T cells. Tregs are a specialized subset of CD4+ T cells that maintain immune tolerance and prevent autoimmunity. **IL2RA** is a key marker for Tregs, and **TIGIT** is often expressed on suppressive Tregs.
+
+2. **Effector memory T cells (TEM)**:  
+   - The expression of **CD27**, **CD5**, and **ITGB7**, along with TCR components, indicates a population of activated or memory T cells. Effector memory T cells are differentiated T cells that have previously encountered antigen and can quickly respond upon re-exposure.
+
+3. **CD4+ helper T cells (likely Th2 subtype)**:  
+   - The expression of **GATA3**, a master regulator of Th2 differentiation, along with **IL32** and **PRDM1**, points to a population of CD4+ helper T cells, particularly Th2 cells. Th2 cells are involved in humoral immunity and help B cells produce antibodies.
+
+### Summary:
+The cell cluster is most likely composed of T cells, with the top 3 most likely subtypes being:
+1. Regulatory T cells (Tregs).  
+2. Effector memory T cells (TEM).  
+3. CD4+ helper T cells (likely Th2 subtype).</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: cDC2</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>cDC2 (Conventional Dendritic Cells Type 2)</td>
+                    <td>Strong association with marker genes like CD1C, CLEC10A, FCER1A, HLA-DQA1, HLA-DRB1, HLA-DPB1, and FLT3, which are specialized in antigen presentation and activating CD4+ T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>cDC1 (Conventional Dendritic Cells Type 1)</td>
+                    <td>Indicated by genes like BATF3, HLA-DRA, HLA-DMA, and HLA-DPA1, but less likely than cDC2 due to the lack of hallmark cDC1 markers such as XCR1 and CLEC9A.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Plasmacytoid Dendritic Cells (pDCs)</td>
+                    <td>Shares some genes like HLA-DRA, HLA-DPA1, and HLA-DPB1, but less likely than cDCs due to the absence of classic pDC markers such as IRF7, IRF8, and LILRA4.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided marker gene list, the cell cluster is highly likely to represent **dendritic cells (DCs)**, specifically conventional dendritic cells (cDCs). The expression of genes such as **CD1C, CD1E, CLEC10A, FCER1A, HLA-DQA1, HLA-DRA, HLA-DPB1, HLA-DRB1, HLA-DMA**, and **FLT3** strongly suggests a dendritic cell identity, as these are characteristic of antigen-presenting cells involved in immune surveillance and T cell activation.
+
+### Top 3 Most Likely Subtypes:
+1. **cDC2 (Conventional Dendritic Cells Type 2)**  
+   - **Evidence**: Marker genes like **CD1C, CLEC10A, FCER1A, HLA-DQA1, HLA-DRB1, HLA-DPB1**, and **FLT3** are strongly associated with cDC2, which are specialized in antigen presentation and activating CD4+ T cells. cDC2 are often identified by their expression of CD1C and other MHC class II-related genes.
+   
+2. **cDC1 (Conventional Dendritic Cells Type 1)**  
+   - **Evidence**: Genes like **BATF3, HLA-DRA, HLA-DMA, and HLA-DPA1** point to cDC1, which are efficient at cross-presentation and activation of CD8+ T cells. However, the lack of hallmark cDC1 markers like **XCR1** and **CLEC9A** makes this subtype slightly less likely compared to cDC2.
+
+3. **Plasmacytoid Dendritic Cells (pDCs)**  
+   - **Evidence**: Some genes, such as **HLA-DRA, HLA-DPA1, and HLA-DPB1**, are shared with pDCs, which are known for their role in producing type I interferons during viral infections. However, the absence of classic pDC markers like **IRF7, IRF8, and LILRA4** makes this subtype less likely than cDCs.
+
+### Conclusion:
+The most probable identity of this cell cluster is **cDC2**, followed by **cDC1** and, less likely, **pDCs**. Further validation could involve checking for additional subtype-specific markers (e.g., **XCR1** for cDC1 or **LILRA4** for pDCs) or functional assays to confirm their role in antigen presentation or interferon production.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: gdT</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Effector Natural Killer (NK) Cells</td>
+                    <td>Most likely based on the strong NK gene signature, including classical NK cell-associated markers and cytotoxic granules.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>CD8+ Effector Cytotoxic T Cells</td>
+                    <td>Likely due to T-cell receptor-related genes, cytotoxic markers, and transcription factors critical for effector CD8+ T cells.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Gamma Delta (γδ) T Cells</td>
+                    <td>Due to the presence of specific TRDC/TRGC genes and shared NK-like features, indicating a unique T-cell subset with innate-like properties.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided list of marker genes, this cell cluster is most likely a subset of **natural killer (NK) cells** or cytotoxic T cells, as these genes are characteristic of cytotoxic lymphocytes. Here's a breakdown of the top 3 most likely subtypes:
+
+### 1. **Effector Natural Killer (NK) Cells**
+   - **Key markers supporting this subtype**: 
+     - **TRDC, TRGC1, TRGC2**: Indicate T-cell receptor (TCR)-related genes, which can also be expressed in innate-like T cells and NK cells.
+     - **KLRC1, KLRD1, KLRG1, NKG7, GNLY, PRF1, GZMK, GZMA, GZMH, GZMM**: These are classical NK cell-associated markers, including cytotoxic granules (granzymes, perforin) and activating/inhibitory receptors (e.g., KLRC1/NKG2A, KLRD1/CD94, KLRG1).
+     - **CCL5, FGFBP2, CST7**: Known to be highly expressed in cytotoxic NK cells.
+     - **S1PR5**: A receptor that is highly expressed in mature NK cells and involved in their migration.
+
+   - **Subtype explanation**: These cells are likely mature, cytotoxic NK cells that play a role in innate immunity by targeting virally infected or transformed cells.
+
+---
+
+### 2. **CD8+ Effector Cytotoxic T Cells**
+   - **Key markers supporting this subtype**:
+     - **TRDC, TRGC1, TRGC2**: Suggest T-cell lineage, specifically cytotoxic T cells.
+     - **TBX21 (T-bet)**: A transcription factor critical for the differentiation of effector CD8+ T cells.
+     - **GZMK, GZMA, GZMM, PRF1, GNLY**: Cytotoxic granules and effector molecules indicative of cytotoxic T cell activity.
+     - **LAG3, KLRG1**: Markers of activated or terminally differentiated CD8+ T cells.
+     - **CCL5, DUSP2**: Also associated with effector CD8+ T cell function.
+
+   - **Subtype explanation**: This cluster may represent cytotoxic CD8+ T cells in an activated or effector state, possibly involved in adaptive immune responses.
+
+---
+
+### 3. **Gamma Delta (γδ) T Cells**
+   - **Key markers supporting this subtype**:
+     - **TRDC, TRGC1, TRGC2**: Gamma delta T-cell receptor components, which are highly specific to γδ T cells.
+     - **KLRD1, KLRC1, NKG7, GNLY, PRF1, GZMA, GZMM**: Cytotoxic and NK-like features, which are common in γδ T cells.
+     - **TBX21, ZBTB16**: Transcription factors associated with γδ T-cell differentiation.
+     - **S100B**: A marker that has been reported in some γδ T-cell subsets.
+     - **RORA**: Implicated in the development of certain innate-like T-cell subsets, including γδ T cells.
+
+   - **Subtype explanation**: These cells could be γδ T cells, a unique T-cell subset with innate-like properties, known for their cytotoxicity and rapid response to infection or stress.
+
+---
+
+### Summary of Top 3 Subtypes:
+1. **Effector Natural Killer (NK) Cells** (most likely based on the strong NK gene signature).
+2. **CD8+ Effector Cytotoxic T Cells** (likely due to T-cell receptor-related genes and cytotoxic markers).
+3. **Gamma Delta (γδ) T Cells** (due to the presence of TRDC/TRGC genes and shared NK-like features).
+
+Further validation (e.g., protein-level validation or additional metadata) would help refine this classification.</pre>
+    </details>
+</div>
+
+<div class="cluster-section">
+    <h2>Cluster: pDC</h2>
+    <h3>Top Hypotheses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Predicted Cell Type</th>
+                <th>Reasoning</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>1</td>
+                    <td>Plasmacytoid Dendritic Cells (pDCs)</td>
+                    <td>Strong expression of LILRA4, CLEC4C, and IL3RA makes this the most likely subtype.</td>
+                </tr>
+                
+                <tr>
+                    <td>2</td>
+                    <td>Pre-B Cells or Early B Lineage Cells</td>
+                    <td>The presence of EPHB1, PHEX, and NOTCH4 suggests an early B cell population.</td>
+                </tr>
+                
+                <tr>
+                    <td>3</td>
+                    <td>Megakaryocyte Progenitors</td>
+                    <td>The expression of genes like TPM2, SERPINF1, and GAS6 points toward a megakaryocyte progenitor population.</td>
+                </tr>
+                
+        </tbody>
+    </table>
+    <details>
+        <summary>View Raw LLM Output</summary>
+        <pre>Based on the provided list of marker genes, this cluster is likely to represent a specific subset of cells found in human bone marrow. The presence of certain key genes provides clues about the identity of the cell type. Below, I analyze the marker genes and propose the top 3 most likely detailed subtypes:
+
+### Key Observations:
+1. **Plasmacytoid Dendritic Cells (pDCs):**
+   - Marker genes such as **LILRA4**, **CLEC4C**, and **IL3RA** are highly specific to plasmacytoid dendritic cells. These cells are specialized immune cells involved in antiviral responses and are known to be present in bone marrow.
+   - **PROC** and **PTCRA** are also associated with immune cell signaling and development, consistent with pDCs.
+
+2. **Pre-B Cells or Early B Lineage Cells:**
+   - Genes such as **EPHB1**, **PHEX**, and **NRP1** are associated with early B cell development and function. Early B cells are a common component of bone marrow and are involved in the generation of adaptive immunity.
+   - **NOTCH4** is also involved in signaling pathways critical for lymphoid lineage commitment.
+
+3. **Megakaryocyte Progenitors:**
+   - Marker genes such as **TPM2**, **SERPINF1**, and **GAS6** suggest a potential link to megakaryocyte progenitors. These cells are responsible for producing platelets and are commonly found in bone marrow.
+   - **KCNA5** and **PTGDS** are also expressed in megakaryocyte progenitors and are involved in platelet biogenesis and function.
+
+---
+
+### Top 3 Most Likely Detailed Subtypes:
+1. **Plasmacytoid Dendritic Cells (pDCs):**
+   - Strong expression of **LILRA4**, **CLEC4C**, and **IL3RA** makes this the most likely subtype. These cells are specialized for producing type I interferons and are key components of the immune system.
+
+2. **Pre-B Cells or Early B Lineage Cells:**
+   - The presence of **EPHB1**, **PHEX**, and **NOTCH4** suggests an early B cell population. These cells are critical in the development of adaptive immunity.
+
+3. **Megakaryocyte Progenitors:**
+   - The expression of genes like **TPM2**, **SERPINF1**, and **GAS6** points toward a megakaryocyte progenitor population, which is responsible for platelet production.
+
+---
+
+### Supporting Evidence:
+- The combination of immune-related genes (e.g., **LILRA4**, **CLEC4C**) and lineage-specific markers (e.g., **TPM2**, **EPHB1**) suggests that this cluster represents a hematopoietic lineage rather than stromal or mesenchymal cells.
+- These subtypes are all commonly found in human bone marrow and align with the gene expression profile provided.
+
+Let me know if you'd like further analysis or additional insights!</pre>
+    </details>
+</div>
+
+
+    <div class="footer">
+        <p>Report generated by CASSIA.</p>
+    </div>
+</body>
+</html>

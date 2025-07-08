@@ -17,7 +17,8 @@ runCASSIA_annotationboost_additional_task(
   temperature = 0,
   conversation_history_mode = "final",
   search_strategy = "breadth",
-  report_style = "per_iteration"
+  report_style = "per_iteration",
+  ...
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ runCASSIA_annotationboost_additional_task(
 \item{search_strategy}{Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
 
 \item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
+
+\item{...}{Additional parameters for future compatibility}
 }
 \value{
 None. This function generates output files.

@@ -16,7 +16,8 @@ runCASSIA_annotationboost(
   temperature = 0,
   conversation_history_mode = "final",
   search_strategy = "breadth",
-  report_style = "per_iteration"
+  report_style = "per_iteration",
+  ...
 )
 }
 \arguments{
