@@ -1,0 +1,268 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes the iterative gene expression analysis of a cell cluster using CASSIA, aiming to precisely annotate its cell type. The analysis involved two iterations of gene checking, examining a total of 17 genes to refine the initial hypothesis.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial assessment strongly supported enteric glial cells (EGCs) with myelinating or myelin-like properties, based on markers such as *PLP1*, *SOX10*, and *L1CAM*. However, the co-expression of *SOX2* and *FOXD3* suggested a potential subpopulation with progenitor or immature glial characteristics, prompting further investigation into the heterogeneity of the cluster.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To confirm if a subset of enteric glial cells exhibits progenitor/immature features marked by *SOX2* and *FOXD3*.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To determine if the *SOX2/FOXD3* positive cells lack mature glial markers (*GFAP*, *S100B*) and myelination markers (*MPZ*), which would support an immature state.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To investigate if *NGFR* (a neural crest progenitor marker) is co-expressed, further supporting the progenitor hypothesis.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">SOX2</span><span class="gene-badge">FOXD3</span><span class="gene-badge">NGFR</span><span class="gene-badge">GFAP</span><span class="gene-badge">S100B</span><span class="gene-badge">MPZ</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The analysis revealed strong expression of *SOX2*, *FOXD3*, and *NGFR*, supporting progenitor features. However, *S100B* and *MPZ* were also highly expressed, which are markers of mature and myelinating glia, respectively. *GFAP* was not detected. This co-expression pattern suggested that the population was not purely progenitor, but rather a mixed state, possibly representing activated or transitioning EGCs.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To determine if the cells are activated or functionally specialized enteric glial cells, rather than pure progenitors, given the mixed immature (*SOX2/FOXD3*) and mature (*S100B/MPZ*) features.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To check for markers of activation/dedifferentiation such as *ASCL1*, *OLIG2*, *CDKN1A*, *GFRA3*, and *EDNRB*.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To exclude neuronal/neuroendocrine contamination by checking for *CHGA*.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">ASCL1</span><span class="gene-badge">OLIG2</span><span class="gene-badge">CDKN1A</span><span class="gene-badge">GFRA3</span><span class="gene-badge">EDNRB</span><span class="gene-badge">CHGA</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The results showed expression of *CDKN1A* and *EDNRB*, supporting an activated or transitioning state. *ASCL1* and *OLIG2* were not detected, arguing against an active neuroglial progenitor state. Critically, *CHGA* was highly expressed in a significant subset, indicating contamination from neuroendocrine cells. This confirmed the presence of activated/dedifferentiated EGCs but also highlighted a mixed population.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        **Enteric Glial Cells (EGCs) with Activated/Dedifferentiated Features and Neuroendocrine Contamination**
+Confidence Level: Medium-High
+Main Supporting Evidence: Strong glial identity markers (*S100B, MPZ, PLP1, SOX10, PTPRZ1*) combined with progenitor-like markers (*SOX2, FOXD3, NGFR*) and activation-associated markers (*EDNRB, CDKN1A*). The high expression of *CHGA* indicates significant neuroendocrine contamination.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **EGC Core:** *S100B, MPZ, PLP1, SOX10, PTPRZ1*
+**Activation/Progenitor-like:** *SOX2, FOXD3, NGFR, EDNRB, CDKN1A*
+**Contamination:** *CHGA*
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            If purity is critical, subclustering is recommended to separate the *CHGA+* neuroendocrine cells from the glial population. Further functional assays are suggested to validate whether *SOX2/FOXD3+* cells represent injury-responsive glia or a stable subset.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

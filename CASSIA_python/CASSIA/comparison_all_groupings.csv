@@ -1,9 +1,0 @@
-Cluster,Cell Type,Subtype,Broad Grouping,Detailed Grouping,Very Detailed Grouping
-1,macrophage,inflammatory macrophage,Myeloid cells,Macrophages,Inflammatory macrophages
-2,CD4 T cell,naive CD4 T cell,T cells,CD4 T cells,Naive CD4+ T cells
-3,B cell,memory B cell,B cells,B cells,Memory B cells
-4,dendritic cell,plasmacytoid dendritic cell,Myeloid cells,Plasmacytoid dendritic cells,Plasmacytoid dendritic cells
-5,CD8 T cell,cytotoxic CD8 T cell,T cells,CD8 T cells,Cytotoxic CD8+ T cells
-6,NK cell,CD56bright NK cell,Innate lymphoid cells,NK cells,CD56bright NK cells
-7,epithelial cell,type II pneumocyte,Epithelial cells,Type II pneumocytes,Type II pneumocytes
-8,fibroblast,activated fibroblast,Stromal cells,Activated fibroblasts,Activated fibroblasts

@@ -7,7 +7,7 @@
 runCASSIA_batch(
   marker,
   output_name = "cell_type_analysis_results.json",
-  model = "gpt-4o",
+  model = "google/gemini-2.5-flash-preview",
   temperature = 0,
   tissue = "lung",
   species = "human",
@@ -15,7 +15,7 @@ runCASSIA_batch(
   celltype_column = NULL,
   gene_column_name = NULL,
   max_workers = 10,
-  provider = "openai",
+  provider = "openrouter",
   n_genes = 50,
   max_retries = 1
 )

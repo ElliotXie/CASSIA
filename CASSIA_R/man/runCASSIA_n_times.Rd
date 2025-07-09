@@ -9,11 +9,11 @@ runCASSIA_n_times(
   tissue,
   species,
   additional_info,
-  temperature,
+  temperature = 0.3,
   marker_list,
-  model,
+  model = "google/gemini-2.5-flash-preview",
   max_workers = 10,
-  provider = "openai"
+  provider = "openrouter"
 )
 }
 \arguments{
@@ -25,7 +25,7 @@ runCASSIA_n_times(
 
 \item{additional_info}{Additional information as a character string.}
 
-\item{temperature}{Numeric value for temperature parameter.}
+\item{temperature}{Numeric value for temperature parameter. Default: 0.3 (updated to match Python).}
 
 \item{marker_list}{List of marker genes.}
 

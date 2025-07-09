@@ -5,6 +5,17 @@ py_main <- NULL
 py_tools <- NULL
 py_merging <- NULL
 py_annotation_boost <- NULL
+py_cell_comparison <- NULL
+py_subclustering <- NULL
+py_uncertainty <- NULL
+py_generate_reports <- NULL
+py_llm_utils <- NULL
+py_generate_hypothesis_report <- NULL
+py_hypothesis_geneartion <- NULL
+py_summarize_hypothesis_runs <- NULL
+py_debug_genes <- NULL
+py_super_annottaion_boost <- NULL
+py_symphony_compare <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # Get the conda environment name from the package configuration
@@ -22,8 +33,19 @@ py_annotation_boost <- NULL
     # Import Python modules
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-    py_merging <<- reticulate::import_from_path("merging_annotation_code", path = system.file("python", package = "CASSIA"))
+    py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
     py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
+    py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
+    py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
+    py_uncertainty <<- reticulate::import_from_path("Uncertainty_quantification", path = system.file("python", package = "CASSIA"))
+    py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
+    py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
+    py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
+    py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
+    py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
+    py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
+    py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+    py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
   }, error = function(e) {
     warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
   })
@@ -86,8 +108,12 @@ setLLMApiKey <- function(api_key, provider = "anthropic", persist = FALSE) {
   } else if (provider == "openrouter") {
     Sys.setenv(OPENROUTER_API_KEY = api_key)
     env_var_name <- "OPENROUTER_API_KEY"
+  } else if (startsWith(provider, "http")) {
+    # Handle custom HTTP endpoints
+    Sys.setenv(CUSTERMIZED_API_KEY = api_key)
+    env_var_name <- "CUSTERMIZED_API_KEY"
   } else {
-    stop("Unsupported provider. Use 'openai' or 'anthropic' or 'openrouter'")
+    stop("Unsupported provider. Use 'openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints")
   }
   
   # Set API key in Python tools if available
@@ -158,6 +184,9 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 
 
 
+
+
+
 #' Run Cell Type Analysis
 #'
 #' @param model Character string specifying the model to use.
@@ -209,7 +238,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #' @param tissue Character string specifying the tissue type.
 #' @param species Character string specifying the species.
 #' @param additional_info Additional information as a character string.
-#' @param temperature Numeric value for temperature parameter.
+#' @param temperature Numeric value for temperature parameter. Default: 0.3 (updated to match Python).
 #' @param marker_list List of marker genes.
 #' @param model Character string specifying the model to use.
 #' @param max_workers Maximum number of workers for parallel processing.
@@ -217,7 +246,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #'
 #' @return A list containing results from multiple runs.
 #' @export
-runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, marker_list, 
+runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list, 
                            model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter") {
   tryCatch({
     result <- py_tools$runCASSIA_n_times(
@@ -278,7 +307,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature, 
 runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter") {
   tryCatch({
     # Call the Python function with the new parameter structure
-    processed_results <- py_tools$runCASSIA_n_times_similarity_score(
+    processed_results <- py_uncertainty$runCASSIA_n_times_similarity_score(
       tissue = tissue,
       species = species,
       additional_info = additional_info,
@@ -346,6 +375,13 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
+  # Determine the cluster column to check
+  cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+  # If the cluster column exists and is a factor, convert it to character
+  if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+    marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+  }
   pd <- reticulate::import("pandas")
   # Direct conversion with convert=TRUE
   marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -405,16 +441,23 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
                                   provider = "openrouter", max_retries = 1) {
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
+    # Determine the cluster column to check
+    cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$runCASSIA_batch_n_times(
+      py_uncertainty$runCASSIA_batch_n_times(
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
         as.integer(max_workers), as.integer(batch_max_workers), provider,
@@ -451,16 +494,23 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
 
   if (is.data.frame(marker)) {
-  pd <- reticulate::import("pandas")
-  # Direct conversion with convert=TRUE
-  marker <- reticulate::r_to_py(marker, convert = TRUE)
-} else if (!is.character(marker)) {
-  stop("marker must be either a data frame or a character vector")
-}
+    # Determine the cluster column to check
+    cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
+    pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
+    marker <- reticulate::r_to_py(marker, convert = TRUE)
+  } else if (!is.character(marker)) {
+    stop("marker must be either a data frame or a character vector")
+  }
 
   execution_time <- system.time({
     tryCatch({
-      py_tools$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
+      py_uncertainty$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
                                               celltype_column, max_workers, model, provider, main_weight, sub_weight)
     }, error = function(e) {
       stop(paste("Error in runCASSIA_similarity_score_batch:", e$message))
@@ -489,6 +539,8 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param temperature Sampling temperature (0-1)
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #'
 #' @return None. This function generates output files.
 #' @export
@@ -501,9 +553,16 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      model = "google/gemini-2.5-flash-preview",
                                      provider = "openrouter",
                                      temperature = 0,
-                                     conversation_history_mode = "final") {
+                                     conversation_history_mode = "final",
+                                     search_strategy = "breadth",
+                                     report_style = "per_iteration",
+                                     ...) {
 
   if (is.data.frame(marker)) {
+    # Factors can cause issues with reticulate, convert to character
+    if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
+      marker[["cluster"]] <- as.character(marker[["cluster"]])
+    }
     pd <- reticulate::import("pandas")
     # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -512,7 +571,7 @@ runCASSIA_annotationboost <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_tools$runCASSIA_annotationboost(
+    py_annotation_boost$runCASSIA_annotationboost(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -522,7 +581,9 @@ runCASSIA_annotationboost <- function(full_result_path,
       model = model,
       provider = provider,
       temperature = as.numeric(temperature),
-      conversation_history_mode = conversation_history_mode
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = report_style
     )
     
     invisible(NULL)
@@ -549,6 +610,9 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param additional_task Additional task to perform during analysis
 #' @param temperature Sampling temperature (0-1)
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param ... Additional parameters for future compatibility
 #' 
 #' @return None. This function generates output files.
 #' @export
@@ -562,9 +626,16 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      provider = "openrouter",
                                                      additional_task = "check if this is a cancer cluster",
                                                      temperature = 0,
-                                                     conversation_history_mode = "final") {
+                                                     conversation_history_mode = "final",
+                                                     search_strategy = "breadth",
+                                                     report_style = "per_iteration",
+                                                     ...) {
 
   if (is.data.frame(marker)) {
+    # Factors can cause issues with reticulate, convert to character
+    if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
+      marker[["cluster"]] <- as.character(marker[["cluster"]])
+    }
     pd <- reticulate::import("pandas")
     # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
@@ -573,7 +644,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_tools$runCASSIA_annotationboost_additional_task(
+    py_annotation_boost$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -584,7 +655,10 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       provider = provider,
       additional_task = additional_task,
       temperature = as.numeric(temperature),
-      conversation_history_mode = conversation_history_mode
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = report_style,
+      ...
     )
     
     invisible(NULL)
@@ -666,7 +740,6 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 }
 
 
-
 #' Run Complete Cell Analysis Pipeline
 #'
 #' @param output_file_name Base name for output files
@@ -674,9 +747,9 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param species Species being analyzed
 #' @param marker Marker data (data frame or file path)
 #' @param max_workers Maximum number of concurrent workers (default: 4)
-#' @param annotation_model Model to use for initial annotation (default: "meta-llama/llama-4-maverick")
+#' @param annotation_model Model to use for initial annotation (default: "google/gemini-2.5-flash-preview")
 #' @param annotation_provider Provider for initial annotation (default: "openrouter")
-#' @param score_model Model to use for scoring (default: "google/gemini-2.5-pro-preview-03-25")
+#' @param score_model Model to use for scoring (default: "deepseek/deepseek-chat-v3-0324")
 #' @param score_provider Provider for scoring (default: "openrouter")
 #' @param annotationboost_model Model to use for boosting low-scoring annotations (default: "google/gemini-2.5-flash-preview")
 #' @param annotationboost_provider Provider for boosting low-scoring annotations (default: "openrouter")
@@ -685,7 +758,12 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
 #' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
+#' @param merge_provider Provider to use for merging annotations (default: "openrouter")
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
+#' @param search_strategy Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
+#' @param report_style Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param ranking_method Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")
+#' @param ascending Sort direction (NULL uses default for each method) (default: NULL)
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -695,22 +773,40 @@ runCASSIA_pipeline <- function(
     species,
     marker,
     max_workers = 4,
-    annotation_model = "google/gemini-2.5-flash-preview",
+    annotation_model = "google/gemini-2.5-flash",
     annotation_provider = "openrouter",
-    score_model = "deepseek/deepseek-chat-v3-0324",
+    score_model = "google/gemini-2.5-flash",
     score_provider = "openrouter",
-    annotationboost_model = "google/gemini-2.5-flash-preview",
+    annotationboost_model = "google/gemini-2.5-flash",
     annotationboost_provider = "openrouter",
     score_threshold = 75,
     additional_info = NULL,
     max_retries = 1,
     do_merge_annotations = TRUE,
-    merge_model = "deepseek/deepseek-chat-v3-0324",
-    conversation_history_mode = "final"
+    merge_model = "google/gemini-2.5-flash",
+    merge_provider = "openrouter",
+    conversation_history_mode = "final",
+    search_strategy = "breadth",
+    report_style = "per_iteration",
+    ranking_method = "avg_log2FC",
+    ascending = NULL
 ) {
-  # Convert marker data frame if necessary
+  # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
+    # Determine the cluster column to check
+    cluster_col <- "cluster"
+    if ("cluster" %in% names(marker)) {
+      cluster_col <- "cluster"
+    } else if (length(names(marker)) > 0) {
+      cluster_col <- names(marker)[1]  # Use first column if no cluster column
+    }
+
+    # If the cluster column exists and is a factor, convert it to character
+    if (cluster_col %in% names(marker) && is.factor(marker[[cluster_col]])) {
+      marker[[cluster_col]] <- as.character(marker[[cluster_col]])
+    }
     pd <- reticulate::import("pandas")
+    # Direct conversion with convert=TRUE
     marker <- reticulate::r_to_py(marker, convert = TRUE)
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
@@ -721,7 +817,7 @@ runCASSIA_pipeline <- function(
       output_file_name = output_file_name,
       tissue = tissue,
       species = species,
-      marker_path = marker,
+      marker = marker,
       max_workers = as.integer(max_workers),
       annotation_model = annotation_model,
       annotation_provider = annotation_provider,
@@ -730,15 +826,24 @@ runCASSIA_pipeline <- function(
       annotationboost_model = annotationboost_model,
       annotationboost_provider = annotationboost_provider,
       score_threshold = as.numeric(score_threshold),
-      additional_info = if(is.null(additional_info)) "None" else additional_info,
+      additional_info = if (is.null(additional_info)) "None" else additional_info,
       max_retries = as.integer(max_retries),
-      do_merge_annotations = do_merge_annotations,
+      merge_annotations = do_merge_annotations,
       merge_model = merge_model,
-      conversation_history_mode = conversation_history_mode
+      merge_provider = merge_provider,
+      conversation_history_mode = conversation_history_mode,
+      ranking_method = ranking_method,
+      ascending = ascending,
+      report_style = report_style
     )
+    
+    invisible(NULL)
+    
   }, error = function(e) {
-    error_msg <- paste("Error in runCASSIA_pipeline:", e$message, "\n",
-                      "Python traceback:", reticulate::py_last_error())
+    error_msg <- paste("Error in runCASSIA_pipeline:", e$message)
+    if (!is.null(reticulate::py_last_error())) {
+      error_msg <- paste(error_msg, "\nPython traceback:", reticulate::py_last_error())
+    }
     stop(error_msg)
   })
 }
@@ -768,7 +873,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
     }
     
     # Call the Python function
-    responses <- py_tools$compareCelltypes(
+    responses <- py_cell_comparison$compareCelltypes(
       tissue = tissue,
       celltypes = celltypes,
       marker_set = marker,
@@ -779,6 +884,133 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
 
   }, error = function(e) {
     error_msg <- paste("Error in compareCelltypes:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}
+
+
+#' Symphony Compare - Advanced Multi-Model Cell Type Comparison with Consensus Building
+#'
+#' Orchestrate multiple AI models to compare cell types with automatic consensus building.
+#' This function conducts a comprehensive cell type comparison using multiple AI models in parallel,
+#' automatically triggering discussion rounds when models disagree on the best matching cell type.
+#' Think of it as a virtual panel of expert biologists debating and reaching consensus.
+#'
+#' @param tissue Character string specifying the tissue type (e.g., "blood", "brain", "liver")
+#' @param celltypes Character vector of 2-4 cell types to compare
+#' @param marker_set Character vector or string of gene markers to analyze
+#' @param species Character string specifying the species (default: "human")
+#' @param model_preset Character string specifying preset model configuration. Options:
+#'   \itemize{
+#'     \item "symphony": High-performance ensemble (Claude, GPT-4, Gemini Pro)
+#'     \item "quartet": Balanced 4-model ensemble
+#'     \item "budget": Cost-effective models
+#'     \item "custom": Use custom_models list
+#'   }
+#' @param custom_models Character vector of custom models to use (when model_preset="custom")
+#' @param output_dir Character string specifying directory to save results (default: current directory)
+#' @param output_basename Character string for base name of output files (auto-generated if NULL)
+#' @param enable_discussion Logical indicating whether to enable automatic discussion rounds when no consensus (default: TRUE)
+#' @param max_discussion_rounds Integer specifying maximum discussion rounds to perform (default: 2)
+#' @param consensus_threshold Numeric value (0-1) specifying fraction of models that must agree for consensus (default: 0.8)
+#' @param generate_report Logical indicating whether to generate interactive HTML report (default: TRUE)
+#' @param api_key Character string for OpenRouter API key (uses environment variable if NULL)
+#' @param verbose Logical indicating whether to print progress messages (default: TRUE)
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item results: List of all model responses and scores
+#'     \item consensus: The consensus cell type (if reached)
+#'     \item confidence: Confidence level of the consensus (0-1)
+#'     \item csv_file: Path to the generated CSV file
+#'     \item html_file: Path to the generated HTML report (if enabled)
+#'     \item summary: Summary statistics of the comparison
+#'     \item dataframe: R data frame with structured results
+#'   }
+#'
+#' @examples
+#' \dontrun{
+#' # Basic usage - let Symphony Compare handle everything
+#' results <- symphonyCompare(
+#'   tissue = "peripheral blood",
+#'   celltypes = c("T cell", "B cell", "NK cell", "Monocyte"),
+#'   marker_set = c("CD3", "CD4", "CD8", "CD19", "CD20", "CD16", "CD56", "CD14"),
+#'   species = "human"
+#' )
+#' 
+#' # Access the results
+#' cat("Consensus:", results$consensus, "\n")
+#' cat("Confidence:", sprintf("%.1f%%", results$confidence * 100), "\n")
+#' 
+#' # Advanced usage with custom settings
+#' results <- symphonyCompare(
+#'   tissue = "brain",
+#'   celltypes = c("Neuron", "Astrocyte", "Microglia", "Oligodendrocyte"),
+#'   marker_set = c("RBFOX3", "GFAP", "IBA1", "OLIG2", "MAP2", "S100B", "CD11B", "MBP"),
+#'   species = "mouse",
+#'   model_preset = "quartet",  # Use 4 models instead of 3
+#'   enable_discussion = TRUE,  # Enable automatic discussion rounds
+#'   max_discussion_rounds = 3,  # Allow up to 3 discussion rounds
+#'   consensus_threshold = 0.75,  # 75% of models must agree
+#'   output_dir = "./symphony_results",
+#'   verbose = TRUE
+#' )
+#' }
+#'
+#' @export
+symphonyCompare <- function(tissue, celltypes, marker_set, species = "human", 
+                          model_preset = "symphony", custom_models = NULL,
+                          output_dir = NULL, output_basename = NULL,
+                          enable_discussion = TRUE, max_discussion_rounds = 2L,
+                          consensus_threshold = 0.8, generate_report = TRUE,
+                          api_key = NULL, verbose = TRUE) {
+  tryCatch({
+    # Input validation
+    if (length(celltypes) < 2 || length(celltypes) > 4) {
+      stop("Please provide 2-4 cell types to compare")
+    }
+    
+    # Convert marker_set to string if it's a vector
+    if (is.vector(marker_set)) {
+      marker_set <- paste(marker_set, collapse = ", ")
+    }
+    
+    # Convert R types to Python-compatible types
+    max_discussion_rounds <- as.integer(max_discussion_rounds)
+    consensus_threshold <- as.numeric(consensus_threshold)
+    enable_discussion <- as.logical(enable_discussion)
+    generate_report <- as.logical(generate_report)
+    verbose <- as.logical(verbose)
+    
+    # Call the Python function
+    results <- py_symphony_compare$symphonyCompare(
+      tissue = tissue,
+      celltypes = celltypes,
+      marker_set = marker_set,
+      species = species,
+      model_preset = model_preset,
+      custom_models = custom_models,
+      output_dir = output_dir,
+      output_basename = output_basename,
+      enable_discussion = enable_discussion,
+      max_discussion_rounds = max_discussion_rounds,
+      consensus_threshold = consensus_threshold,
+      generate_report = generate_report,
+      api_key = api_key,
+      verbose = verbose
+    )
+    
+    # Convert Python dataframe to R dataframe if it exists
+    if (!is.null(results$dataframe)) {
+      results$dataframe <- reticulate::py_to_r(results$dataframe)
+    }
+    
+    # Return the results
+    return(results)
+    
+  }, error = function(e) {
+    error_msg <- paste("Error in symphonyCompare:", e$message, "\n",
                       "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
@@ -804,7 +1036,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name, 
                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                provider = "openrouter", n_genes = 50L) {
-  py_tools$runCASSIA_subclusters(
+  py_subclustering$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
     output_name = output_name,
@@ -832,7 +1064,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name, 
                                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                                provider = "openrouter", max_workers = 5,n_genes=50L) {
-  py_tools$runCASSIA_n_subcluster(
+  py_subclustering$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
     major_cluster_info = major_cluster_info,

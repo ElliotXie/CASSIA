@@ -9,7 +9,7 @@ def call_llm(
     model: str = None,
     api_key: Optional[str] = None,
     temperature: float = 0.7,
-    max_tokens: int = 1000,
+    max_tokens: int = 7000,
     system_prompt: Optional[str] = None,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -82,6 +82,41 @@ def call_llm(
             **additional_params
         )
         
+        return response.choices[0].message.content
+    
+    # Custom OpenAI-compatible API call (base_url as provider)
+    elif provider.startswith("http"):
+        try:
+            import openai
+        except ImportError:
+            raise ImportError("Please install openai package: pip install openai")
+        custom_api_key = api_key or os.environ.get("CUSTERMIZED_API_KEY")
+        if not custom_api_key:
+            raise ValueError("API key not provided and CUSTERMIZED_API_KEY not found in environment")
+        
+        client = openai.OpenAI(api_key=custom_api_key, base_url=provider)
+        
+        # Handle message history properly
+        api_messages = messages.copy()
+        
+        # If additional_params contains message history, merge it properly
+        if 'messages' in additional_params:
+            # Use the full conversation history from additional_params instead
+            history_messages = additional_params.pop('messages')
+            api_messages = history_messages
+            
+            # Only add system prompt if it's not already in the history
+            if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
+                api_messages.insert(0, {"role": "system", "content": system_prompt})
+        
+        # Call the API with the proper message history
+        response = client.chat.completions.create(
+            model=model,
+            messages=api_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **additional_params
+        )
         return response.choices[0].message.content
     
     # Anthropic API call
