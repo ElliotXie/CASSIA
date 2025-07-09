@@ -1076,3 +1076,144 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
     n_genes = as.integer(n_genes)
   )
 }
+
+#' Generate Subclustering HTML Report
+#' 
+#' Generate a beautiful HTML report for subclustering batch results, showing annotation, 
+#' reasoning, and top markers in an interactive format.
+#' 
+#' @param csv_path Character string specifying the path to the subclustering CSV results file
+#' @param html_report_path Character string specifying the output path for the HTML report. 
+#'   If NULL, will use the same name as csv_path but with .html extension
+#' @param model_name Character string specifying the model name to display in the report. 
+#'   If NULL, will extract from the CSV filename
+#' 
+#' @return None. This function generates an HTML report file.
+#' 
+#' @examples
+#' \dontrun{
+#' # Generate a subclustering report from CSV results
+#' generate_subclustering_report(
+#'   csv_path = "subclustering_results.csv",
+#'   html_report_path = "subclustering_report.html",
+#'   model_name = "Gemini-2.5-Flash"
+#' )
+#' 
+#' # Auto-generate HTML filename and model name
+#' generate_subclustering_report("subclustering_results.csv")
+#' }
+#' 
+#' @export
+generate_subclustering_report <- function(csv_path, html_report_path = NULL, model_name = NULL) {
+  tryCatch({
+    py_generate_reports$generate_subclustering_report(
+      csv_path = csv_path,
+      html_report_path = html_report_path,
+      model_name = model_name
+    )
+  }, error = function(e) {
+    error_msg <- paste("Error in generate_subclustering_report:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}
+
+#' Generate HTML Evaluation Report
+#' 
+#' Generate a comprehensive HTML report for evaluation results with visualizations,
+#' metrics, and sample analyses.
+#' 
+#' @param result_df Data frame containing the evaluation results
+#' @param gold_col Character string specifying the column name for ground truth/gold standard values
+#' @param pred_col Character string specifying the column name for predicted values
+#' @param score_col Character string specifying the column name for evaluation scores (default: "score")
+#' @param reasoning_col Character string specifying the column name for reasoning/explanation text (default: "reasoning")
+#' @param metrics Named list of pre-calculated metrics (optional, will be calculated if NULL)
+#' @param html_report_path Character string specifying the output path for HTML report (default: "report.html")
+#' @param model_name Character string specifying the model name to display in the report (optional)
+#' 
+#' @return None. This function generates an HTML report file.
+#' 
+#' @examples
+#' \dontrun{
+#' # Generate evaluation report
+#' generate_html_report(
+#'   result_df = evaluation_results,
+#'   gold_col = "True Cell Type",
+#'   pred_col = "Predicted Cell Type",
+#'   score_col = "evaluation_score",
+#'   reasoning_col = "explanation",
+#'   html_report_path = "evaluation_report.html",
+#'   model_name = "Claude-3.5-Sonnet"
+#' )
+#' }
+#' 
+#' @export
+generate_html_report <- function(result_df, gold_col, pred_col, score_col = "score", 
+                                reasoning_col = "reasoning", metrics = NULL, 
+                                html_report_path = "report.html", model_name = NULL) {
+  tryCatch({
+    py_generate_reports$generate_html_report(
+      result_df = result_df,
+      gold_col = gold_col,
+      pred_col = pred_col,
+      score_col = score_col,
+      reasoning_col = reasoning_col,
+      metrics = metrics,
+      html_report_path = html_report_path,
+      model_name = model_name
+    )
+  }, error = function(e) {
+    error_msg <- paste("Error in generate_html_report:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}
+
+#' Calculate Evaluation Metrics
+#' 
+#' Calculate comprehensive metrics from evaluation results including mean scores,
+#' distributions, and performance ratios.
+#' 
+#' @param eval_df Data frame containing evaluation results
+#' @param score_col Character string specifying the column name for evaluation scores (default: "score")
+#' 
+#' @return A named list containing calculated metrics:
+#'   \itemize{
+#'     \item mean_score: Average score
+#'     \item median_score: Median score  
+#'     \item min_score: Minimum score
+#'     \item max_score: Maximum score
+#'     \item std_score: Standard deviation of scores
+#'     \item count: Number of evaluations
+#'     \item For 0-5 scale: perfect_ratio, very_good_ratio, good_ratio, partial_ratio, poor_ratio, nonsensical_ratio
+#'   }
+#' 
+#' @examples
+#' \dontrun{
+#' # Calculate metrics from evaluation results
+#' metrics <- calculate_evaluation_metrics(
+#'   eval_df = evaluation_results,
+#'   score_col = "evaluation_score"
+#' )
+#' 
+#' # Print key metrics
+#' cat("Mean Score:", metrics$mean_score, "\n")
+#' cat("Perfect Predictions:", sprintf("%.1f%%", metrics$perfect_ratio * 100), "\n")
+#' }
+#' 
+#' @export
+calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
+  tryCatch({
+    result <- py_generate_reports$calculate_evaluation_metrics(
+      eval_df = eval_df,
+      score_col = score_col
+    )
+    # Convert Python dict to R list
+    return(reticulate::py_to_r(result))
+  }, error = function(e) {
+    error_msg <- paste("Error in calculate_evaluation_metrics:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}

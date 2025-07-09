@@ -171,6 +171,11 @@ This annotation is consistent with known PBMC composition and NK cell biology.""
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Suppress httpx logs to reduce noise from API calls
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("anthropic").setLevel(logging.WARNING)
+
 class SuperAnnotationBoost:
     """
     Advanced annotation agent with 6 scanpy-integrated tools for comprehensive cell type analysis.
