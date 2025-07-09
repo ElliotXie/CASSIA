@@ -56,4 +56,14 @@ try:
 except ImportError:
     pass  # Module may not be available in all installations
 
+# Import report generation functions
+try:
+    from .generate_reports import (
+        generate_subclustering_report,
+        generate_html_report,
+        calculate_evaluation_metrics
+    )
+except ImportError:
+    pass  # Module may not be available in all installations
+
 __version__ = "0.2.21"

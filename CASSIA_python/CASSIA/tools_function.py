@@ -4,6 +4,7 @@ import re
 import csv
 import os
 import time
+import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 try:
@@ -18,6 +19,11 @@ from importlib import resources
 import datetime
 import shutil
 from collections import Counter
+
+# Suppress httpx and API client logs to reduce noise during batch operations
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("anthropic").setLevel(logging.WARNING)
 
 try:
     from .llm_utils import *
