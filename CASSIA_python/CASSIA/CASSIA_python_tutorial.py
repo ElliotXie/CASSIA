@@ -1207,7 +1207,7 @@ def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1314,6 +1314,8 @@ def main():
         run_annotation_boost(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode, search_strategy=args.search_strategy, report_style=args.report_style)
     elif args.step == 'compare':
         run_celltype_comparison()
+    elif args.step == 'symphony':
+        run_symphony_agent()
     elif args.step == 'subcluster':
         run_subclustering(subcluster)
     elif args.step == 'subclustering_uncertainty':
@@ -1402,7 +1404,7 @@ def main():
             print(f"Error testing total summary reports: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
 
 
 if __name__ == "__main__":
@@ -1442,6 +1444,7 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step uncertainty            # Uncertainty analysis
 # python CASSIA_python_tutorial.py --step boost                  # Annotation boost
 # python CASSIA_python_tutorial.py --step compare                # Cell type comparison
+# python CASSIA_python_tutorial.py --step symphony               # Symphony Agent for advanced comparison
 # python CASSIA_python_tutorial.py --step subcluster             # Subclustering
 # python CASSIA_python_tutorial.py --step subclustering_uncertainty # Subclustering with uncertainty
 # python CASSIA_python_tutorial.py --step boost_task             # Boost with custom task
@@ -1631,3 +1634,54 @@ if __name__ == "__main__":
 # 4. Boost analysis: python CASSIA_python_tutorial.py --step boost --cluster monocyte
 # 5. Compare providers: python CASSIA_python_tutorial.py --step test_boost
 # =====================================================================================
+
+# --------------------- New: Symphony Agent (Advanced Celltype Comparison) ---------------------
+def run_symphony_agent():
+    """
+    Run the Symphony Agent, a multi-model, multi-round discussion framework
+    to compare and contrast similar or ambiguous cell types. This is ideal for
+    resolving subtle differences between cell types like Naive B cells,
+    Plasmablasts, and Plasma cells.
+    """
+    print("\n=== Running Symphony Agent (Advanced Cell Type Comparison) ===")
+    
+    # Import the core Symphony function. It's also available as compareCelltypes.
+    try:
+        from CASSIA.symphony_compare import symphonyCompare
+    except ImportError:
+        print("Could not import symphonyCompare. Please ensure it is available.")
+        return
+
+    # Define a set of ambiguous or closely related cell types to compare
+    celltypes_to_compare = ["Naive B cell", "Plasmablast", "Plasma cell"]
+    
+    # Provide a set of marker genes. Including contradictory or overlapping
+    # markers is useful to stimulate discussion among the LLM agents.
+    # For example, CD20 is for B-cells, CD38/SDC1 for plasma cells, PAX5 for B-cells, IRF4 for plasma cells.
+    marker_gene_set = "CD19, CD20, CD27, PAX5, IRF4, CD38, SDC1"
+    
+    # Set up organized output paths
+    output_dir = get_output_path("symphony_agent")
+    output_csv = os.path.join(output_dir, "symphony_bcell_comparison.csv")
+    output_html = os.path.join(output_dir, "symphony_bcell_report.html")
+    
+    print(f"Comparing cell types: {', '.join(celltypes_to_compare)}")
+    print(f"Using markers: {marker_gene_set}")
+    
+    # Run the Symphony agent
+    symphonyCompare(
+        tissue=tissue,
+        species=species,
+        celltypes=celltypes_to_compare,
+        marker_set=marker_gene_set,
+        model_preset="quality",  # Use "quality" for best models, "budget" for cheaper, or "fastest"
+        discussion_mode=True,    # Enable the multi-round discussion
+        discussion_rounds=2,     # Number of discussion rounds after initial analysis
+        generate_html_report=True,
+        output_file=output_csv
+    )
+    
+    print("\n✅ Symphony Agent analysis complete!")
+    print(f"Results saved to: {output_dir}")
+    print(f"-> CSV report: {output_csv}")
+    print(f"-> HTML report: {output_html}")
