@@ -92,10 +92,10 @@ def get_current_version():
     with open(setup_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # Look for version patterns
+    # Look for version patterns that can handle 'dev', 'rc', etc.
     patterns = [
-        r'version=[\'"]([\d\.]+)[\'"]',
-        r'__version__\s*=\s*[\'"]([\d\.]+)[\'"]'
+        r'version=[\'"]([^\'"]+)[\'"]',
+        r'__version__\s*=\s*[\'"]([^\'"]+)[\'"]'
     ]
     
     for pattern in patterns:
