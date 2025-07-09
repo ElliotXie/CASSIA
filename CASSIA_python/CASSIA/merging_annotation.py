@@ -337,9 +337,9 @@ def merge_annotations_all(
     # Define the detail levels to process
     detail_levels = ["broad", "detailed", "very_detailed"]
     
-    # Use ProcessPoolExecutor to run in parallel with 3 cores
+    # Use ThreadPoolExecutor to run in parallel with 3 threads (instead of ProcessPoolExecutor)
     results = {}
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         # Submit all tasks
         future_to_level = {
             executor.submit(merge_func, detail_level=level): level

@@ -19,6 +19,9 @@ from .tools_function import (
 # Import cell type comparison from its own module
 from .cell_type_comparison import compareCelltypes
 
+# Import the new Symphony Compare function
+from .symphony_compare import symphonyCompare
+
 # Import the new LLM utilities
 from .llm_utils import call_llm
 

@@ -704,8 +704,26 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
     
     try:
         major_cluster_info = f"{row['Species']} {row['Tissue']}"
-        marker = row['Marker List']
-        annotation_history = row['Conversation History']
+        
+        # Handle both 'Marker List' and 'Marker.List' column names
+        marker_column_options = ['Marker List', 'Marker.List', 'marker_list', 'Marker_List']
+        marker = None
+        for col in marker_column_options:
+            if col in row:
+                marker = row[col]
+                break
+        if marker is None:
+            raise KeyError(f"Could not find marker column. Available columns: {list(row.index)}")
+        
+        # Handle both 'Conversation History' and 'Conversation.History' column names
+        history_column_options = ['Conversation History', 'Conversation.History', 'conversation_history', 'Conversation_History']
+        annotation_history = None
+        for col in history_column_options:
+            if col in row:
+                annotation_history = row[col]
+                break
+        if annotation_history is None:
+            raise KeyError(f"Could not find conversation history column. Available columns: {list(row.index)}")
         
         # Try up to 3 times for a valid score if we get None
         score, reasoning = None, None
@@ -1530,8 +1548,26 @@ def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary
         filename = str(row.iloc[0]).strip()
         filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_')).strip()
         
-        text = row["Conversation History"]
-        score_reasoning = row["Scoring_Reasoning"]
+        # Handle both 'Conversation History' and 'Conversation.History' column names
+        history_column_options = ['Conversation History', 'Conversation.History', 'conversation_history', 'Conversation_History']
+        text = None
+        for col in history_column_options:
+            if col in row:
+                text = row[col]
+                break
+        if text is None:
+            raise KeyError(f"Could not find conversation history column. Available columns: {list(row.index)}")
+        
+        # Handle both 'Scoring_Reasoning' and 'Scoring.Reasoning' column names
+        reasoning_column_options = ['Scoring_Reasoning', 'Scoring.Reasoning', 'scoring_reasoning', 'Scoring_reasoning']
+        score_reasoning = None
+        for col in reasoning_column_options:
+            if col in row:
+                score_reasoning = row[col]
+                break
+        if score_reasoning is None:
+            raise KeyError(f"Could not find scoring reasoning column. Available columns: {list(row.index)}")
+        
         score = row["Score"]
         
         # Generate HTML for this row
@@ -1560,17 +1596,17 @@ def runCASSIA_pipeline(
     species: str,
     marker,  # Can be DataFrame or file path string
     max_workers: int = 4,
-    annotation_model: str = "google/gemini-2.5-flash",
+    annotation_model: str = "meta-llama/llama-4-maverick",
     annotation_provider: str = "openrouter",
     score_model: str = "google/gemini-2.5-pro-preview-03-25",
     score_provider: str = "openrouter",
-    annotationboost_model: str = "google/gemini-2.5-flash",
+    annotationboost_model: str = "google/gemini-2.5-flash-preview",
     annotationboost_provider: str = "openrouter",
     score_threshold: float = 75,
     additional_info: str = "None",
     max_retries: int = 1,
     merge_annotations: bool = True,
-    merge_model: str = "google/gemini-2.5-flash",
+    merge_model: str = "deepseek/deepseek-chat-v3-0324",
     merge_provider: str = "openrouter",
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
