@@ -90,12 +90,28 @@ def symphonyCompare(
     """
     
     # Import the core comparison functionality
-    from .cell_type_comparison import (
-        extract_celltype_scores, 
-        extract_discussion,
-        generate_comparison_html_report,
-        _call_model
-    )
+    try:
+        # Try relative import first (for Python package usage)
+        from .cell_type_comparison import (
+            extract_celltype_scores, 
+            extract_discussion,
+            generate_comparison_html_report,
+            _call_model
+        )
+    except ImportError:
+        # Fall back to absolute import (for R/reticulate usage)
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if current_dir not in sys.path:
+            sys.path.insert(0, current_dir)
+        
+        from cell_type_comparison import (
+            extract_celltype_scores, 
+            extract_discussion,
+            generate_comparison_html_report,
+            _call_model
+        )
     
     # Get API key
     if api_key is None:
