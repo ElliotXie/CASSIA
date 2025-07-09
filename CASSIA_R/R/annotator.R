@@ -583,8 +583,7 @@ runCASSIA_annotationboost <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style,
-      ...
+      report_style = report_style
     )
     
     invisible(NULL)
