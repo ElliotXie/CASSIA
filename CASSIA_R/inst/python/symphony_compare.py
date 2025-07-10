@@ -428,9 +428,7 @@ Start with <discussion>, then provide your analysis for each cell type using <ce
         print(f"  • Consensus: {'✅ Yes' if consensus_reached else '❌ No'}")
         if final_consensus:
             print(f"  • Winner: {final_consensus} (confidence: {summary['consensus_confidence']:.1%})")
-        print(f"\n📊 Final Scores:")
-        for ct, scores in celltype_final_scores.items():
-            print(f"  • {ct}: {scores['mean']:.1f} ± {scores['std']:.1f} (range: {scores['min']}-{scores['max']})")
+        print(f"\n📊 Detailed scores are available in the generated reports.")
     
     return {
         'results': all_results,
