@@ -25,6 +25,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from cassia_secrets import TEST_PYPI_TOKEN
+except ImportError:
+    print("Error: `cassia_secrets.py` not found.", file=sys.stderr)
+    print("Please create it in the same directory with your TEST_PYPI_TOKEN.", file=sys.stderr)
+    sys.exit(1)
+
 def run_command(command, check=True):
     """Run a shell command."""
     print(f"Running: {command}")

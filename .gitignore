@@ -32,3 +32,10 @@ Thumbs.db
 
 # Test files and directories with API keys
 CASSIA_R/test_r/ 
+
+# CASSIA test results
+CASSIA/CASSIA_python/CASSIA/test_results/
+
+# Package upload scripts with potentially sensitive API keys
+CASSIA/CASSIA_python/upload_to_pypi.py
+CASSIA/CASSIA_python/cassia_secrets.py 
