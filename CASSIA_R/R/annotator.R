@@ -197,9 +197,10 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param additional_info Additional information as a character string.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')
 #'
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @return A list containing two elements: structured output and conversation history.
 #' @export
-runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter") {
+runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1") {
   tryCatch({
     result <- py_tools$runCASSIA(
       model = model,
@@ -208,7 +209,8 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
       tissue = tissue,
       species = species,
       additional_info = additional_info,
-      provider = provider
+      provider = provider,
+      validator_involvement = validator_involvement
     )
     
     # Convert structured_output (result[[1]])
@@ -548,6 +550,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return None. This function generates output files.
 #' @export
@@ -563,6 +566,7 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      conversation_history_mode = "final",
                                      search_strategy = "breadth",
                                      report_style = "per_iteration",
+                                     validator_involvement = "v1",
                                      ...) {
 
   if (is.data.frame(marker)) {
@@ -590,7 +594,8 @@ runCASSIA_annotationboost <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style
+      report_style = report_style,
+      validator_involvement = validator_involvement
     )
     
     invisible(NULL)
@@ -619,6 +624,7 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param ... Additional parameters for future compatibility
 #' 
 #' @return None. This function generates output files.
@@ -636,6 +642,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      conversation_history_mode = "final",
                                                      search_strategy = "breadth",
                                                      report_style = "per_iteration",
+                                                     validator_involvement = "v1",
                                                      ...) {
 
   if (is.data.frame(marker)) {
@@ -665,6 +672,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
       report_style = report_style,
+      validator_involvement = validator_involvement,
       ...
     )
     

@@ -66,7 +66,8 @@ tryCatch({
     annotationboost_provider = openrouter_provider,
     # ranking_method = "p_val_adj" # This parameter is in Python but not in R wrapper for pipeline
     do_merge_annotations = TRUE, # Explicitly set, default is TRUE
-    conversation_history_mode = "final" # Explicitly set, default is "final"
+    conversation_history_mode = "final", # Explicitly set, default is "final"
+    validator_involvement = "v1" # Added validator involvement parameter
   )
   message("runCASSIA_pipeline test completed successfully!")
 }, error = function(e) {
@@ -91,7 +92,8 @@ tryCatch({
     max_workers = 6,
     n_genes = 50,
     additional_info = NULL,
-    provider = openrouter_provider
+    provider = openrouter_provider,
+    validator_involvement = "v1" # Added validator involvement parameter
   )
   message("runCASSIA_batch test completed. Check files starting with: ", batch_output_name)
 }, error = function(e) {
@@ -152,7 +154,8 @@ tryCatch({
     tissue = tissue_param,
     species = species_param,
     max_workers = 6,
-    batch_max_workers = 3
+    batch_max_workers = 3,
+    validator_involvement = "v1" # Added validator involvement parameter
   )
   message("runCASSIA_batch_n_times test completed.")
   
@@ -330,7 +333,91 @@ tryCatch({
   }
 })
 
+# --- 10. Validator Involvement Test ---
+message("\n--- Starting Test: 10. Validator Involvement Levels ---")
+# Test both v0 (stricter) and v1 (moderate) validator involvement levels
+validator_test_output_v0 <- paste0(base_output_name, "_V0_Validator")
+validator_test_output_v1 <- paste0(base_output_name, "_V1_Validator")
+
+# Test v0 validator (stricter)
+tryCatch({
+  message("Testing v0 validator (stricter validation)...")
+  CASSIA::runCASSIA_batch(
+    marker = unprocessed_markers,
+    output_name = validator_test_output_v0,
+    model = annot_model_pipeline,
+    tissue = tissue_param,
+    species = species_param,
+    max_workers = 3, # Reduced for testing
+    n_genes = 30,    # Fewer genes for faster testing
+    additional_info = "Testing v0 validator involvement",
+    provider = openrouter_provider,
+    validator_involvement = "v0" # Stricter validation
+  )
+  message("v0 validator test completed. Check files starting with: ", validator_test_output_v0)
+}, error = function(e) {
+  message("Error in v0 validator test: ", e$message)
+  if (!is.null(reticulate::py_last_error())) {
+    message("Python traceback: ")
+    print(reticulate::py_last_error())
+  }
+})
+
+# Test v1 validator (moderate)
+tryCatch({
+  message("Testing v1 validator (moderate validation)...")
+  CASSIA::runCASSIA_batch(
+    marker = unprocessed_markers,
+    output_name = validator_test_output_v1,
+    model = annot_model_pipeline,
+    tissue = tissue_param,
+    species = species_param,
+    max_workers = 3, # Reduced for testing
+    n_genes = 30,    # Fewer genes for faster testing
+    additional_info = "Testing v1 validator involvement",
+    provider = openrouter_provider,
+    validator_involvement = "v1" # Moderate validation
+  )
+  message("v1 validator test completed. Check files starting with: ", validator_test_output_v1)
+}, error = function(e) {
+  message("Error in v1 validator test: ", e$message)
+  if (!is.null(reticulate::py_last_error())) {
+    message("Python traceback: ")
+    print(reticulate::py_last_error())
+  }
+})
+
+# Compare results if both completed successfully
+v0_full_csv <- paste0(validator_test_output_v0, "_full.csv")
+v1_full_csv <- paste0(validator_test_output_v1, "_full.csv")
+
+if (file.exists(v0_full_csv) && file.exists(v1_full_csv)) {
+  message("\nBoth validator tests completed. Comparing results...")
+  tryCatch({
+    v0_results <- read.csv(v0_full_csv)
+    v1_results <- read.csv(v1_full_csv)
+    
+    message("v0 validator processed ", nrow(v0_results), " clusters")
+    message("v1 validator processed ", nrow(v1_results), " clusters")
+    
+    if ("iterations" %in% colnames(v0_results) && "iterations" %in% colnames(v1_results)) {
+      avg_iterations_v0 <- mean(v0_results$iterations, na.rm = TRUE)
+      avg_iterations_v1 <- mean(v1_results$iterations, na.rm = TRUE)
+      message("Average iterations - v0: ", round(avg_iterations_v0, 2), ", v1: ", round(avg_iterations_v1, 2))
+    }
+  }, error = function(e) {
+    message("Error comparing validator results: ", e$message)
+  })
+} else {
+  message("Validator comparison skipped - one or both test files not found")
+}
+
 message("\n--- All CASSIA R wrapper tests concluded. ---")
 message("Please check the console output for messages and the working directory for generated files.")
+message("\nKey Features Tested:")
+message("✓ runCASSIA_pipeline with validator_involvement parameter")
+message("✓ runCASSIA_batch with validator_involvement parameter") 
+message("✓ runCASSIA_batch_n_times with validator_involvement parameter")
+message("✓ Comparison of v0 (stricter) vs v1 (moderate) validator levels")
 # The placeholder 'δείτε το timestamp' in the pipeline message should be replaced with actual timestamp logic if needed,
 # but typically the Python functions handle the exact folder naming. This R script focuses on calling the wrappers. 

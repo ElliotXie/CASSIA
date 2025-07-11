@@ -185,7 +185,8 @@ def test_cassia_batch_with_retry():
                 max_workers=5,  # Use fewer workers for testing
                 max_retries=1,  # Increased to 3 retries for better testing
                 model=MODEL,
-                provider=PROVIDER
+                provider=PROVIDER,
+                validator_involvement="v1"  # Added validator involvement parameter
             )
         
         # Run with timeout
@@ -251,7 +252,8 @@ def test_cassia_pipeline():
                 score_provider=PROVIDER,
                 annotationboost_model=MODEL,
                 annotationboost_provider=PROVIDER,
-                additional_info="Sample test data with immune cells"
+                additional_info="Sample test data with immune cells",
+                validator_involvement="v1"  # Added validator involvement parameter
             )
         
         # Run with timeout
