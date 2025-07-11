@@ -319,7 +319,7 @@ def write_csv(filename, headers, row_data):
         writer.writerows(row_data)
 
 
-def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter"):
+def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter", validator_involvement="v1"):
     """
     Wrapper function to run cell type analysis using OpenAI, Anthropic, OpenRouter, or a custom OpenAI-compatible provider.
     
@@ -336,11 +336,11 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
         tuple: (analysis_result, conversation_history)
     """
     if provider.lower() == "openai":
-        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info)
+        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower() == "anthropic":
-        return run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info)
+        return run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower() == "openrouter":
-        return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info)
+        return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower().startswith("http"):
         api_key = os.environ.get("CUSTERMIZED_API_KEY")
         if not api_key:
@@ -353,7 +353,8 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
             marker_list=marker_list,
             tissue=tissue,
             species=species,
-            additional_info=additional_info
+            additional_info=additional_info,
+            validator_involvement=validator_involvement
         )
     else:
         raise ValueError("Provider must be either 'openai', 'anthropic', 'openrouter', or a base URL (http...)")
@@ -362,7 +363,7 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
 
 
 
-def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1, ranking_method="avg_log2FC", ascending=None):
+def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1, ranking_method="avg_log2FC", ascending=None, validator_involvement="v1"):
     """
     Run cell type analysis on multiple clusters in parallel.
     
@@ -425,7 +426,8 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                     tissue=tissue,
                     species=species,
                     additional_info=additional_info,
-                    provider=provider
+                    provider=provider,
+                    validator_involvement=validator_involvement
                 )
                 # Add the number of markers and marker list to the result
                 result['num_markers'] = len(marker_list)
@@ -1617,7 +1619,8 @@ def runCASSIA_pipeline(
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
     ascending: bool = None,
-    report_style: str = "per_iteration"
+    report_style: str = "per_iteration",
+    validator_involvement: str = "v1"
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -1701,7 +1704,8 @@ def runCASSIA_pipeline(
         max_workers=max_workers,
         max_retries=max_retries,
         ranking_method=ranking_method,
-        ascending=ascending
+        ascending=ascending,
+        validator_involvement=validator_involvement
     )
     print("✓ Cell type analysis completed")
     

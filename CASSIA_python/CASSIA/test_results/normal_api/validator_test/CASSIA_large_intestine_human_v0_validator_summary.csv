@@ -1,0 +1,7 @@
+cell_type,main_cell_type,sub_cell_types,possible_mixed_cell_types,possible_tissues,iterations,num_markers
+intestinal crypt stem cell,Intestinal Epithelial Cell,"['Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells', 'Early Intestinal Progenitor Cells', 'Transit-Amplifying (TA) Cells']",[],[],1,30
+"cd8-positive, alpha-beta t cell",Natural Killer (NK) Cells,"['Natural Killer (NK) Cells', 'Gamma-Delta (γδ) T Cells (Cytotoxic Subtype)', 'Cytotoxic CD8+ T Cells']","['a mixed population of highly cytotoxic lymphocytes', 'a specific NK cell subset that shares some features with T cells', 'a ""NKT-like"" population']",[],1,30
+intestinal enteroendocrine cell,Enteroendocrine Cells,"['L-cells (Glucagon-like peptide-1/2 and Peptide YY producing cells)', 'Enterochromaffin (EC) cells (Serotonin producing cells)', 'Pan-enteroendocrine Progenitors/Immature Enteroendocrine Cells (or a general neuroendocrine cell type)']","['L-cells', 'EC cells']",[],1,30
+plasma cell,Plasma Cell,"['IgA Plasma Cells', 'IgG Plasma Cells', 'IgM Plasma Cells']",[],[],1,30
+monocyte,Neural Cells,"['Enteric Glial Cells (Schwann Cells)', 'Enteric Neurons', 'Neural Progenitor Cells']","['Schwann cells intimately associated with enteric neurons', 'Mixed cluster containing both Schwann cells and enteric neurons']",[],1,30
+transit amplifying cell of large intestine,Proliferating Cells,"['Intestinal Stem Cells (ISCs) / Progenitor Cells', 'Proliferating Immune Cells (e.g., T cells, B cells)', 'Fibroblasts/Mesenchymal Cells (in a proliferative state)']",[],[],1,30

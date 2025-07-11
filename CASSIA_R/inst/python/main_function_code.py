@@ -135,6 +135,21 @@ You can say "FINAL ANNOTATION COMPLETED" when you have completed your analysis.
 If you receive feedback from the validation process, incorporate it into your analysis and provide an updated annotation.
 """
 
+coupling_validator_system_v0 = """
+You are an expert biologist specializing in single-cell analysis. Your critical role is to
+validate the final annotation results for a cell cluster. You will be provided with the proposed
+annotation result, and a ranked list of marker genes it used. Below are steps to follow:
+1. Marker Consistency: Make sure the markers are in the provided marker list. Make sure
+there is consistency between the identified cell type and the provided markers.
+2. Mixed Cell Type Consideration: Be aware that mixed cell types may be present. Only raise
+this point if multiple distinct cell types are strongly supported by several high-ranking
+markers. In cases of potential mixed populations, flag this for further investigation rather
+than outright rejection.
+Output Format: if passed, Validation result: VALIDATION PASSED. If failed, Validation
+result: VALIDATION FAILED. Feedback: give detailed feedback and instructions for revising
+the annotation.
+"""
+
 coupling_validator_system_v1 = """
 You are an expert biologist specializing in single-cell analysis. Your critical role is to validate the final annotation results for a cell cluster. You will be provided with The proposed annotation result, and a Ranked list of marker genes it used.
 
@@ -309,7 +324,7 @@ Please provide an updated annotation addressing the validation feedback."""
 
 # ----------------- Public API Functions (Wrappers) -----------------
 
-def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info):
+def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     class Agent:
@@ -336,7 +351,16 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
 
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
     final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    coupling_validator_agent = Agent(system=coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip())
+    
+    # Select validator system based on involvement level
+    if validator_involvement == "v0":
+        validator_system = coupling_validator_system_v0.strip()
+    elif validator_involvement == "v1":
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    else:
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    
+    coupling_validator_agent = Agent(system=validator_system)
     formatting_agent = Agent(system="") # System prompt is set inside the logic function
     
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
@@ -345,7 +369,7 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
         
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info):
+def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
     class Agent:
@@ -375,7 +399,16 @@ def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, speci
 
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
     final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    coupling_validator_agent = Agent(system=coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip())
+    
+    # Select validator system based on involvement level
+    if validator_involvement == "v0":
+        validator_system = coupling_validator_system_v0.strip()
+    elif validator_involvement == "v1":
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    else:
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    
+    coupling_validator_agent = Agent(system=validator_system)
     formatting_agent = Agent(system="")
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
@@ -384,7 +417,7 @@ def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, speci
         
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info):
+def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
     class Agent:
         def __init__(self, system="", model=model, temperature=temperature):
             self.system = system
@@ -423,7 +456,16 @@ def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, s
 
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
     final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    coupling_validator_agent = Agent(system=coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip())
+    
+    # Select validator system based on involvement level
+    if validator_involvement == "v0":
+        validator_system = coupling_validator_system_v0.strip()
+    elif validator_involvement == "v1":
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    else:
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    
+    coupling_validator_agent = Agent(system=validator_system)
     formatting_agent = Agent(system="")
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
@@ -432,7 +474,7 @@ def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, s
         
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_list, tissue, species, additional_info):
+def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
     """
     Custom API provider for OpenAI-compatible endpoints.
     """
@@ -460,7 +502,16 @@ def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_
 
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
     final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    coupling_validator_agent = Agent(system=coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip())
+    
+    # Select validator system based on involvement level
+    if validator_involvement == "v0":
+        validator_system = coupling_validator_system_v0.strip()
+    elif validator_involvement == "v1":
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    else:
+        validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
+    
+    coupling_validator_agent = Agent(system=validator_system)
     formatting_agent = Agent(system="")
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}

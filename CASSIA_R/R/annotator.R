@@ -243,11 +243,12 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #' @param model Character string specifying the model to use.
 #' @param max_workers Maximum number of workers for parallel processing.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return A list containing results from multiple runs.
 #' @export
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list, 
-                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter") {
+                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1") {
   tryCatch({
     result <- py_tools$runCASSIA_n_times(
       n = as.integer(n),
@@ -258,7 +259,8 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
       marker_list = marker_list,
       model = model,
       max_workers = as.integer(max_workers),
-      provider = provider
+      provider = provider,
+      validator_involvement = validator_involvement
     )
     
     # Convert the result to an R list
@@ -301,10 +303,11 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 #' @param max_workers Maximum number of workers for parallel processing.
 #' @param n Number of times to run the analysis.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
-runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter") {
+runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1") {
   tryCatch({
     # Call the Python function with the new parameter structure
     processed_results <- py_uncertainty$runCASSIA_n_times_similarity_score(
@@ -316,7 +319,8 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
       model = model,
       max_workers = as.integer(max_workers),
       n = as.integer(n),
-      provider=provider
+      provider=provider,
+      validator_involvement = validator_involvement
     )
     
     # Convert the processed results back to R
@@ -363,6 +367,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param n_genes Number of top genes to use (default: 50)
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -371,7 +376,7 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           species = "human", additional_info = NULL, 
                           celltype_column = NULL, gene_column_name = NULL, 
                           max_workers = 10, provider = "openrouter", n_genes = 50,
-                          max_retries = 1) {
+                          max_retries = 1, validator_involvement = "v1") {
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -402,7 +407,8 @@ if (is.data.frame(marker)) {
       max_workers = as.integer(max_workers),
       provider = provider,
       n_genes = as.integer(n_genes),
-      max_retries = as.integer(max_retries)
+      max_retries = as.integer(max_retries),
+      validator_involvement = validator_involvement
     )
   })
   
@@ -430,6 +436,7 @@ if (is.data.frame(marker)) {
 #' @param batch_max_workers Maximum number of workers for batch processing.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -438,7 +445,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
                                   species = "human", additional_info = NULL, 
                                   celltype_column = NULL, gene_column_name = NULL, 
                                   max_workers = 10, batch_max_workers = 5, 
-                                  provider = "openrouter", max_retries = 1) {
+                                  provider = "openrouter", max_retries = 1, validator_involvement = "v1") {
 
   if (is.data.frame(marker)) {
     # Determine the cluster column to check
@@ -461,7 +468,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
         as.integer(max_workers), as.integer(batch_max_workers), provider,
-        as.integer(max_retries)
+        as.integer(max_retries), validator_involvement
       )
     }, error = function(e) {
       stop(paste("Error in runCASSIA_batch_n_times:", e$message))
@@ -764,6 +771,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param report_style Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")
 #' @param ranking_method Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")
 #' @param ascending Sort direction (NULL uses default for each method) (default: NULL)
+#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -789,7 +797,8 @@ runCASSIA_pipeline <- function(
     search_strategy = "breadth",
     report_style = "per_iteration",
     ranking_method = "avg_log2FC",
-    ascending = NULL
+    ascending = NULL,
+    validator_involvement = "v1"
 ) {
   # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
@@ -834,7 +843,8 @@ runCASSIA_pipeline <- function(
       conversation_history_mode = conversation_history_mode,
       ranking_method = ranking_method,
       ascending = ascending,
-      report_style = report_style
+      report_style = report_style,
+      validator_involvement = validator_involvement
     )
     
     invisible(NULL)
