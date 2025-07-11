@@ -66,4 +66,4 @@ try:
 except ImportError:
     pass  # Module may not be available in all installations
 
-__version__ = "0.3.1.dev3"
+__version__ = "0.3.1.dev4"
