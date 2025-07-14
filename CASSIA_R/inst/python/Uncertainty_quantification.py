@@ -14,7 +14,7 @@ import re
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1, validator_involvement="v1"):
     """
     Run multiple batch cell type analyses in parallel.
     
@@ -33,6 +33,7 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
         batch_max_workers (int): Maximum number of concurrent batch runs
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
         max_retries (int): Maximum number of retries for failed analyses
+        validator_involvement (str): Validator involvement level ('v0' for high involvement, 'v1' for moderate involvement)
     
     Returns:
         None: Results are saved to files
@@ -53,7 +54,8 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
             gene_column_name=gene_column_name,
             max_workers=max_workers,
             provider=provider,
-            max_retries=max_retries
+            max_retries=max_retries,
+            validator_involvement=validator_involvement
         )
         end_time = time.time()
         print(f"Finished batch run {i+1}/{n} in {end_time - start_time:.2f} seconds")
@@ -84,7 +86,7 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
 
 
 def run_single_analysis(args):
-    index, tissue, species, additional_info, temperature, marker_list, model, provider = args
+    index, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement = args
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
@@ -95,7 +97,8 @@ def run_single_analysis(args):
             temperature=temperature,
             marker_list=marker_list,
             model=model,
-            provider=provider
+            provider=provider,
+            validator_involvement=validator_involvement
         )
         end_time = time.time()
         print(f"Finished analysis {index+1} in {end_time - start_time:.2f} seconds")
@@ -108,7 +111,7 @@ def run_single_analysis(args):
 
 
 
-def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter", validator_involvement="v1"):
     """
     Run multiple cell type analyses in parallel.
     
@@ -136,7 +139,7 @@ def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_l
         future_to_index = {
             executor.submit(
                 run_single_analysis, 
-                (i, tissue, species, additional_info, temperature, marker_list, model, provider)
+                (i, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement)
             ): i for i in range(n)
         }
         
@@ -1243,7 +1246,7 @@ def standardize_cell_types_single(results):
     return ",".join(standardized_results)
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5, validator_involvement="v1"):
     """
     Wrapper function for processing cell type analysis using any supported provider.
     
@@ -1282,7 +1285,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider, validator_involvement=validator_involvement)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types

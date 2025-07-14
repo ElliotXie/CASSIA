@@ -44,6 +44,7 @@ import pandas as pd
 import numpy as np
 import argparse
 import re
+import time
 
 # Import the new unified modules for annotation boost
 try:
@@ -1203,11 +1204,419 @@ def setup_api_keys():
             
     print("API key setup complete")
 
+# --------------------- New: Test Validator Involvement Levels ---------------------
+def test_validator_involvement(marker_data, provider_test=None):
+    """
+    Test the different validator involvement levels (v0 vs v1) to demonstrate the differences.
+    This function helps validate that the validator_involvement parameter works correctly
+    and shows the differences between strict (v0) and moderate (v1) validation.
+    
+    Args:
+        marker_data: Marker data DataFrame
+        provider_test: Optional provider to test (default: uses global provider)
+    """
+    print("\n=== Testing Validator Involvement Levels ===")
+    print("This will compare v0 (stricter) vs v1 (moderate) validation approaches")
+    
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
+    
+    # If using a custom provider, adjust model if needed
+    current_model = model_name
+    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+        if test_provider == "https://api.deepseek.com":
+            current_model = "deepseek-chat"
+        print(f"Using model: {current_model} with custom provider: {test_provider}")
+    
+    validator_levels = ["v0", "v1"]
+    results = {}
+    
+    for validator_level in validator_levels:
+        print(f"\n" + "="*60)
+        print(f"TESTING {validator_level.upper()} VALIDATOR")
+        print("="*60)
+        
+        if validator_level == "v0":
+            print("• STRICTER validation (original v0 system)")
+            print("• More detailed feedback and instructions")
+            print("• Expects thorough analysis and validation")
+        else:
+            print("• MODERATE validation (current v1 system)")
+            print("• Streamlined validation process")
+            print("• Balanced approach for most use cases")
+        print()
+        
+        # Generate organized output path
+        validator_output_name = get_output_path("validator_test", filename=f"{output_name}_{validator_level}_validator")
+        
+        try:
+            print(f"Running batch analysis with {validator_level} validator...")
+            start_time = time.time()
+            
+            batch_results = runCASSIA_batch(
+                marker=marker_data,
+                output_name=validator_output_name,
+                model=current_model,
+                tissue=tissue,
+                species=species,
+                max_workers=3,  # Reduced for testing
+                n_genes=30,     # Fewer genes for faster testing
+                additional_info=f"Testing {validator_level} validator involvement",
+                provider=test_provider,
+                validator_involvement=validator_level
+            )
+            
+            end_time = time.time()
+            print(f"✅ {validator_level} validator test completed in {end_time - start_time:.2f} seconds")
+            
+            # Check if files were created
+            expected_files = [
+                f"{validator_output_name}_full.csv",
+                f"{validator_output_name}_summary.csv"
+            ]
+            
+            for file_path in expected_files:
+                if os.path.exists(file_path):
+                    file_size = os.path.getsize(file_path)
+                    print(f"  Generated: {os.path.basename(file_path)} ({file_size} bytes)")
+                    
+                    # Read and analyze results
+                    if file_path.endswith("_full.csv"):
+                        try:
+                            df = pd.read_csv(file_path)
+                            print(f"  Analyzed {len(df)} clusters")
+                            if 'iterations' in df.columns:
+                                avg_iterations = df['iterations'].mean()
+                                print(f"  Average iterations: {avg_iterations:.1f}")
+                        except Exception as e:
+                            print(f"  Error reading results: {str(e)}")
+                else:
+                    print(f"  ⚠️ Expected file not found: {os.path.basename(file_path)}")
+            
+            results[validator_level] = {
+                'success': True,
+                'execution_time': end_time - start_time,
+                'output_files': expected_files
+            }
+            
+        except Exception as e:
+            print(f"❌ Error with {validator_level} validator: {str(e)}")
+            results[validator_level] = {
+                'success': False,
+                'error': str(e)
+            }
+    
+    # Generate comparison summary
+    print("\n" + "="*60)
+    print("COMPARISON SUMMARY")
+    print("="*60)
+    
+    for level in validator_levels:
+        result = results.get(level, {})
+        if result.get('success'):
+            print(f"✅ {level.upper()} validator: SUCCESS ({result.get('execution_time', 0):.1f}s)")
+        else:
+            print(f"❌ {level.upper()} validator: FAILED - {result.get('error', 'Unknown error')}")
+    
+    print("\n🔍 Key Differences to Look For:")
+    print("• v0 (stricter): More thorough validation, potentially more iterations")
+    print("• v1 (moderate): Streamlined validation, faster processing")
+    print("• Check the generated CSV files to compare validation behavior")
+    print("• Look at the 'iterations' column to see validation patterns")
+    
+    print(f"\n📁 Results saved to: {get_output_path('validator_test')}")
+    
+    return results
+
+# --------------------- New: Single Annotation with Validator Test ---------------------
+def test_single_annotation_validators(marker_list=None, provider_test=None):
+    """
+    Test a single annotation with different validator levels to see the detailed differences.
+    
+    Args:
+        marker_list: Optional list of markers (defaults to a test set)
+        provider_test: Optional provider to test (default: uses global provider)
+    """
+    print("\n=== Testing Single Annotation with Different Validators ===")
+    
+    # Use default test markers if not provided
+    if marker_list is None:
+        marker_list = ["CD19", "MS4A1", "CD79A", "CD79B", "PAX5", "IGHM", "IGHD", "CD27", "CD38", "SDC1"]
+        print(f"Using test markers: {', '.join(marker_list[:5])}...")
+    
+    # Use the specified provider or fall back to global setting
+    test_provider = provider_test or provider
+    print(f"Using provider: {test_provider}")
+    
+    # If using a custom provider, adjust model if needed
+    current_model = model_name
+    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+        if test_provider == "https://api.deepseek.com":
+            current_model = "deepseek-chat"
+    
+    validator_levels = ["v0", "v1"]
+    results = {}
+    
+    for validator_level in validator_levels:
+        print(f"\n--- Testing {validator_level} validator on single annotation ---")
+        
+        try:
+            result, conversation = runCASSIA(
+                model=current_model,
+                temperature=0,
+                marker_list=marker_list,
+                tissue=tissue,
+                species=species,
+                additional_info=f"Single annotation test with {validator_level} validator",
+                provider=test_provider,
+                validator_involvement=validator_level
+            )
+            
+            if result:
+                print(f"✅ {validator_level} validation successful")
+                print(f"   Main cell type: {result.get('main_cell_type', 'N/A')}")
+                print(f"   Sub cell types: {result.get('sub_cell_types', 'N/A')}")
+                print(f"   Iterations: {result.get('iterations', 'N/A')}")
+                print(f"   Conversation length: {len(conversation)} exchanges")
+                
+                results[validator_level] = {
+                    'success': True,
+                    'result': result,
+                    'conversation_length': len(conversation),
+                    'iterations': result.get('iterations', 0)
+                }
+            else:
+                print(f"❌ {validator_level} validation failed - no result returned")
+                results[validator_level] = {'success': False, 'error': 'No result returned'}
+                
+        except Exception as e:
+            print(f"❌ Error with {validator_level} validator: {str(e)}")
+            results[validator_level] = {'success': False, 'error': str(e)}
+    
+    # Compare results
+    print("\n" + "="*50)
+    print("SINGLE ANNOTATION COMPARISON")
+    print("="*50)
+    
+    if all(results[level].get('success') for level in validator_levels):
+        v0_result = results['v0']
+        v1_result = results['v1']
+        
+        print(f"v0 iterations: {v0_result.get('iterations', 0)}")
+        print(f"v1 iterations: {v1_result.get('iterations', 0)}")
+        print(f"v0 conversation length: {v0_result.get('conversation_length', 0)}")
+        print(f"v1 conversation length: {v1_result.get('conversation_length', 0)}")
+        
+        # Compare main cell types
+        v0_main = v0_result.get('result', {}).get('main_cell_type', '')
+        v1_main = v1_result.get('result', {}).get('main_cell_type', '')
+        
+        if v0_main == v1_main:
+            print(f"✅ Both validators agreed on main cell type: {v0_main}")
+        else:
+            print(f"⚠️ Validators disagreed:")
+            print(f"   v0: {v0_main}")
+            print(f"   v1: {v1_main}")
+    
+    return results
+
+# --------------------- Step 8: Test LLM Image Processing ---------------------
+def test_llm_image_processing():
+    """
+    Test the new LLM image processing functionality from llm_image.py
+    This function tests vision-enabled LLM calls with sample images.
+    """
+    print("\n=== Testing LLM Image Processing ===")
+    
+    try:
+        # Import the new llm_image module
+        from llm_image import (
+            call_llm_with_image, 
+            call_llm_analyze_image, 
+            call_llm_extract_text_from_image
+        )
+        print("✅ Successfully imported llm_image module")
+    except ImportError as e:
+        print(f"❌ Failed to import llm_image module: {str(e)}")
+        return
+    
+    # Test providers to check
+    test_providers = [
+        {"name": "OpenAI", "provider": "openai", "model": "gpt-4o"},
+        {"name": "Anthropic", "provider": "anthropic", "model": "claude-3-5-sonnet-20241022"},
+        {"name": "OpenRouter", "provider": "openrouter", "model": "openai/gpt-4o"}
+    ]
+    
+    # Create test results directory
+    test_results_dir = get_output_path("image_processing_test")
+    print(f"Test results will be saved to: {test_results_dir}")
+    
+    # Test with sample images - using logo files that exist in the project
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(script_dir, "..", "logo.png")
+    
+    if not os.path.exists(logo_path):
+        print(f"⚠️ Logo file not found at {logo_path}")
+        print("Creating a simple test image URL instead...")
+        test_image = "https://via.placeholder.com/300x200/0000FF/FFFFFF?text=Test+Image"
+        image_type = "URL"
+    else:
+        test_image = logo_path
+        image_type = "Local file"
+        print(f"✅ Found test image: {logo_path}")
+    
+    print(f"Using test image: {test_image} ({image_type})")
+    
+    # Test results storage
+    results = []
+    
+    # Test each provider
+    for provider_info in test_providers:
+        provider_name = provider_info["name"]
+        provider = provider_info["provider"]
+        model = provider_info["model"]
+        
+        print(f"\n--- Testing {provider_name} ---")
+        
+        try:
+            # Test 1: Basic image analysis
+            print(f"Test 1: Basic image analysis with {provider_name}")
+            analysis_result = call_llm_analyze_image(
+                image_input=test_image,
+                analysis_prompt="Please analyze this image and describe what you see. Be concise.",
+                provider=provider,
+                model=model,
+                temperature=0.3,
+                max_tokens=500
+            )
+            
+            result_entry = {
+                "provider": provider_name,
+                "test": "Basic Analysis",
+                "success": True,
+                "result": analysis_result[:200] + "..." if len(analysis_result) > 200 else analysis_result,
+                "error": None
+            }
+            results.append(result_entry)
+            print(f"✅ {provider_name} - Basic analysis successful")
+            print(f"Response preview: {analysis_result[:100]}...")
+            
+            # Test 2: Custom prompt with image
+            print(f"Test 2: Custom prompt with {provider_name}")
+            custom_result = call_llm_with_image(
+                prompt="What colors are prominent in this image? List the main visual elements.",
+                image_input=test_image,
+                provider=provider,
+                model=model,
+                temperature=0.1,
+                max_tokens=300
+            )
+            
+            result_entry = {
+                "provider": provider_name,
+                "test": "Custom Prompt",
+                "success": True,
+                "result": custom_result[:200] + "..." if len(custom_result) > 200 else custom_result,
+                "error": None
+            }
+            results.append(result_entry)
+            print(f"✅ {provider_name} - Custom prompt successful")
+            print(f"Response preview: {custom_result[:100]}...")
+            
+            # Test 3: OCR functionality (if using a local file with text)
+            if image_type == "Local file":
+                print(f"Test 3: OCR text extraction with {provider_name}")
+                try:
+                    ocr_result = call_llm_extract_text_from_image(
+                        image_input=test_image,
+                        provider=provider,
+                        model=model,
+                        temperature=0.0,
+                        max_tokens=1000
+                    )
+                    
+                    result_entry = {
+                        "provider": provider_name,
+                        "test": "OCR Text Extraction",
+                        "success": True,
+                        "result": ocr_result[:200] + "..." if len(ocr_result) > 200 else ocr_result,
+                        "error": None
+                    }
+                    results.append(result_entry)
+                    print(f"✅ {provider_name} - OCR extraction successful")
+                    print(f"Extracted text preview: {ocr_result[:100]}...")
+                except Exception as e:
+                    print(f"⚠️ {provider_name} - OCR test failed: {str(e)}")
+                    results.append({
+                        "provider": provider_name,
+                        "test": "OCR Text Extraction",
+                        "success": False,
+                        "result": None,
+                        "error": str(e)
+                    })
+            
+        except Exception as e:
+            print(f"❌ {provider_name} - Tests failed: {str(e)}")
+            results.append({
+                "provider": provider_name,
+                "test": "All Tests",
+                "success": False,
+                "result": None,
+                "error": str(e)
+            })
+    
+    # Save test results
+    results_df = pd.DataFrame(results)
+    results_csv = os.path.join(test_results_dir, "image_processing_test_results.csv")
+    results_df.to_csv(results_csv, index=False)
+    print(f"\n📊 Test results saved to: {results_csv}")
+    
+    # Print summary
+    print("\n=== Test Summary ===")
+    successful_tests = len([r for r in results if r["success"]])
+    total_tests = len(results)
+    print(f"✅ Successful tests: {successful_tests}/{total_tests}")
+    
+    if successful_tests > 0:
+        print("\n🎉 LLM Image Processing tests completed successfully!")
+        print("The llm_image module is working correctly.")
+    else:
+        print("\n❌ All tests failed. Check your API keys and network connection.")
+    
+    # Display sample usage examples
+    print("\n=== Usage Examples ===")
+    print("""
+# Basic image analysis
+from CASSIA.llm_image import call_llm_analyze_image
+result = call_llm_analyze_image("path/to/image.jpg", provider="openai")
+
+# Custom prompt with image
+from CASSIA.llm_image import call_llm_with_image
+result = call_llm_with_image(
+    prompt="What medical conditions can you identify?",
+    image_input="medical_scan.png",
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022"
+)
+
+# OCR text extraction
+from CASSIA.llm_image import call_llm_extract_text_from_image
+text = call_llm_extract_text_from_image("document.png", provider="openai")
+
+# Multiple images
+result = call_llm_with_image(
+    prompt="Compare these two images",
+    image_input=["image1.jpg", "image2.jpg"],
+    provider="openrouter"
+)
+""")
+
 def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_image')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1402,9 +1811,27 @@ def main():
             test_total_summary_reports(unprocessed, input_csv, args.cluster, conversation_history_mode=args.history_mode)
         except Exception as e:
             print(f"Error testing total summary reports: {str(e)}")
+    elif args.step == 'test_validators':
+        # New option to test validator involvement levels
+        try:
+            test_validator_involvement(unprocessed, provider)
+        except Exception as e:
+            print(f"Error testing validator involvement: {str(e)}")
+    elif args.step == 'test_single_validators':
+        # New option to test single annotation with different validators
+        try:
+            test_single_annotation_validators(provider_test=provider)
+        except Exception as e:
+            print(f"Error testing single annotation validators: {str(e)}")
+    elif args.step == 'test_image':
+        # New option to test LLM image processing functionality
+        try:
+            test_llm_image_processing()
+        except Exception as e:
+            print(f"Error testing LLM image processing: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_validators, test_single_validators, test_image")
 
 
 if __name__ == "__main__":
@@ -1448,6 +1875,7 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step subcluster             # Subclustering
 # python CASSIA_python_tutorial.py --step subclustering_uncertainty # Subclustering with uncertainty
 # python CASSIA_python_tutorial.py --step boost_task             # Boost with custom task
+# python CASSIA_python_tutorial.py --step test_image             # Test LLM image processing
 
 # --------------------- 2. PROVIDER CUSTOMIZATION ---------------------
 # Using different API providers:
@@ -1510,13 +1938,44 @@ if __name__ == "__main__":
 # Test full pipeline with multiple providers:
 # python CASSIA_python_tutorial.py --step test_pipeline
 
+# Test validator involvement levels:
+# python CASSIA_python_tutorial.py --step test_validators
+
+# Test single annotation with different validators:
+# python CASSIA_python_tutorial.py --step test_single_validators
+
 # Test total summary report style:
 # python CASSIA_python_tutorial.py --step test_total_summary --cluster monocyte
 
 # Debug gene extraction:
 # python CASSIA_python_tutorial.py --step debug_genes --test_genes "CD133,CD9,ChAT,DCLK1"
 
-# --------------------- 7. COMPLEX COMBINATIONS ---------------------
+# --------------------- 7. VALIDATOR INVOLVEMENT TESTING ---------------------
+# Test validator involvement levels (v0 vs v1):
+# python CASSIA_python_tutorial.py --step test_validators                     # Compare v0 (stricter) vs v1 (moderate) 
+# python CASSIA_python_tutorial.py --step test_validators --provider openai   # Test with OpenAI
+# python CASSIA_python_tutorial.py --step test_validators --provider anthropic # Test with Anthropic
+# python CASSIA_python_tutorial.py --step test_validators --provider https://api.deepseek.com --api_key YOUR_API_KEY
+
+# Test single annotation with different validators:
+# python CASSIA_python_tutorial.py --step test_single_validators               # Compare single annotation validation
+# python CASSIA_python_tutorial.py --step test_single_validators --provider openai
+
+# --------------------- 8. LLM IMAGE PROCESSING TESTS ---------------------
+# Test LLM image processing functionality:
+
+# Basic image processing test:
+# python CASSIA_python_tutorial.py --step test_image                          # Test all providers with image processing
+
+# Test with specific providers:
+# python CASSIA_python_tutorial.py --step test_image --provider openai        # Test OpenAI vision models
+# python CASSIA_python_tutorial.py --step test_image --provider anthropic     # Test Anthropic vision models
+# python CASSIA_python_tutorial.py --step test_image --provider openrouter    # Test OpenRouter vision models
+
+# Test with custom API endpoints:
+# python CASSIA_python_tutorial.py --step test_image --provider https://api.deepseek.com --api_key YOUR_API_KEY
+
+# --------------------- 9. COMPLEX COMBINATIONS ---------------------
 # Combine multiple advanced options:
 
 # Custom provider + search strategy + report style:
@@ -1533,6 +1992,10 @@ if __name__ == "__main__":
 
 # Full pipeline with custom provider:
 # python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key YOUR_API_KEY
+
+# Test validator levels with different providers:
+# python CASSIA_python_tutorial.py --step test_validators --provider openai
+# python CASSIA_python_tutorial.py --step test_validators --provider https://api.deepseek.com --api_key YOUR_API_KEY
 
 # --------------------- 8. INPUT FILE SPECIFICATION ---------------------
 # For steps requiring input CSV files, use --input_csv:
@@ -1633,6 +2096,7 @@ if __name__ == "__main__":
 # 3. Test with DeepSeek: python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
 # 4. Boost analysis: python CASSIA_python_tutorial.py --step boost --cluster monocyte
 # 5. Compare providers: python CASSIA_python_tutorial.py --step test_boost
+# 6. Test image processing: python CASSIA_python_tutorial.py --step test_image
 # =====================================================================================
 
 # --------------------- New: Symphony Agent (Advanced Celltype Comparison) ---------------------
@@ -1685,3 +2149,4 @@ def run_symphony_agent():
     print(f"Results saved to: {output_dir}")
     print(f"-> CSV report: {output_csv}")
     print(f"-> HTML report: {output_html}")
+

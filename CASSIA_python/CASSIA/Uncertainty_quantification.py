@@ -33,6 +33,7 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
         batch_max_workers (int): Maximum number of concurrent batch runs
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
         max_retries (int): Maximum number of retries for failed analyses
+        validator_involvement (str): Validator involvement level ('v0' for high involvement, 'v1' for moderate involvement)
     
     Returns:
         None: Results are saved to files
