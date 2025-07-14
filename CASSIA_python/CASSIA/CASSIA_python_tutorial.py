@@ -1421,11 +1421,202 @@ def test_single_annotation_validators(marker_list=None, provider_test=None):
     
     return results
 
+# --------------------- Step 8: Test LLM Image Processing ---------------------
+def test_llm_image_processing():
+    """
+    Test the new LLM image processing functionality from llm_image.py
+    This function tests vision-enabled LLM calls with sample images.
+    """
+    print("\n=== Testing LLM Image Processing ===")
+    
+    try:
+        # Import the new llm_image module
+        from llm_image import (
+            call_llm_with_image, 
+            call_llm_analyze_image, 
+            call_llm_extract_text_from_image
+        )
+        print("✅ Successfully imported llm_image module")
+    except ImportError as e:
+        print(f"❌ Failed to import llm_image module: {str(e)}")
+        return
+    
+    # Test providers to check
+    test_providers = [
+        {"name": "OpenAI", "provider": "openai", "model": "gpt-4o"},
+        {"name": "Anthropic", "provider": "anthropic", "model": "claude-3-5-sonnet-20241022"},
+        {"name": "OpenRouter", "provider": "openrouter", "model": "openai/gpt-4o"}
+    ]
+    
+    # Create test results directory
+    test_results_dir = get_output_path("image_processing_test")
+    print(f"Test results will be saved to: {test_results_dir}")
+    
+    # Test with sample images - using logo files that exist in the project
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(script_dir, "..", "logo.png")
+    
+    if not os.path.exists(logo_path):
+        print(f"⚠️ Logo file not found at {logo_path}")
+        print("Creating a simple test image URL instead...")
+        test_image = "https://via.placeholder.com/300x200/0000FF/FFFFFF?text=Test+Image"
+        image_type = "URL"
+    else:
+        test_image = logo_path
+        image_type = "Local file"
+        print(f"✅ Found test image: {logo_path}")
+    
+    print(f"Using test image: {test_image} ({image_type})")
+    
+    # Test results storage
+    results = []
+    
+    # Test each provider
+    for provider_info in test_providers:
+        provider_name = provider_info["name"]
+        provider = provider_info["provider"]
+        model = provider_info["model"]
+        
+        print(f"\n--- Testing {provider_name} ---")
+        
+        try:
+            # Test 1: Basic image analysis
+            print(f"Test 1: Basic image analysis with {provider_name}")
+            analysis_result = call_llm_analyze_image(
+                image_input=test_image,
+                analysis_prompt="Please analyze this image and describe what you see. Be concise.",
+                provider=provider,
+                model=model,
+                temperature=0.3,
+                max_tokens=500
+            )
+            
+            result_entry = {
+                "provider": provider_name,
+                "test": "Basic Analysis",
+                "success": True,
+                "result": analysis_result[:200] + "..." if len(analysis_result) > 200 else analysis_result,
+                "error": None
+            }
+            results.append(result_entry)
+            print(f"✅ {provider_name} - Basic analysis successful")
+            print(f"Response preview: {analysis_result[:100]}...")
+            
+            # Test 2: Custom prompt with image
+            print(f"Test 2: Custom prompt with {provider_name}")
+            custom_result = call_llm_with_image(
+                prompt="What colors are prominent in this image? List the main visual elements.",
+                image_input=test_image,
+                provider=provider,
+                model=model,
+                temperature=0.1,
+                max_tokens=300
+            )
+            
+            result_entry = {
+                "provider": provider_name,
+                "test": "Custom Prompt",
+                "success": True,
+                "result": custom_result[:200] + "..." if len(custom_result) > 200 else custom_result,
+                "error": None
+            }
+            results.append(result_entry)
+            print(f"✅ {provider_name} - Custom prompt successful")
+            print(f"Response preview: {custom_result[:100]}...")
+            
+            # Test 3: OCR functionality (if using a local file with text)
+            if image_type == "Local file":
+                print(f"Test 3: OCR text extraction with {provider_name}")
+                try:
+                    ocr_result = call_llm_extract_text_from_image(
+                        image_input=test_image,
+                        provider=provider,
+                        model=model,
+                        temperature=0.0,
+                        max_tokens=1000
+                    )
+                    
+                    result_entry = {
+                        "provider": provider_name,
+                        "test": "OCR Text Extraction",
+                        "success": True,
+                        "result": ocr_result[:200] + "..." if len(ocr_result) > 200 else ocr_result,
+                        "error": None
+                    }
+                    results.append(result_entry)
+                    print(f"✅ {provider_name} - OCR extraction successful")
+                    print(f"Extracted text preview: {ocr_result[:100]}...")
+                except Exception as e:
+                    print(f"⚠️ {provider_name} - OCR test failed: {str(e)}")
+                    results.append({
+                        "provider": provider_name,
+                        "test": "OCR Text Extraction",
+                        "success": False,
+                        "result": None,
+                        "error": str(e)
+                    })
+            
+        except Exception as e:
+            print(f"❌ {provider_name} - Tests failed: {str(e)}")
+            results.append({
+                "provider": provider_name,
+                "test": "All Tests",
+                "success": False,
+                "result": None,
+                "error": str(e)
+            })
+    
+    # Save test results
+    results_df = pd.DataFrame(results)
+    results_csv = os.path.join(test_results_dir, "image_processing_test_results.csv")
+    results_df.to_csv(results_csv, index=False)
+    print(f"\n📊 Test results saved to: {results_csv}")
+    
+    # Print summary
+    print("\n=== Test Summary ===")
+    successful_tests = len([r for r in results if r["success"]])
+    total_tests = len(results)
+    print(f"✅ Successful tests: {successful_tests}/{total_tests}")
+    
+    if successful_tests > 0:
+        print("\n🎉 LLM Image Processing tests completed successfully!")
+        print("The llm_image module is working correctly.")
+    else:
+        print("\n❌ All tests failed. Check your API keys and network connection.")
+    
+    # Display sample usage examples
+    print("\n=== Usage Examples ===")
+    print("""
+# Basic image analysis
+from CASSIA.llm_image import call_llm_analyze_image
+result = call_llm_analyze_image("path/to/image.jpg", provider="openai")
+
+# Custom prompt with image
+from CASSIA.llm_image import call_llm_with_image
+result = call_llm_with_image(
+    prompt="What medical conditions can you identify?",
+    image_input="medical_scan.png",
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022"
+)
+
+# OCR text extraction
+from CASSIA.llm_image import call_llm_extract_text_from_image
+text = call_llm_extract_text_from_image("document.png", provider="openai")
+
+# Multiple images
+result = call_llm_with_image(
+    prompt="Compare these two images",
+    image_input=["image1.jpg", "image2.jpg"],
+    provider="openrouter"
+)
+""")
+
 def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
     parser.add_argument('--step', type=str, default='all',
-                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary')
+                      help='Which step to run: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_image')
     parser.add_argument('--input_csv', type=str, default=None,
                       help='Input CSV file for steps that require it (merge, score, report, boost)')
     parser.add_argument('--cluster', type=str, default='monocyte',
@@ -1632,9 +1823,15 @@ def main():
             test_single_annotation_validators(provider_test=provider)
         except Exception as e:
             print(f"Error testing single annotation validators: {str(e)}")
+    elif args.step == 'test_image':
+        # New option to test LLM image processing functionality
+        try:
+            test_llm_image_processing()
+        except Exception as e:
+            print(f"Error testing LLM image processing: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_validators, test_single_validators")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_validators, test_single_validators, test_image")
 
 
 if __name__ == "__main__":
@@ -1678,6 +1875,7 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step subcluster             # Subclustering
 # python CASSIA_python_tutorial.py --step subclustering_uncertainty # Subclustering with uncertainty
 # python CASSIA_python_tutorial.py --step boost_task             # Boost with custom task
+# python CASSIA_python_tutorial.py --step test_image             # Test LLM image processing
 
 # --------------------- 2. PROVIDER CUSTOMIZATION ---------------------
 # Using different API providers:
@@ -1763,7 +1961,21 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step test_single_validators               # Compare single annotation validation
 # python CASSIA_python_tutorial.py --step test_single_validators --provider openai
 
-# --------------------- 8. COMPLEX COMBINATIONS ---------------------
+# --------------------- 8. LLM IMAGE PROCESSING TESTS ---------------------
+# Test LLM image processing functionality:
+
+# Basic image processing test:
+# python CASSIA_python_tutorial.py --step test_image                          # Test all providers with image processing
+
+# Test with specific providers:
+# python CASSIA_python_tutorial.py --step test_image --provider openai        # Test OpenAI vision models
+# python CASSIA_python_tutorial.py --step test_image --provider anthropic     # Test Anthropic vision models
+# python CASSIA_python_tutorial.py --step test_image --provider openrouter    # Test OpenRouter vision models
+
+# Test with custom API endpoints:
+# python CASSIA_python_tutorial.py --step test_image --provider https://api.deepseek.com --api_key YOUR_API_KEY
+
+# --------------------- 9. COMPLEX COMBINATIONS ---------------------
 # Combine multiple advanced options:
 
 # Custom provider + search strategy + report style:
@@ -1884,6 +2096,7 @@ if __name__ == "__main__":
 # 3. Test with DeepSeek: python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
 # 4. Boost analysis: python CASSIA_python_tutorial.py --step boost --cluster monocyte
 # 5. Compare providers: python CASSIA_python_tutorial.py --step test_boost
+# 6. Test image processing: python CASSIA_python_tutorial.py --step test_image
 # =====================================================================================
 
 # --------------------- New: Symphony Agent (Advanced Celltype Comparison) ---------------------
