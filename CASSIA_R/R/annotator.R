@@ -18,17 +18,35 @@ py_super_annottaion_boost <- NULL
 py_symphony_compare <- NULL
 
 .onLoad <- function(libname, pkgname) {
-  # Get the conda environment name from the package configuration
-  conda_env <- getOption("CASSIA.conda_env", default = "cassia_env")
+  # Get the environment name from the package configuration
+  # Support both new and legacy option names
+  env_name <- getOption("CASSIA.env_name", default = NULL)
+  if (is.null(env_name)) {
+    env_name <- getOption("CASSIA.conda_env", default = "cassia_env")
+  }
   
   # Set up the Python environment
   tryCatch({
-    # Check if the environment exists, if not create it
-    if (!conda_env %in% reticulate::conda_list()$name) {
-      setup_cassia_env(conda_env)
-    }
+    # Check if environment exists in either virtualenv or conda
+    env_exists <- .check_env_exists(env_name)
     
-    reticulate::use_condaenv(conda_env, required = TRUE)
+    if (!env_exists$virtualenv && !env_exists$conda) {
+      # Environment doesn't exist, create it using the new setup function
+      setup_cassia_env(conda_env = env_name)
+    } else {
+      # Environment exists, activate it using the appropriate method
+      if (env_exists$virtualenv) {
+        reticulate::use_virtualenv(env_name, required = TRUE)
+        options(CASSIA.env_name = env_name)
+        options(CASSIA.env_method = "virtualenv")
+      } else if (env_exists$conda) {
+        reticulate::use_condaenv(env_name, required = TRUE)
+        options(CASSIA.env_name = env_name)
+        options(CASSIA.env_method = "conda")
+        # Maintain backward compatibility
+        options(CASSIA.conda_env = env_name)
+      }
+    }
     
     # Import Python modules
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
@@ -53,38 +71,160 @@ py_symphony_compare <- NULL
 
 
 
+# Helper function to try virtualenv setup
+.try_virtualenv_setup <- function(env_name, python_version, pip_packages) {
+  tryCatch({
+    # Check if virtualenv already exists
+    existing_envs <- tryCatch(reticulate::virtualenv_list(), error = function(e) character(0))
+    
+    if (!env_name %in% existing_envs) {
+      # Create virtualenv
+      reticulate::virtualenv_create(envname = env_name, python_version = python_version)
+    }
+    
+    # Use the virtualenv
+    reticulate::use_virtualenv(env_name, required = TRUE)
+    
+    # Install packages
+    reticulate::virtualenv_install(envname = env_name, packages = pip_packages)
+    
+    # Set options to track the environment and method
+    options(CASSIA.env_name = env_name)
+    options(CASSIA.env_method = "virtualenv")
+    
+    message("Successfully set up CASSIA environment using virtualenv: ", env_name)
+    return(TRUE)
+    
+  }, error = function(e) {
+    warning("Virtualenv setup failed: ", e$message)
+    return(FALSE)
+  })
+}
+
+# Helper function to try conda setup (current logic)
+.try_conda_setup <- function(conda_env, python_version, pip_packages) {
+  tryCatch({
+    # Check if conda environment exists
+    existing_envs <- tryCatch(reticulate::conda_list()$name, error = function(e) character(0))
+    
+    if (!conda_env %in% existing_envs) {
+      # Create conda environment
+      reticulate::conda_create(envname = conda_env, python_version = python_version)
+    }
+    
+    # Use the conda environment
+    reticulate::use_condaenv(conda_env, required = TRUE)
+    
+    # Install packages
+    reticulate::py_install(pip_packages, pip = TRUE)
+    
+    # Set options to track the environment and method
+    options(CASSIA.env_name = conda_env)
+    options(CASSIA.env_method = "conda")
+    
+    message("Successfully set up CASSIA environment using conda: ", conda_env)
+    return(TRUE)
+    
+  }, error = function(e) {
+    warning("Conda setup failed: ", e$message)
+    return(FALSE)
+  })
+}
+
+# Helper function to get environment name
+.get_env_name <- function(env_name) {
+  if (is.null(env_name)) {
+    # Check for existing environment name from options
+    existing_env <- getOption("CASSIA.env_name", default = NULL)
+    if (!is.null(existing_env)) {
+      return(existing_env)
+    }
+    # Fall back to legacy conda env option
+    return(getOption("CASSIA.conda_env", default = "cassia_env"))
+  }
+  return(env_name)
+}
+
+# Helper function to check if environment exists
+.check_env_exists <- function(env_name) {
+  # Check virtualenv
+  virtualenv_exists <- tryCatch({
+    existing_virtualenvs <- reticulate::virtualenv_list()
+    env_name %in% existing_virtualenvs
+  }, error = function(e) FALSE)
+  
+  # Check conda
+  conda_exists <- tryCatch({
+    existing_condas <- reticulate::conda_list()$name
+    env_name %in% existing_condas
+  }, error = function(e) FALSE)
+  
+  return(list(virtualenv = virtualenv_exists, conda = conda_exists))
+}
+
 #' Set up CASSIA Python Environment
 #'
 #' This function sets up the required Python environment for CASSIA.
 #' It can be used to create a new environment or update an existing one.
+#' By default, it tries virtualenv first (simpler, more reliable), then falls back to conda.
 #' 
-#' @param conda_env The name of the conda environment to use. If NULL, uses the default from package configuration.
+#' @param conda_env The name of the environment to use. If NULL, uses the default from package configuration.
 #' @param python_version The Python version to use. Default is "3.10".
 #' @param pip_packages A character vector of pip packages to install.
+#' @param method The method to use for environment setup. Options: "auto" (try virtualenv first, then conda), "virtualenv", "conda". Default is "auto".
 #'
 #' @return Invisible NULL. Called for side effects.
 #' @export
 setup_cassia_env <- function(conda_env = NULL, python_version = "3.10", 
                            pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
-                                          "requests", "anthropic", "charset-normalizer")) {
-  if (is.null(conda_env)) {
-    conda_env <- getOption("CASSIA.conda_env", default = "cassia_env")
+                                          "requests", "anthropic", "charset-normalizer"),
+                           method = "auto") {
+  
+  # Get environment name
+  env_name <- .get_env_name(conda_env)
+  
+  # Validate method parameter
+  if (!method %in% c("auto", "virtualenv", "conda")) {
+    stop("Method must be one of: 'auto', 'virtualenv', 'conda'")
   }
   
-  # Check if the environment exists
-  if (!conda_env %in% reticulate::conda_list()$name) {
-    # Create conda environment
-    reticulate::conda_create(envname = conda_env, python_version = python_version)
+  # Check if environment already exists
+  env_exists <- .check_env_exists(env_name)
+  
+  success <- FALSE
+  
+  if (method == "auto") {
+    # Try virtualenv first, then conda
+    if (env_exists$virtualenv) {
+      message("Using existing virtualenv: ", env_name)
+      success <- .try_virtualenv_setup(env_name, python_version, pip_packages)
+    } else if (env_exists$conda) {
+      message("Using existing conda environment: ", env_name)
+      success <- .try_conda_setup(env_name, python_version, pip_packages)
+    } else {
+      # Neither exists, try to create virtualenv first
+      message("Creating new environment. Trying virtualenv first...")
+      success <- .try_virtualenv_setup(env_name, python_version, pip_packages)
+      
+      if (!success) {
+        message("Virtualenv failed. Trying conda as fallback...")
+        success <- .try_conda_setup(env_name, python_version, pip_packages)
+      }
+    }
+  } else if (method == "virtualenv") {
+    success <- .try_virtualenv_setup(env_name, python_version, pip_packages)
+  } else if (method == "conda") {
+    success <- .try_conda_setup(env_name, python_version, pip_packages)
   }
   
-  # Use the environment
-  reticulate::use_condaenv(conda_env, required = TRUE)
+  if (!success) {
+    stop("Failed to set up CASSIA Python environment with method: ", method)
+  }
   
-  # Install or update required packages
-  reticulate::py_install(pip_packages, pip = TRUE)
-  
-  # Set the CASSIA.conda_env option
-  options(CASSIA.conda_env = conda_env)
+  # Maintain backward compatibility - keep the old conda_env option
+  if (getOption("CASSIA.env_method", default = "conda") == "conda") {
+    options(CASSIA.conda_env = env_name)
+  }
   
   invisible(NULL)
 }

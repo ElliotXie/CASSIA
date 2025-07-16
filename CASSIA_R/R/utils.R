@@ -16,13 +16,41 @@ check_python_env <- function() {
 
 #' Set Python Environment
 #'
-#' @param conda_env The name of the conda environment to use.
+#' @param conda_env The name of the environment to use (works with both conda and virtualenv).
 #' @return TRUE if the Python environment is set successfully, FALSE otherwise.
 #' @export
 set_python_env <- function(conda_env) {
+  # Maintain backward compatibility - support old parameter name
+  env_name <- conda_env
   tryCatch({
-    reticulate::use_condaenv(conda_env, required = TRUE)
-    options(CASSIA.conda_env = conda_env)
+    # Check if it's a virtualenv first
+    virtualenv_exists <- tryCatch({
+      existing_virtualenvs <- reticulate::virtualenv_list()
+      env_name %in% existing_virtualenvs
+    }, error = function(e) FALSE)
+    
+    # Check if it's a conda environment
+    conda_exists <- tryCatch({
+      existing_condas <- reticulate::conda_list()$name
+      env_name %in% existing_condas
+    }, error = function(e) FALSE)
+    
+    if (virtualenv_exists) {
+      reticulate::use_virtualenv(env_name, required = TRUE)
+      options(CASSIA.env_name = env_name)
+      options(CASSIA.env_method = "virtualenv")
+      message("Using virtualenv: ", env_name)
+    } else if (conda_exists) {
+      reticulate::use_condaenv(env_name, required = TRUE)
+      options(CASSIA.env_name = env_name)
+      options(CASSIA.env_method = "conda")
+      # Maintain backward compatibility
+      options(CASSIA.conda_env = env_name)
+      message("Using conda environment: ", env_name)
+    } else {
+      stop("Environment '", env_name, "' not found in either virtualenv or conda")
+    }
+    
     return(TRUE)
   }, error = function(e) {
     warning(paste("Failed to set Python environment:", e$message))

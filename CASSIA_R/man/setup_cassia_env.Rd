@@ -8,15 +8,18 @@ setup_cassia_env(
   conda_env = NULL,
   python_version = "3.10",
   pip_packages = c("openai", "pandas", "numpy", "scikit-learn", "requests", "anthropic",
-    "charset-normalizer")
+    "charset-normalizer"),
+  method = "auto"
 )
 }
 \arguments{
-\item{conda_env}{The name of the conda environment to use. If NULL, uses the default from package configuration.}
+\item{conda_env}{The name of the environment to use. If NULL, uses the default from package configuration.}
 
 \item{python_version}{The Python version to use. Default is "3.10".}
 
 \item{pip_packages}{A character vector of pip packages to install.}
+
+\item{method}{The method to use for environment setup. Options: "auto" (try virtualenv first, then conda), "virtualenv", "conda". Default is "auto".}
 }
 \value{
 Invisible NULL. Called for side effects.
@@ -24,4 +27,33 @@ Invisible NULL. Called for side effects.
 \description{
 This function sets up the required Python environment for CASSIA.
 It can be used to create a new environment or update an existing one.
+By default, it tries virtualenv first (simpler, more reliable), then falls back to conda.
+}
+\details{
+The function now supports two methods for creating Python environments:
+
+\strong{Virtualenv (Default Primary Method):}
+\itemize{
+  \item Simpler and more reliable for basic pip packages
+  \item Avoids conda's complex dependency resolution
+  \item Better support for ARM64 systems (M1/M2 Macs)
+  \item Faster installation and fewer potential conflicts
+}
+
+\strong{Conda (Fallback Method):}
+\itemize{
+  \item Used when virtualenv fails or when explicitly requested
+  \item Maintains backward compatibility with existing installations
+  \item Better for complex scientific computing environments
+}
+
+\strong{Method Options:}
+\itemize{
+  \item \code{"auto"} (default): Try virtualenv first, then conda
+  \item \code{"virtualenv"}: Use only virtualenv
+  \item \code{"conda"}: Use only conda (original behavior)
+}
+
+This approach solves common issues with conda environments on mounted filesystems
+and M1/M2 Mac systems while maintaining full backward compatibility.
 }
