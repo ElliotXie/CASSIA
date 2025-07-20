@@ -1,0 +1,20 @@
+# Python scripts
+*.py text eol=lf
+
+# Jupyter notebooks
+*.ipynb text eol=lf
+
+# Markdown
+*.md text eol=lf
+
+# CSV files
+*.csv text eol=lf
+
+# JSON files
+*.json text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Default: all other files auto-detected as text (safest)
+* text=auto
