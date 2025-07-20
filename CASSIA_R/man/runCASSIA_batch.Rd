@@ -17,7 +17,8 @@ runCASSIA_batch(
   max_workers = 10,
   provider = "openrouter",
   n_genes = 50,
-  max_retries = 1
+  max_retries = 1,
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -44,6 +45,8 @@ runCASSIA_batch(
 \item{n_genes}{Number of top genes to use (default: 50)}
 
 \item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 
 \item{df_input}{A data frame or path to the CSV file containing marker data.}
 }

@@ -74,35 +74,6 @@ This function conducts a comprehensive cell type comparison using multiple AI mo
 automatically triggering discussion rounds when models disagree on the best matching cell type.
 Think of it as a virtual panel of expert biologists debating and reaching consensus.
 }
-\details{
-\strong{Model Presets:}
-\itemize{
-\item \strong{symphony}: High-performance ensemble using Claude 3.7 Sonnet, GPT-4o mini, and Gemini 2.5 Pro
-\item \strong{quartet}: Balanced 4-model ensemble adding Llama 3.3 405B
-\item \strong{budget}: Cost-effective models using Gemini Flash, DeepSeek, and Grok mini
-\item \strong{custom}: Use your own model list via custom_models parameter
-}
-
-\strong{Discussion Rounds:}
-When models disagree on the best cell type match (consensus < threshold), the function
-automatically triggers discussion rounds where models critique each other's analyses
-and provide refined scores. This continues until consensus is reached or max rounds exceeded.
-
-\strong{Output Files:}
-\itemize{
-\item CSV file with detailed scores and reasoning for each model and cell type
-\item Interactive HTML report showing score progression, model discussions, and consensus building
-\item Both files are timestamped for easy organization
-}
-
-\strong{API Requirements:}
-Requires an OpenRouter API key (supports 100+ models). Set via:
-\itemize{
-\item Environment variable: \code{Sys.setenv(OPENROUTER_API_KEY = "your-key")}
-\item Direct parameter: \code{api_key = "your-key"}
-\item Using \code{setOpenRouterApiKey("your-key")}
-}
-}
 \examples{
 \dontrun{
 # Basic usage - let Symphony Compare handle everything
@@ -115,10 +86,7 @@ results <- symphonyCompare(
 
 # Access the results
 cat("Consensus:", results$consensus, "\n")
-cat("Confidence:", sprintf("%.1f\%\%", results$confidence * 100), "\n")
-
-# View detailed scores
-print(results$summary$celltype_scores)
+cat("Confidence:", sprintf("\%.1f\%\%", results$confidence * 100), "\n")
 
 # Advanced usage with custom settings
 results <- symphonyCompare(
@@ -133,38 +101,6 @@ results <- symphonyCompare(
   output_dir = "./symphony_results",
   verbose = TRUE
 )
-
-# Custom model configuration
-results <- symphonyCompare(
-  tissue = "liver",
-  celltypes = c("Hepatocyte", "Kupffer cell"),
-  marker_set = "ALB, CYP3A4, CD163, MARCO",
-  model_preset = "custom",
-  custom_models = c("anthropic/claude-3.5-sonnet", "openai/gpt-4o"),
-  enable_discussion = FALSE  # Skip discussion for 2 models
-)
-
-# Work with results dataframe
-df <- results$dataframe
-head(df[, c("model", "researcher", "round", "T cell_score", "B cell_score")])
-
-# Access summary statistics
-summary_stats <- results$summary
-cat("Total rounds:", summary_stats$total_rounds, "\n")
-cat("Models used:", summary_stats$models_used, "\n")
-
-# Cell type score details
-for(celltype in names(summary_stats$celltype_scores)) {
-  scores <- summary_stats$celltype_scores[[celltype]]
-  cat(sprintf("\%s: \%.1f ± \%.1f (range: \%.0f-\%.0f)\n", 
-              celltype, scores$mean, scores$std, scores$min, scores$max))
 }
-}
-}
-\seealso{
-\code{\link{compareCelltypes}} for the simpler version without consensus building
 
-\code{\link{setOpenRouterApiKey}} for setting up API access
-
-\code{\link{runCASSIA}} for single-model cell type annotation
 }

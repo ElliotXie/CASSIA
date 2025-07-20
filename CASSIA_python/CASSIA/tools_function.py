@@ -31,6 +31,11 @@ except ImportError:
     from llm_utils import *
 
 try:
+    from .model_settings import resolve_model_name, get_recommended_model
+except ImportError:
+    from model_settings import resolve_model_name, get_recommended_model
+
+try:
     from .merging_annotation import *
 except ImportError:
     from merging_annotation import *

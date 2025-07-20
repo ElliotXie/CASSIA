@@ -26,7 +26,8 @@ runCASSIA_pipeline(
   search_strategy = "breadth",
   report_style = "per_iteration",
   ranking_method = "avg_log2FC",
-  ascending = NULL
+  ascending = NULL,
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -73,6 +74,8 @@ runCASSIA_pipeline(
 \item{ranking_method}{Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")}
 
 \item{ascending}{Sort direction (NULL uses default for each method) (default: NULL)}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 }
 \value{
 None. Creates output files and generates reports.

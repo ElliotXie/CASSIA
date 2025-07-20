@@ -18,6 +18,7 @@ runCASSIA_annotationboost_additional_task(
   conversation_history_mode = "final",
   search_strategy = "breadth",
   report_style = "per_iteration",
+  validator_involvement = "v1",
   ...
 )
 }
@@ -47,6 +48,8 @@ runCASSIA_annotationboost_additional_task(
 \item{search_strategy}{Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
 
 \item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 
 \item{...}{Additional parameters for future compatibility}
 }

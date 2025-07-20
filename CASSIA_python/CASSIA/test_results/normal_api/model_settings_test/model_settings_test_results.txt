@@ -1,0 +1,26 @@
+CASSIA Model Settings System Test Results
+==================================================
+
+Test 1: Basic Model Resolution
+------------------------------
+gpt4       + openai     → gpt-4o
+claude     + anthropic  → claude-3-5-sonnet-latest
+gemini     + openrouter → google/gemini-2.5-flash
+deepseek   + openrouter → deepseek/deepseek-chat-v3-0324
+best       + openai     → gpt-4o
+best       + anthropic  → claude-3-5-sonnet-latest
+best       + openrouter → google/gemini-2.5-flash
+cheap      + openai     → gpt-3.5-turbo
+cheap      + anthropic  → claude-3-5-haiku-latest
+cheap      + openrouter → deepseek/deepseek-chat-v3-0324
+premium    + openrouter → anthropic/claude-3-5-sonnet
+fast       + openrouter → google/gemini-2.5-flash
+
+Test 2: Provider-Specific Recommendations
+------------------------------
+openai     best → gpt-4o
+anthropic  best → claude-3-5-sonnet-latest
+openrouter best → google/gemini-2.5-flash
+
+Test Status: SUCCESS
+All core functionality working correctly.

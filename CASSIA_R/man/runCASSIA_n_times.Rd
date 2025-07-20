@@ -13,7 +13,8 @@ runCASSIA_n_times(
   marker_list,
   model = "google/gemini-2.5-flash-preview",
   max_workers = 10,
-  provider = "openrouter"
+  provider = "openrouter",
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ runCASSIA_n_times(
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 }
 \value{
 A list containing results from multiple runs.

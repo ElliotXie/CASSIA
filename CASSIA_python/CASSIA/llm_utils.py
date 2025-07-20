@@ -3,6 +3,14 @@ import json
 import requests
 from typing import Dict, Any, Optional
 
+# Import model settings for automatic model name resolution
+try:
+    from .model_settings import resolve_model_name
+except ImportError:
+    # Fallback function if model_settings is not available
+    def resolve_model_name(model_name: str, provider: str = None):
+        return model_name, provider or "openrouter"
+
 def call_llm(
     prompt: str,
     provider: str = "openai",
@@ -32,11 +40,21 @@ def call_llm(
     provider = provider.lower()
     additional_params = additional_params or {}
     
+    # Resolve model name using model settings if model is provided
+    if model:
+        try:
+            resolved_model, resolved_provider = resolve_model_name(model, provider)
+            # Use the resolved model (provider should stay the same)
+            model = resolved_model
+        except Exception as e:
+            # If resolution fails, continue with original names
+            pass
+    
     # Default models for each provider if not specified
     default_models = {
-        "openai": "gpt-3.5-turbo",
-        "anthropic": "claude-3-sonnet-20240229",
-        "openrouter": "openai/gpt-3.5-turbo",
+        "openai": "gpt-4o",
+        "anthropic": "claude-3-5-sonnet-latest",
+        "openrouter": "google/gemini-2.5-flash",
     }
     
     # Use default model if not specified

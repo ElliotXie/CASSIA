@@ -15,16 +15,3 @@ TRUE if the Python environment is set successfully, FALSE otherwise.
 \description{
 Set Python Environment
 }
-\details{
-This function automatically detects whether the specified environment is a 
-virtualenv or conda environment and activates it accordingly. It maintains 
-backward compatibility with existing code while supporting both environment types.
-
-The function will:
-\itemize{
-  \item Check if the environment exists as a virtualenv first
-  \item Check if the environment exists as a conda environment
-  \item Activate the appropriate environment type
-  \item Update package options to track the environment method
-}
-}

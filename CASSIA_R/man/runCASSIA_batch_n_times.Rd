@@ -18,7 +18,8 @@ runCASSIA_batch_n_times(
   max_workers = 10,
   batch_max_workers = 5,
   provider = "openrouter",
-  max_retries = 1
+  max_retries = 1,
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ runCASSIA_batch_n_times(
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 
 \item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 }
 \value{
 None. This function creates output files and prints execution time.

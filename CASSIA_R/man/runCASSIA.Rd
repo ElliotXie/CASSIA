@@ -11,7 +11,8 @@ runCASSIA(
   tissue,
   species,
   additional_info = NULL,
-  provider = "openrouter"
+  provider = "openrouter",
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ runCASSIA(
 \item{additional_info}{Additional information as a character string.}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 }
 \value{
 A list containing two elements: structured output and conversation history.

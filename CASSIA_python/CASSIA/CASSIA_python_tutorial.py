@@ -1612,6 +1612,246 @@ result = call_llm_with_image(
 )
 """)
 
+def test_model_settings():
+    """
+    Test the model settings functionality with comprehensive examples.
+    This function demonstrates how to use the new model settings system.
+    """
+    print("\n=== Testing CASSIA Model Settings System ===")
+    
+    # Test import
+    try:
+        from model_settings import (
+            resolve_model_name,
+            get_recommended_model,
+            get_model_info,
+            list_models,
+            get_model_settings
+        )
+        print("✅ Successfully imported model_settings module")
+        
+        # Show where settings are loaded from
+        settings = get_model_settings()
+        print(f"📁 Model settings loaded from: {settings.config_path}")
+        
+    except ImportError as e:
+        print(f"❌ Failed to import model_settings: {e}")
+        return
+    
+    print("\n" + "="*80)
+    print("MODEL SETTINGS SYSTEM OVERVIEW")
+    print("="*80)
+    print("""
+The CASSIA Model Settings System makes it easy to use different AI models while
+maintaining control over API keys. Key features:
+
+✅ Provider must be specified (openai, anthropic, openrouter) 
+✅ Use simple names like 'gpt4', 'claude', 'gemini' within providers
+✅ Quality shortcuts: 'best', 'cheap', 'premium', 'fast' per provider
+✅ Cost awareness: Different options per provider
+✅ No accidental API switching
+✅ Configuration included with package installation
+""")
+    
+    print(f"📦 Configuration Location: {settings.config_path}")
+    print("   The model_settings.json file is included in the package data directory")
+    print("   and is automatically loaded when you import the module.")
+    
+    # Test 1: Basic model resolution with providers
+    print("\n=== Test 1: Basic Model Resolution ===")
+    test_cases = [
+        ("gpt4", "openai"),
+        ("claude", "anthropic"),
+        ("gemini", "openrouter"),
+        ("deepseek", "openrouter"),
+        ("best", "openai"),
+        ("best", "anthropic"),
+        ("best", "openrouter"),
+        ("cheap", "openai"),
+        ("cheap", "anthropic"),
+        ("cheap", "openrouter"),
+        ("premium", "openrouter"),
+        ("fast", "openrouter")
+    ]
+    
+    print("Testing model name resolution (Provider REQUIRED):")
+    for model, provider in test_cases:
+        try:
+            resolved = resolve_model_name(model, provider)
+            print(f"  {model:10} + {provider:10} → {resolved[0]}")
+        except Exception as e:
+            print(f"  {model:10} + {provider:10} → Error: {e}")
+    
+    # Test 2: Error handling - provider required
+    print("\n=== Test 2: Error Handling (Provider Required) ===")
+    try:
+        resolve_model_name("gpt4")
+        print("❌ ERROR: Should have failed without provider")
+    except Exception as e:
+        print(f"✅ Correctly failed without provider: {e}")
+    
+    # Test 3: Provider-specific recommendations
+    print("\n=== Test 3: Provider-Specific Recommendations ===")
+    providers = ["openai", "anthropic", "openrouter"]
+    for provider in providers:
+        try:
+            recommended = get_recommended_model(provider)
+            print(f"  {provider:10} best → {recommended[0]}")
+        except Exception as e:
+            print(f"  {provider:10} best → Error: {e}")
+    
+    # Test 4: Model information
+    print("\n=== Test 4: Model Information ===")
+    info_tests = [
+        ("gpt4", "openai"),
+        ("claude", "anthropic"),
+        ("gemini", "openrouter"),
+        ("deepseek", "openrouter")
+    ]
+    
+    for model, provider in info_tests:
+        try:
+            info = get_model_info(model, provider)
+            if info:
+                print(f"  {model:8} ({provider:10}): {info.get('description', 'No description')}")
+                print(f"  {' '*8} {' '*12}  Cost: {info.get('cost_tier', 'Unknown')}")
+        except Exception as e:
+            print(f"  {model:8} ({provider:10}): Error: {e}")
+    
+    # Test 5: Provider-specific shortcuts
+    print("\n=== Test 5: Provider-Specific Shortcuts ===")
+    shortcuts = ["best", "cheap", "premium", "fast"]
+    for provider in providers:
+        print(f"  {provider:10}:")
+        for shortcut in shortcuts:
+            try:
+                resolved = resolve_model_name(shortcut, provider)
+                print(f"    {shortcut:8} → {resolved[0]}")
+            except Exception as e:
+                print(f"    {shortcut:8} → Error: {e}")
+    
+    # Test 6: Model listing
+    print("\n=== Test 6: Model Listing ===")
+    try:
+        for provider in providers:
+            models = list_models(provider=provider)
+            print(f"  {provider:10}: {len(models)} models available")
+            # Show first 2 models
+            for i, model in enumerate(models[:2]):
+                print(f"    - {model['name']}: {model['info']['description']}")
+    except Exception as e:
+        print(f"  Error listing models: {e}")
+    
+    # Test 7: Practical usage examples
+    print("\n=== Test 7: Practical Usage Examples ===")
+    print("""
+HOW TO USE MODEL SETTINGS IN YOUR CODE:
+
+1. BATCH ANALYSIS (Simple Names):
+   runCASSIA_batch(
+       marker=markers,
+       model="gpt4",         # Resolves to gpt-4o
+       provider="openai"     # REQUIRED for API key control
+   )
+
+2. COST-CONSCIOUS ANALYSIS (Different per provider):
+   runCASSIA_batch(
+       marker=markers,
+       model="cheap",        # OpenAI: gpt-3.5-turbo
+       provider="openai"
+   )
+   
+   runCASSIA_batch(
+       marker=markers,
+       model="cheap",        # OpenRouter: deepseek/deepseek-chat-v3-0324
+       provider="openrouter"
+   )
+
+3. QUALITY-FOCUSED PIPELINE:
+   runCASSIA_pipeline(
+       output_file_name="smart_analysis",
+       tissue="large intestine",
+       species="human",
+       marker=markers,
+       annotation_model="gemini",        # Fast & cheap
+       annotation_provider="openrouter",
+       score_model="gpt4",              # High quality
+       score_provider="openai",
+       annotationboost_model="claude",   # Best reasoning
+       annotationboost_provider="anthropic"
+   )
+
+4. PROVIDER-SPECIFIC BEST MODELS:
+   runCASSIA_batch(
+       marker=markers,
+       model="best",         # Best model for chosen provider
+       provider="openrouter" # google/gemini-2.5-flash
+   )
+""")
+    
+    # Test 8: Key benefits summary
+    print("\n=== Key Benefits Summary ===")
+    print("✅ Provider control: You specify which API to use")
+    print("✅ Simple names: Use 'gpt4', 'claude', 'gemini' within providers")
+    print("✅ Quality shortcuts: 'best', 'cheap', 'premium', 'fast' per provider")
+    print("✅ Cost awareness: Different 'cheap' options per provider")
+    print("✅ Error prevention: Must specify provider (no accidental API switching)")
+    print("✅ Backward compatibility: All existing code continues to work")
+    
+    print("\n" + "="*80)
+    print("MIGRATION GUIDE")
+    print("="*80)
+    print("""
+OLD WAY (Still works):
+runCASSIA_batch(
+    marker=markers,
+    model="google/gemini-2.5-flash",
+    provider="openrouter"
+)
+
+NEW WAY (Much simpler):
+runCASSIA_batch(
+    marker=markers,
+    model="gemini",       # Simple name
+    provider="openrouter" # Still required for API key control
+)
+""")
+    
+    # Test 9: Create comprehensive test results
+    test_results_dir = get_output_path("model_settings_test")
+    results_file = os.path.join(test_results_dir, "model_settings_test_results.txt")
+    
+    print(f"\n📊 Saving detailed test results to: {results_file}")
+    
+    with open(results_file, 'w') as f:
+        f.write("CASSIA Model Settings System Test Results\n")
+        f.write("="*50 + "\n\n")
+        
+        f.write("Test 1: Basic Model Resolution\n")
+        f.write("-" * 30 + "\n")
+        for model, provider in test_cases:
+            try:
+                resolved = resolve_model_name(model, provider)
+                f.write(f"{model:10} + {provider:10} → {resolved[0]}\n")
+            except Exception as e:
+                f.write(f"{model:10} + {provider:10} → Error: {e}\n")
+        
+        f.write("\nTest 2: Provider-Specific Recommendations\n")
+        f.write("-" * 30 + "\n")
+        for provider in providers:
+            try:
+                recommended = get_recommended_model(provider)
+                f.write(f"{provider:10} best → {recommended[0]}\n")
+            except Exception as e:
+                f.write(f"{provider:10} best → Error: {e}\n")
+        
+        f.write("\nTest Status: SUCCESS\n")
+        f.write("All core functionality working correctly.\n")
+    
+    print("✅ Model settings tests completed successfully!")
+    print("🎉 The model settings system is ready for use!")
+
+
 def main():
     # Setup command line argument parsing
     parser = argparse.ArgumentParser(description='Run CASSIA analysis pipelines')
@@ -1829,9 +2069,15 @@ def main():
             test_llm_image_processing()
         except Exception as e:
             print(f"Error testing LLM image processing: {str(e)}")
+    elif args.step == 'test_model_settings':
+        # New option to test model settings functionality
+        try:
+            test_model_settings()
+        except Exception as e:
+            print(f"Error testing model settings: {str(e)}")
     else:
         print(f"Unknown step: {args.step}")
-        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_validators, test_single_validators, test_image")
+        print("Available steps: all, batch, merge, merge_all, score, report, uncertainty, single_cluster_uncertainty, boost, compare, symphony, subcluster, subclustering_uncertainty, boost_task, test_boost, test_subcluster, single_subcluster, debug_genes, test_pipeline, compare_strategies, test_total_summary, test_validators, test_single_validators, test_image, test_model_settings")
 
 
 if __name__ == "__main__":

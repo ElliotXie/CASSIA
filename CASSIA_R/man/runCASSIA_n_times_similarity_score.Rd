@@ -13,7 +13,8 @@ runCASSIA_n_times_similarity_score(
   model = "google/gemini-2.5-flash-preview",
   max_workers,
   n,
-  provider = "openrouter"
+  provider = "openrouter",
+  validator_involvement = "v1"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ runCASSIA_n_times_similarity_score(
 \item{n}{Number of times to run the analysis.}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
+
+\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 }
 \value{
 A list containing processed results including variance analysis.
