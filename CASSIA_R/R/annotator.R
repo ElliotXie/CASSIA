@@ -33,6 +33,7 @@ py_model_settings <- NULL
     
     if (!env_exists$virtualenv && !env_exists$conda) {
       # Environment doesn't exist, create it using the new setup function
+      message("CASSIA Python environment not found. Setting up automatically...")
       setup_cassia_env(conda_env = env_name)
     } else {
       # Environment exists, activate it using the appropriate method
@@ -66,8 +67,39 @@ py_model_settings <- NULL
     py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
     py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
     py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
+    
+    message("CASSIA loaded successfully!")
+    
   }, error = function(e) {
-    warning("Failed to set up Python environment. Please run setup_cassia_env() manually to set up the required environment.")
+    # If setup fails, try to run setup_cassia_env() automatically
+    message("Initial setup failed, attempting automatic environment setup...")
+    tryCatch({
+      setup_cassia_env(conda_env = env_name)
+      
+      # Try to import Python modules again after successful setup
+      py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
+      py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
+      py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
+      py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
+      py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
+      py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
+      py_uncertainty <<- reticulate::import_from_path("Uncertainty_quantification", path = system.file("python", package = "CASSIA"))
+      py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
+      py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
+      py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
+      py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
+      py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
+      py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
+      py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+      py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
+      py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
+      
+      message("CASSIA environment setup completed successfully!")
+      
+    }, error = function(e2) {
+      warning("Failed to set up Python environment automatically. Error: ", e2$message, 
+              "\nPlease run setup_cassia_env() manually to set up the required environment.")
+    })
   })
 }
 
