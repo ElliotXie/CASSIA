@@ -17,7 +17,7 @@ def call_llm(
     model: str = None,
     api_key: Optional[str] = None,
     temperature: float = 0.7,
-    max_tokens: int = 7000,
+    max_tokens: int = 4096,
     system_prompt: Optional[str] = None,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> str:

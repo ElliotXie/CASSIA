@@ -1533,7 +1533,7 @@ def test_llm_image_processing():
                         provider=provider,
                         model=model,
                         temperature=0.0,
-                        max_tokens=1000
+                        max_tokens=4096
                     )
                     
                     result_entry = {

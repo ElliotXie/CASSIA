@@ -819,7 +819,7 @@ def iterative_marker_analysis(
                 provider=provider,
                 model=model,
                 temperature=temperature,
-                max_tokens=7000,
+                max_tokens=4096,
                 # If not the first message, include conversation history
                 additional_params={"messages": messages} if iteration > 0 else {}
             )
@@ -885,7 +885,7 @@ def iterative_marker_analysis(
             provider=provider,
             model=model,
             temperature=temperature,
-            max_tokens=7000,
+            max_tokens=4096,
             additional_params={"messages": messages}
         )
         
@@ -1218,7 +1218,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             provider="openrouter",  # Using OpenRouter as the provider
             model="google/gemini-2.5-flash-preview",  # Using Gemini 2.5 Flash model
             temperature=0.3,      # Low temperature for more consistent output
-            max_tokens=4000
+            max_tokens=4096
         )
         
         # Convert to HTML and save

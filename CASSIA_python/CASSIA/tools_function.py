@@ -693,7 +693,7 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         prompt=prompt, 
         provider=provider, 
         model=model, 
-        max_tokens=2000  # Ensure enough tokens for reasoning + score
+        max_tokens=4096  # Maximum tokens allowed for most models
     )
     
     score, reasoning = extract_score_and_reasoning(response)
