@@ -47,7 +47,7 @@ def call_llm_with_image(
     model: str = None,
     api_key: Optional[str] = None,
     temperature: float = 0.7,
-    max_tokens: int = 7000,
+    max_tokens: int = 4096,
     system_prompt: Optional[str] = None,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -351,7 +351,7 @@ def call_llm_analyze_image(
     model: str = None,
     api_key: Optional[str] = None,
     temperature: float = 0.7,
-    max_tokens: int = 7000,
+    max_tokens: int = 4096,
     system_prompt: Optional[str] = None,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -390,7 +390,7 @@ def call_llm_extract_text_from_image(
     model: str = None,
     api_key: Optional[str] = None,
     temperature: float = 0.1,
-    max_tokens: int = 7000,
+    max_tokens: int = 4096,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> str:
     """

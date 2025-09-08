@@ -819,7 +819,7 @@ def iterative_marker_analysis(
                 provider=provider,
                 model=model,
                 temperature=temperature,
-                max_tokens=7000,
+                max_tokens=4096,
                 # If not the first message, include conversation history
                 additional_params={"messages": messages} if iteration > 0 else {}
             )
@@ -885,7 +885,7 @@ def iterative_marker_analysis(
             provider=provider,
             model=model,
             temperature=temperature,
-            max_tokens=7000,
+            max_tokens=4096,
             additional_params={"messages": messages}
         )
         

@@ -51,7 +51,7 @@ def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=0
         provider=provider,
         model=model,
         temperature=temperature,
-        max_tokens=7000
+        max_tokens=4096
     )
     
     # Process the result for providers that use JSON tags
