@@ -14,7 +14,7 @@ py_generate_hypothesis_report <- NULL
 py_hypothesis_geneartion <- NULL
 py_summarize_hypothesis_runs <- NULL
 py_debug_genes <- NULL
-py_super_annottaion_boost <- NULL
+# py_super_annottaion_boost <- NULL
 py_symphony_compare <- NULL
 py_model_settings <- NULL
 
@@ -64,7 +64,7 @@ py_model_settings <- NULL
     py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
     py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
     py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-    py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+    # py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
     py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
     py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
     
@@ -90,7 +90,7 @@ py_model_settings <- NULL
       py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
       py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
       py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-      py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+      # py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
       py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
       py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
       
