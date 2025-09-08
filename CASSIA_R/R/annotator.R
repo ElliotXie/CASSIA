@@ -211,7 +211,7 @@ py_model_settings <- NULL
 #' @export
 setup_cassia_env <- function(conda_env = NULL, python_version = "3.10", 
                            pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
-                                          "requests", "anthropic", "charset-normalizer"),
+                                          "requests", "anthropic", "charset-normalizer", "matplotlib"),
                            method = "auto") {
   
   # Get environment name
