@@ -117,7 +117,7 @@ You can choose any model for annotation and scoring. Some classic models are lis
 
 
 ### OpenRouter
-- `google/gemini-2.5-flash-preview`: One of the best-performed low-cost models, comparable with models like gpt-4o (Most recommended)
+- `google/gemini-2.5-flash`: One of the best-performed low-cost models, comparable with models like gpt-4o (Most recommended)
 - `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, turns to gives very detailed annotations (Recommended)
 - `deepseek/deepseek-chat-v3-0324:free`: Free but slower
 
