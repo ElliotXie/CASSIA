@@ -39,3 +39,7 @@ CASSIA/CASSIA_python/CASSIA/test_results/
 # Package upload scripts with potentially sensitive API keys
 CASSIA_python/upload_to_pypi.py
 CASSIA_python/cassia_secrets.py 
+# Ignore development documentation
+ dev_docs/ 
+CLAUDE.md
+dev_docs/quick_install_dev.py

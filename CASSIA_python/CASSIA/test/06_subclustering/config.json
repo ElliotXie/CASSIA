@@ -1,0 +1,31 @@
+{
+  "test_name": "test_subclustering",
+  "description": "Test hierarchical subcluster annotation functionality",
+  "model": "google/gemini-2.5-flash-preview",
+  "provider": "openrouter",
+  "temperature": 0,
+  "data_file": "processed.csv",
+  "method_params": {
+    "major_cluster_info": "CD8 T cells",
+    "output_name": "subcluster_test_results",
+    "n_genes": 50
+  },
+  "validation": {
+    "check_output_format": true,
+    "expected_columns": [
+      "Result ID",
+      "main_cell_type",
+      "sub_cell_type",
+      "key_markers",
+      "reason"
+    ],
+    "check_cell_type_values": true,
+    "check_reason_provided": true
+  },
+  "reporting": {
+    "save_logs": true,
+    "verbose": true,
+    "save_results": true,
+    "check_html_report": true
+  }
+}

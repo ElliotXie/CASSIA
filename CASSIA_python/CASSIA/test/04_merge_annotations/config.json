@@ -1,0 +1,32 @@
+{
+  "test_name": "test_merge_annotations",
+  "description": "Test annotation merging at multiple granularity levels",
+  "model": "google/gemini-2.5-flash-preview",
+  "provider": "openrouter",
+  "temperature": 0.3,
+  "data_file": "processed.csv",
+  "method_params": {
+    "batch_size": 20,
+    "additional_context": "human large intestine tissue"
+  },
+  "prerequisites": {
+    "requires_batch_results": true,
+    "batch_results_file": "merge_test_batch_full.csv"
+  },
+  "validation": {
+    "check_merged_columns": true,
+    "expected_merged_columns": [
+      "Merged_Grouping_1",
+      "Merged_Grouping_2",
+      "Merged_Grouping_3"
+    ],
+    "check_grouping_hierarchy": true,
+    "check_biological_validity": true
+  },
+  "reporting": {
+    "save_logs": true,
+    "verbose": true,
+    "save_merged_results": true,
+    "show_grouping_examples": true
+  }
+}

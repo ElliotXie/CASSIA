@@ -12,9 +12,11 @@ CASSIA/generate_comparison.py
 CASSIA/generate_hypothesis_report.py
 CASSIA/generate_reports.py
 CASSIA/hypothesis_geneartion.py
+CASSIA/llm_image.py
 CASSIA/llm_utils.py
 CASSIA/main_function_code.py
 CASSIA/merging_annotation.py
+CASSIA/model_settings.py
 CASSIA/run_full_test.py
 CASSIA/subclustering.py
 CASSIA/summarize_hypothesis_runs.py

@@ -485,7 +485,8 @@ REMEMBER: Always use <results></results> tags around your output and maintain th
         provider=provider,
         model=model,
         temperature=temperature,
-        system_prompt=system_prompt
+        system_prompt=system_prompt,
+        max_tokens=4096  # Set to maximum allowed for most models
     )
     
     # Process the result for all providers to extract content from <results> tags

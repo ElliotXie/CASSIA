@@ -31,6 +31,11 @@ except ImportError:
     from llm_utils import *
 
 try:
+    from .model_settings import resolve_model_name, get_recommended_model
+except ImportError:
+    from model_settings import resolve_model_name, get_recommended_model
+
+try:
     from .merging_annotation import *
 except ImportError:
     from merging_annotation import *
@@ -276,32 +281,68 @@ def safe_get(dict_obj, *keys):
     return dict_obj
 
 
+def natural_sort_key(cell_type):
+    """
+    Create a sort key that handles numeric cluster names properly.
+
+    Handles various formats:
+    - Pure numbers: "0", "1", "10" → sorted as integers 0, 1, 10 (priority 0)
+    - "cluster X": "cluster 0", "cluster 1", "cluster 10" → sorted by X numerically (priority 1)
+    - "Cluster X": case-insensitive
+    - Other text: sorted alphabetically (priority 2)
+
+    Args:
+        cell_type (str): The cell type or cluster name
+
+    Returns:
+        tuple: (sort_priority, numeric_value, string_value) for proper sorting
+    """
+    import re
+
+    if not cell_type or not isinstance(cell_type, str):
+        return (3, 0, str(cell_type))  # Non-string values go last
+
+    cell_type_str = str(cell_type).strip()
+
+    # Try to parse as pure integer
+    try:
+        return (0, int(cell_type_str), "")  # Pure numbers have priority 0
+    except ValueError:
+        pass
+
+    # Try to extract number from "cluster X" or "Cluster X" format (case-insensitive)
+    cluster_match = re.match(r'^cluster\s+(\d+)$', cell_type_str, re.IGNORECASE)
+    if cluster_match:
+        cluster_num = int(cluster_match.group(1))
+        return (1, cluster_num, "")  # Cluster numbers have priority 1 (after pure numbers)
+
+    # For any other text, sort alphabetically (priority 2)
+    return (2, 0, cell_type_str.lower())
+
+
 def clean_conversation_history(history_text):
     """
-    Clean conversation history for safe CSV storage.
-    
+    Clean conversation history for safe CSV storage while preserving full content.
+
     Args:
         history_text (str): Raw conversation history text
-        
+
     Returns:
-        str: Cleaned text safe for CSV storage
+        str: Cleaned text safe for CSV storage (no truncation)
     """
     if not history_text:
         return ""
-    
-    # Replace newlines with spaces (prevents row breaks in CSV)
+
+    # Replace newlines with spaces (prevents row breaks in CSV/Excel)
     cleaned = history_text.replace('\n', ' ').replace('\r', ' ')
-    
+
     # Collapse multiple spaces into single spaces
     cleaned = ' '.join(cleaned.split())
-    
-    # Remove or escape problematic characters for CSV
-    cleaned = cleaned.replace('"', "'")  # Replace quotes with apostrophes
-    
-    # Truncate if too long (prevents massive CSV cells)
-    if len(cleaned) > 10000:  # Limit to 10KB
-        cleaned = cleaned[:10000] + "... [truncated]"
-    
+
+    # Double quotes will be handled by csv.writer's automatic escaping
+    # No need to replace quotes - csv module handles this correctly
+
+    # Return full content without truncation
     return cleaned
 
 
@@ -489,8 +530,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         
         # Process and clean conversation history for safe CSV storage
         raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
-        # conversation_history = clean_conversation_history(raw_conversation_history)
-        conversation_history = raw_conversation_history # User requested to remove cleaning step to preserve full history
+        conversation_history = clean_conversation_history(raw_conversation_history)  # Clean while preserving full content
         
         full_data.append([
             true_cell_type, 
@@ -530,9 +570,10 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    # Sort the data by True Cell Type to ensure consistent ordering
-    full_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
-    summary_data.sort(key=lambda x: x[0])  # Sort by first column (True Cell Type)
+    # Sort the data by True Cell Type with natural/numeric ordering
+    # This ensures "cluster 1", "cluster 2", "cluster 10" (not "cluster 1", "cluster 10", "cluster 2")
+    full_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (True Cell Type) numerically
+    summary_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (True Cell Type) numerically
 
     # Write the full data CSV with updated headers
     write_csv(full_csv_name, 
@@ -688,7 +729,7 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         prompt=prompt, 
         provider=provider, 
         model=model, 
-        max_tokens=2000  # Ensure enough tokens for reasoning + score
+        max_tokens=4096  # Maximum tokens allowed for most models
     )
     
     score, reasoning = extract_score_and_reasoning(response)

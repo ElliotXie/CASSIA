@@ -1,4 +1,4 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.1
 Name: CASSIA
 Version: 0.3.1.dev4
 Summary: CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
@@ -17,39 +17,22 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-Requires-Dist: numpy>=1.21.0
-Requires-Dist: pandas>=1.3.0
-Requires-Dist: openai>=1.0.0
-Requires-Dist: anthropic>=0.3.0
-Requires-Dist: requests>=2.25.0
-Requires-Dist: matplotlib>=3.3.0
-Requires-Dist: seaborn>=0.11.0
-Requires-Dist: tqdm>=4.60.0
-Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
-Dynamic: home-page
-Dynamic: requires-dist
-Dynamic: requires-python
-Dynamic: summary
 
 # CASSIA
 
-**CASSIA** is a Python and R package designed for **automated, accurate, and interpretable single-cell RNA-seq cell type annotation** using a modular **multi-agent LLM framework**. CASSIA provides comprehensive annotation workflows that incorporate reasoning, validation, quality scoring, and reportingâ€”alongside optional agents for refinement, uncertainty quantification, and retrieval-augmented generation (RAG).
+**CASSIA** is a Python and R package designed for **automated, accurate, and interpretable single-cell RNA-seq cell type annotation** using a modular **multi-agent LLM framework**. CASSIA provides comprehensive annotation workflows that incorporate reasoning, validation, quality scoring, and reporting—alongside optional agents for refinement, uncertainty quantification, and retrieval-augmented generation (RAG).
 
 ## Highlights
 
-- ðŸ”¬ **Reference-free and interpretable** LLM-based cell type annotation  
-- ðŸ§  Multi-agent architecture with dedicated agents for annotation, validation, formatting, quality scoring, and reporting  
-- ðŸ“ˆ **Quality scores (0â€“100)** and optional consensus scoring to quantify annotation reliability  
-- ðŸ“Š Detailed **HTML reports** with reasoning and marker validation  
-- ðŸ’¬ Supports OpenAI, Anthropic, OpenRouter APIs and open-source models (e.g., LLaMA 3.2 90B)  
-- ðŸ§¬ Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)  
-- ðŸš€ Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification  
-- ðŸŒŽ Cross-species annotation capabilities, validated across human, mouse, and non-model organisms  
-- ðŸ§ª Web UI also available: [https://www.cassiacell.com](https://www.cassiacell.com)
+- 🔬 **Reference-free and interpretable** LLM-based cell type annotation  
+- 🧠 Multi-agent architecture with dedicated agents for annotation, validation, formatting, quality scoring, and reporting  
+- 📈 **Quality scores (0–100)** and optional consensus scoring to quantify annotation reliability  
+- 📊 Detailed **HTML reports** with reasoning and marker validation  
+- 💬 Supports OpenAI, Anthropic, OpenRouter APIs and open-source models (e.g., LLaMA 3.2 90B)  
+- 🧬 Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)  
+- 🚀 Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification  
+- 🌎 Cross-species annotation capabilities, validated across human, mouse, and non-model organisms  
+- 🧪 Web UI also available: [https://www.cassiacell.com](https://www.cassiacell.com)
 
 ## Installation
 
@@ -95,7 +78,7 @@ We welcome contributions! Please submit pull requests or open issues via [GitHub
 
 ## License
 
-MIT License Â© 2024 Elliot Xie and contributors.
+MIT License © 2024 Elliot Xie and contributors.
 
 ## Support
 

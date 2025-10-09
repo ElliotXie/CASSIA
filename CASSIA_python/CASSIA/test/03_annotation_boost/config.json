@@ -1,0 +1,36 @@
+{
+  "test_name": "test_annotation_boost",
+  "description": "Test iterative marker analysis for deep-dive annotation of ambiguous clusters",
+  "model": "google/gemini-2.5-flash-preview",
+  "provider": "openrouter",
+  "temperature": 0,
+  "data_file": "processed.csv",
+  "test_cluster": "monocyte",
+  "method_params": {
+    "cluster_name": "monocyte",
+    "major_cluster_info": "human large intestine",
+    "output_name": "boost_test_monocyte",
+    "num_iterations": 5,
+    "conversation_history_mode": "final",
+    "report_style": "per_iteration"
+  },
+  "prerequisites": {
+    "requires_batch_results": true,
+    "batch_results_file": "boost_test_batch_full.csv"
+  },
+  "validation": {
+    "check_conversation_history": true,
+    "min_iterations": 1,
+    "max_iterations": 10,
+    "check_final_annotation": true,
+    "check_html_report": true,
+    "check_raw_conversation": true
+  },
+  "reporting": {
+    "save_logs": true,
+    "verbose": true,
+    "save_conversation_json": true,
+    "save_html_summary": true,
+    "save_raw_text": true
+  }
+}

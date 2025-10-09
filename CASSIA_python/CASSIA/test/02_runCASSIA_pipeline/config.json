@@ -1,0 +1,46 @@
+{
+  "test_name": "test_runCASSIA_pipeline",
+  "description": "Test full end-to-end CASSIA pipeline including annotation, scoring, boost, and merging",
+  "annotation_model": "google/gemini-2.5-flash-preview",
+  "annotation_provider": "openrouter",
+  "score_model": "google/gemini-2.5-flash-preview",
+  "score_provider": "openrouter",
+  "annotationboost_model": "google/gemini-2.5-flash-preview",
+  "annotationboost_provider": "openrouter",
+  "merge_model": "google/gemini-2.5-flash-preview",
+  "merge_provider": "openrouter",
+  "temperature": 0.7,
+  "data_file": "processed.csv",
+  "method_params": {
+    "output_file_name": "pipeline_test_results",
+    "tissue": "large intestine",
+    "species": "human",
+    "max_workers": 4,
+    "score_threshold": 75,
+    "additional_info": "Sample test data with clean marker genes",
+    "max_retries": 1,
+    "merge_annotations": true,
+    "conversation_history_mode": "final",
+    "ranking_method": "avg_log2FC",
+    "report_style": "per_iteration",
+    "validator_involvement": "v1"
+  },
+  "validation": {
+    "check_output_format": true,
+    "expected_final_columns": [
+      "True Cell Type",
+      "Predicted Main Cell Type",
+      "Score"
+    ],
+    "min_rows": 6,
+    "check_score_range": true,
+    "min_score": 0,
+    "max_score": 100
+  },
+  "reporting": {
+    "save_logs": true,
+    "verbose": true,
+    "check_html_reports": true,
+    "check_boost_results": true
+  }
+}

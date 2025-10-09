@@ -1,0 +1,50 @@
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - CASSIA Test: runCASSIA_batch
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ✓ API key validated for provider: openrouter
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Loading data: processed.csv
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ✓ Loaded 6 rows from processed.csv
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO -   - Number of clusters: 6
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO -   - Cluster names: ['monocyte', 'plasma cell', 'cd8-positive, alpha-beta t cell', 'transit amplifying cell of large intestine', 'intestinal enteroendocrine cell', 'intestinal crypt stem cell']
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Starting test: test_runCASSIA_batch
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Description: Test basic batch annotation functionality using sample data
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Model: google/gemini-2.5-flash-preview
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Provider: openrouter
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Data: processed.csv
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Timestamp: 2025-10-08 01:26:24
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - 
+Starting CASSIA batch annotation...
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Starting: CASSIA batch annotation
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Completed: CASSIA batch annotation (0.00s = 0.00min)
+2025-10-08 01:26:24 - test_runCASSIA_batch - ERROR - 
+❌ Test failed: 'avg_log2FC'
+Traceback (most recent call last):
+  File "C:\Users\ellio\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\indexes\base.py", line 3791, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "index.pyx", line 152, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 181, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\_libs\hashtable_class_helper.pxi", line 7080, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\_libs\hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'avg_log2FC'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "c:\Users\ellio\OneDrive - UW-Madison\CASSIA_dailygrind\CASSIA\CASSIA_python\CASSIA\test\01_runCASSIA_batch\test_batch.py", line 97, in main
+    result = CASSIA.runCASSIA_batch(
+  File "C:\Users\ellio\AppData\Local\Programs\Python\Python310\lib\site-packages\CASSIA\tools_function.py", line 445, in runCASSIA_batch
+    df = get_top_markers(df, n_genes=n_genes, ranking_method=ranking_method, ascending=ascending)
+  File "C:\Users\ellio\AppData\Local\Programs\Python\Python310\lib\site-packages\CASSIA\tools_function.py", line 212, in get_top_markers
+    df['avg_log2FC'] = pd.to_numeric(df['avg_log2FC'].replace({'inf': np.inf, '-inf': -np.inf}), errors='coerce')
+  File "C:\Users\ellio\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\frame.py", line 3893, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ellio\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\indexes\base.py", line 3798, in get_loc
+    raise KeyError(key) from err
+KeyError: 'avg_log2FC'
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Test Status: ✗ FAILED
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Elapsed time: 0.00 seconds (0.00 minutes)
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - Timestamp: 2025-10-08 01:26:24
+2025-10-08 01:26:24 - test_runCASSIA_batch - INFO - ================================================================================

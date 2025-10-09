@@ -80,7 +80,7 @@ def generate_hypothesis(
     formatter_model: Optional[str] = "google/gemini-2.5-flash",
     generator_temp: float = 0.5,
     formatter_temp: float = 0.0,
-    max_tokens: int = 10000,
+    max_tokens: int = 4096,
     **kwargs
 ) -> Dict[str, Any]:
     """
