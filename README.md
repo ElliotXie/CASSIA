@@ -118,14 +118,14 @@ You can choose any model for annotation and scoring. Some classic models are lis
 
 ### OpenRouter
 - `google/gemini-2.5-flash`: One of the best-performed low-cost models, comparable with models like gpt-4o (Most recommended)
-- `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, turns to gives very detailed annotations
+- `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, which gives very detailed annotations
 - `x-ai/grok-4-fast` One of the best-performed low-cost models.
 
 ### OpenAI
 - `gpt-4o`: Used in the benchmark
 
 ### Anthropic
-- `claude-sonnet-4-5`: The latest High-performance model
+- `claude-sonnet-4-5`: The latest best-performed model (Most recommended)
 
 ## 📤 Output
 
