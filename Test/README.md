@@ -77,6 +77,7 @@ test/
 ├── 08_uncertainty_quantification/ # Test 08
 ├── 09_subclustering/             # Test 09
 ├── 10_symphony_compare/          # Test 10
+├── 11_report_generation/         # Test 11
 │
 ├── run_test.py                   # Individual test runner (Python)
 ├── run_test.R                    # Individual test runner (R)
@@ -98,6 +99,7 @@ test/
 | 08 | Uncertainty Quantification | Test `runCASSIA_n_times_similarity_score()` robustness analysis |
 | 09 | Subclustering | Test `runCASSIA_subclusters()` subcluster annotation |
 | 10 | Symphony Compare | Test `symphonyCompare()` multi-model consensus building |
+| 11 | Report Generation | Test `generate_batch_html_report()` HTML report generation |
 
 ## Test Data
 

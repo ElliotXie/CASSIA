@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA Batch Analysis Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+
+    :root {
+        --primary: #0d9488;
+        --primary-light: #14b8a6;
+        --primary-dark: #0f766e;
+        --secondary: #059669;
+        --accent: #f59e0b;
+        --accent-light: #fbbf24;
+        --background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 50%, #f0fdf4 100%);
+        --surface: rgba(255, 255, 255, 0.85);
+        --surface-hover: rgba(255, 255, 255, 0.95);
+        --text-primary: #134e4a;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: rgba(13, 148, 136, 0.15);
+        --shadow: 0 8px 32px rgba(13, 148, 136, 0.12);
+        --shadow-hover: 0 12px 40px rgba(13, 148, 136, 0.2);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--background);
+        min-height: 100vh;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header */
+    .report-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 24px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .report-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+    }
+
+    .report-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 400;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 24px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .meta-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: var(--shadow);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Controls */
+    .controls-bar {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        box-shadow: var(--shadow);
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .search-box svg {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .filter-select {
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        background: white;
+        color: var(--text-primary);
+        cursor: pointer;
+        min-width: 140px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-primary);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Cluster Grid */
+    .cluster-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 24px;
+    }
+
+    .cluster-card {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .cluster-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--primary-light);
+        background: var(--surface-hover);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .cluster-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.3;
+    }
+
+    .card-badges {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-markers {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        color: white;
+    }
+
+    .badge-iterations {
+        background: linear-gradient(135deg, var(--accent-light), var(--accent));
+        color: white;
+    }
+
+    .card-main-type {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.08), rgba(5, 150, 105, 0.08));
+        border-radius: 12px;
+        padding: 16px;
+        border-left: 4px solid var(--primary);
+    }
+
+    .main-type-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .main-type-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .card-section {
+        padding: 0;
+    }
+
+    .section-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .sub-types-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sub-types-list li {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        padding-left: 16px;
+        position: relative;
+    }
+
+    .sub-types-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 6px;
+        height: 6px;
+        background: var(--secondary);
+        border-radius: 50%;
+    }
+
+    .sub-types-list li.more {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .sub-types-list li.more::before {
+        background: var(--text-muted);
+    }
+
+    .empty-field {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+
+    .card-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .card-field .field-icon {
+        color: var(--primary);
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .card-field .field-label {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .card-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        background: rgba(100, 116, 139, 0.05);
+        border-radius: 10px;
+    }
+
+    .meta-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .meta-item svg {
+        color: var(--primary);
+    }
+
+    .card-markers {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .markers-label {
+        font-weight: 600;
+    }
+
+    .markers-preview {
+        color: var(--text-muted);
+        word-break: break-word;
+    }
+
+    .view-analysis-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .view-analysis-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
+    }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .modal-container {
+        background: white;
+        border-radius: 24px;
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .modal-content {
+        display: none;
+    }
+
+    .modal-content.active {
+        display: block;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 28px 32px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .modal-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .modal-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1.8rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .modal-body {
+        padding: 28px 32px;
+        max-height: calc(90vh - 120px);
+        overflow-y: auto;
+    }
+
+    .markers-full {
+        background: rgba(13, 148, 136, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+        border-left: 4px solid var(--primary);
+    }
+
+    .markers-full h4 {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .markers-text {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        word-break: break-word;
+        line-height: 1.7;
+    }
+
+    .modal-section {
+        margin-bottom: 24px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 20px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .section-content {
+        padding: 20px;
+        background: white;
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+
+    .annotation-section .section-title {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.1), rgba(13, 148, 136, 0.05));
+        color: var(--primary-dark);
+    }
+
+    .validator-section .section-title {
+        background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(5, 150, 105, 0.05));
+        color: #047857;
+    }
+
+    .formatting-section .section-title {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+        color: #b45309;
+    }
+
+    .scoring-section .section-title {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        color: #4338ca;
+    }
+
+    .validation-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .validation-status.passed {
+        background: rgba(5, 150, 105, 0.1);
+        color: #047857;
+    }
+
+    .validation-status.failed {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    .validator-content {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .json-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .summary-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .summary-field .field-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .summary-field .field-value {
+        color: var(--text-primary);
+    }
+
+    .summary-field .main-type {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .type-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .type-list li {
+        padding: 8px 12px;
+        background: rgba(13, 148, 136, 0.05);
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .type-list li.empty {
+        color: var(--text-muted);
+        font-style: italic;
+        background: rgba(100, 116, 139, 0.05);
+    }
+
+    .json-raw {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        overflow-x: auto;
+    }
+
+    .step-header {
+        color: var(--primary);
+        font-size: 1rem;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid rgba(13, 148, 136, 0.2);
+    }
+
+    .section-content h2, .section-content h3, .section-content h4 {
+        color: var(--text-primary);
+        margin-top: 16px;
+        margin-bottom: 8px;
+    }
+
+    .section-content ul {
+        margin: 12px 0;
+        padding-left: 24px;
+    }
+
+    .section-content li {
+        margin-bottom: 6px;
+    }
+
+    .section-content p {
+        margin-bottom: 12px;
+    }
+
+    .section-content strong {
+        color: var(--text-primary);
+    }
+
+    /* Print Styles */
+    @media print {
+        .controls-bar,
+        .view-analysis-btn,
+        .modal-overlay {
+            display: none !important;
+        }
+
+        .cluster-card {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+
+        .report-header {
+            background: var(--primary) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .container {
+            padding: 12px;
+        }
+
+        .report-header {
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        .report-title {
+            font-size: 1.8rem;
+        }
+
+        .cluster-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .controls-bar {
+            flex-direction: column;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+
+        .filter-select {
+            width: 100%;
+        }
+
+        .modal-container {
+            max-height: 95vh;
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            padding: 20px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+    }
+
+    /* No results message */
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    .no-results svg {
+        width: 64px;
+        height: 64px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+
+    .no-results h3 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+    }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="report-header">
+            <div class="header-content">
+                <h1 class="report-title">CASSIA Batch Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Annotation Analysis</p>
+                <div class="report-meta">
+                    <span class="meta-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        2025-11-24 22:28:01
+                    </span>
+                    <span class="meta-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        large intestine
+                    </span>
+                    <span class="meta-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M2 12h20"></path>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        human
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Total Clusters</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="visible-count">6</div>
+                <div class="stat-label">Showing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Tissues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Models</div>
+            </div>
+        </div>
+
+        <div class="controls-bar">
+            <div class="search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="search-input" placeholder="Search clusters, cell types, markers...">
+            </div>
+            <select class="filter-select" id="filter-tissue" onchange="filterCards()">
+                <option value="">All Tissues</option><option value="large intestine">large intestine</option>
+            </select>
+            <select class="filter-select" id="filter-species" onchange="filterCards()">
+                <option value="">All Species</option><option value="human">human</option>
+            </select>
+            <select class="filter-select" id="filter-model" onchange="filterCards()">
+                <option value="">All Models</option><option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+            </select>
+            <select class="filter-select" id="filter-provider" onchange="filterCards()">
+                <option value="">All Providers</option><option value="openrouter">openrouter</option>
+            </select>
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                </svg>
+                Clear
+            </button>
+            <button class="btn btn-primary" onclick="exportToPDF()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export PDF
+            </button>
+        </div>
+
+        <div class="cluster-grid">
+            
+    <div class="cluster-card" data-index="0" data-cluster="cd8-positive, alpha-beta t cell"
+         data-maintype="Cytotoxic Lymphocytes" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">cd8-positive, alpha-beta t cell</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Cytotoxic Lymphocytes</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>Activated Natural Killer (NK) Cells / Innate Lymphocytes (ILC1-like cells)</li><li>Cytotoxic CD8+ T Cells (Effector/Memory)</li><li>Gamma-Delta (γδ) T Cells (Cytotoxic Subtype)</li></ul>
+        </div>
+
+        
+        <div class="card-field mixed-types">
+            <span class="field-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 12h8"></path>
+                    <path d="M12 8v8"></path>
+                </svg>
+            </span>
+            <span class="field-label">Mixed Types:</span>
+            <span class="field-value">Activated Natural Killer Cells, ILC1s, highly activated CD8+...</span>
+        </div>
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1, GZMH, CD160, CD8B, NKG...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(0)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+
+    <div class="cluster-card" data-index="1" data-cluster="intestinal crypt stem cell"
+         data-maintype="Intestinal Epithelial Stem Cells" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">intestinal crypt stem cell</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Intestinal Epithelial Stem Cells</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>LGR5+ Intestinal Stem Cells (ISCs)</li><li>Secretory Progenitor Cells (early stage)</li><li>Enterocyte Progenitor Cells (early stage)</li></ul>
+        </div>
+
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">AL031284.1, AC012085.1, IGFBPL1, HMGN2P6, CHCHD2P9, PPIAP40, LGR5, RPL7P54, AC01...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+
+    <div class="cluster-card" data-index="2" data-cluster="intestinal enteroendocrine cell"
+         data-maintype="Enteroendocrine Cells (EEC)" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">intestinal enteroendocrine cell</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Enteroendocrine Cells (EEC)</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>L-cells (Glucagon-like peptide-1/2</li><li>PYY</li><li>INSL5</li><li class="more">+3 more</li></ul>
+        </div>
+
+        
+        <div class="card-field mixed-types">
+            <span class="field-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 12h8"></path>
+                    <path d="M12 8v8"></path>
+                </svg>
+            </span>
+            <span class="field-label">Mixed Types:</span>
+            <span class="field-value">L-cells, EC cells</span>
+        </div>
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">GCG, PCSK1, AC090679.1, UCN3, PYY, INSL5, CHGA, LCN15, SCG2, FEV, CPLX2, NKX2-2,...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(2)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+
+    <div class="cluster-card" data-index="3" data-cluster="monocyte"
+         data-maintype="Neural Crest-Derived Cells" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">monocyte</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Neural Crest-Derived Cells</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>Enteric Glial Cells (EGCs) / Schwann Cells</li><li>Enteric Neurons (Progenitors or Immature Neurons)</li><li>Neural Crest Stem Cells / Progenitors</li></ul>
+        </div>
+
+        
+        <div class="card-field mixed-types">
+            <span class="field-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 12h8"></path>
+                    <path d="M12 8v8"></path>
+                </svg>
+            </span>
+            <span class="field-label">Mixed Types:</span>
+            <span class="field-value">a mixed population containing neuronal components</span>
+        </div>
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">NKAIN3, SPP1, CDH19, TSPAN11, PLP1, L1CAM, MYOT, IGSF11, NRXN1, SLC35F1, AL13629...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+
+    <div class="cluster-card" data-index="4" data-cluster="plasma cell"
+         data-maintype="Plasma Cells" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">plasma cell</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Plasma Cells</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>IgA-secreting Plasma Cells</li><li>IgG-secreting Plasma Cells</li><li>IgM-secreting Plasma Cells</li></ul>
+        </div>
+
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, A...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(4)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+
+    <div class="cluster-card" data-index="5" data-cluster="transit amplifying cell of large intestine"
+         data-maintype="Proliferating Cells" data-tissue="large intestine" data-species="human"
+         data-model="google/gemini-2.5-flash" data-provider="openrouter">
+        <div class="card-header">
+            <h3 class="cluster-name">transit amplifying cell of large intestine</h3>
+            <div class="card-badges">
+                <span class="badge badge-markers" title="Number of markers">50 markers</span>
+                <span class="badge badge-iterations" title="Iterations">1 iter</span>
+            </div>
+        </div>
+
+        <div class="card-main-type">
+            <span class="main-type-label">Predicted:</span>
+            <span class="main-type-value">Proliferating Cells</span>
+        </div>
+
+        <div class="card-section">
+            <div class="section-label">Sub Cell Types:</div>
+            <ul class="sub-types-list"><li>Intestinal Transit-Amplifying (TA) Cells</li><li>Intestinal Stem Cells (ISCs)</li><li>Activated Fibroblasts/Myofibroblasts</li></ul>
+        </div>
+
+        
+
+        <div class="card-meta">
+            <div class="meta-row">
+                <span class="meta-item" title="Model">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    google/gemini-2.5-flash
+                </span>
+                <span class="meta-item" title="Provider">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    openrouter
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item" title="Tissue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    large intestine
+                </span>
+                <span class="meta-item" title="Species">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20"></path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    human
+                </span>
+            </div>
+        </div>
+
+        <div class="card-markers">
+            <span class="markers-label">Markers:</span>
+            <span class="markers-preview">HJURP, UBE2C, CENPA, PBK, AURKB, DLGAP5, CKAP2L, KIF2C, KIF15, BIRC5, SPC25, ASP...</span>
+        </div>
+
+        
+
+        <button class="view-analysis-btn" onclick="openModal(5)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Full Analysis
+        </button>
+    </div>
+    
+        </div>
+
+        <div id="no-results" class="no-results" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+            <h3>No clusters found</h3>
+            <p>Try adjusting your search or filters</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-container">
+            
+    <div class="modal-content" id="modal-content-0">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">cd8-positive, alpha-beta t cell</h2>
+                <p class="modal-subtitle">Predicted: <strong>Cytotoxic Lymphocytes</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1, GZMH, CD160, CD8B, NKG7, GZMA, GZMB, GZMK, CD8A, TRGC2, SLA2, TIGIT, TNFRSF9, GPR18, CCL4, PRF1, ATP8B4, APBA2, CCL4L2, DUSP4, CTSW, TMIGD2, TRGC1, CCL5, ABI3, IL21R, IFNG, CD7, CLIC3, ENTPD1, LDLRAD4, PTPN22, HOPX, GZMM, CST7, PARD6G, ZEB2, SH2D1A, LAYN, LAG3, PRKCH, AOAH, IKZF2</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Here&#x27;s a detailed analysis to identify the cell type based on the provided marker list:<br>
+<br>
+<strong>Step 1: List the Key Functional Markers</strong><br>
+<br>
+This list is rich in genes associated with cytotoxic function and immune activation.<br>
+<br>
+<em>   <strong>Cytotoxicity &amp; Granule-associated proteins:</strong><br>
+</em>   <strong>GZMH, GZMA, GZMB, GZMK:</strong> Granzymes are serine proteases found in the granules of cytotoxic T lymphocytes (CTLs) and natural killer (NK) cells. They induce apoptosis in target cells. GZMB is a particularly strong indicator of cytotoxic activity.<br>
+<em>   <strong>PRF1 (Perforin 1):</strong> A pore-forming protein essential for the delivery of granzymes into target cells, a hallmark of cytotoxic lymphocytes.<br>
+</em>   <strong>NKG7 (Natural Killer Cell Granule Protein 7):</strong> A transmembrane protein found in the granules of NK cells and CTLs, involved in granule exocytosis.<br>
+<em>   <strong>CTSW (Cathepsin W):</strong> A cysteine protease expressed in NK cells and CTLs, potentially involved in granule maturation or function.<br>
+</em>   <strong>Chemokines &amp; Chemokine Receptors:</strong><br>
+<em>   <strong>XCL2, XCL1 (X-C motif chemokine ligand 2 and 1):</strong> Chemokines that attract various immune cells, particularly NK cells and T cells.<br>
+</em>   <strong>CCL4, CCL4L2, CCL5:</strong> Chemokines involved in recruiting various immune cells, including NK cells, T cells, and monocytes, to sites of inflammation.<br>
+<em>   <strong>GPR18:</strong> A G protein-coupled receptor, potentially involved in immune cell trafficking or activation.<br>
+</em>   <strong>Cytokines &amp; Cytokine Receptors:</strong><br>
+<em>   <strong>IFNG (Interferon Gamma):</strong> A potent pro-inflammatory cytokine produced by NK cells and T cells, crucial for antiviral and antitumor immunity.<br>
+</em>   <strong>IL21R (Interleukin 21 Receptor):</strong> Receptor for IL-21, a cytokine involved in the differentiation and function of various immune cells, including NK cells and T cells.<br>
+<em>   <strong>Immune Checkpoint &amp; Co-stimulatory Molecules:</strong><br>
+</em>   <strong>TIGIT (T cell immunoreceptor with Ig and ITIM domains):</strong> An inhibitory receptor expressed on NK cells and T cells, involved in immune regulation.<br>
+<em>   <strong>TNFRSF9 (CD137, 4-1BB):</strong> A co-stimulatory receptor expressed on activated T cells and NK cells, promoting their survival and proliferation.<br>
+</em>   <strong>LAG3 (Lymphocyte-activation gene 3):</strong> An inhibitory receptor expressed on activated T cells and NK cells, contributing to immune exhaustion.<br>
+<em>   <strong>Signaling &amp; Adaptor Proteins:</strong><br>
+</em>   <strong>ABI3 (ABI family member 3):</strong> An adaptor protein involved in actin cytoskeleton organization and immune cell signaling.<br>
+<em>   <strong>SH2D1A (SLAM-associated protein):</strong> An adaptor molecule crucial for signaling through SLAM family receptors, particularly important in NK and T cell function.<br>
+</em>   <strong>PTPN22 (Protein tyrosine phosphatase non-receptor type 22):</strong> A phosphatase involved in regulating T cell activation.<br>
+<em>   <strong>DUSP4 (Dual specificity phosphatase 4):</strong> A phosphatase that can regulate MAPK signaling pathways, impacting immune cell activation.<br>
+<br>
+<strong>Step 2: List the Key Cell Type Markers</strong><br>
+<br>
+This list strongly points towards cytotoxic lymphocytes, specifically NK cells and cytotoxic T cells.<br>
+<br>
+</em>   <strong>Natural Killer (NK) Cell Markers:</strong><br>
+<em>   <strong>KLRC2 (NKG2C), KLRK1 (NKG2D), KLRC4 (NKG2F), KLRD1 (CD94):</strong> These are members of the C-type lectin-like receptor family, characteristic of NK cells. NKG2C and NKG2D are activating receptors, while CD94 forms a heterodimer with NKG2A (not listed but often co-expressed) which is inhibitory. The presence of multiple KLR (Killer cell Lectin-like Receptor) genes is a strong indicator of NK cells.<br>
+</em>   <strong>CD160:</strong> A receptor expressed on NK cells and some T cells, involved in cytotoxicity.<br>
+<em>   <strong>CRTAM (Class I-restricted T cell-associated molecule):</strong> Expressed on activated NK cells and some T cells, involved in cell-cell adhesion and immune synapse formation.<br>
+</em>   <strong>Cytotoxic T Lymphocyte (CTL) Markers:</strong><br>
+<em>   <strong>CD8B, CD8A:</strong> Components of the CD8 co-receptor, a defining marker of cytotoxic T lymphocytes (CTLs).<br>
+</em>   <strong>TRGC2, TRGC1 (T cell receptor gamma constant 2 and 1):</strong> Components of the gamma-delta (γδ) T cell receptor. The presence of these markers suggests the involvement of γδ T cells, which often exhibit innate-like cytotoxic functions.<br>
+<em>   <strong>CD7:</strong> A pan-T cell marker, also expressed on some NK cells.<br>
+</em>   <strong>General Lymphocyte/Immune Cell Markers:</strong><br>
+<em>   <strong>LINC02446:</strong> A long intergenic non-coding RNA, its specific role in cell type identification needs further context, but often found in immune cells.<br>
+</em>   <strong>ATP8B4, APBA2, ENTPD1, LDLRAD4, HOPX, PARD6G, ZEB2, LAYN, PRKCH, AOAH, IKZF2:</strong> These genes are less specific for a single immune cell type and may play roles in general cellular processes, metabolism, or broader immune regulation. Their high expression here could indicate specific activation states or metabolic adaptations within the identified cell type. For example, ZEB2 is important for NK cell development and function. IKZF2 (Helios) is a transcription factor associated with regulatory T cells, but also found in activated effector T cells and NK cells.<br>
+<br>
+<strong>Step 3: Cross-reference Known Databases</strong><br>
+<br>
+A quick mental cross-reference with common scRNA-seq atlases and literature for immune cells in the large intestine would immediately highlight the strong presence of NK cell and cytotoxic T cell markers.<br>
+<br>
+<em>   <strong>NK cells:</strong> High expression of `KLRC2, KLRK1, KLRC4, KLRD1, NKG7, GZMH, GZMA, GZMB, PRF1, XCL1, XCL2, CCL4, CCL5, IFNG, CD160, CRTAM`. This combination is highly characteristic of NK cells.<br>
+</em>   <strong>Cytotoxic T cells (CD8+ T cells):</strong> High expression of `CD8A, CD8B, GZMA, GZMB, GZMK, PRF1, NKG7, IFNG, CCL4, CCL5, TIGIT, TNFRSF9, LAG3`.<br>
+<em>   <strong>Gamma-delta T cells:</strong> High expression of `TRGC1, TRGC2`, often co-expressing cytotoxic markers like `GZMB, PRF1`, and NK cell receptors.<br>
+<br>
+The co-expression of both canonical NK cell receptors (KLRCs, KLRK1, KLRD1) and canonical CD8 T cell markers (CD8A, CD8B), along with γδ T cell receptor components (TRGC1, TRGC2), is particularly striking and suggests a population with mixed or overlapping features, or a highly activated state.<br>
+<br>
+<strong>Step 4: Determine the Most Probable General Cell Type</strong><br>
+<br>
+Based on the overwhelming presence of cytotoxic granule proteins (granzymes, perforin, NKG7), NK cell receptors (KLRCs, KLRK1, KLRD1), CD8 co-receptor subunits (CD8A, CD8B), and key effector molecules (IFNG, XCL1/2, CCL4/5), the most probable general cell type is <strong>Cytotoxic Lymphocytes</strong>. This category encompasses both Natural Killer (NK) cells and Cytotoxic T Lymphocytes (CTLs).<br>
+<br>
+<strong>Step 5: Identify the Top 3 Most Probable Sub Cell Types</strong><br>
+<br>
+<ul>
+<li> <strong>Most Likely: Activated Natural Killer (NK) Cells / Innate Lymphocytes (ILC1-like cells)</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The strong and diverse expression of multiple NK-specific C-type lectin-like receptors (KLRC2, KLRK1, KLRC4, KLRD1) is highly indicative of NK cells. The presence of `GZMH, GZMA, GZMB, PRF1, NKG7, XCL1, XCL2, IFNG, CCL4, CCL5` further confirms their cytotoxic and effector functions. `CD160` and `CRTAM` are also strongly associated with NK cells. While `CD8A/B` are present, some NK cell subsets (especially activated or tissue-resident) can express CD8, or it could indicate a population with NK-like T cells. The high ranking of `KLRC2, XCL2, LINC02446, CRTAM, KLRK1, KLRC4, KLRD1, XCL1` at the very top of the list strongly favors an NK cell identity. ILC1s are often considered tissue-resident NK-like cells and share many of these markers.<br>
+<br>
+<ul>
+<li> <strong>Second Most Likely: Cytotoxic CD8+ T Cells (Effector/Memory)</strong></li>
+</ul>
+<em>   <strong>Reasoning:</strong> The clear presence of `CD8A` and `CD8B` along with a full complement of cytotoxic machinery (`GZMA, GZMB, GZMK, PRF1, NKG7`) and effector cytokines/chemokines (`IFNG, CCL4, CCL5`) points strongly to cytotoxic CD8+ T cells. The co-expression of immune checkpoint molecules (`TIGIT, TNFRSF9, LAG3`) is also characteristic of activated or exhausted effector/memory T cells. The presence of NK cell markers could indicate a highly activated CD8+ T cell subset that has acquired some NK-like features (e.g., NKT-like cells or CD8+ T cells expressing NKG2D), or a mixed population.<br>
+<br>
+<ul>
+<li> <strong>Third Most Likely: Gamma-Delta (γδ) T Cells (Cytotoxic Subtype)</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The explicit presence of `TRGC2` and `TRGC1` is a definitive marker for γδ T cells. Many γδ T cell subsets, particularly in mucosal tissues like the large intestine, exhibit potent cytotoxic functions and express granzymes, perforin, and IFNG. They can also express NK cell receptors and CD8. Their innate-like functions and tissue residency make them important players in gut immunity. The co-expression of NK cell markers and CD8 markers with TRGCs suggests a highly activated and potentially plastic γδ T cell population with cytotoxic capabilities.<br>
+<br>
+<strong>Most Likely Subtype:</strong><br>
+<br>
+Given the very high ranking and diversity of NK cell-specific receptors (KLRCs, KLRK1, KLRD1) at the top of the list, followed by strong cytotoxic effector molecules, the most likely subtype is <strong>Activated Natural Killer (NK) Cells</strong>, potentially with some features overlapping with ILC1s or highly activated CD8+ T cells that have adopted NK-like characteristics. The presence of CD8A/B and TRGCs could indicate a minor contaminating population, or more likely, a highly plastic and activated NK cell population that has upregulated these markers, or a specific subset of NK cells (e.g., CD8+ NK cells) or NK-like T cells. However, the sheer number and high expression of canonical NK receptors make NK cells the primary candidate.<br>
+<br>
+<strong>Step 6: Provide a Concise Summary of Your Analysis</strong><br>
+<br>
+This cell cluster from the large intestine exhibits a highly activated and cytotoxic phenotype. The marker profile is dominated by genes characteristic of <strong>Natural Killer (NK) cells</strong>, including multiple C-type lectin-like receptors (KLRC2, KLRK1, KLRC4, KLRD1), along with a robust cytotoxic machinery (GZMH, GZMA, GZMB, PRF1, NKG7) and effector molecules (IFNG, XCL1, XCL2, CCL4, CCL5). While markers for cytotoxic CD8+ T cells (CD8A, CD8B) and gamma-delta T cells (TRGC1, TRGC2) are also present, their expression, in conjunction with the highly ranked and diverse NK cell receptor repertoire, strongly points towards <strong>Activated Natural Killer Cells</strong> as the primary identity. This population likely represents tissue-resident NK cells or ILC1-like cells actively engaged in immune surveillance and effector functions within the large intestine, potentially exhibiting plasticity or co-expressing markers typically associated with other cytotoxic lymphocyte subsets.<br>
+<br>
+FINAL ANNOTATION COMPLETED.<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Cytotoxic Lymphocytes</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>Activated Natural Killer (NK) Cells / Innate Lymphocytes (ILC1-like cells)</li><li>Cytotoxic CD8+ T Cells (Effector/Memory)</li><li>Gamma-Delta (γδ) T Cells (Cytotoxic Subtype)</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li>Activated Natural Killer Cells</li><li>ILC1s</li><li>highly activated CD8+ T cells that have adopted NK-like characteristics</li><li>NK-like T cells</li><li>CD8+ NK cells</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+
+    <div class="modal-content" id="modal-content-1">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">intestinal crypt stem cell</h2>
+                <p class="modal-subtitle">Predicted: <strong>Intestinal Epithelial Stem Cells</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">AL031284.1, AC012085.1, IGFBPL1, HMGN2P6, CHCHD2P9, PPIAP40, LGR5, RPL7P54, AC010132.3, EIF5AP4, AC008694.2, COX5AP2, TDGF1, ASCL2, AC092670.1, NPM1P6, PPIAP11, AC090498.1, RPL41P1, CYCSP55, HMGN2P4, TPI1P1, RPL41P5, AL162151.2, PPIAP29, HNRNPA1P4, AC016596.2, AL603825.1, RPL9P21, AC005884.2, PPIAP31, HMGN1P36, HMGN2P41, AL035411.1, RPS26P39, FABP5P7, SDHDP6, ATP5PFP1, EEF1A1P5, RPSAP8, HMGN2P3, SLC39A2, KRT8P13, RPL21P16, RPSAP15, HMGN1P38, AF279873.1, RPL7P6, AC112491.1, AC022968.1</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Here&#x27;s a detailed analysis to identify the cell type based on the provided marker list:<br>
+<br>
+<strong>Step 1. List the Key Functional Markers:</strong><br>
+<br>
+<em>   <strong>IGFBPL1 (Insulin-like Growth Factor Binding Protein-Like 1):</strong> While its exact function in the intestine is not fully elucidated, IGFBPs generally modulate the activity of IGFs, which are crucial for cell growth, proliferation, and differentiation. Its presence here might suggest a role in regulating cell turnover or response to growth factors.<br>
+</em>   <strong>TDGF1 (Teratocarcinoma-derived growth factor 1, also known as Cripto-1):</strong> A member of the epidermal growth factor-CFC family, TDGF1 is a co-receptor for Nodal and Activin signaling pathways, playing critical roles in embryonic development, stem cell maintenance, and cancer. In the intestine, it&#x27;s often associated with stem cell niches and progenitor cells, regulating their proliferation and differentiation.<br>
+<em>   <strong>ASCL2 (Achaete-scute homolog 2):</strong> A basic helix-loop-helix (bHLH) transcription factor, ASCL2 is a well-established master regulator of intestinal stem cell identity and function. It is essential for maintaining the crypt stem cell population and driving their proliferation.<br>
+</em>   <strong>SLC39A2 (Solute Carrier Family 39 Member 2, also known as ZIP2):</strong> This gene encodes a zinc transporter. Zinc is an essential trace element involved in numerous cellular processes, including cell growth, differentiation, and immune function. Its expression could be related to the metabolic demands or specific functions of the cell type.<br>
+<br>
+<strong>Step 2. List the Key Cell Type Markers:</strong><br>
+<br>
+<em>   <strong>LGR5 (Leucine-rich repeat-containing G protein-coupled receptor 5):</strong> This is the most prominent and widely accepted marker for actively cycling intestinal stem cells (ISCs) located at the bottom of the crypts of Lieberkühn. LGR5+ cells are multipotent and can give rise to all intestinal epithelial cell lineages.<br>
+</em>   <strong>ASCL2:</strong> As mentioned above, ASCL2 is a critical transcription factor for intestinal stem cell maintenance. Its co-expression with LGR5 strongly reinforces the stem cell identity.<br>
+<br>
+<strong>Step 3. Cross-reference Known Databases:</strong><br>
+<br>
+A quick search in scRNA-seq databases (e.g., Human Cell Atlas, specific intestinal scRNA-seq datasets like those from Tabula Sapiens, or studies focusing on intestinal crypts) for these markers would consistently highlight:<br>
+<br>
+<em>   <strong>LGR5 and ASCL2</strong> as definitive markers for intestinal stem cells.<br>
+</em>   <strong>TDGF1</strong> is also frequently found in intestinal stem/progenitor cell populations.<br>
+<em>   <strong>IGFBPL1</strong> has been observed in various stem/progenitor populations, including intestinal ones, though less specific than LGR5/ASCL2.<br>
+</em>   The numerous pseudogenes (e.g., HMGN2P6, PPIAP40, RPL7P54, EIF5AP4, NPM1P6, RPL41P1, CYCSP55, TPI1P1, RPL41P5, PPIAP29, HNRNPA1P4, RPL9P21, PPIAP31, HMGN1P36, HMGN2P41, RPS26P39, FABP5P7, SDHDP6, ATP5PFP1, EEF1A1P5, RPSAP8, HMGN2P3, KRT8P13, RPL21P16, RPSAP15, HMGN1P38, RPL7P6) are often highly expressed in actively proliferating cells due to their role in ribosome biogenesis and protein synthesis, which are upregulated in rapidly dividing cells like stem cells. Their high expression, especially ribosomal protein pseudogenes, is a common feature of highly metabolically active and proliferative cells.<br>
+<br>
+<strong>Step 4. Determine the Most Probable General Cell Type:</strong><br>
+<br>
+Based on the overwhelming evidence from the key markers, particularly <strong>LGR5</strong> and <strong>ASCL2</strong>, the most probable general cell type is <strong>Intestinal Epithelial Stem Cells</strong>. The presence of TDGF1 further supports this, as it&#x27;s involved in stem cell maintenance. The high expression of numerous pseudogenes, especially those related to ribosomal proteins, is also characteristic of highly proliferative cells, which intestinal stem cells are.<br>
+<br>
+<strong>Step 5. Identify the Top 3 Most Probable Sub Cell Types:</strong><br>
+<br>
+Given the strong markers, the primary annotation is quite specific. However, we can consider nuances within the stem cell compartment or closely related progenitor states.<br>
+<br>
+<ul>
+<li> <strong>LGR5+ Intestinal Stem Cells (ISCs):</strong> This is the most likely and direct interpretation. LGR5 is the canonical marker for the actively cycling, multipotent stem cells located at the crypt base. ASCL2 is a key transcriptional regulator of these cells. The high expression of ribosomal protein pseudogenes aligns with their rapid proliferation and high protein synthesis demands.</li>
+<li> <strong>Secretory Progenitor Cells (early stage):</strong> While LGR5+ ISCs are multipotent, some studies suggest a continuum where LGR5+ cells can directly give rise to secretory progenitors. Markers like TDGF1 can also be found in early progenitor populations. However, without more specific secretory lineage markers (e.g., MUC2, CHGA, DCL1, ATOH1), it&#x27;s less likely to be a committed secretory progenitor and more likely the stem cell itself.</li>
+<li> <strong>Enterocyte Progenitor Cells (early stage):</strong> Similar to secretory progenitors, LGR5+ ISCs give rise to enterocyte progenitors. However, specific enterocyte progenitor markers (e.g., KRT20, FABP1) are not prominently featured. The high expression of general proliferation markers (pseudogenes) is consistent with any rapidly dividing progenitor, but LGR5 and ASCL2 point more strongly to the stem cell state itself rather than a committed progenitor.</li>
+</ul>
+<br>
+<strong>Most Likely Subtype:</strong><br>
+<br>
+The most likely subtype is <strong>LGR5+ Intestinal Stem Cells (ISCs)</strong>. The combination of LGR5 and ASCL2 as top markers is highly specific for these cells, which are responsible for regenerating the entire intestinal epithelium.<br>
+<br>
+<strong>Step 6. Provide a Concise Summary of Your Analysis:</strong><br>
+<br>
+The provided marker list is highly indicative of <strong>LGR5+ Intestinal Stem Cells (ISCs)</strong>. The presence of <strong>LGR5</strong>, a definitive marker for actively cycling intestinal stem cells, along with <strong>ASCL2</strong>, a crucial transcriptional regulator of ISC identity and proliferation, strongly supports this annotation. <strong>TDGF1</strong>, involved in stem cell maintenance and development, further reinforces this conclusion. The high expression of numerous pseudogenes, particularly those related to ribosomal proteins, is consistent with the high metabolic activity and rapid proliferation characteristic of intestinal stem cells. While these cells give rise to various progenitor populations, the specific marker profile points directly to the multipotent stem cell state rather than a more committed progenitor.<br>
+<br>
+FINAL ANNOTATION COMPLETED<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Intestinal Epithelial Stem Cells</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>LGR5+ Intestinal Stem Cells (ISCs)</li><li>Secretory Progenitor Cells (early stage)</li><li>Enterocyte Progenitor Cells (early stage)</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li class="empty">None identified</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+
+    <div class="modal-content" id="modal-content-2">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">intestinal enteroendocrine cell</h2>
+                <p class="modal-subtitle">Predicted: <strong>Enteroendocrine Cells (EEC)</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">GCG, PCSK1, AC090679.1, UCN3, PYY, INSL5, CHGA, LCN15, SCG2, FEV, CPLX2, NKX2-2, AL133325.3, C1orf127, LINC01014, SCGN, SLC18A1, SCG3, SCG5, TPH1, MARCH4, INSM1, RTN1, CRYBA2, SNAP25, CHGB, CRMP1, KCNB2, RFX6, AMER3, SLC32A1, CDK5R2, AVPR1B, VWA5B2, AC022893.2, ABCC8, RIMBP2, AL161658.1, COL2A1, CELF3, SCT, RIIAD1, SSTR5-AS1, RGS4, ARX, PRPH, INA, F5, AP003062.3, SLC5A8</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Here&#x27;s a step-by-step analysis to identify the cell type based on the provided marker list:<br>
+<br>
+<h3>Step 1: List the Key Functional Markers</h3>
+<br>
+This list is rich in markers associated with neuroendocrine function, hormone production, and neuronal processes.<br>
+<br>
+<em>   <strong>GCG (Glucagon):</strong> A key hormone produced by alpha cells in the pancreas, but also found in enteroendocrine L-cells in the gut, involved in glucose homeostasis.<br>
+</em>   <strong>PCSK1 (Proprotein Convertase Subtilisin/Kexin Type 1):</strong> An enzyme involved in the proteolytic processing of prohormones and proneuropeptides into their active forms. Essential for the maturation of many peptide hormones.<br>
+<em>   <strong>UCN3 (Urocortin 3):</strong> A neuropeptide belonging to the corticotropin-releasing hormone family, involved in stress response and satiety. Expressed in specific enteroendocrine cells.<br>
+</em>   <strong>PYY (Peptide YY):</strong> A peptide hormone secreted by L-cells in the gut, involved in appetite regulation and gut motility.<br>
+<em>   <strong>INSL5 (Insulin-like 5):</strong> A peptide hormone primarily expressed in enteroendocrine L-cells, involved in gut motility and glucose metabolism.<br>
+</em>   <strong>CHGA (Chromogranin A):</strong> A general marker for neuroendocrine cells, involved in the packaging and secretion of peptide hormones and neuropeptides.<br>
+<em>   <strong>SCG2 (Secretogranin II):</strong> Another neuroendocrine granin protein, involved in the storage and secretion of peptide hormones.<br>
+</em>   <strong>FEV (FEV transcription factor, ETS family):</strong> A transcription factor crucial for the development and differentiation of enteroendocrine cells, particularly serotonin-producing cells.<br>
+<em>   <strong>CPLX2 (Complexin 2):</strong> A synaptic protein involved in neurotransmitter release, suggesting a secretory and potentially neuronal-like function.<br>
+</em>   <strong>NKX2-2 (NK2 Homeobox 2):</strong> A transcription factor involved in the development of various neuroendocrine cell types, including pancreatic alpha and beta cells, and enteroendocrine cells.<br>
+<em>   <strong>SCGN (Secretagogin):</strong> A calcium-binding protein expressed in neuroendocrine cells, involved in regulated secretion.<br>
+</em>   <strong>SLC18A1 (Solute Carrier Family 18 Member A1, Vesicular Monoamine Transporter 1 - VMAT1):</strong> Involved in the transport of monoamines (like serotonin) into synaptic vesicles, indicating monoamine synthesis and secretion.<br>
+<em>   <strong>SCG3 (Secretogranin III):</strong> Another granin protein, similar to CHGA and SCG2, involved in neuroendocrine secretion.<br>
+</em>   <strong>SCG5 (Secretogranin V, Neurosecretory Protein VGF):</strong> A neuropeptide precursor, processed into various biologically active peptides involved in energy homeostasis and neuronal function.<br>
+<em>   <strong>TPH1 (Tryptophan Hydroxylase 1):</strong> The rate-limiting enzyme in serotonin synthesis, indicating serotonin production.<br>
+</em>   <strong>INSM1 (Insulinoma-associated protein 1):</strong> A transcription factor essential for neuroendocrine cell differentiation and tumor development.<br>
+<em>   <strong>RTN1 (Reticulon 1):</strong> Involved in endoplasmic reticulum structure and function, and potentially in neuroendocrine secretion.<br>
+</em>   <strong>SNAP25 (Synaptosomal-associated protein 25):</strong> A component of the SNARE complex, critical for vesicle fusion and neurotransmitter/hormone release.<br>
+<em>   <strong>CHGB (Chromogranin B):</strong> Another general neuroendocrine marker, similar to CHGA.<br>
+</em>   <strong>SLC32A1 (Solute Carrier Family 32 Member A1, Vesicular GABA Transporter - VGAT):</strong> Transports GABA and glycine into synaptic vesicles, suggesting potential GABAergic signaling.<br>
+<em>   <strong>ABCC8 (ATP Binding Cassette Subfamily C Member 8):</strong> Encodes SUR1, a subunit of the ATP-sensitive potassium channel (KATP channel), critical for glucose-stimulated insulin secretion in pancreatic beta cells, but also found in some enteroendocrine cells.<br>
+</em>   <strong>SCT (Secretin):</strong> A hormone secreted by S-cells in the duodenum, involved in regulating gastric acid and pancreatic bicarbonate secretion. While primarily duodenal, its presence suggests enteroendocrine function.<br>
+<em>   <strong>ARX (Aristaless Related Homeobox):</strong> A transcription factor involved in the development of various endocrine cell types, including pancreatic alpha cells and some enteroendocrine cells.<br>
+</em>   <strong>PRPH (Peripherin):</strong> An intermediate filament protein found in peripheral neurons and some neuroendocrine cells.<br>
+<em>   <strong>INA (Internexin neuronal intermediate filament protein alpha):</strong> Another neuronal intermediate filament protein.<br>
+</em>   <strong>SLC5A8 (Solute Carrier Family 5 Member 8):</strong> A sodium-coupled monocarboxylate transporter, involved in nutrient absorption, but its co-expression with neuroendocrine markers might suggest specific metabolic roles in these cells.<br>
+<br>
+<h3>Step 2: List the Key Cell Type Markers</h3>
+<br>
+The markers strongly point towards a neuroendocrine lineage, specifically within the gastrointestinal tract.<br>
+<br>
+<em>   <strong>GCG, PYY, INSL5, UCN3, SCT:</strong> These are classic peptide hormones produced by various enteroendocrine cell types in the gut. GCG and PYY are characteristic of L-cells, SCT of S-cells, and UCN3 and INSL5 also point to specific enteroendocrine subsets.<br>
+</em>   <strong>CHGA, CHGB, SCG2, SCG3, SCG5, SCGN:</strong> General neuroendocrine markers, indicating a cell type with secretory granules and neuroendocrine differentiation.<br>
+<em>   <strong>PCSK1:</strong> Essential for processing prohormones into active forms, a hallmark of hormone-producing cells.<br>
+</em>   <strong>FEV, NKX2-2, INSM1, ARX, RFX6:</strong> Transcription factors critical for the development and differentiation of enteroendocrine cells and other neuroendocrine lineages. RFX6 is particularly important for enteroendocrine and pancreatic islet cell development.<br>
+<em>   <strong>TPH1, SLC18A1:</strong> Indicate serotonin synthesis and packaging, characteristic of enterochromaffin (EC) cells, a major enteroendocrine subtype.<br>
+</em>   <strong>CPLX2, SNAP25, PRPH, INA:</strong> While often associated with neurons, their presence in neuroendocrine cells reflects the shared secretory machinery and neuronal-like features of these cells.<br>
+<br>
+<h3>Step 3: Cross-reference Known Databases and Literature</h3>
+<br>
+Cross-referencing these markers with scRNA-seq databases (e.g., Human Cell Atlas, PanglaoDB, CellMarker) and relevant literature on intestinal cell types strongly supports an enteroendocrine identity.<br>
+<br>
+<em>   <strong>Enteroendocrine Cells (EEC):</strong> These cells are specialized epithelial cells scattered throughout the gastrointestinal tract that sense luminal contents and secrete hormones and neuropeptides to regulate digestion, metabolism, and gut motility. They share many features with neurons, including the expression of neuroendocrine markers and synaptic-like machinery.<br>
+</em>   <strong>L-cells:</strong> Known to express GCG, PYY, INSL5, UCN3, CHGA, PCSK1.<br>
+<em>   <strong>EC cells:</strong> Known to express TPH1, SLC18A1, CHGA, PCSK1.<br>
+</em>   <strong>S-cells:</strong> Known to express SCT, CHGA, PCSK1.<br>
+<em>   <strong>Paneth cells/Goblet cells/Enterocytes/Stem cells/Immune cells:</strong> These cell types have distinct marker profiles that are largely absent from the provided list (e.g., LYZ for Paneth, MUC2 for Goblet, FABP1 for enterocytes, LGR5 for stem cells, CD3/CD19 for immune cells).<br>
+<br>
+The co-expression of multiple peptide hormones (GCG, PYY, INSL5, UCN3, SCT) along with general neuroendocrine markers (CHGA, PCSK1, SCG2, etc.) and key transcription factors (FEV, NKX2-2, INSM1, RFX6) is highly characteristic of enteroendocrine cells. The presence of TPH1 and SLC18A1 further refines this to include serotonin-producing subtypes.<br>
+<br>
+<h3>Step 4: Determine the Most Probable General Cell Type</h3>
+<br>
+Based on the overwhelming evidence from the key functional and cell type markers, the most probable general cell type is <strong>Enteroendocrine Cells (EEC)</strong>.<br>
+<br>
+<h3>Step 5: Identify the Top 3 Most Probable Sub Cell Types</h3>
+<br>
+Given the diverse set of hormones and transcription factors, this cluster likely represents a mixed population of enteroendocrine cells or a specific subtype with broad expression.<br>
+<br>
+<ul>
+<li> <strong>Most Likely: L-cells (Glucagon-like peptide-1/2, PYY, INSL5, UCN3 producing cells)</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The high expression of <strong>GCG, PYY, INSL5, UCN3</strong> are all hallmarks of L-cells, which are abundant in the large intestine. GCG in the gut primarily refers to proglucagon-derived peptides like GLP-1 and GLP-2. PCSK1 is essential for processing these prohormones. The presence of general neuroendocrine markers further supports this.<br>
+<br>
+<ul>
+<li> <strong>Second Most Likely: Enterochromaffin (EC) cells (Serotonin-producing cells)</strong></li>
+</ul>
+<em>   <strong>Reasoning:</strong> The presence of <strong>TPH1</strong> (rate-limiting enzyme for serotonin synthesis) and <strong>SLC18A1</strong> (VMAT1, for serotonin packaging) are strong indicators of EC cells. <strong>FEV</strong> is also a known transcription factor for EC cell differentiation. EC cells are the most abundant enteroendocrine cell type in the gut.<br>
+<br>
+<ul>
+<li> <strong>Third Most Likely: Multi-hormonal Enteroendocrine Cells (or a specific subtype with broad expression)</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The co-expression of markers for L-cells (GCG, PYY, INSL5, UCN3), EC cells (TPH1, SLC18A1), and potentially S-cells (SCT) suggests either a cluster containing multiple enteroendocrine subtypes that are difficult to fully resolve at this resolution, or a specific, less common multi-hormonal enteroendocrine cell type. The presence of transcription factors like <strong>NKX2-2, INSM1, RFX6, ARX</strong> are known to regulate the differentiation of various enteroendocrine lineages, further supporting a broad neuroendocrine identity. The high expression of general neuroendocrine markers (CHGA, PCSK1, SCG2, SCGN, etc.) is consistent with any of these subtypes.<br>
+<br>
+<strong>Most Likely Subtype:</strong> Given the prominence of <strong>GCG, PYY, INSL5, and UCN3</strong> at the top of the ranked list, the most likely specific subtype is <strong>L-cells</strong>. However, the strong presence of TPH1 and SLC18A1 also indicates a significant EC cell component, suggesting a cluster enriched in L-cells but potentially also containing EC cells or representing a continuum/overlap.<br>
+<br>
+<h3>Step 6: Provide a Concise Summary of Your Analysis</h3>
+<br>
+The provided marker list is highly indicative of <strong>enteroendocrine cells</strong> from the large intestine. Key markers such as <strong>GCG, PYY, INSL5, UCN3, SCT</strong> (peptide hormones), <strong>CHGA, CHGB, PCSK1, SCG2, SCGN</strong> (general neuroendocrine markers), and <strong>TPH1, SLC18A1</strong> (serotonin synthesis/packaging) collectively point to a cell type specialized in sensing luminal stimuli and secreting hormones and neuropeptides. The presence of critical transcription factors like <strong>FEV, NKX2-2, INSM1, RFX6, and ARX</strong> further supports their neuroendocrine developmental origin and function. Based on the high expression of specific peptide hormones, the cluster is most likely enriched in <strong>L-cells</strong>, which produce glucagon-like peptides, PYY, and INSL5. However, the strong presence of TPH1 and SLC18A1 also suggests a significant contribution from <strong>enterochromaffin (EC) cells</strong>, which produce serotonin. Therefore, this cluster represents <strong>enteroendocrine cells, predominantly L-cells, with a notable EC cell component.</strong><br>
+<br>
+FINAL ANNOTATION COMPLETED<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Enteroendocrine Cells (EEC)</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>L-cells (Glucagon-like peptide-1/2, PYY, INSL5, UCN3 producing cells)</li><li>Enterochromaffin (EC) cells (Serotonin-producing cells)</li><li>Multi-hormonal Enteroendocrine Cells (or a specific subtype with broad expression)</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li>L-cells</li><li>EC cells</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+
+    <div class="modal-content" id="modal-content-3">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">monocyte</h2>
+                <p class="modal-subtitle">Predicted: <strong>Neural Crest-Derived Cells</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">NKAIN3, SPP1, CDH19, TSPAN11, PLP1, L1CAM, MYOT, IGSF11, NRXN1, SLC35F1, AL136298.1, SFRP5, Z97205.2, AL358216.1, SOX10, MEGF10, SYT10, CADM2, SLITRK2, SOX2, CRTAC1, CHL1, ZNF536, FOXD3, PTPRZ1, GRIK3, TUBB2B, CMTM5, LINC01436, TTYH1, ADARB2, CDH2, TENM3, WNT6, ATP1A2, NRXN3, KCNMB4, TMEM132B, LPL, GFRA2, CHADL, FLRT1, CHST9, GJC3, Z95114.1, RHAG, FOXD3-AS1, BMS1P10, FAM19A5, FGFBP2</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Here&#x27;s a detailed analysis to identify the cell type based on the provided marker list:<br>
+<br>
+<strong>Step 1: List the Key Functional Markers</strong><br>
+<br>
+<em>   <strong>SPP1 (Secreted Phosphoprotein 1, Osteopontin):</strong> Involved in cell adhesion, migration, and immune modulation. Often associated with macrophages, but also found in other cell types, including some stromal cells and cancer cells.<br>
+</em>   <strong>PLP1 (Proteolipid Protein 1):</strong> A major structural protein of myelin in the central and peripheral nervous systems. Its presence strongly suggests a myelinating cell type.<br>
+<em>   <strong>L1CAM (L1 Cell Adhesion Molecule):</strong> A neuronal cell adhesion molecule involved in neuron migration, axon guidance, and fasciculation. Also expressed in some epithelial and mesenchymal cells, and certain cancers.<br>
+</em>   <strong>MYOT (Myotilin):</strong> A cytoskeletal protein found in muscle cells, involved in sarcomere organization. Its presence here might be a less specific marker or indicative of a rare cell type.<br>
+<em>   <strong>NRXN1 (Neurexin 1):</strong> A neuronal cell adhesion molecule involved in synapse formation and function.<br>
+</em>   <strong>SOX10 (SRY-Box Transcription Factor 10):</strong> A crucial transcription factor for neural crest development, melanocyte differentiation, and glial cell development (Schwann cells, oligodendrocytes). Its presence is a very strong indicator of neural crest-derived cells.<br>
+<em>   <strong>MEGF10 (Multiple EGF-Like Domains 10):</strong> A transmembrane protein involved in cell adhesion and phagocytosis, particularly in glial cells and macrophages.<br>
+</em>   <strong>SYT10 (Synaptotagmin 10):</strong> A neuronal protein involved in calcium-dependent exocytosis.<br>
+<em>   <strong>SOX2 (SRY-Box Transcription Factor 2):</strong> A master regulator of pluripotency and stem cell maintenance, also expressed in neural stem cells and some glial progenitors.<br>
+</em>   <strong>PTPRZ1 (Protein Tyrosine Phosphatase Receptor Type Z1):</strong> A receptor-type protein tyrosine phosphatase expressed in the nervous system, particularly in astrocytes and oligodendrocytes, involved in cell adhesion and differentiation.<br>
+<em>   <strong>GRIK3 (Glutamate Ionotropic Receptor Kainate Type Subunit 3):</strong> A subunit of kainate receptors, involved in excitatory neurotransmission.<br>
+</em>   <strong>TUBB2B (Tubulin Beta 2B Class IIb):</strong> A beta-tubulin isoform predominantly expressed in neurons, involved in microtubule formation.<br>
+<em>   <strong>ADARB2 (Adenosine Deaminase RNA Specific B2):</strong> Involved in RNA editing, particularly in the nervous system.<br>
+</em>   <strong>CDH2 (Cadherin 2, N-cadherin):</strong> A cell adhesion molecule important in neural development and synaptic plasticity.<br>
+<em>   <strong>TENM3 (Teneurin Transmembrane Protein 3):</strong> Involved in neuronal connectivity and axon guidance.<br>
+</em>   <strong>ATP1A2 (ATPase Na+/K+ Transporting Subunit Alpha 2):</strong> A subunit of the Na+/K+-ATPase, highly expressed in astrocytes and involved in ion homeostasis.<br>
+<em>   <strong>NRXN3 (Neurexin 3):</strong> Another neurexin family member involved in synapse formation.<br>
+</em>   <strong>GFRA2 (GDNF Family Receptor Alpha 2):</strong> A co-receptor for neurturin, involved in neuronal survival and differentiation.<br>
+<em>   <strong>FLRT1 (Fibronectin Leucine Rich Transmembrane Protein 1):</strong> Involved in cell adhesion and neural development.<br>
+<br>
+<strong>Step 2: List the Key Cell Type Markers</strong><br>
+<br>
+Given the tissue (large intestine), we need to consider cells that are typically found there, including epithelial cells, immune cells, stromal cells, and neuronal cells of the enteric nervous system.<br>
+<br>
+</em>   <strong>NKAIN3 (Na+/K+ ATPase Interacting 3):</strong> Less specific, but can be found in various cell types.<br>
+<em>   <strong>CDH19 (Cadherin 19):</strong> A cadherin family member, less commonly used as a primary cell type marker, but can be found in some mesenchymal and neural crest-derived cells.<br>
+</em>   <strong>TSPAN11 (Tetraspanin 11):</strong> A tetraspanin family member, involved in cell surface organization, less specific.<br>
+<em>   <strong>IGSF11 (Immunoglobulin Superfamily Member 11):</strong> Involved in cell adhesion, found in various tissues.<br>
+</em>   <strong>SLC35F1 (Solute Carrier Family 35 Member F1):</strong> A solute carrier, less specific.<br>
+<em>   <strong>SFRP5 (Secreted Frizzled Related Protein 5):</strong> A Wnt signaling modulator, expressed in various tissues, including adipose tissue and some stromal cells.<br>
+</em>   <strong>Z97205.2, AL136298.1, AL358216.1, Z95114.1, FOXD3-AS1, BMS1P10:</strong> These appear to be non-coding RNAs or uncharacterized gene loci, making their specific cell type association difficult without further context.<br>
+<em>   <strong>CADM2 (Cell Adhesion Molecule 2):</strong> A neuronal cell adhesion molecule.<br>
+</em>   <strong>SLITRK2 (SLIT and NTRK Like Family Member 2):</strong> Involved in neuronal development and synapse formation.<br>
+<em>   <strong>CRTAC1 (Cartilage Associated Protein 1):</strong> Primarily associated with cartilage, but its presence here might indicate a less common cell type or a broader role.<br>
+</em>   <strong>CHL1 (Cell Adhesion Molecule L1 Like):</strong> A neuronal cell adhesion molecule.<br>
+<em>   <strong>ZNF536 (Zinc Finger Protein 536):</strong> A transcription factor, less specific.<br>
+</em>   <strong>FOXD3 (Forkhead Box D3):</strong> A transcription factor critical for neural crest development, stem cell maintenance, and melanocyte differentiation. Its co-expression with SOX10 is highly significant.<br>
+<em>   <strong>CMTM5 (Chemokine Like Receptor 5):</strong> Involved in immune regulation, but also found in other cell types.<br>
+</em>   <strong>LINC01436 (Long Intergenic Non-Protein Coding RNA 1436):</strong> A lncRNA, less specific.<br>
+<em>   <strong>TTYH1 (Tweety Homolog 1):</strong> A calcium-activated chloride channel, expressed in various tissues, including the nervous system.<br>
+</em>   <strong>WNT6 (Wnt Family Member 6):</strong> Involved in developmental processes, including neural crest development.<br>
+<em>   <strong>KCNMB4 (Potassium Calcium-Activated Channel Subfamily M Beta Member 4):</strong> A regulatory subunit of large conductance calcium-activated potassium channels, found in various excitable cells.<br>
+</em>   <strong>TMEM132B (Transmembrane Protein 132B):</strong> Less specific, but implicated in neuronal function.<br>
+<em>   <strong>LPL (Lipoprotein Lipase):</strong> Involved in lipid metabolism, typically found in adipocytes, muscle cells, and macrophages. Its presence here might be a less specific marker or indicative of a rare cell type.<br>
+</em>   <strong>CHADL (Chondroadherin Like):</strong> Associated with cartilage and extracellular matrix.<br>
+<em>   <strong>CHST9 (Carbohydrate Sulfotransferase 9):</strong> Involved in glycosaminoglycan synthesis.<br>
+</em>   <strong>GJC3 (Gap Junction Protein Gamma 3):</strong> A gap junction protein, less specific.<br>
+<em>   <strong>RHAG (Rh Associated Glycoprotein):</strong> Primarily associated with red blood cells, but also found in other tissues. Its presence here is unusual for a typical large intestine cell type and might indicate a specific niche or contamination.<br>
+</em>   <strong>FAM19A5 (Family With Sequence Similarity 19 Member A5):</strong> A secreted protein, less specific.<br>
+<em>   <strong>FGFBP2 (Fibroblast Growth Factor Binding Protein 2):</strong> Involved in FGF signaling, less specific.<br>
+<br>
+<strong>Step 3: Cross-reference Known Databases</strong><br>
+<br>
+A strong theme emerges from the marker list: <strong>neural crest-derived cells and neuronal/glial characteristics.</strong><br>
+<br>
+</em>   <strong>SOX10, FOXD3, PLP1, L1CAM, NRXN1, NRXN3, SOX2, PTPRZ1, GRIK3, TUBB2B, ADARB2, CDH2, TENM3, ATP1A2, GFRA2, FLRT1, CADM2, SLITRK2, CHL1:</strong> This combination of markers is highly characteristic of cells within the nervous system, particularly those involved in myelination, neuronal adhesion, and synaptic function.<br>
+<em>   <strong>SOX10 and FOXD3</strong> are canonical markers for neural crest stem cells and their derivatives, including Schwann cells, enteric neurons, and glial cells.<br>
+</em>   <strong>PLP1</strong> is a definitive marker for myelinating cells, such as Schwann cells in the peripheral nervous system.<br>
+<em>   The presence of multiple <strong>Neurexins (NRXN1, NRXN3)</strong> and other neuronal adhesion molecules (L1CAM, CADM2, SLITRK2, CHL1, TENM3, FLRT1) points strongly towards neuronal or glial components.<br>
+</em>   <strong>ATP1A2</strong> is a known marker for astrocytes and some glial cells.<br>
+<em>   <strong>GRIK3</strong> and <strong>SYT10</strong> are indicative of neuronal activity.<br>
+</em>   <strong>TUBB2B</strong> is a neuronal tubulin.<br>
+<br>
+Considering the large intestine tissue, the most prominent neural crest-derived system is the <strong>enteric nervous system (ENS)</strong>. The ENS is often referred to as the &quot;second brain&quot; and consists of a complex network of neurons and glial cells embedded within the gut wall.<br>
+<br>
+<strong>Step 4: Determine the Most Probable General Cell Type</strong><br>
+<br>
+Based on the overwhelming evidence from the key functional and cell type markers, the most probable general cell type is <strong>Neural Crest-Derived Cells</strong>, specifically those forming components of the <strong>Enteric Nervous System (ENS)</strong>. The strong expression of SOX10, FOXD3, PLP1, and numerous neuronal adhesion/synaptic proteins points unequivocally to this lineage.<br>
+<br>
+<strong>Step 5: Identify the Top 3 Most Probable Sub Cell Types</strong><br>
+<br>
+Within the general category of Enteric Nervous System cells, we can further refine the annotation:<br>
+<br>
+<ul>
+<li> <strong>Enteric Glial Cells (EGCs) / Schwann Cells:</strong></li>
+</ul>
+<em>   <strong>Strongest evidence:</strong> <strong>PLP1</strong> (myelin protein), <strong>SOX10</strong> (key glial transcription factor), <strong>FOXD3</strong> (neural crest/glial progenitor), <strong>MEGF10</strong> (glial phagocytosis), <strong>ATP1A2</strong> (astrocyte/glial marker), <strong>PTPRZ1</strong> (glial marker). EGCs share many characteristics with Schwann cells of the peripheral nervous system, including the expression of myelin-related genes (though EGCs are generally non-myelinating in the gut, they can express some myelin-associated proteins or their progenitors do). The high expression of PLP1 is particularly compelling for a Schwann cell-like identity.<br>
+</em>   <strong>Reasoning:</strong> The combination of SOX10, FOXD3, and especially PLP1, strongly suggests a glial cell type. While EGCs in the gut are typically non-myelinating, they are neural crest-derived and share many molecular features with Schwann cells, which are myelinating. The presence of PLP1, a major myelin component, is a very strong indicator of a cell with myelinating potential or a direct Schwann cell lineage.<br>
+<br>
+<ul>
+<li> <strong>Enteric Neurons (Progenitors or Immature Neurons):</strong></li>
+</ul>
+<em>   <strong>Strong evidence:</strong> <strong>NRXN1, NRXN3, L1CAM, CDH2, TENM3, CADM2, SLITRK2, CHL1, SYT10, GRIK3, TUBB2B, ADARB2, GFRA2, FLRT1.</strong> These are all highly indicative of neuronal adhesion, synaptic function, and neuronal cytoskeleton. <strong>SOX2</strong> can also mark neural stem cells or progenitors.<br>
+</em>   <strong>Reasoning:</strong> The abundance of neuronal adhesion molecules, synaptic proteins, and neuronal structural proteins clearly points to a neuronal component. The co-expression with SOX10 and FOXD3 could indicate early differentiating neurons or neural crest progenitors that give rise to neurons.<br>
+<br>
+<ul>
+<li> <strong>Neural Crest Stem Cells / Progenitors:</strong></li>
+</ul>
+<em>   <strong>Strong evidence:</strong> <strong>SOX10, FOXD3, SOX2, WNT6.</strong> These are all critical transcription factors and signaling molecules involved in neural crest development and maintenance of stemness.<br>
+</em>   <strong>Reasoning:</strong> The presence of master regulators like SOX10, FOXD3, and SOX2 suggests a population with progenitor characteristics, capable of differentiating into both glial and neuronal lineages.<br>
+<br>
+<strong>Most Likely Subtype:</strong><br>
+<br>
+Given the very high expression of <strong>PLP1</strong> alongside <strong>SOX10</strong> and <strong>FOXD3</strong>, the most likely subtype is <strong>Enteric Glial Cells (EGCs) with Schwann cell-like characteristics or a population enriched for Schwann cells/myelinating glia.</strong> While EGCs in the gut are generally non-myelinating, they are closely related to Schwann cells, and the presence of PLP1 is a very strong indicator of this lineage. It&#x27;s possible this cluster represents a specific subset of EGCs with a more pronounced Schwann cell-like molecular signature, or even actual Schwann cells associated with nerve fibers within the large intestine. The numerous neuronal adhesion molecules could be expressed by these glia to interact with neurons, or represent a small contaminating neuronal population, but the PLP1 signal is dominant for glial identity.<br>
+<br>
+<strong>Step 6: Provide a Concise Summary of Your Analysis</strong><br>
+<br>
+The single-cell cluster from the human large intestine exhibits a highly specific gene expression profile dominated by markers of neural crest-derived cells, particularly those associated with the enteric nervous system. Key markers such as <strong>SOX10</strong> and <strong>FOXD3</strong> unequivocally point to a neural crest lineage. The presence of <strong>PLP1</strong>, a major myelin protein, is a critical indicator, strongly suggesting a <strong>Schwann cell-like identity or a specific subset of Enteric Glial Cells (EGCs)</strong>. This is further supported by other glial-associated markers like <strong>ATP1A2</strong> and <strong>PTPRZ1</strong>, and phagocytic marker <strong>MEGF10</strong>. Additionally, a significant number of neuronal adhesion molecules (e.g., L1CAM, NRXN1, CDH2, TENM3, CADM2, SLITRK2, CHL1) and synaptic/neuronal functional genes (e.g., SYT10, GRIK3, TUBB2B, ADARB2) are highly expressed, indicating either a close association with neurons, or a mixed population containing neuronal components, or even EGCs expressing these to interact with neurons.<br>
+<br>
+Considering the strong and specific expression of PLP1, SOX10, and FOXD3, the cluster is most likely composed of <strong>Enteric Glial Cells with Schwann cell-like features</strong>.<br>
+<br>
+FINAL ANNOTATION COMPLETED<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Neural Crest-Derived Cells</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>Enteric Glial Cells (EGCs) / Schwann Cells</li><li>Enteric Neurons (Progenitors or Immature Neurons)</li><li>Neural Crest Stem Cells / Progenitors</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li>a mixed population containing neuronal components</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+
+    <div class="modal-content" id="modal-content-4">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">plasma cell</h2>
+                <p class="modal-subtitle">Predicted: <strong>Plasma Cells</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Here&#x27;s a step-by-step analysis to identify the cell type from the provided scRNA-seq marker list:<br>
+<br>
+<h3>Step 1: List the Key Functional Markers</h3>
+<br>
+The most striking feature of this marker list is the overwhelming presence of immunoglobulin-related genes. These genes are directly involved in antibody production and secretion, which is the primary function of plasma cells.<br>
+<br>
+<em>   <strong>Immunoglobulin Light Chain Genes:</strong><br>
+</em>   <strong>IGLL5 (Immunoglobulin Lambda-Like Polypeptide 5):</strong> A pseudo-light chain gene, often expressed in pre-B cells and plasma cells, involved in B cell development and antibody production. Its high expression here strongly points towards plasma cells.<br>
+<em>   <strong>IGLV6-57, IGLC3, IGLC2, IGLV3-1, IGLV2-11:</strong> These are immunoglobulin lambda variable and constant chain genes, essential components of the light chain of antibodies. Their high expression indicates active antibody synthesis.<br>
+</em>   <strong>IGKC, IGKV4-1, IGKV1-5, IGKV3-20:</strong> These are immunoglobulin kappa constant and variable chain genes, also essential components of the light chain of antibodies. Their co-expression with lambda chains suggests a diverse antibody repertoire or active production.<br>
+<br>
+<em>   <strong>Immunoglobulin Heavy Chain Genes:</strong><br>
+</em>   <strong>JCHAIN (Joining Chain of Multimeric IgA and IgM):</strong> Crucial for the polymerization of IgA and IgM antibodies into their dimeric or pentameric forms, respectively. Its presence is a strong indicator of IgA and IgM secreting cells, characteristic of plasma cells, especially in mucosal tissues like the large intestine.<br>
+<em>   <strong>IGHV3-7, IGHG1, IGHV3-23, IGHG3, IGHM, IGHV3-74, IGHA1, IGHA2:</strong> These represent various immunoglobulin heavy chain variable (IGHV) and constant (IGHG for IgG, IGHM for IgM, IGHA for IgA) genes. The presence of multiple heavy chain isotypes (IgG, IgM, IgA) suggests a mature plasma cell population capable of class switching and producing different antibody types. The high expression of IgA (IGHA1, IGHA2) is particularly relevant for mucosal immunity in the large intestine.<br>
+<br>
+</em>   <strong>Plasma Cell Maturation/Function Markers:</strong><br>
+<em>   <strong>TNFRSF17 (B-Cell Maturation Antigen, BCMA):</strong> A receptor highly expressed on plasma cells and essential for their survival and differentiation. Its presence is a definitive marker for plasma cells.<br>
+</em>   <strong>MZB1 (Marginal Zone B and B1 Cell Specific Protein 1):</strong> Involved in immunoglobulin secretion and retention in the endoplasmic reticulum, highly expressed in plasma cells.<br>
+<em>   <strong>DERL3 (Derlin 3):</strong> Part of the ER-associated degradation (ERAD) pathway, which is highly active in plasma cells due to their extensive protein (antibody) synthesis and secretion.<br>
+<br>
+<h3>Step 2: List the Key Cell Type Markers</h3>
+<br>
+Given the functional markers, the key cell type markers are largely overlapping with the functional markers, as immunoglobulin genes </em>are<em> the primary markers for B cell lineage cells, particularly plasma cells.<br>
+<br>
+</em>   <strong>Plasma Cell Specific Markers:</strong><br>
+<em>   <strong>IGLL5, JCHAIN, TNFRSF17, MZB1, DERL3:</strong> As detailed above, these are highly specific and characteristic markers for plasma cells.<br>
+</em>   <strong>IGHG1, IGHG3, IGHM, IGHA1, IGHA2:</strong> The expression of multiple immunoglobulin heavy chain constant regions indicates a mature, class-switched plasma cell. The high expression of IgA (IGHA1, IGHA2) is a hallmark of plasma cells in mucosal tissues.<br>
+<em>   <strong>IGLV/IGKV genes:</strong> The presence of both lambda and kappa light chain genes is consistent with a diverse plasma cell population.<br>
+<br>
+</em>   <strong>Other potentially relevant markers (less specific but can provide context):</strong><br>
+<em>   <strong>LILRB4 (Leukocyte Immunoglobulin Like Receptor B4):</strong> Also known as CD85k or ILT3. While expressed on myeloid cells (monocytes, macrophages, dendritic cells), it can also be found on some B cells and plasma cells, particularly regulatory subsets or those interacting with the myeloid compartment. Its presence here might suggest interactions or a specific microenvironment.<br>
+</em>   <strong>CCL3 (Chemokine (C-C motif) Ligand 3):</strong> A chemokine involved in immune cell recruitment. While not specific to plasma cells, its expression could indicate an active immune response or interaction with other immune cells.<br>
+<em>   <strong>GPRC5D (G Protein-Coupled Receptor Class C Group 5 Member D):</strong> A receptor expressed on plasma cells, particularly in multiple myeloma, but also found on normal plasma cells. Its function is still being elucidated but it&#x27;s considered a plasma cell marker.<br>
+</em>   <strong>FCRL5 (Fc Receptor Like 5):</strong> Expressed on B cells and plasma cells, particularly memory B cells and some plasma cell subsets. It can modulate B cell receptor signaling.<br>
+<em>   <strong>APOBEC3A (Apolipoprotein B mRNA Editing Enzyme Catalytic Subunit 3A):</strong> An enzyme involved in innate immunity and DNA/RNA editing. While not a primary plasma cell marker, its expression can be induced in various immune cells during infection or inflammation.<br>
+<br>
+</em>   <strong>Genes of unknown or less specific function in this context:</strong> FAM92B, AC026369.3, ANKRD36BP2, AMPD1, AC104699.1, LINC02362, AL391056.1, UBE2QL1, LINC00309, AL133467.1, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, AC106897.1. These are likely either non-specific housekeeping genes, lncRNAs, or genes whose roles in plasma cell biology are not yet well-established or are context-dependent. MYL2 (Myosin Light Chain 2) is typically associated with muscle cells, its presence here might be due to contamination or a very specific, uncharacterized role. BMP6 (Bone Morphogenetic Protein 6) is involved in development and bone formation, but also has roles in immune regulation, though not a primary plasma cell marker.<br>
+<br>
+<h3>Step 3: Cross-reference Known Databases</h3>
+<br>
+Cross-referencing with scRNA-seq databases (e.g., Human Cell Atlas, PanglaoDB, CellMarker, ImmGen) and literature consistently shows that the combination of <strong>IGLL5, JCHAIN, TNFRSF17, MZB1, IGHG1, IGHM, IGHA1, IGKC, IGLC3</strong> and numerous other immunoglobulin genes are definitive markers for <strong>plasma cells</strong>.<br>
+<br>
+<em>   <strong>PanglaoDB:</strong> Lists plasma cells with markers like JCHAIN, IGHA1, IGHG1, IGLC2, IGLC3, IGKC, IGLV3-1, MZB1, TNFRSF17.<br>
+</em>   <strong>CellMarker:</strong> Confirms these markers for plasma cells.<br>
+<em>   <strong>Literature:</strong> Numerous scRNA-seq studies of immune cells and mucosal tissues consistently use these gene sets to identify plasma cells. The high expression of IgA (IGHA1, IGHA2) is particularly characteristic of plasma cells residing in mucosal tissues like the large intestine.<br>
+<br>
+<h3>Step 4: Determine the Most Probable General Cell Type</h3>
+<br>
+Based on the overwhelming and highly specific expression of immunoglobulin genes (heavy and light chains, constant and variable regions, multiple isotypes), JCHAIN, TNFRSF17 (BCMA), and MZB1, the most probable general cell type is <strong>Plasma Cells</strong>. These cells are terminally differentiated B lymphocytes specialized in producing and secreting large quantities of antibodies.<br>
+<br>
+<h3>Step 5: Identify the Top 3 Most Probable Sub Cell Types</h3>
+<br>
+Given the context of the large intestine, plasma cells are crucial for mucosal immunity. The specific immunoglobulin isotypes expressed provide clues about their subtype and function.<br>
+<br>
+<ul>
+<li> <strong>Most Likely: IgA-secreting Plasma Cells (Mucosal Plasma Cells)</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The high expression of <strong>IGHA1</strong> and <strong>IGHA2</strong> (Immunoglobulin Alpha Heavy Chain 1 and 2) is a very strong indicator. IgA is the predominant antibody isotype in mucosal secretions, playing a critical role in gut immunity by neutralizing pathogens and toxins at the epithelial surface. The large intestine is a major site for IgA production. The presence of <strong>JCHAIN</strong> further supports the secretion of dimeric IgA.<br>
+<em>   <strong>Supporting markers:</strong> JCHAIN, IGHA1, IGHA2, and the overall high antibody production machinery.<br>
+<br>
+<ul>
+<li> <strong>Second Most Likely: IgG-secreting Plasma Cells</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The presence of <strong>IGHG1</strong> and <strong>IGHG3</strong> (Immunoglobulin Gamma Heavy Chain 1 and 3) indicates that a significant proportion of these plasma cells are also producing IgG. While IgA dominates in mucosal secretions, IgG-secreting plasma cells are also found in the lamina propria of the gut and contribute to systemic and local immunity, especially during inflammation or infection.<br>
+<em>   <strong>Supporting markers:</strong> IGHG1, IGHG3.<br>
+<br>
+<ul>
+<li> <strong>Third Most Likely: IgM-secreting Plasma Cells</strong></li>
+</ul>
+</em>   <strong>Reasoning:</strong> The expression of <strong>IGHM</strong> (Immunoglobulin Mu Heavy Chain) suggests the presence of IgM-secreting plasma cells. IgM is typically the first antibody produced in a primary immune response and can also be found in mucosal tissues, often as a pentamer with JCHAIN. While less abundant than IgA or IgG in mature mucosal responses, IgM-secreting plasma cells can still be present, particularly in early responses or specific niches.<br>
+*   <strong>Supporting markers:</strong> IGHM, JCHAIN.<br>
+<br>
+<strong>Most Likely Subtype:</strong> Based on the prominence of <strong>IGHA1</strong> and <strong>IGHA2</strong> alongside <strong>JCHAIN</strong>, the most likely subtype is <strong>IgA-secreting Plasma Cells</strong>, which are highly characteristic of the large intestine&#x27;s mucosal immune system.<br>
+<br>
+<h3>Step 6: Provide a Concise Summary of Your Analysis</h3>
+<br>
+The provided marker list is overwhelmingly dominated by genes associated with immunoglobulin synthesis and secretion, including numerous immunoglobulin heavy chain (IGHV, IGHG1, IGHG3, IGHM, IGHA1, IGHA2) and light chain (IGLV, IGLC, IGKV, IGKC) genes. Key plasma cell-specific markers such as <strong>IGLL5</strong>, <strong>JCHAIN</strong> (essential for polymeric IgA/IgM), <strong>TNFRSF17 (BCMA)</strong> (a plasma cell survival receptor), and <strong>MZB1</strong> (involved in Ig secretion) are highly expressed. This gene signature unequivocally identifies the cell cluster as <strong>Plasma Cells</strong>. Given the tissue context (large intestine) and the prominent expression of <strong>IGHA1</strong> and <strong>IGHA2</strong>, these are most likely <strong>IgA-secreting Plasma Cells</strong>, which are crucial for mucosal immunity. Other immunoglobulin isotypes (IgG, IgM) are also present, indicating a diverse antibody-producing population.<br>
+<br>
+FINAL ANNOTATION COMPLETED<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Plasma Cells</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>IgA-secreting Plasma Cells</li><li>IgG-secreting Plasma Cells</li><li>IgM-secreting Plasma Cells</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li class="empty">None identified</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+
+    <div class="modal-content" id="modal-content-5">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">transit amplifying cell of large intestine</h2>
+                <p class="modal-subtitle">Predicted: <strong>Proliferating Cells</strong></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="markers-full">
+                <h4>Full Marker List:</h4>
+                <p class="markers-text">HJURP, UBE2C, CENPA, PBK, AURKB, DLGAP5, CKAP2L, KIF2C, KIF15, BIRC5, SPC25, ASPM, KIF18B, CEP55, DEPDC1, MKI67, CDC45, CDCA5, TOP2A, PCLAF, MND1, RRM2, ZNF695, CCNB2, NUF2, SKA3, SPC24, DTL, PKMYT1, CDCA3, TTK, DIAPH3, PLK1, IQGAP3, CDK1, TK1, POLQ, GTSE1, OIP5, FOXM1, TROAP, SKA1, NEK2, CDC25C, NCAPG, PIMREG, GINS2, RAD51AP1, CDT1, CCNA2</p>
+            </div>
+
+            <div class="modal-section annotation-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    Annotation Analysis
+                </h3>
+                <div class="section-content">
+                    Okay, I will analyze the provided list of highly expressed markers from a single-cell cluster in human large intestine tissue to identify the cell type.<br>
+<br>
+<strong>Step-by-Step Analysis:</strong><br>
+<br>
+<strong>1. List the Key Functional Markers:</strong><br>
+<br>
+The vast majority of the genes in this list are intimately involved in cell cycle progression, DNA replication, and mitosis. This immediately points towards a highly proliferative cell population.<br>
+<br>
+<em>   <strong>Cell Cycle Regulators/Mitotic Kinases:</strong><br>
+</em>   <strong>UBE2C:</strong> Ubiquitin-conjugating enzyme E2 C, crucial for anaphase-promoting complex/cyclosome (APC/C) activation and degradation of mitotic cyclins.<br>
+<em>   <strong>PBK (PDZ-binding kinase):</strong> A mitotic kinase involved in cell cycle progression and cell proliferation.<br>
+</em>   <strong>AURKB (Aurora Kinase B):</strong> A key mitotic kinase regulating chromosome segregation, cytokinesis, and spindle assembly checkpoint.<br>
+<em>   <strong>BIRC5 (Survivin):</strong> An anti-apoptotic protein and a key component of the chromosomal passenger complex, essential for proper chromosome segregation and cytokinesis.<br>
+</em>   <strong>KIF2C (MCAK):</strong> Kinesin family member 2C, a microtubule depolymerase critical for spindle dynamics and chromosome segregation.<br>
+<em>   <strong>KIF15, KIF18B:</strong> Kinesin family members involved in spindle assembly and chromosome movement.<br>
+</em>   <strong>CEP55:</strong> Centrosomal protein 55kDa, involved in cytokinesis.<br>
+<em>   <strong>MKI67 (Ki-67):</strong> A classic proliferation marker, expressed during active phases of the cell cycle (G1, S, G2, M) but absent in G0. Its presence is a strong indicator of dividing cells.<br>
+</em>   <strong>CDC45:</strong> Cell division cycle 45, essential for initiation of DNA replication.<br>
+<em>   <strong>CDCA5 (Sororin):</strong> Cohesin-associated protein, involved in sister chromatid cohesion.<br>
+</em>   <strong>TOP2A (DNA Topoisomerase II Alpha):</strong> Essential for DNA replication, chromosome condensation, and segregation.<br>
+<em>   <strong>PCLAF (PCNA-associated factor):</strong> Involved in DNA replication and repair.<br>
+</em>   <strong>CCNB2 (Cyclin B2):</strong> A mitotic cyclin, essential for entry into and progression through mitosis.<br>
+<em>   <strong>CDK1 (Cyclin-dependent kinase 1):</strong> The master regulator of mitosis, activated by mitotic cyclins.<br>
+</em>   <strong>PLK1 (Polo-like kinase 1):</strong> A key regulator of multiple mitotic events, including centrosome maturation, spindle assembly, and cytokinesis.<br>
+<em>   <strong>PKMYT1:</strong> Protein kinase, membrane associated tyrosine/threonine 1, a negative regulator of CDK1.<br>
+</em>   <strong>TTK (MPS1):</strong> Dual specificity kinase, critical for the spindle assembly checkpoint.<br>
+<em>   <strong>CDC25C:</strong> Cell division cycle 25C, a phosphatase that activates CDK1.<br>
+</em>   <strong>NCAPG:</strong> Non-SMC condensin I complex subunit G, involved in chromosome condensation.<br>
+<em>   <strong>GINS2:</strong> GINS complex subunit 2, part of the DNA replication helicase.<br>
+</em>   <strong>CDT1:</strong> Chromatin licensing and DNA replication factor 1, essential for DNA replication initiation.<br>
+<em>   <strong>CCNA2 (Cyclin A2):</strong> Involved in both S phase and M phase progression.<br>
+<br>
+</em>   <strong>Centrosome/Spindle Components:</strong><br>
+<em>   <strong>HJURP:</strong> Holliday junction recognition protein, involved in centromere assembly.<br>
+</em>   <strong>CENPA:</strong> Centromere protein A, a histone H3 variant specific to centromeres.<br>
+<em>   <strong>DLGAP5:</strong> DLG associated protein 5, involved in spindle organization.<br>
+</em>   <strong>CKAP2L:</strong> Cytoskeleton associated protein 2 like, involved in spindle formation.<br>
+<em>   <strong>SPC25, SPC24:</strong> Spindle pole body component 25 and 24, part of the NDC80 kinetochore complex.<br>
+</em>   <strong>ASPM:</strong> Asparagine synthetase, involved in spindle pole integrity and neurogenesis.<br>
+<em>   <strong>NUF2:</strong> NDC80 kinetochore complex component, essential for chromosome segregation.<br>
+</em>   <strong>SKA3, SKA1:</strong> Spindle and kinetochore associated protein 3 and 1, involved in stable microtubule-kinetochore attachment.<br>
+<em>   <strong>OIP5:</strong> Opa interacting protein 5, involved in kinetochore function.<br>
+<br>
+</em>   <strong>DNA Synthesis/Repair:</strong><br>
+<em>   <strong>RRM2:</strong> Ribonucleotide reductase M2, essential for dNTP synthesis for DNA replication.<br>
+</em>   <strong>TK1 (Thymidine Kinase 1):</strong> Involved in the salvage pathway of dNTP synthesis.<br>
+<em>   <strong>POLQ:</strong> DNA polymerase theta, involved in DNA repair.<br>
+</em>   <strong>RAD51AP1:</strong> RAD51 associated protein 1, involved in homologous recombination DNA repair.<br>
+<br>
+<em>   <strong>Other Proliferation-Associated Factors:</strong><br>
+</em>   <strong>DEPDC1:</strong> DEP domain containing 1, involved in cell proliferation.<br>
+<em>   <strong>MND1:</strong> Meiotic nuclear division 1, involved in homologous recombination and DNA repair.<br>
+</em>   <strong>DTL (Denticleless E3 ubiquitin protein ligase homolog):</strong> Involved in DNA damage response and cell cycle control.<br>
+<em>   <strong>FOXM1:</strong> Forkhead box protein M1, a master regulator of cell cycle progression, particularly G2/M transition.<br>
+</em>   <strong>PIMREG:</strong> PIM1-regulated protein, involved in cell cycle progression.<br>
+<br>
+<strong>2. List the Key Cell Type Markers:</strong><br>
+<br>
+In this specific list, there are no canonical, highly specific markers for a <em>differentiated</em> cell type (e.g., specific epithelial markers like EPCAM/KRTs, immune cell markers like CD3/CD19, stromal markers like ACTA2/COL1A1). Instead, the entire list is dominated by genes associated with cell proliferation.<br>
+<br>
+Therefore, the &quot;key cell type markers&quot; here are the proliferation markers themselves, which collectively define a cell population undergoing active division.<br>
+<br>
+<em>   <strong>MKI67:</strong> As mentioned, the most widely recognized marker for proliferating cells.<br>
+</em>   <strong>TOP2A, AURKB, BIRC5, CDK1, PLK1, FOXM1, RRM2, TK1, CCNB2, CCNA2, UBE2C, CENPA, PBK, DLGAP5, KIF2C, KIF15, KIF18B, CEP55, DEPDC1, CDC45, CDCA5, PCLAF, MND1, NUF2, SKA3, SPC24, DTL, PKMYT1, CDCA3, TTK, DIAPH3, IQGAP3, POLQ, GTSE1, OIP5, TROAP, SKA1, NEK2, CDC25C, NCAPG, PIMREG, GINS2, RAD51AP1, CDT1:</strong> All these genes are robust indicators of cells actively engaged in the cell cycle, particularly DNA replication and mitosis.<br>
+<br>
+<strong>3. Cross-reference Known Databases:</strong><br>
+<br>
+A quick search of these markers (e.g., MKI67, TOP2A, AURKB, BIRC5, CDK1, PLK1, FOXM1) in scRNA-seq databases (like Human Cell Atlas, PanglaoDB, CellMarker) consistently points to &quot;proliferating cells,&quot; &quot;cycling cells,&quot; &quot;stem cells,&quot; or &quot;progenitor cells&quot; in various tissues, including the intestine.<br>
+<br>
+In the context of the large intestine, highly proliferative cells are typically found in the crypts, where intestinal stem cells (ISCs) and their immediate progeny (transit-amplifying cells) reside. These cells are responsible for the continuous renewal of the intestinal epithelium.<br>
+<br>
+<strong>4. Determine the Most Probable General Cell Type:</strong><br>
+<br>
+Based on the overwhelming expression of cell cycle, DNA replication, and mitotic machinery genes, the most probable general cell type is <strong>Proliferating Cells</strong>.<br>
+<br>
+<strong>5. Identify the Top 3 Most Probable Sub Cell Types:</strong><br>
+<br>
+Given the tissue context (human large intestine) and the highly proliferative signature:<br>
+<br>
+<ul>
+<li> <strong>Intestinal Transit-Amplifying (TA) Cells:</strong> These are the immediate progeny of intestinal stem cells. They undergo several rounds of rapid division as they migrate up the crypt-villus axis before differentiating. Their primary characteristic is high proliferative activity, perfectly matching the gene list. They are the most abundant proliferating cell type in the crypt.</li>
+<li> <strong>Intestinal Stem Cells (ISCs):</strong> These cells are at the base of the crypts and are responsible for maintaining the entire intestinal epithelium. They are also highly proliferative, but typically express a more specific set of stem cell markers (e.g., LGR5, OLFM4, ASCL2, SMOC2). While some of these proliferation markers would be present in ISCs, the sheer breadth and intensity of <em>mitotic</em> markers suggest a population that is actively and rapidly dividing, which is more characteristic of TA cells. However, ISCs are inherently proliferative and would show a strong overlap with this gene set.</li>
+<li> <strong>Activated Fibroblasts/Myofibroblasts (in a context of injury/repair):</strong> While less likely given the sheer dominance of <em>epithelial</em> proliferation in the intestine, fibroblasts can become highly proliferative during wound healing or inflammatory conditions. However, their proliferative signature would typically be accompanied by expression of mesenchymal markers (e.g., COL1A1, ACTA2, PDGFRA), which are absent here. Therefore, this is a less probable scenario for a <em>primary</em> annotation based solely on this gene list.</li>
+</ul>
+<br>
+<strong>Most Likely Subtype:</strong> <strong>Intestinal Transit-Amplifying (TA) Cells.</strong> The extensive list of genes involved in all phases of the cell cycle, particularly mitosis, strongly points to a population undergoing rapid and continuous division, which is the hallmark of TA cells in the intestinal crypts. While ISCs are also proliferative, TA cells represent the bulk of rapidly dividing cells contributing to epithelial turnover.<br>
+<br>
+<strong>6. Provide a Concise Summary of Your Analysis:</strong><br>
+<br>
+The single-cell cluster from human large intestine tissue exhibits a remarkably strong and consistent expression profile of genes critically involved in cell cycle progression, DNA replication, and mitosis. Key markers such as MKI67, TOP2A, AURKB, BIRC5, CDK1, PLK1, FOXM1, RRM2, and numerous kinesins and centromere/spindle components are highly expressed. This signature is unequivocally indicative of a highly proliferative cell population. Given the tissue context of the large intestine, where continuous epithelial renewal occurs, these cells are most likely found within the intestinal crypts. The most probable general cell type is &quot;Proliferating Cells.&quot; Among the sub-cell types, <strong>Intestinal Transit-Amplifying (TA) Cells</strong> are the most likely candidate due to their characteristic rapid and extensive division cycles, followed by Intestinal Stem Cells (ISCs). Activated fibroblasts are a less likely possibility without additional mesenchymal markers.<br>
+<br>
+FINAL ANNOTATION COMPLETED<br>
+                </div>
+            </div>
+
+            <div class="modal-section validator-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Validation Check
+                </h3>
+                <div class="section-content">
+                    
+        <div class="validation-status passed">
+            <span class="status-icon">&#10004;</span>
+            <span class="status-text">Validation PASSED</span>
+        </div>
+        <div class="validator-content">Validation result: VALIDATION PASSED</div>
+        
+                </div>
+            </div>
+
+            <div class="modal-section formatting-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Structured Summary
+                </h3>
+                <div class="section-content">
+                    
+            <div class="json-summary">
+                <div class="summary-field">
+                    <span class="field-label">Main Cell Type:</span>
+                    <span class="field-value main-type">Proliferating Cells</span>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Sub Cell Types:</span>
+                    <ul class="type-list">
+                        <li>Intestinal Transit-Amplifying (TA) Cells</li><li>Intestinal Stem Cells (ISCs)</li><li>Activated Fibroblasts/Myofibroblasts</li>
+                    </ul>
+                </div>
+                <div class="summary-field">
+                    <span class="field-label">Possible Mixed Types:</span>
+                    <ul class="type-list">
+                        <li class="empty">None identified</li>
+                    </ul>
+                </div>
+            </div>
+            
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+    
+        </div>
+    </div>
+
+    <script>
+
+    let currentModalIndex = null;
+
+    function openModal(index) {
+        const overlay = document.getElementById('modal-overlay');
+        const allContents = document.querySelectorAll('.modal-content');
+
+        allContents.forEach(c => c.classList.remove('active'));
+
+        const content = document.getElementById('modal-content-' + index);
+        if (content) {
+            content.classList.add('active');
+            overlay.classList.add('active');
+            currentModalIndex = index;
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeModal() {
+        const overlay = document.getElementById('modal-overlay');
+        overlay.classList.remove('active');
+        currentModalIndex = null;
+        document.body.style.overflow = '';
+    }
+
+    // Close modal on overlay click
+    document.getElementById('modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && currentModalIndex !== null) {
+            closeModal();
+        }
+    });
+
+    // Search functionality
+    function filterCards() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const tissueFilter = document.getElementById('filter-tissue').value;
+        const speciesFilter = document.getElementById('filter-species').value;
+        const modelFilter = document.getElementById('filter-model').value;
+        const providerFilter = document.getElementById('filter-provider').value;
+
+        const cards = document.querySelectorAll('.cluster-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const tissue = card.dataset.tissue;
+            const species = card.dataset.species;
+            const model = card.dataset.model;
+            const provider = card.dataset.provider;
+
+            const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+            const matchesTissue = tissueFilter === '' || tissue === tissueFilter;
+            const matchesSpecies = speciesFilter === '' || species === speciesFilter;
+            const matchesModel = modelFilter === '' || model === modelFilter;
+            const matchesProvider = providerFilter === '' || provider === providerFilter;
+
+            if (matchesSearch && matchesTissue && matchesSpecies && matchesModel && matchesProvider) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        const noResults = document.getElementById('no-results');
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        // Update visible count
+        const countEl = document.getElementById('visible-count');
+        if (countEl) {
+            countEl.textContent = visibleCount;
+        }
+    }
+
+    // Clear filters
+    function clearFilters() {
+        document.getElementById('search-input').value = '';
+        document.getElementById('filter-tissue').value = '';
+        document.getElementById('filter-species').value = '';
+        document.getElementById('filter-model').value = '';
+        document.getElementById('filter-provider').value = '';
+        filterCards();
+    }
+
+    // Export to PDF (print)
+    function exportToPDF() {
+        window.print();
+    }
+
+    // Initialize search input listener
+    document.getElementById('search-input').addEventListener('input', filterCards);
+    
+    </script>
+</body>
+</html>

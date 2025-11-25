@@ -6,6 +6,7 @@ from .tools_function import (
     loadmarker,
     list_available_markers,
     runCASSIA,
+    runCASSIA_with_reference,
     runCASSIA_batch,
     runCASSIA_score_batch,
     runCASSIA_generate_score_report,
@@ -75,5 +76,17 @@ try:
     )
 except ImportError:
     pass  # Module may not be available in all installations
+
+# Import Reference Agent for intelligent reference retrieval
+try:
+    from .reference_agent import (
+        ReferenceAgent,
+        get_reference_content,
+        format_reference_for_prompt,
+        assess_complexity,
+        select_references
+    )
+except ImportError:
+    pass  # Reference agent module may not be available
 
 __version__ = "0.3.1.dev4"

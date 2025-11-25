@@ -19,6 +19,7 @@ import numpy as np
 from importlib import resources
 import datetime
 import shutil
+import atexit
 from collections import Counter
 
 # Suppress httpx and API client logs to reduce noise during batch operations
@@ -46,6 +47,18 @@ try:
 except ImportError:
     from cell_type_comparison import compareCelltypes
 
+# Reference Agent for intelligent reference retrieval
+try:
+    from .reference_agent import ReferenceAgent, get_reference_content, format_reference_for_prompt
+except ImportError:
+    try:
+        from reference_agent import ReferenceAgent, get_reference_content, format_reference_for_prompt
+    except ImportError:
+        # Reference agent not available - provide stub
+        ReferenceAgent = None
+        get_reference_content = None
+        format_reference_for_prompt = None
+
 
 class BatchProgressTracker:
     """Thread-safe progress tracker for batch processing with visual progress bar."""
@@ -68,6 +81,13 @@ class BatchProgressTracker:
         self._animation_thread = threading.Thread(target=self._animate, daemon=True)
         self._animation_thread.start()
 
+        # Hide cursor during animation to prevent flashing
+        sys.stdout.write('\033[?25l')
+        sys.stdout.flush()
+
+        # Register cleanup to ensure cursor is restored on unexpected exit
+        atexit.register(self._restore_cursor)
+
     def _animate(self):
         """Background thread that continuously updates the spinner."""
         while self._running:
@@ -75,6 +95,11 @@ class BatchProgressTracker:
             with self.lock:
                 if self._running and len(self.in_progress) > 0:
                     self._render()
+
+    def _restore_cursor(self):
+        """Restore cursor visibility. Called on exit or finish."""
+        sys.stdout.write('\033[?25h')
+        sys.stdout.flush()
 
     def start_task(self, name):
         """Mark a task as started/in-progress."""
@@ -144,6 +169,15 @@ class BatchProgressTracker:
             # Add blank line after completion
             sys.stdout.write('\033[K\n')
             sys.stdout.flush()
+
+        # Restore cursor visibility
+        self._restore_cursor()
+
+        # Unregister atexit handler since we've cleaned up normally
+        try:
+            atexit.unregister(self._restore_cursor)
+        except Exception:
+            pass  # Ignore if already unregistered
 
 
 def set_openai_api_key(api_key):
@@ -502,6 +536,143 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
         raise ValueError("Provider must be either 'openai', 'anthropic', 'openrouter', or a base URL (http...)")
 
 
+def runCASSIA_with_reference(
+    model="google/gemini-2.5-flash-preview",
+    temperature=0,
+    marker_list=None,
+    tissue="lung",
+    species="human",
+    additional_info=None,
+    provider="openrouter",
+    validator_involvement="v1",
+    use_reference=True,
+    reference_threshold=40,
+    reference_provider=None,
+    reference_model=None,
+    skip_reference_llm=False,
+    verbose=True
+):
+    """
+    Run CASSIA cell type analysis with intelligent reference retrieval.
+
+    This function enhances the standard runCASSIA by automatically retrieving
+    relevant expert-curated reference documents based on marker complexity.
+
+    Args:
+        model (str): Model name for annotation
+        temperature (float): Temperature parameter for the model
+        marker_list (list): List of markers to analyze
+        tissue (str): Tissue type
+        species (str): Species type
+        additional_info (str): Additional information for the analysis
+        provider (str): AI provider for annotation ('openai', 'anthropic', 'openrouter', or base URL)
+        validator_involvement (str): Validator involvement level
+        use_reference (bool): Whether to use reference retrieval (default True)
+        reference_threshold (float): Complexity score threshold for triggering reference (0-100)
+        reference_provider (str): Provider for reference complexity assessment (default: same as provider)
+        reference_model (str): Model for reference complexity assessment (default: fast model)
+        skip_reference_llm (bool): Skip LLM complexity assessment, use rules only
+        verbose (bool): Print reference retrieval info
+
+    Returns:
+        tuple: (analysis_result, conversation_history, reference_info)
+            - reference_info contains details about reference retrieval
+    """
+    if ReferenceAgent is None:
+        if verbose:
+            print("Warning: Reference agent not available. Running standard CASSIA.")
+        result, history = runCASSIA(
+            model=model,
+            temperature=temperature,
+            marker_list=marker_list,
+            tissue=tissue,
+            species=species,
+            additional_info=additional_info,
+            provider=provider,
+            validator_involvement=validator_involvement
+        )
+        return result, history, {"reference_used": False, "reason": "Reference agent not available"}
+
+    reference_info = {
+        "reference_used": False,
+        "complexity_score": None,
+        "preliminary_cell_type": None,
+        "references_used": [],
+        "reason": ""
+    }
+
+    if not use_reference:
+        reference_info["reason"] = "Reference disabled by user"
+        result, history = runCASSIA(
+            model=model,
+            temperature=temperature,
+            marker_list=marker_list,
+            tissue=tissue,
+            species=species,
+            additional_info=additional_info,
+            provider=provider,
+            validator_involvement=validator_involvement
+        )
+        return result, history, reference_info
+
+    # Initialize reference agent
+    ref_provider = reference_provider or provider
+    ref_agent = ReferenceAgent(provider=ref_provider, model=reference_model)
+
+    # Get reference content
+    if verbose:
+        print("Analyzing markers for reference retrieval...")
+
+    ref_result = ref_agent.get_reference_for_markers(
+        markers=marker_list[:20] if marker_list else [],
+        tissue=tissue,
+        species=species,
+        threshold=reference_threshold,
+        skip_llm=skip_reference_llm
+    )
+
+    reference_info["complexity_score"] = ref_result.get("complexity_score")
+    reference_info["preliminary_cell_type"] = ref_result.get("preliminary_cell_type")
+    reference_info["cell_type_range"] = ref_result.get("cell_type_range", [])
+
+    if ref_result.get("should_use_reference") and ref_result.get("content"):
+        reference_info["reference_used"] = True
+        reference_info["references_used"] = ref_result.get("references_used", [])
+        reference_info["reason"] = ref_result.get("reasoning", "Reference retrieved")
+
+        if verbose:
+            print(f"  Complexity score: {reference_info['complexity_score']}/100")
+            print(f"  Preliminary cell type: {reference_info['preliminary_cell_type']}")
+            print(f"  References used: {', '.join(reference_info['references_used'])}")
+
+        # Format reference for injection
+        reference_content = format_reference_for_prompt(ref_result)
+
+        # Combine with existing additional_info
+        if additional_info:
+            combined_info = f"{additional_info}\n\n{reference_content}"
+        else:
+            combined_info = reference_content
+    else:
+        reference_info["reason"] = ref_result.get("reasoning", "Reference not needed")
+        combined_info = additional_info
+
+        if verbose:
+            print(f"  Reference not needed. {reference_info['reason']}")
+
+    # Run CASSIA with (possibly enhanced) additional_info
+    result, history = runCASSIA(
+        model=model,
+        temperature=temperature,
+        marker_list=marker_list,
+        tissue=tissue,
+        species=species,
+        additional_info=combined_info,
+        provider=provider,
+        validator_involvement=validator_involvement
+    )
+
+    return result, history, reference_info
 
 
 
@@ -720,7 +891,11 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     # Generate HTML report with raw conversation history (preserving newlines)
     html_report_name = f"{base_name}_report.html"
     try:
-        from .generate_batch_report import generate_batch_html_report_from_data
+        # Try relative import first (when used as package), fall back to absolute
+        try:
+            from .generate_batch_report import generate_batch_html_report_from_data
+        except ImportError:
+            from generate_batch_report import generate_batch_html_report_from_data
         # Sort the HTML data the same way as CSV
         full_data_for_html.sort(key=lambda x: natural_sort_key(x['True Cell Type']))
         generate_batch_html_report_from_data(full_data_for_html, html_report_name)
