@@ -3,13 +3,17 @@ Reference Agent - Main Orchestrator for CASSIA.
 
 Provides intelligent reference document retrieval and context injection
 for cell type annotation tasks.
+
+Uses a TWO-STEP ReAct workflow:
+    Step 1: LLM assesses complexity and decides if reference is needed
+    Step 2: If needed, LLM selects specific references from router
 """
 
 from typing import Dict, List, Optional
 from pathlib import Path
 
 try:
-    from .complexity_scorer import assess_complexity, quick_complexity_check
+    from .complexity_scorer import assess_complexity, quick_complexity_check, assess_complexity_step1, select_references_step2
     from .reference_selector import select_references, find_references_by_category
     from .section_extractor import extract_sections
     from .utils import (
@@ -18,7 +22,7 @@ try:
         format_reference_content
     )
 except ImportError:
-    from complexity_scorer import assess_complexity, quick_complexity_check
+    from complexity_scorer import assess_complexity, quick_complexity_check, assess_complexity_step1, select_references_step2
     from reference_selector import select_references, find_references_by_category
     from section_extractor import extract_sections
     from utils import (
@@ -32,11 +36,11 @@ class ReferenceAgent:
     """
     Agent for intelligent reference document retrieval and context injection.
 
-    Analyzes marker genes to:
-    1. Determine preliminary cell type classification
-    2. Assess complexity/ambiguity using LLM
-    3. Decide whether reference retrieval is needed
-    4. Select and extract relevant reference content
+    Uses a TWO-STEP ReAct workflow:
+    1. Step 1: LLM assesses marker complexity and decides if reference is needed
+    2. Step 2: If needed, LLM sees router and selects specific references
+    3. Load and extract content from selected references
+    4. Return formatted content for prompt injection
     """
 
     def __init__(
@@ -77,7 +81,6 @@ class ReferenceAgent:
         markers: List[str],
         tissue: Optional[str] = None,
         species: Optional[str] = None,
-        threshold: float = 40,
         depth: str = 'auto',
         max_content_length: Optional[int] = 8000,
         skip_llm: bool = False
@@ -85,11 +88,14 @@ class ReferenceAgent:
         """
         Main entry point: Get reference content for a marker set.
 
+        Uses TWO-STEP ReAct workflow:
+        - Step 1: LLM assesses complexity → returns requires_reference
+        - Step 2: If needed, LLM sees router → selects specific references
+
         Args:
             markers: List of marker genes (top 20 recommended)
             tissue: Tissue type for context
             species: Species for context
-            threshold: Complexity threshold for triggering retrieval (0-100)
             depth: 'summary', 'detailed', or 'auto' (based on complexity)
             max_content_length: Maximum length of extracted content
             skip_llm: Skip LLM complexity assessment (use quick rules only)
@@ -110,20 +116,34 @@ class ReferenceAgent:
 
         markers = markers[:20]  # Limit to top 20
 
-        # Step 1: Assess complexity
+        # TWO-STEP ASSESSMENT
         if skip_llm:
-            # Quick rule-based check
+            # Quick rule-based check (no LLM calls)
             quick_result = quick_complexity_check(markers)
             complexity_result = {
                 'complexity_score': 70 if quick_result['likely_complex'] else 30,
                 'preliminary_cell_type': quick_result.get('top_category', 'Unknown'),
                 'cell_type_range': [],
-                'needs_reference': quick_result['likely_complex'],
-                'reference_categories': quick_result.get('suggested_categories', []),
+                'requires_reference': quick_result['likely_complex'],
+                'selected_references': [],  # No LLM selection in skip mode
                 'reasoning': quick_result.get('reason', '')
             }
+            # For skip_llm mode, use traditional reference selection
+            if complexity_result['requires_reference']:
+                selected_refs = select_references(
+                    markers=markers,
+                    preliminary_cell_type=complexity_result['preliminary_cell_type'],
+                    reference_categories=quick_result.get('suggested_categories', []),
+                    max_references=3
+                )
+                complexity_result['selected_references'] = [
+                    ref.get('path', '').replace(str(self.reference_dir) + '/', '').replace(str(self.reference_dir) + '\\', '')
+                    for ref in selected_refs
+                ]
         else:
-            # Full LLM-based assessment
+            # Full two-step LLM assessment
+            # Step 1: Assess complexity (no router)
+            # Step 2: If needed, select references (with router)
             complexity_result = assess_complexity(
                 markers=markers,
                 tissue=tissue,
@@ -141,41 +161,40 @@ class ReferenceAgent:
             'complexity_score': complexity_result.get('complexity_score', 50),
             'preliminary_cell_type': complexity_result.get('preliminary_cell_type', 'Unknown'),
             'cell_type_range': complexity_result.get('cell_type_range', []),
-            'reference_categories': complexity_result.get('reference_categories', []),
-            'specific_reference_paths': complexity_result.get('specific_reference_paths', []),
+            'selected_references': complexity_result.get('selected_references', []),
             'reasoning': complexity_result.get('reasoning', '')
         }
 
-        # Step 2: Decide if reference is needed
-        if not complexity_result.get('needs_reference', False):
-            if result['complexity_score'] < threshold:
-                result['reasoning'] += f" Complexity score ({result['complexity_score']}) below threshold ({threshold})."
-                return result
+        # Check if LLM decided reference is needed
+        if not complexity_result.get('requires_reference', False):
+            result['reasoning'] += " LLM determined reference not needed."
+            return result
 
         result['should_use_reference'] = True
 
-        # Step 3: Select references (prioritize LLM-specified paths)
-        selected_refs = select_references(
-            markers=markers,
-            preliminary_cell_type=result['preliminary_cell_type'],
-            reference_categories=result['reference_categories'],
-            specific_reference_paths=result['specific_reference_paths'],
-            max_references=3
-        )
+        # Get selected reference paths from LLM (Step 2 result)
+        selected_paths = complexity_result.get('selected_references', [])
 
-        if not selected_refs:
+        if not selected_paths:
             result['should_use_reference'] = False
-            result['reasoning'] += " No matching references found."
+            result['reasoning'] += " No references selected by LLM."
             return result
 
-        # Step 4: Determine depth
+        # Determine depth
         if depth == 'auto':
             depth = 'detailed' if result['complexity_score'] > 70 else 'summary'
 
-        # Step 5: Extract content from selected references
+        # Load and extract content from LLM-selected references
         all_content = []
-        for ref in selected_refs:
-            ref_path = Path(ref['path'])
+        for ref_path_str in selected_paths:
+            # Build full path
+            ref_path = self.reference_dir / ref_path_str
+
+            if not ref_path.exists():
+                # Try without leading slash
+                ref_path_str = ref_path_str.lstrip('/').lstrip('\\')
+                ref_path = self.reference_dir / ref_path_str
+
             if not ref_path.exists():
                 continue
 
@@ -187,16 +206,17 @@ class ReferenceAgent:
             )
 
             if extraction['full_content']:
-                all_content.append(f"### Reference: {ref['id']}\n\n{extraction['full_content']}")
-                result['references_used'].append(ref['id'])
+                ref_name = ref_path_str.replace('/', '_').replace('\\', '_').replace('.md', '')
+                all_content.append(f"### Reference: {ref_name}\n\n{extraction['full_content']}")
+                result['references_used'].append(ref_path_str)
 
-        # Step 6: Combine and format content
+        # Combine and format content
         if all_content:
             combined = '\n\n---\n\n'.join(all_content)
             result['content'] = format_reference_content(combined, max_content_length)
         else:
             result['should_use_reference'] = False
-            result['reasoning'] += " No content extracted from references."
+            result['reasoning'] += " No content extracted from selected references."
 
         return result
 
@@ -282,11 +302,14 @@ def get_reference_content(
     species: Optional[str] = None,
     provider: str = "openrouter",
     model: Optional[str] = None,
-    threshold: float = 40,
     **kwargs
 ) -> Dict:
     """
     Convenience function to get reference content for markers.
+
+    Uses TWO-STEP ReAct workflow:
+    - Step 1: LLM assesses complexity and decides if reference is needed
+    - Step 2: If needed, LLM sees router and selects specific references
 
     Args:
         markers: List of marker genes
@@ -294,7 +317,6 @@ def get_reference_content(
         species: Optional species
         provider: LLM provider for complexity assessment
         model: Optional specific model
-        threshold: Complexity threshold
         **kwargs: Additional arguments passed to ReferenceAgent
 
     Returns:
@@ -305,7 +327,6 @@ def get_reference_content(
         markers=markers,
         tissue=tissue,
         species=species,
-        threshold=threshold,
         **kwargs
     )
 

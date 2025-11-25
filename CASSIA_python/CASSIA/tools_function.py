@@ -910,6 +910,354 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         print(f"2. {summary_csv_name} (summary data)")
 
 
+def runCASSIA_batch_with_reference(
+    marker,
+    output_name="cell_type_analysis_results.json",
+    n_genes=50,
+    model="google/gemini-2.5-flash-preview",
+    temperature=0,
+    tissue="lung",
+    species="human",
+    additional_info=None,
+    celltype_column=None,
+    gene_column_name=None,
+    max_workers=10,
+    provider="openrouter",
+    max_retries=1,
+    ranking_method="avg_log2FC",
+    ascending=None,
+    validator_involvement="v1",
+    use_reference=False,
+    reference_model=None,
+    verbose=True
+):
+    """
+    Run cell type analysis on multiple clusters with intelligent per-cluster reference retrieval.
+
+    Uses a TWO-STEP ReAct workflow for each cluster:
+        - Step 1: LLM assesses marker complexity and decides if reference is needed
+        - Step 2: If needed, LLM sees router and selects specific references
+        - Selected references are added to that cluster's additional_info
+
+    Args:
+        marker: Input marker data (pandas DataFrame or path to CSV file)
+        output_name (str): Base name for output files
+        n_genes (int): Number of top genes to extract per cluster
+        model (str): Model name to use for analysis
+        temperature (float): Temperature parameter for the model
+        tissue (str): Tissue type being analyzed
+        species (str): Species being analyzed
+        additional_info (str): Base additional information (shared across all clusters)
+        celltype_column (str): Column name containing cell type names (default: first column)
+        gene_column_name (str): Column name containing gene markers (default: second column)
+        max_workers (int): Maximum number of parallel workers
+        provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or base URL)
+        max_retries (int): Maximum number of retries for failed analyses
+        ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
+        ascending (bool): Sort direction (None uses default for each method)
+        validator_involvement (str): Validator mode ('v1', 'v0', etc.)
+        use_reference (bool): If True, use two-step reference retrieval per cluster
+        reference_model (str): Model to use for reference agent LLM calls (defaults to fast model)
+        verbose (bool): Print reference retrieval progress
+
+    Returns:
+        dict: Results dictionary containing analysis results for each cell type
+    """
+    # Check if reference agent is available
+    if use_reference and ReferenceAgent is None:
+        print("Warning: Reference agent not available. Running without reference retrieval.")
+        use_reference = False
+
+    # Initialize reference agent if needed
+    ref_agent = None
+    if use_reference:
+        ref_agent = ReferenceAgent(
+            provider=provider,
+            model=reference_model
+        )
+        if verbose:
+            print("Reference agent initialized (two-step ReAct workflow enabled)")
+
+    # Load the dataframe
+    if isinstance(marker, pd.DataFrame):
+        df = marker.copy()
+    elif isinstance(marker, str):
+        df = pd.read_csv(marker)
+    else:
+        raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
+
+    # If dataframe has only two columns, assume it's already processed
+    if len(df.columns) == 2:
+        print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
+    else:
+        print("Processing input dataframe to get top markers")
+        df = get_top_markers(df, n_genes=n_genes, ranking_method=ranking_method, ascending=ascending)
+
+    # If celltype_column is not specified, use the first column
+    if celltype_column is None:
+        celltype_column = df.columns[0]
+
+    # If gene_column_name is not specified, use the second column
+    if gene_column_name is None:
+        gene_column_name = df.columns[1]
+
+    # Initialize progress tracker
+    total_clusters = len(df)
+    tracker = BatchProgressTracker(total_clusters)
+
+    ref_status = "with reference retrieval" if use_reference else "without reference retrieval"
+    print(f"\nStarting analysis of {total_clusters} clusters {ref_status} with {max_workers} parallel workers...\n")
+
+    # Track reference usage statistics
+    reference_stats = {'used': 0, 'not_needed': 0, 'errors': 0}
+
+    def analyze_cell_type_with_reference(cell_type, marker_list):
+        """Inner function to analyze a single cluster with optional reference retrieval."""
+        tracker.start_task(cell_type)
+
+        # Start with base additional_info
+        cluster_additional_info = additional_info or ""
+        ref_info = None
+
+        # Get reference for this cluster if enabled
+        if use_reference and ref_agent is not None:
+            try:
+                ref_result = ref_agent.get_reference_for_markers(
+                    markers=marker_list[:20],
+                    tissue=tissue,
+                    species=species
+                )
+
+                if ref_result.get('should_use_reference') and ref_result.get('content'):
+                    # Combine base additional_info with reference content
+                    ref_content = format_reference_for_prompt(ref_result)
+                    if cluster_additional_info:
+                        cluster_additional_info = f"{cluster_additional_info}\n\n{ref_content}"
+                    else:
+                        cluster_additional_info = ref_content
+
+                    reference_stats['used'] += 1
+                    ref_info = {
+                        'preliminary_cell_type': ref_result.get('preliminary_cell_type'),
+                        'complexity_score': ref_result.get('complexity_score'),
+                        'references_used': ref_result.get('references_used', [])
+                    }
+                else:
+                    reference_stats['not_needed'] += 1
+                    ref_info = {
+                        'preliminary_cell_type': ref_result.get('preliminary_cell_type'),
+                        'complexity_score': ref_result.get('complexity_score'),
+                        'references_used': [],
+                        'reason': 'LLM determined reference not needed'
+                    }
+            except Exception as ref_exc:
+                reference_stats['errors'] += 1
+                if verbose:
+                    print(f"  Warning: Reference retrieval failed for {cell_type}: {str(ref_exc)[:50]}")
+
+        # Run CASSIA with per-cluster additional_info
+        for attempt in range(max_retries + 1):
+            try:
+                result, conversation_history = runCASSIA(
+                    model=model,
+                    temperature=temperature,
+                    marker_list=marker_list,
+                    tissue=tissue,
+                    species=species,
+                    additional_info=cluster_additional_info if cluster_additional_info else None,
+                    provider=provider,
+                    validator_involvement=validator_involvement
+                )
+                # Add metadata to result
+                result['num_markers'] = len(marker_list)
+                result['marker_list'] = marker_list
+                if ref_info:
+                    result['reference_info'] = ref_info
+
+                tracker.complete_task(cell_type)
+                return cell_type, result, conversation_history
+            except Exception as exc:
+                # Don't retry authentication errors
+                if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                    tracker.complete_task(cell_type)
+                    raise exc
+
+                # For other errors, retry if attempts remain
+                if attempt < max_retries:
+                    pass  # Continue to next attempt
+                else:
+                    tracker.complete_task(cell_type)
+                    raise exc
+
+    results = {}
+    failed_analyses = []
+
+    # Use ThreadPoolExecutor for parallel processing
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_celltype = {
+            executor.submit(
+                analyze_cell_type_with_reference,
+                row[celltype_column],
+                split_markers(row[gene_column_name])
+            ): row[celltype_column] for _, row in df.iterrows()
+        }
+
+        # Process completed tasks
+        for future in as_completed(future_to_celltype):
+            cell_type = future_to_celltype[future]
+            try:
+                cell_type, result, conversation_history = future.result()
+                if result:
+                    results[cell_type] = {
+                        "analysis_result": result,
+                        "conversation_history": conversation_history,
+                        "iterations": result.get("iterations", 1)
+                    }
+            except Exception as exc:
+                failed_analyses.append((cell_type, str(exc)))
+
+    # Finalize progress display
+    tracker.finish()
+
+    # Report reference usage statistics
+    if use_reference and verbose:
+        print(f"\nReference retrieval statistics:")
+        print(f"  - References used: {reference_stats['used']}")
+        print(f"  - Not needed (LLM decision): {reference_stats['not_needed']}")
+        if reference_stats['errors'] > 0:
+            print(f"  - Errors: {reference_stats['errors']}")
+
+    # Report any failures
+    if failed_analyses:
+        print(f"\nWarning: {len(failed_analyses)} analysis/analyses failed:")
+        for cell_type, error in failed_analyses:
+            print(f"  - {cell_type}: {error[:100]}{'...' if len(error) > 100 else ''}")
+        print()
+
+    print(f"All analyses completed. Results saved to '{output_name}'.")
+
+    # Prepare data for both CSV files and HTML report
+    full_data = []
+    full_data_for_html = []
+    summary_data = []
+
+    for true_cell_type, details in results.items():
+        main_cell_type = safe_get(details, 'analysis_result', 'main_cell_type')
+        sub_cell_types = ', '.join(safe_get(details, 'analysis_result', 'sub_cell_types') or [])
+        possible_mixed_cell_types = ', '.join(safe_get(details, 'analysis_result', 'possible_mixed_cell_types') or [])
+        marker_number = safe_get(details, 'analysis_result', 'num_markers')
+        marker_list_str = ', '.join(safe_get(details, 'analysis_result', 'marker_list') or [])
+        iterations = safe_get(details, 'analysis_result', 'iterations')
+
+        # Reference info
+        ref_info = safe_get(details, 'analysis_result', 'reference_info')
+        ref_used = 'Yes' if ref_info and ref_info.get('references_used') else 'No'
+        ref_complexity = ref_info.get('complexity_score', 'N/A') if ref_info else 'N/A'
+
+        # Process conversation history
+        raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
+        conversation_history = clean_conversation_history(raw_conversation_history)
+
+        # Data for HTML report
+        full_data_for_html.append({
+            'True Cell Type': true_cell_type,
+            'Predicted Main Cell Type': main_cell_type,
+            'Predicted Sub Cell Types': sub_cell_types,
+            'Possible Mixed Cell Types': possible_mixed_cell_types,
+            'Marker Number': marker_number,
+            'Marker List': marker_list_str,
+            'Iterations': iterations,
+            'Model': model,
+            'Provider': provider,
+            'Tissue': tissue,
+            'Species': species,
+            'Additional Info': additional_info or "N/A",
+            'Reference Used': ref_used,
+            'Complexity Score': ref_complexity,
+            'Conversation History': raw_conversation_history
+        })
+
+        full_data.append([
+            true_cell_type,
+            main_cell_type,
+            sub_cell_types,
+            possible_mixed_cell_types,
+            marker_number,
+            marker_list_str,
+            iterations,
+            model,
+            provider,
+            tissue,
+            species,
+            additional_info or "N/A",
+            ref_used,
+            ref_complexity,
+            conversation_history
+        ])
+        summary_data.append([
+            true_cell_type,
+            main_cell_type,
+            sub_cell_types,
+            possible_mixed_cell_types,
+            marker_list_str,
+            iterations,
+            model,
+            provider,
+            tissue,
+            species,
+            ref_used
+        ])
+
+    # Generate output filenames
+    base_name = os.path.splitext(output_name)[0]
+    full_csv_name = f"{base_name}_full.csv"
+    summary_csv_name = f"{base_name}_summary.csv"
+
+    # Make sure the output directory exists
+    output_dir = os.path.dirname(full_csv_name)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
+    # Sort the data by True Cell Type with natural ordering
+    full_data.sort(key=lambda x: natural_sort_key(x[0]))
+    summary_data.sort(key=lambda x: natural_sort_key(x[0]))
+
+    # Write CSV files with reference columns
+    write_csv(full_csv_name,
+              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types',
+               'Possible Mixed Cell Types', 'Marker Number', 'Marker List', 'Iterations',
+               'Model', 'Provider', 'Tissue', 'Species', 'Additional Info',
+               'Reference Used', 'Complexity Score', 'Conversation History'],
+              full_data)
+
+    write_csv(summary_csv_name,
+              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types',
+               'Possible Mixed Cell Types', 'Marker List', 'Iterations', 'Model', 'Provider',
+               'Tissue', 'Species', 'Reference Used'],
+              summary_data)
+
+    # Generate HTML report
+    html_report_name = f"{base_name}_report.html"
+    try:
+        try:
+            from .generate_batch_report import generate_batch_html_report_from_data
+        except ImportError:
+            from generate_batch_report import generate_batch_html_report_from_data
+        full_data_for_html.sort(key=lambda x: natural_sort_key(x['True Cell Type']))
+        generate_batch_html_report_from_data(full_data_for_html, html_report_name)
+        print(f"Three files have been created:")
+        print(f"1. {full_csv_name} (full data CSV)")
+        print(f"2. {summary_csv_name} (summary data CSV)")
+        print(f"3. {html_report_name} (interactive HTML report)")
+    except Exception as e:
+        print(f"Warning: Could not generate HTML report: {e}")
+        print(f"Two CSV files have been created:")
+        print(f"1. {full_csv_name} (full data)")
+        print(f"2. {summary_csv_name} (summary data)")
+
+    return results
+
 
 ############### Scoring annotation #################
 

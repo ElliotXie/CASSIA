@@ -8,6 +8,7 @@ from .tools_function import (
     runCASSIA,
     runCASSIA_with_reference,
     runCASSIA_batch,
+    runCASSIA_batch_with_reference,
     runCASSIA_score_batch,
     runCASSIA_generate_score_report,
     runCASSIA_pipeline,
@@ -77,7 +78,7 @@ try:
 except ImportError:
     pass  # Module may not be available in all installations
 
-# Import Reference Agent for intelligent reference retrieval
+# Import Reference Agent for intelligent reference retrieval (two-step ReAct workflow)
 try:
     from .reference_agent import (
         ReferenceAgent,
@@ -85,6 +86,11 @@ try:
         format_reference_for_prompt,
         assess_complexity,
         select_references
+    )
+    # Also export the two-step functions for advanced usage
+    from .reference_agent.complexity_scorer import (
+        assess_complexity_step1,
+        select_references_step2
     )
 except ImportError:
     pass  # Reference agent module may not be available
