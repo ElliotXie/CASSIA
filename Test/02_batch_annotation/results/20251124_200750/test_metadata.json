@@ -1,0 +1,23 @@
+{
+  "test_name": "batch_annotation",
+  "timestamp": "2025-11-24T20:08:30.879977",
+  "language": "python",
+  "config": {
+    "model": "google/gemini-2.5-flash",
+    "provider": "openrouter",
+    "tissue": "large intestine",
+    "species": "human",
+    "n_genes": 30
+  },
+  "duration_seconds": 40.77,
+  "status": "passed",
+  "clusters_tested": [
+    "monocyte",
+    "plasma cell",
+    "cd8-positive, alpha-beta t cell",
+    "transit amplifying cell of large intestine",
+    "intestinal enteroendocrine cell",
+    "intestinal crypt stem cell"
+  ],
+  "errors": []
+}

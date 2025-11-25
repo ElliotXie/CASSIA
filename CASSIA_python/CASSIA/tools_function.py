@@ -3,6 +3,7 @@ import json
 import re
 import csv
 import os
+import sys
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -44,6 +45,106 @@ try:
     from .cell_type_comparison import compareCelltypes
 except ImportError:
     from cell_type_comparison import compareCelltypes
+
+
+class BatchProgressTracker:
+    """Thread-safe progress tracker for batch processing with visual progress bar."""
+
+    # Spinner animation frames
+    SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+
+    def __init__(self, total, bar_width=40, refresh_rate=0.1):
+        self.total = total
+        self.completed = 0
+        self.in_progress = set()
+        self.lock = threading.Lock()
+        self.bar_width = bar_width
+        self._lines_printed = 0
+        self._spinner_idx = 0
+        self._running = True
+        self._refresh_rate = refresh_rate
+
+        # Start background thread for continuous spinner animation
+        self._animation_thread = threading.Thread(target=self._animate, daemon=True)
+        self._animation_thread.start()
+
+    def _animate(self):
+        """Background thread that continuously updates the spinner."""
+        while self._running:
+            time.sleep(self._refresh_rate)
+            with self.lock:
+                if self._running and len(self.in_progress) > 0:
+                    self._render()
+
+    def start_task(self, name):
+        """Mark a task as started/in-progress."""
+        with self.lock:
+            self.in_progress.add(name)
+            self._render()
+
+    def complete_task(self, name):
+        """Mark a task as completed."""
+        with self.lock:
+            self.in_progress.discard(name)
+            self.completed += 1
+            self._render()
+
+    def _render(self):
+        """Render the progress display, updating in place."""
+        # Calculate progress percentage
+        pct = self.completed / self.total if self.total > 0 else 0
+        filled = int(self.bar_width * pct)
+        bar = '█' * filled + '░' * (self.bar_width - filled)
+
+        # Calculate counts
+        processing = len(self.in_progress)
+        pending = self.total - self.completed - processing
+
+        # Get spinner character (only animate when processing)
+        if processing > 0:
+            spinner = self.SPINNER_FRAMES[self._spinner_idx % len(self.SPINNER_FRAMES)]
+            self._spinner_idx += 1
+        else:
+            spinner = '✓' if self.completed == self.total else '○'
+
+        # Truncate active task names if too many
+        active_names = list(self.in_progress)[:3]
+        active_str = ', '.join(str(name) for name in active_names)
+        if len(self.in_progress) > 3:
+            active_str += f', ... (+{len(self.in_progress)-3} more)'
+
+        # Build display lines
+        lines = [
+            f"CASSIA Batch Analysis {spinner}",
+            f"[{bar}] {pct*100:.0f}%",
+            f"Completed: {self.completed} | Processing: {processing} | Pending: {pending}",
+            f"Active: {active_str if active_str else 'None'}"
+        ]
+
+        # Move cursor up to overwrite previous output
+        if self._lines_printed > 0:
+            sys.stdout.write(f'\033[{self._lines_printed}A')
+
+        # Print each line, clearing to end of line
+        for line in lines:
+            sys.stdout.write(f'\033[K{line}\n')
+
+        sys.stdout.flush()
+        self._lines_printed = len(lines)
+
+    def finish(self):
+        """Finalize the progress display."""
+        # Stop the animation thread
+        self._running = False
+        self._animation_thread.join(timeout=0.5)
+
+        with self.lock:
+            # Final render to show 100% with checkmark
+            self._render()
+            # Add blank line after completion
+            sys.stdout.write('\033[K\n')
+            sys.stdout.flush()
+
 
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
@@ -453,11 +554,13 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         gene_column_name = df.columns[1]
     
     
-    # Choose the appropriate analysis function based on provider
-    analysis_function = runCASSIA
-    
+    # Initialize progress tracker
+    total_clusters = len(df)
+    tracker = BatchProgressTracker(total_clusters)
+    print(f"\nStarting analysis of {total_clusters} clusters with {max_workers} parallel workers...\n")
+
     def analyze_cell_type(cell_type, marker_list):
-        print(f"\nAnalyzing {cell_type}...")
+        tracker.start_task(cell_type)
         for attempt in range(max_retries + 1):
             try:
                 result, conversation_history = runCASSIA(
@@ -473,30 +576,29 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                 # Add the number of markers and marker list to the result
                 result['num_markers'] = len(marker_list)
                 result['marker_list'] = marker_list
-                print(f"Analysis for {cell_type} completed.")
+                tracker.complete_task(cell_type)
                 return cell_type, result, conversation_history
             except Exception as exc:
                 # Don't retry authentication errors
                 if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
-                    print(f'{cell_type} generated an exception: {exc}')
-                    print(f'This appears to be an API authentication error. Please check your API key.')
+                    tracker.complete_task(cell_type)  # Remove from active even on failure
                     raise exc
-                
+
                 # For other errors, retry if attempts remain
                 if attempt < max_retries:
-                    print(f'{cell_type} generated an exception: {exc}')
-                    print(f'Retrying analysis for {cell_type} (attempt {attempt + 2}/{max_retries + 1})...')
+                    pass  # Continue to next attempt
                 else:
-                    print(f'{cell_type} failed after {max_retries + 1} attempts with error: {exc}')
+                    tracker.complete_task(cell_type)  # Remove from active on final failure
                     raise exc
 
     results = {}
-    
+    failed_analyses = []  # Track failed cell types for reporting
+
     # Use ThreadPoolExecutor for parallel processing
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks
         future_to_celltype = {executor.submit(analyze_cell_type, row[celltype_column], split_markers(row[gene_column_name])): row[celltype_column] for _, row in df.iterrows()}
-        
+
         # Process completed tasks
         for future in as_completed(future_to_celltype):
             cell_type = future_to_celltype[future]
@@ -509,15 +611,24 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                         "iterations": result.get("iterations", 1)
                     }
             except Exception as exc:
-                print(f'{cell_type} failed: {exc}')
-    
+                failed_analyses.append((cell_type, str(exc)))
 
-    
+    # Finalize progress display
+    tracker.finish()
+
+    # Report any failures
+    if failed_analyses:
+        print(f"\nWarning: {len(failed_analyses)} analysis/analyses failed:")
+        for cell_type, error in failed_analyses:
+            print(f"  - {cell_type}: {error[:100]}{'...' if len(error) > 100 else ''}")
+        print()
+
     print(f"All analyses completed. Results saved to '{output_name}'.")
     
-    # Prepare data for both CSV files
+    # Prepare data for both CSV files and HTML report
 
     full_data = []
+    full_data_for_html = []  # Keep raw conversation history with newlines for HTML
     summary_data = []
 
     for true_cell_type, details in results.items():
@@ -527,17 +638,34 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         marker_number = safe_get(details, 'analysis_result', 'num_markers')
         marker_list = ', '.join(safe_get(details, 'analysis_result', 'marker_list') or [])
         iterations = safe_get(details, 'analysis_result', 'iterations')
-        
-        # Process and clean conversation history for safe CSV storage
+
+        # Process conversation history - keep raw version for HTML
         raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
-        conversation_history = clean_conversation_history(raw_conversation_history)  # Clean while preserving full content
-        
+        conversation_history = clean_conversation_history(raw_conversation_history)  # Clean for CSV storage
+
+        # Data for HTML report (with raw conversation history preserving newlines)
+        full_data_for_html.append({
+            'True Cell Type': true_cell_type,
+            'Predicted Main Cell Type': main_cell_type,
+            'Predicted Sub Cell Types': sub_cell_types,
+            'Possible Mixed Cell Types': possible_mixed_cell_types,
+            'Marker Number': marker_number,
+            'Marker List': marker_list,
+            'Iterations': iterations,
+            'Model': model,
+            'Provider': provider,
+            'Tissue': tissue,
+            'Species': species,
+            'Additional Info': additional_info or "N/A",
+            'Conversation History': raw_conversation_history  # Raw with newlines
+        })
+
         full_data.append([
-            true_cell_type, 
-            main_cell_type, 
-            sub_cell_types, 
+            true_cell_type,
+            main_cell_type,
+            sub_cell_types,
             possible_mixed_cell_types,
-            marker_number, 
+            marker_number,
             marker_list,
             iterations,
             model,
@@ -545,13 +673,13 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
             tissue,
             species,
             additional_info or "N/A",
-            conversation_history
+            conversation_history  # Cleaned for CSV
         ])
         summary_data.append([
-            true_cell_type, 
-            main_cell_type, 
-            sub_cell_types, 
-            possible_mixed_cell_types, 
+            true_cell_type,
+            main_cell_type,
+            sub_cell_types,
+            possible_mixed_cell_types,
             marker_list,
             iterations,
             model,
@@ -589,9 +717,22 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                'Tissue', 'Species'],
               summary_data)
 
-    print(f"Two CSV files have been created:")
-    print(f"1. {full_csv_name} (full data)")
-    print(f"2. {summary_csv_name} (summary data)")
+    # Generate HTML report with raw conversation history (preserving newlines)
+    html_report_name = f"{base_name}_report.html"
+    try:
+        from .generate_batch_report import generate_batch_html_report_from_data
+        # Sort the HTML data the same way as CSV
+        full_data_for_html.sort(key=lambda x: natural_sort_key(x['True Cell Type']))
+        generate_batch_html_report_from_data(full_data_for_html, html_report_name)
+        print(f"Three files have been created:")
+        print(f"1. {full_csv_name} (full data CSV)")
+        print(f"2. {summary_csv_name} (summary data CSV)")
+        print(f"3. {html_report_name} (interactive HTML report)")
+    except Exception as e:
+        print(f"Warning: Could not generate HTML report: {e}")
+        print(f"Two CSV files have been created:")
+        print(f"1. {full_csv_name} (full data)")
+        print(f"2. {summary_csv_name} (summary data)")
 
 
 

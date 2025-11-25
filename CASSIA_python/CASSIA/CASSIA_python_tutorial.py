@@ -1624,18 +1624,17 @@ def test_model_settings():
         from model_settings import (
             resolve_model_name,
             get_recommended_model,
-            get_model_info,
-            list_models,
-            get_model_settings
+            get_model_settings,
+            print_available_models
         )
-        print("✅ Successfully imported model_settings module")
+        print("Successfully imported model_settings module")
         
         # Show where settings are loaded from
         settings = get_model_settings()
         print(f"📁 Model settings loaded from: {settings.config_path}")
         
     except ImportError as e:
-        print(f"❌ Failed to import model_settings: {e}")
+        print(f"Failed to import model_settings: {e}")
         return
     
     print("\n" + "="*80)
@@ -1645,10 +1644,9 @@ def test_model_settings():
 The CASSIA Model Settings System makes it easy to use different AI models while
 maintaining control over API keys. Key features:
 
-✅ Provider must be specified (openai, anthropic, openrouter) 
-✅ Use simple names like 'gpt4', 'claude', 'gemini' within providers
-✅ Quality shortcuts: 'best', 'cheap', 'premium', 'fast' per provider
-✅ Cost awareness: Different options per provider
+✅ Provider must be specified (openai, anthropic, openrouter)
+✅ Tier shortcuts: 'best', 'balanced', 'fast', 'recommended' per provider
+✅ Or use exact model names directly
 ✅ No accidental API switching
 ✅ Configuration included with package installation
 """)
@@ -1660,18 +1658,19 @@ maintaining control over API keys. Key features:
     # Test 1: Basic model resolution with providers
     print("\n=== Test 1: Basic Model Resolution ===")
     test_cases = [
-        ("gpt4", "openai"),
-        ("claude", "anthropic"),
-        ("gemini", "openrouter"),
-        ("deepseek", "openrouter"),
         ("best", "openai"),
         ("best", "anthropic"),
         ("best", "openrouter"),
-        ("cheap", "openai"),
-        ("cheap", "anthropic"),
-        ("cheap", "openrouter"),
-        ("premium", "openrouter"),
-        ("fast", "openrouter")
+        ("balanced", "openai"),
+        ("balanced", "anthropic"),
+        ("balanced", "openrouter"),
+        ("fast", "openai"),
+        ("fast", "anthropic"),
+        ("fast", "openrouter"),
+        ("recommended", "openai"),
+        ("recommended", "anthropic"),
+        ("recommended", "openrouter"),
+        ("gpt-4o", "openai"),  # exact model name
     ]
     
     print("Testing model name resolution (Provider REQUIRED):")
@@ -1685,10 +1684,10 @@ maintaining control over API keys. Key features:
     # Test 2: Error handling - provider required
     print("\n=== Test 2: Error Handling (Provider Required) ===")
     try:
-        resolve_model_name("gpt4")
-        print("❌ ERROR: Should have failed without provider")
+        resolve_model_name("best", None)
+        print("ERROR: Should have failed without provider")
     except Exception as e:
-        print(f"✅ Correctly failed without provider: {e}")
+        print(f"Correctly failed without provider: {e}")
     
     # Test 3: Provider-specific recommendations
     print("\n=== Test 3: Provider-Specific Recommendations ===")
@@ -1700,121 +1699,104 @@ maintaining control over API keys. Key features:
         except Exception as e:
             print(f"  {provider:10} best → Error: {e}")
     
-    # Test 4: Model information
-    print("\n=== Test 4: Model Information ===")
-    info_tests = [
-        ("gpt4", "openai"),
-        ("claude", "anthropic"),
-        ("gemini", "openrouter"),
-        ("deepseek", "openrouter")
-    ]
-    
-    for model, provider in info_tests:
-        try:
-            info = get_model_info(model, provider)
-            if info:
-                print(f"  {model:8} ({provider:10}): {info.get('description', 'No description')}")
-                print(f"  {' '*8} {' '*12}  Cost: {info.get('cost_tier', 'Unknown')}")
-        except Exception as e:
-            print(f"  {model:8} ({provider:10}): Error: {e}")
-    
-    # Test 5: Provider-specific shortcuts
-    print("\n=== Test 5: Provider-Specific Shortcuts ===")
-    shortcuts = ["best", "cheap", "premium", "fast"]
+    # Test 4: Print available models
+    print("\n=== Test 4: Available Models ===")
+    print_available_models()
+
+    # Test 5: Provider-specific tier shortcuts
+    print("\n=== Test 5: Provider-Specific Tier Shortcuts ===")
+    tiers = ["best", "balanced", "fast", "recommended"]
     for provider in providers:
         print(f"  {provider:10}:")
-        for shortcut in shortcuts:
+        for tier in tiers:
             try:
-                resolved = resolve_model_name(shortcut, provider)
-                print(f"    {shortcut:8} → {resolved[0]}")
+                resolved = resolve_model_name(tier, provider)
+                print(f"    {tier:12} -> {resolved[0]}")
             except Exception as e:
-                print(f"    {shortcut:8} → Error: {e}")
+                print(f"    {tier:12} -> Error: {e}")
     
-    # Test 6: Model listing
-    print("\n=== Test 6: Model Listing ===")
-    try:
-        for provider in providers:
-            models = list_models(provider=provider)
-            print(f"  {provider:10}: {len(models)} models available")
-            # Show first 2 models
-            for i, model in enumerate(models[:2]):
-                print(f"    - {model['name']}: {model['info']['description']}")
-    except Exception as e:
-        print(f"  Error listing models: {e}")
+    # Test 6: Using exact model names
+    print("\n=== Test 6: Exact Model Names ===")
+    exact_tests = [
+        ("gpt-4o", "openai"),
+        ("claude-sonnet-4-5", "anthropic"),
+        ("google/gemini-2.5-flash", "openrouter"),
+    ]
+    for model, provider in exact_tests:
+        resolved = resolve_model_name(model, provider)
+        print(f"  {model:30} -> {resolved[0]}")
     
     # Test 7: Practical usage examples
     print("\n=== Test 7: Practical Usage Examples ===")
     print("""
 HOW TO USE MODEL SETTINGS IN YOUR CODE:
 
-1. BATCH ANALYSIS (Simple Names):
+1. USING TIER SHORTCUTS:
    runCASSIA_batch(
        marker=markers,
-       model="gpt4",         # Resolves to gpt-4o
-       provider="openai"     # REQUIRED for API key control
-   )
-
-2. COST-CONSCIOUS ANALYSIS (Different per provider):
-   runCASSIA_batch(
-       marker=markers,
-       model="cheap",        # OpenAI: gpt-3.5-turbo
+       model="recommended",   # Use recommended model for provider
        provider="openai"
    )
-   
+
+2. FAST/CHEAP ANALYSIS:
    runCASSIA_batch(
        marker=markers,
-       model="cheap",        # OpenRouter: deepseek/deepseek-chat-v3-0324
-       provider="openrouter"
+       model="fast",          # Fastest/cheapest option
+       provider="openrouter"  # -> google/gemini-2.5-flash
    )
 
-3. QUALITY-FOCUSED PIPELINE:
-   runCASSIA_pipeline(
-       output_file_name="smart_analysis",
-       tissue="large intestine",
-       species="human",
-       marker=markers,
-       annotation_model="gemini",        # Fast & cheap
-       annotation_provider="openrouter",
-       score_model="gpt4",              # High quality
-       score_provider="openai",
-       annotationboost_model="claude",   # Best reasoning
-       annotationboost_provider="anthropic"
-   )
-
-4. PROVIDER-SPECIFIC BEST MODELS:
+3. BEST QUALITY ANALYSIS:
    runCASSIA_batch(
        marker=markers,
-       model="best",         # Best model for chosen provider
-       provider="openrouter" # google/gemini-2.5-flash
+       model="best",          # Best model for provider
+       provider="anthropic"   # -> claude-opus-4-5
+   )
+
+4. BALANCED ANALYSIS:
+   runCASSIA_batch(
+       marker=markers,
+       model="balanced",      # Good balance of cost/quality
+       provider="openrouter"  # -> openai/gpt-5.1
+   )
+
+5. EXACT MODEL NAME:
+   runCASSIA_batch(
+       marker=markers,
+       model="gpt-4o",        # Use exact model name
+       provider="openai"
    )
 """)
     
     # Test 8: Key benefits summary
     print("\n=== Key Benefits Summary ===")
-    print("✅ Provider control: You specify which API to use")
-    print("✅ Simple names: Use 'gpt4', 'claude', 'gemini' within providers")
-    print("✅ Quality shortcuts: 'best', 'cheap', 'premium', 'fast' per provider")
-    print("✅ Cost awareness: Different 'cheap' options per provider")
-    print("✅ Error prevention: Must specify provider (no accidental API switching)")
-    print("✅ Backward compatibility: All existing code continues to work")
+    print("Provider control: You specify which API to use")
+    print("Tier shortcuts: 'best', 'balanced', 'fast', 'recommended'")
+    print("Exact model names: Can still use full model names directly")
+    print("Simple JSON config: Easy to update model mappings")
     
     print("\n" + "="*80)
-    print("MIGRATION GUIDE")
+    print("MODEL TIER SUMMARY")
     print("="*80)
     print("""
-OLD WAY (Still works):
-runCASSIA_batch(
-    marker=markers,
-    model="google/gemini-2.5-flash",
-    provider="openrouter"
-)
+Available tiers: best, balanced, fast, recommended
 
-NEW WAY (Much simpler):
-runCASSIA_batch(
-    marker=markers,
-    model="gemini",       # Simple name
-    provider="openrouter" # Still required for API key control
-)
+OPENAI:
+  best        -> gpt-5.1
+  balanced    -> gpt-4o
+  fast        -> gpt-5-mini
+  recommended -> gpt-5.1
+
+ANTHROPIC:
+  best        -> claude-opus-4-5
+  balanced    -> claude-sonnet-4-5
+  fast        -> claude-haiku-4-5
+  recommended -> claude-sonnet-4-5
+
+OPENROUTER:
+  best        -> anthropic/claude-sonnet-4.5
+  balanced    -> openai/gpt-5.1
+  fast        -> google/gemini-2.5-flash
+  recommended -> anthropic/claude-sonnet-4.5
 """)
     
     # Test 9: Create comprehensive test results

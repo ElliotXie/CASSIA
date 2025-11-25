@@ -1,0 +1,17 @@
+{
+  "validator_results": {
+    "v0": {
+      "clusters_annotated": 6,
+      "results_file": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\03_validator_comparison\\results\\20251124_185526\\results_v0_full.csv"
+    },
+    "v1": {
+      "clusters_annotated": 6,
+      "results_file": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\03_validator_comparison\\results\\20251124_185526\\results_v1_full.csv"
+    }
+  },
+  "comparison": {
+    "v0_clusters": 6,
+    "v1_clusters": 6,
+    "both_complete": true
+  }
+}
