@@ -1305,7 +1305,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         
         <KEY_FINDINGS>
         Deatailed summary of the key results from gene expression analysis and what was learned.
-        Make sure it corresponds to the hypotheses tested in the previous iteration (if any). Format as numbered points (1., 2., 3.) each on a new line.
+        Format as numbered points (1., 2., 3.) each on a new line. list (Hypothesis_n) at the end of each point to indicate the hypothesis that the key findings correspond to.
         </KEY_FINDINGS>
 
         </ITERATION_1>
@@ -1993,7 +1993,7 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                         <div class="sub-section">
                             <h3>Key Findings</h3>
                             <div class="content">
-                                {iteration['key_findings']}
+                                {format_hypotheses(iteration['key_findings'])}
                             </div>
                         </div>
                     </section>

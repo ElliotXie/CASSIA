@@ -1,0 +1,309 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes an iterative gene expression analysis performed by CASSIA to annotate a specific cell cluster. The analysis involved 3 iterations, examining a total of 39 unique genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was "Plasma Cell," strongly supported by immunoglobulin genes and established plasma cell markers (JCHAIN, TNFRSF17, MZB1, GPRC5D). The presence of IgA-specific markers (IGHA1/IGHA2, JCHAIN, CCR10) suggested mucosal IgA-secreting plasma cells, consistent with a large intestine context. However, the detection of MYL2 was an outlier, raising concerns about potential contamination or doublets.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To investigate if MYL2 expression indicates smooth muscle contamination or doublets, by checking for co-expression with a canonical smooth muscle marker (ACTA2) and pan-T/B cell markers (CD3D, CD19).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To confirm the mature plasma cell state and rule out contamination by plasmablasts or activated B cells, by checking for high expression of plasma cell differentiation regulators (XBP1, PRDM1, IRF4) and surface markers (CD27, CD38), and low/absent B cell markers (CD20, PAX5).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To characterize the heterogeneity of the plasma cell population by examining relative expression levels of heavy chain isotypes (IGHG1, IGHG3, IGHA1, IGHA2, IGHM) and light chains (IGLC3, IGLC2, IGKC).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">CD3D</span><span class="gene-badge">CD19</span><span class="gene-badge">XBP1</span><span class="gene-badge">PRDM1</span><span class="gene-badge">IRF4</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">CD20</span><span class="gene-badge">PAX5</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHM</span><span class="gene-badge">IGLC3</span><span class="gene-badge">IGLC2</span><span class="gene-badge">IGKC</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> High expression of CD27 (avg_log2FC 3.91, pct.1 0.81), CD38 (avg_log2FC 4.69, pct.1 0.46), and XBP1 (avg_log2FC 1.17, pct.1 0.94) supports a mature plasma cell identity. CD3D was low (avg_log2FC -4.96, pct.1 0.03). ACTA2, CD19, CD20, and PAX5 were not in the differential expression list.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> MYL2 showed high expression (avg_log2FC 8.15) in a small percentage of cells (12%), which remains a concern for contamination or doublets.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> Immunoglobulin isotype analysis revealed strong signals for IgA (IGHA2 avg_log2FC 7.38, pct.1 0.89), notable presence of IgG (IGHG1 avg_log2FC 8.60, pct.1 0.12; IGHG3 avg_log2FC 7.94, pct.1 0.12), and IgM (IGHM avg_log2FC 7.69, pct.1 0.21). Both kappa (IGKC avg_log2FC -3.90, pct.1 0.80) and lambda (IGLC2 avg_log2FC 9.12, pct.1 0.88; IGLC3 avg_log2FC 9.17, pct.1 0.48) light chains were detected.</div><div class="hypothesis-item"><span class="hypothesis-number">4.</span> Low expression of IRF4 (avg_log2FC -3.84, pct.1 0.01) and PRDM1 (avg_log2FC -3.32, pct.1 0.02) was unexpected for fully differentiated plasma cells.</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further investigate MYL2 expression for smooth muscle contamination (ACTA2, DES) or macrophage doublets (CD68).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To re-evaluate the expression of IRF4 and PRDM1 and assess the proliferative status (MKI67, PCNA) to clarify the differentiation state (plasmablast vs. mature plasma cell).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To solidify the plasma cell annotation by examining additional canonical surface markers (CD138/SDC1) and definitively ruling out B cell contamination (CD19, MS4A1/CD20, CD20).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">DES</span><span class="gene-badge">CD68</span><span class="gene-badge">IRF4</span><span class="gene-badge">PRDM1</span><span class="gene-badge">BLIMP1</span><span class="gene-badge">XBP1</span><span class="gene-badge">MKI67</span><span class="gene-badge">PCNA</span><span class="gene-badge">CD138</span><span class="gene-badge">SDC1</span><span class="gene-badge">CD19</span><span class="gene-badge">MS4A1</span><span class="gene-badge">CD20</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> MYL2 expression (avg_log2FC 8.15, pct.1 0.12) remained high in a small fraction of cells. ACTA2, DES, and CD68 were not in the differential expression list, preventing a definitive conclusion on contamination.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> MKI67 showed high expression (avg_log2FC 6.60, pct.1 0.61), indicating a significant proliferative component. PCNA was low (avg_log2FC -1.31, pct.1 0.09). IRF4 (avg_log2FC -3.84, pct.1 0.01) and PRDM1 (avg_log2FC -3.32, pct.1 0.02) remained low, while XBP1 (avg_log2FC 1.17, pct.1 0.94) remained high.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> SDC1 (CD138) showed low expression (avg_log2FC -2.76, pct.1 0.01). CD19, CD20, and MS4A1 were not in the differential expression list.</div><div class="hypothesis-item"><span class="hypothesis-number">4.</span> The combination of high MKI67 and low IRF4, PRDM1, and SDC1, despite high XBP1, suggested a proliferative, less differentiated state, possibly plasmablasts.</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To clarify the proliferative state by examining additional cell cycle markers (TOP2A, CDK1, CCNB1) and cell cycle inhibitors (CDKN1A, CDKN1B) to distinguish between actively dividing plasmablasts and terminally differentiated plasma cells.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To re-evaluate the differentiation state by confirming expression levels of key transcription factors (IRF4, PRDM1, XBP1) and surface markers (SDC1, CD27, CD38), and to obtain data for B cell markers (CD19, MS4A1) to rule out B cell contamination.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To comprehensively address potential contamination or doublets by obtaining expression data for ACTA2, DES, CD68, and additional macrophage/monocyte markers (CD14, FCGR3A).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MKI67</span><span class="gene-badge">PCNA</span><span class="gene-badge">TOP2A</span><span class="gene-badge">CDK1</span><span class="gene-badge">CCNB1</span><span class="gene-badge">CDKN1A</span><span class="gene-badge">CDKN1B</span><span class="gene-badge">IRF4</span><span class="gene-badge">PRDM1</span><span class="gene-badge">XBP1</span><span class="gene-badge">SDC1</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">CD19</span><span class="gene-badge">MS4A1</span><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">DES</span><span class="gene-badge">CD68</span><span class="gene-badge">CD14</span><span class="gene-badge">FCGR3A</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> High expression of MKI67 (avg_log2FC 6.60, pct.1 0.61), TOP2A (avg_log2FC 6.47, pct.1 0.51), CDK1 (avg_log2FC 6.15, pct.1 0.49), and CCNB1 (avg_log2FC 4.48, pct.1 0.41) confirmed a highly proliferative population.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> CDKN1A showed high expression (avg_log2FC 3.16, pct.1 0.90), which is unusual alongside other proliferation markers, suggesting complex cell cycle regulation. CDKN1B was low (avg_log2FC -0.53, pct.1 0.17).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> IRF4 (avg_log2FC -3.84, pct.1 0.01), PRDM1 (avg_log2FC -3.32, pct.1 0.02), and SDC1 (avg_log2FC -2.76, pct.1 0.01) remained low, while XBP1 (avg_log2FC 1.17, pct.1 0.94) remained high, supporting a plasmablast-like state. CD27 (avg_log2FC 3.91, pct.1 0.81) and CD38 (avg_log2FC 4.69, pct.1 0.46) were highly expressed.</div><div class="hypothesis-item"><span class="hypothesis-number">4.</span> CD14 was detected with high expression (avg_log2FC 4.28) in 25% of cells, and MYL2 (avg_log2FC 8.15) in 12% of cells, indicating significant potential for myeloid contamination or doublets. ACTA2, CD19, CD68, DES, FCGR3A, and MS4A1 were not in the differential expression list.</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final annotation for this cluster is **Plasmablasts**.
+
+**Confidence level**: Medium.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Immunoglobulin Genes (Antibody Secretion):**
+*   IGHA1, IGHA2, IGHG1, IGHG3, IGHM (Heavy Chains)
+*   IGLC2, IGLC3, IGKC (Light Chains)
+*   JCHAIN (Polymeric Ig receptor component)
+*   IGLL5, IGLV6-57, IGHV3-7 (Immunoglobulin Variable Regions)
+
+**Plasma Cell/Plasmablast Differentiation & Surface Markers:**
+*   XBP1 (Master regulator of plasma cell differentiation, high)
+*   CD27, CD38 (Upregulated during plasmablast differentiation)
+*   IRF4, PRDM1 (Transcription factors, relatively low for mature plasma cells)
+*   SDC1 (CD138) (Plasma cell surface marker, relatively low)
+
+**Proliferation Markers:**
+*   MKI67, TOP2A, CDK1, CCNB1 (Indicate active cell division)
+*   CDKN1A (Cell cycle inhibitor, unusually high)
+
+**Contamination Markers:**
+*   MYL2 (Muscle cell marker, detected in a subset)
+*   CD14 (Monocyte/macrophage marker, detected in a subset)
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            1.  **Re-clustering and doublet removal**: The user should perform a rigorous re-clustering analysis, potentially using more stringent parameters, and apply robust doublet detection and removal algorithms to address the significant contamination indicated by CD14 and MYL2.
+2.  **Expression of missing markers**: It is critical to obtain expression data for the missing canonical markers: ACTA2, DES (for muscle contamination), CD68, FCGR3A (for macrophage contamination), and crucially, CD19, MS4A1 (CD20) (to definitively rule out B cell contamination and further confirm plasmablast identity).
+3.  **Subpopulation analysis**: If contamination issues are resolved, further sub-clustering might be warranted to investigate heterogeneity within the plasmablast population, especially concerning different immunoglobulin isotypes and the unusual CDKN1A expression.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        
