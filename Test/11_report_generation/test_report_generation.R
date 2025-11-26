@@ -53,9 +53,9 @@ create_sample_batch_data <- function() {
     marker_list <- paste(markers[1:min(15, length(markers))], collapse = ", ")
 
     sample_data[[i]] <- list(
-      `True Cell Type` = cluster_name,
-      `Predicted Main Cell Type` = tools::toTitleCase(cluster_name),
-      `Predicted Sub Cell Types` = paste0(cluster_name, " subtype 1, ", cluster_name, " subtype 2"),
+      `Cluster ID` = cluster_name,
+      `Predicted General Cell Type` = tools::toTitleCase(cluster_name),
+      `Predicted Detailed Cell Type` = paste0(cluster_name, " subtype 1, ", cluster_name, " subtype 2"),
       `Possible Mixed Cell Types` = "",
       `Marker Number` = as.character(min(15, length(markers))),
       `Marker List` = marker_list,

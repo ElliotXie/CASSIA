@@ -62,9 +62,9 @@ def merge_annotations(
     # Map expected column names to actual column names
     # Check for the expected column names based on the new information
     column_mapping = {
-        "cluster": "True Cell Type",  # "True Cell Type" is actually the cluster ID column
-        "general_annotation": "Predicted Main Cell Type",
-        "subtype_annotation": "Predicted Sub Cell Types"
+        "cluster": "Cluster ID",  # The cluster identifier column
+        "general_annotation": "Predicted General Cell Type",
+        "subtype_annotation": "Predicted Detailed Cell Type"
     }
     
     # Verify that we found the necessary columns
@@ -112,7 +112,7 @@ def merge_annotations(
                 model=model,
                 api_key=api_key,
                 temperature=0.3,  # Lower temperature for more consistent results
-                max_tokens=2000,
+                max_tokens=4096,
                 system_prompt="You are an expert cell biologist specializing in single-cell analysis. Your task is to analyze cluster annotations and suggest general cell groupings."
             )
             

@@ -6,18 +6,18 @@ library(CASSIA)
 # Create a sample CSV with test data
 create_test_csv <- function(filepath) {
   data <- data.frame(
-    "True Cell Type" = 1:8,
-    "Predicted Main Cell Type" = c(
-      "macrophage", 
-      "CD4 T cell", 
-      "B cell", 
-      "dendritic cell", 
-      "CD8 T cell", 
-      "NK cell", 
-      "epithelial cell", 
+    "Cluster ID" = 1:8,
+    "Predicted General Cell Type" = c(
+      "macrophage",
+      "CD4 T cell",
+      "B cell",
+      "dendritic cell",
+      "CD8 T cell",
+      "NK cell",
+      "epithelial cell",
       "fibroblast"
     ),
-    "Predicted Sub Cell Types" = c(
+    "Predicted Detailed Cell Type" = c(
       "inflammatory macrophage, resident macrophage", 
       "naive CD4 T cell, memory CD4 T cell", 
       "memory B cell, plasma cell", 

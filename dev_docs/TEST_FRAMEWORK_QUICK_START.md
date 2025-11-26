@@ -253,7 +253,7 @@ Follow the roadmap in `MODULAR_TEST_FRAMEWORK_PLAN.md`:
 
 **Sample Output**:
 ```csv
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types
+Cluster ID,Predicted General Cell Type,Predicted Detailed Cell Type
 monocyte,Classical Monocyte,"CD14+ Monocyte, CD16- Monocyte"
 plasma cell,Plasma Cell,"IgA+ Plasma Cell, IgG+ Plasma Cell"
 ```

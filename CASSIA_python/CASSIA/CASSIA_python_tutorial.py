@@ -616,23 +616,24 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         print(f"Error reading CSV file: {str(e)}")
         return
     
-    # Check if the True Cell Type column exists
-    if 'True Cell Type' not in df.columns:
-        print(f"Error: 'True Cell Type' column not found in {full_csv}")
+    # Check if the cluster column exists (new name first, then fall back to old name)
+    cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else ('True Cell Type' if 'True Cell Type' in df.columns else None)
+    if cluster_col is None:
+        print(f"Error: 'Cluster ID' or 'True Cell Type' column not found in {full_csv}")
         print(f"Available columns: {df.columns.tolist()}")
         return
-    
+
     # Check if the cluster exists in the dataframe
-    if cluster_name not in df['True Cell Type'].values:
+    if cluster_name not in df[cluster_col].values:
         # Try to find the closest match (case insensitive)
-        matches = df[df['True Cell Type'].str.lower() == cluster_name.lower()]
+        matches = df[df[cluster_col].str.lower() == cluster_name.lower()]
         if not matches.empty:
             # Use the exact case/format from the file
-            cluster_name = matches.iloc[0]['True Cell Type']
+            cluster_name = matches.iloc[0][cluster_col]
             print(f"Using exact cluster name from file: '{cluster_name}'")
         else:
             print(f"Warning: Cluster '{cluster_name}' not found in {full_csv}")
-            print(f"Available clusters: {df['True Cell Type'].tolist()}")
+            print(f"Available clusters: {df[cluster_col].tolist()}")
             return
     
     # Create a sanitized version for the output filename
@@ -697,7 +698,7 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         import traceback
         traceback.print_exc()
         print("Available clusters in the CSV file:")
-        print(df['True Cell Type'].tolist())
+        print(df[cluster_col].tolist())
 
 # --------------------- Step 7: Compare Celltypes ---------------------
 def run_celltype_comparison():
@@ -821,23 +822,24 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         print(f"Error reading CSV file: {str(e)}")
         return
     
-    # Check if the True Cell Type column exists
-    if 'True Cell Type' not in df.columns:
-        print(f"Error: 'True Cell Type' column not found in {full_csv}")
+    # Check if the cluster column exists (new name first, then fall back to old name)
+    cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else ('True Cell Type' if 'True Cell Type' in df.columns else None)
+    if cluster_col is None:
+        print(f"Error: 'Cluster ID' or 'True Cell Type' column not found in {full_csv}")
         print(f"Available columns: {df.columns.tolist()}")
         return
-    
+
     # Check if the cluster exists in the dataframe
-    if cluster_name not in df['True Cell Type'].values:
+    if cluster_name not in df[cluster_col].values:
         # Try to find the closest match (case insensitive)
-        matches = df[df['True Cell Type'].str.lower() == cluster_name.lower()]
+        matches = df[df[cluster_col].str.lower() == cluster_name.lower()]
         if not matches.empty:
             # Use the exact case/format from the file
-            cluster_name = matches.iloc[0]['True Cell Type']
+            cluster_name = matches.iloc[0][cluster_col]
             print(f"Using exact cluster name from file: '{cluster_name}'")
         else:
             print(f"Warning: Cluster '{cluster_name}' not found in {full_csv}")
-            print(f"Available clusters: {df['True Cell Type'].tolist()}")
+            print(f"Available clusters: {df[cluster_col].tolist()}")
             return
     
     # Create a sanitized version for the output filename
@@ -909,7 +911,7 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         import traceback
         traceback.print_exc()
         print("\nAvailable clusters in the CSV file:")
-        print(df['True Cell Type'].tolist())
+        print(df[cluster_col].tolist())
 
 # --------------------- New: Test Full Pipeline with Different Providers ---------------------
 def test_full_pipeline_providers(marker_data):

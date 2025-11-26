@@ -738,9 +738,11 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
         df = pd.read_csv(file)
         
         # Loop through each cell type
+        # Determine the cluster column name (new name first, then fall back to old name)
+        cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else 'True Cell Type'
         for celltype in marker_celltype:
             # Find the row for the current cell type
-            row = df[df['True Cell Type'] == celltype]
+            row = df[df[cluster_col] == celltype]
             
             if not row.empty:
                 # Extract the predicted general cell type (second column)

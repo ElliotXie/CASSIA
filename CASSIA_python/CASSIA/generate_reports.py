@@ -343,9 +343,9 @@ def process_evaluation_csv(csv_path: str, overwrite: bool = False) -> None:
         if expected_cols.issubset(set(df.columns)):
             generate_subclustering_report(csv_path, html_report_path=html_path, model_name=model_name)
             return
-        # Determine column names
-        gold_col = "True Cell Type" if "True Cell Type" in df.columns else "gold_standard"
-        pred_col = "Predicted Sub Cell Types" if "Predicted Sub Cell Types" in df.columns else "predicted_celltype"
+        # Determine column names (check new names first, then fall back to old names for backward compatibility)
+        gold_col = "Cluster ID" if "Cluster ID" in df.columns else ("True Cell Type" if "True Cell Type" in df.columns else "gold_standard")
+        pred_col = "Predicted Detailed Cell Type" if "Predicted Detailed Cell Type" in df.columns else ("Predicted Sub Cell Types" if "Predicted Sub Cell Types" in df.columns else "predicted_celltype")
         
         # For score and reasoning columns, check multiple possibilities
         score_col = None

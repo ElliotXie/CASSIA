@@ -451,11 +451,11 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                         rows.append([cluster_id, main_type, sub_type])
             
             if rows:
-                df = pd.DataFrame(rows, columns=['True Cell Type', 'main_cell_type', 'sub_cell_type'])
+                df = pd.DataFrame(rows, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
             else:
                 # Fallback if we couldn't extract structured data
                 df = pd.DataFrame([[str(i+1), "Unknown", "Unknown"] for i in range(len(results))], 
-                                 columns=['True Cell Type', 'main_cell_type', 'sub_cell_type'])
+                                 columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
         else:
             # Use regex to extract the results (original method)
             pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
@@ -463,11 +463,11 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         
             if matches:
                 # Convert matches to a DataFrame
-                df = pd.DataFrame(matches, columns=['True Cell Type', 'main_cell_type', 'sub_cell_type'])
+                df = pd.DataFrame(matches, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
             else:
                 # Fallback if regex didn't match
                 df = pd.DataFrame([[str(i+1), "Unknown", "Unknown"]], 
-                                 columns=['True Cell Type', 'main_cell_type', 'sub_cell_type'])
+                                 columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
 
         try:
             # Try to get top markers, but handle the case where required columns are missing
@@ -479,19 +479,19 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 marker_df = marker.copy()
             
             # Convert types to ensure compatibility
-            df['True Cell Type'] = df['True Cell Type'].astype(str)
-            
+            df['Cluster ID'] = df['Cluster ID'].astype(str)
+
             # Make a copy of the original values before swapping
-            original_true_cell_types = df['True Cell Type'].copy()
-            
+            original_cluster_ids = df['Cluster ID'].copy()
+
             # Check if marker_df has at least one row and one column
             if marker_df.shape[0] > 0 and marker_df.shape[1] > 0:
                 original_marker_first_col = marker_df.iloc[:, 0].copy()
-                
+
                 # Perform the swap safely - only if there are enough rows in both dataframes
                 min_rows = min(len(df), len(marker_df))
                 if min_rows > 0:
-                    df.loc[:min_rows-1, 'True Cell Type'] = original_marker_first_col[:min_rows].values
+                    df.loc[:min_rows-1, 'Cluster ID'] = original_marker_first_col[:min_rows].values
                     # Only update marker_df if we're actually going to use it later
                     # marker_df.iloc[:min_rows, 0] = original_true_cell_types[:min_rows].values
             else:

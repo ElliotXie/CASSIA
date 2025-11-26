@@ -103,8 +103,9 @@ run_merging_annotation_test <- function() {
       cat("  Broad merge: SUCCESS\n")
       cat("  Output rows:", nrow(result_broad), "\n")
       cat("  Sample groupings:\n")
+      cluster_col <- if ("Cluster ID" %in% names(result_broad)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_broad))) {
-        cat("   ", result_broad$`True Cell Type`[i], "->", result_broad$Merged_Grouping_1[i], "\n")
+        cat("   ", result_broad[[cluster_col]][i], "->", result_broad$Merged_Grouping_1[i], "\n")
       }
       merge_results$broad <- list(status = "success", output_file = broad_output, num_rows = nrow(result_broad))
     } else {
@@ -129,8 +130,9 @@ run_merging_annotation_test <- function() {
       cat("  Detailed merge: SUCCESS\n")
       cat("  Output rows:", nrow(result_detailed), "\n")
       cat("  Sample groupings:\n")
+      cluster_col <- if ("Cluster ID" %in% names(result_detailed)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_detailed))) {
-        cat("   ", result_detailed$`True Cell Type`[i], "->", result_detailed$Merged_Grouping_2[i], "\n")
+        cat("   ", result_detailed[[cluster_col]][i], "->", result_detailed$Merged_Grouping_2[i], "\n")
       }
       merge_results$detailed <- list(status = "success", output_file = detailed_output, num_rows = nrow(result_detailed))
     } else {
@@ -156,8 +158,9 @@ run_merging_annotation_test <- function() {
       cat("  Output rows:", nrow(result_all), "\n")
       cat("  Columns:", paste(expected_columns, collapse = ", "), "\n")
       cat("\n  Sample comparison:\n")
+      cluster_col <- if ("Cluster ID" %in% names(result_all)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_all))) {
-        cat("   ", result_all$`True Cell Type`[i], ":\n")
+        cat("   ", result_all[[cluster_col]][i], ":\n")
         cat("      Broad:        ", result_all$Merged_Grouping_1[i], "\n")
         cat("      Detailed:     ", result_all$Merged_Grouping_2[i], "\n")
         cat("      Very Detailed:", result_all$Merged_Grouping_3[i], "\n")

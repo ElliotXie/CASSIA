@@ -69,9 +69,9 @@ def create_sample_batch_data():
         marker_list = ", ".join(markers[:15])
 
         sample_data.append({
-            'True Cell Type': cluster_name,
-            'Predicted Main Cell Type': cluster_name.title(),
-            'Predicted Sub Cell Types': f"{cluster_name} subtype 1, {cluster_name} subtype 2",
+            'Cluster ID': cluster_name,
+            'Predicted General Cell Type': cluster_name.title(),
+            'Predicted Detailed Cell Type': f"{cluster_name} subtype 1, {cluster_name} subtype 2",
             'Possible Mixed Cell Types': '',
             'Marker Number': str(len(markers[:15])),
             'Marker List': marker_list,

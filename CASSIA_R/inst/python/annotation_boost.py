@@ -947,10 +947,13 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         if 'Unnamed: 0' in marker.columns:
             marker.drop(columns=['Unnamed: 0'], inplace=True)
     
-    # Try to find the cluster column name - the old code assumed 'cluster'
-    cluster_column = 'True Cell Type'  # Default based on the CSV file we checked
-    if cluster_column not in full_results.columns and 'cluster' in full_results.columns:
-        cluster_column = 'cluster'
+    # Try to find the cluster column name - check new name first, then fall back to old names
+    cluster_column = 'Cluster ID'  # New default column name
+    if cluster_column not in full_results.columns:
+        if 'True Cell Type' in full_results.columns:
+            cluster_column = 'True Cell Type'  # Backward compatibility
+        elif 'cluster' in full_results.columns:
+            cluster_column = 'cluster'
     
     # Filter the results for the specified cluster
     cluster_data = full_results[full_results[cluster_column] == cluster_name]
@@ -1218,7 +1221,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
             provider="openrouter",  # Using OpenRouter as the provider
             model="google/gemini-2.5-flash-preview",  # Using Gemini 2.5 Flash model
             temperature=0.3,      # Low temperature for more consistent output
-            max_tokens=4000
+            max_tokens=4096
         )
         
         # Convert to HTML and save

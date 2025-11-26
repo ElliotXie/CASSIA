@@ -1331,8 +1331,8 @@ generate_subclustering_report <- function(csv_path, html_report_path = NULL, mod
 #' # Generate evaluation report
 #' generate_html_report(
 #'   result_df = evaluation_results,
-#'   gold_col = "True Cell Type",
-#'   pred_col = "Predicted Cell Type",
+#'   gold_col = "Cluster ID",
+#'   pred_col = "Predicted General Cell Type",
 #'   score_col = "evaluation_score",
 #'   reasoning_col = "explanation",
 #'   html_report_path = "evaluation_report.html",

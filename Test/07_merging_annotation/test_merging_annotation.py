@@ -118,8 +118,9 @@ def run_merging_annotation_test():
             print(f"  Broad merge: SUCCESS")
             print(f"  Output rows: {len(result_broad)}")
             print(f"  Sample groupings:")
+            cluster_col = 'Cluster ID' if 'Cluster ID' in result_broad.columns else 'True Cell Type'
             for idx, row in result_broad.head(3).iterrows():
-                print(f"    {row['True Cell Type']} -> {row['Merged_Grouping_1']}")
+                print(f"    {row[cluster_col]} -> {row['Merged_Grouping_1']}")
             merge_results['broad'] = {
                 'status': 'success',
                 'output_file': broad_output,
@@ -146,8 +147,9 @@ def run_merging_annotation_test():
             print(f"  Detailed merge: SUCCESS")
             print(f"  Output rows: {len(result_detailed)}")
             print(f"  Sample groupings:")
+            cluster_col = 'Cluster ID' if 'Cluster ID' in result_detailed.columns else 'True Cell Type'
             for idx, row in result_detailed.head(3).iterrows():
-                print(f"    {row['True Cell Type']} -> {row['Merged_Grouping_2']}")
+                print(f"    {row[cluster_col]} -> {row['Merged_Grouping_2']}")
             merge_results['detailed'] = {
                 'status': 'success',
                 'output_file': detailed_output,
@@ -175,8 +177,9 @@ def run_merging_annotation_test():
             print(f"  Output rows: {len(result_all)}")
             print(f"  Columns: {', '.join(expected_columns)}")
             print(f"\n  Sample comparison:")
+            cluster_col = 'Cluster ID' if 'Cluster ID' in result_all.columns else 'True Cell Type'
             for idx, row in result_all.head(3).iterrows():
-                print(f"    {row['True Cell Type']}:")
+                print(f"    {row[cluster_col]}:")
                 print(f"      Broad:        {row['Merged_Grouping_1']}")
                 print(f"      Detailed:     {row['Merged_Grouping_2']}")
                 print(f"      Very Detailed: {row['Merged_Grouping_3']}")

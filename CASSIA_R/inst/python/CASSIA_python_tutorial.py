@@ -616,23 +616,24 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         print(f"Error reading CSV file: {str(e)}")
         return
     
-    # Check if the True Cell Type column exists
-    if 'True Cell Type' not in df.columns:
-        print(f"Error: 'True Cell Type' column not found in {full_csv}")
+    # Check if the cluster column exists (new name first, then fall back to old name)
+    cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else ('True Cell Type' if 'True Cell Type' in df.columns else None)
+    if cluster_col is None:
+        print(f"Error: 'Cluster ID' or 'True Cell Type' column not found in {full_csv}")
         print(f"Available columns: {df.columns.tolist()}")
         return
-    
+
     # Check if the cluster exists in the dataframe
-    if cluster_name not in df['True Cell Type'].values:
+    if cluster_name not in df[cluster_col].values:
         # Try to find the closest match (case insensitive)
-        matches = df[df['True Cell Type'].str.lower() == cluster_name.lower()]
+        matches = df[df[cluster_col].str.lower() == cluster_name.lower()]
         if not matches.empty:
             # Use the exact case/format from the file
-            cluster_name = matches.iloc[0]['True Cell Type']
+            cluster_name = matches.iloc[0][cluster_col]
             print(f"Using exact cluster name from file: '{cluster_name}'")
         else:
             print(f"Warning: Cluster '{cluster_name}' not found in {full_csv}")
-            print(f"Available clusters: {df['True Cell Type'].tolist()}")
+            print(f"Available clusters: {df[cluster_col].tolist()}")
             return
     
     # Create a sanitized version for the output filename
@@ -697,7 +698,7 @@ def run_annotation_boost(marker_data, full_csv, cluster_name="monocyte", provide
         import traceback
         traceback.print_exc()
         print("Available clusters in the CSV file:")
-        print(df['True Cell Type'].tolist())
+        print(df[cluster_col].tolist())
 
 # --------------------- Step 7: Compare Celltypes ---------------------
 def run_celltype_comparison():
@@ -821,23 +822,24 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         print(f"Error reading CSV file: {str(e)}")
         return
     
-    # Check if the True Cell Type column exists
-    if 'True Cell Type' not in df.columns:
-        print(f"Error: 'True Cell Type' column not found in {full_csv}")
+    # Check if the cluster column exists (new name first, then fall back to old name)
+    cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else ('True Cell Type' if 'True Cell Type' in df.columns else None)
+    if cluster_col is None:
+        print(f"Error: 'Cluster ID' or 'True Cell Type' column not found in {full_csv}")
         print(f"Available columns: {df.columns.tolist()}")
         return
-    
+
     # Check if the cluster exists in the dataframe
-    if cluster_name not in df['True Cell Type'].values:
+    if cluster_name not in df[cluster_col].values:
         # Try to find the closest match (case insensitive)
-        matches = df[df['True Cell Type'].str.lower() == cluster_name.lower()]
+        matches = df[df[cluster_col].str.lower() == cluster_name.lower()]
         if not matches.empty:
             # Use the exact case/format from the file
-            cluster_name = matches.iloc[0]['True Cell Type']
+            cluster_name = matches.iloc[0][cluster_col]
             print(f"Using exact cluster name from file: '{cluster_name}'")
         else:
             print(f"Warning: Cluster '{cluster_name}' not found in {full_csv}")
-            print(f"Available clusters: {df['True Cell Type'].tolist()}")
+            print(f"Available clusters: {df[cluster_col].tolist()}")
             return
     
     # Create a sanitized version for the output filename
@@ -909,7 +911,7 @@ def run_annotation_boost_with_task(marker_data, full_csv, cluster_name=None, add
         import traceback
         traceback.print_exc()
         print("\nAvailable clusters in the CSV file:")
-        print(df['True Cell Type'].tolist())
+        print(df[cluster_col].tolist())
 
 # --------------------- New: Test Full Pipeline with Different Providers ---------------------
 def test_full_pipeline_providers(marker_data):
@@ -1628,15 +1630,15 @@ def test_model_settings():
             print_available_models
         )
         print("Successfully imported model_settings module")
-
+        
         # Show where settings are loaded from
         settings = get_model_settings()
-        print(f"Model settings loaded from: {settings.config_path}")
-
+        print(f"📁 Model settings loaded from: {settings.config_path}")
+        
     except ImportError as e:
         print(f"Failed to import model_settings: {e}")
         return
-
+    
     print("\n" + "="*80)
     print("MODEL SETTINGS SYSTEM OVERVIEW")
     print("="*80)
@@ -1644,11 +1646,11 @@ def test_model_settings():
 The CASSIA Model Settings System makes it easy to use different AI models while
 maintaining control over API keys. Key features:
 
-Provider must be specified (openai, anthropic, openrouter)
-Tier shortcuts: 'best', 'balanced', 'fast', 'recommended' per provider
-Or use exact model names directly
-No accidental API switching
-Configuration included with package installation
+✅ Provider must be specified (openai, anthropic, openrouter)
+✅ Tier shortcuts: 'best', 'balanced', 'fast', 'recommended' per provider
+✅ Or use exact model names directly
+✅ No accidental API switching
+✅ Configuration included with package installation
 """)
     
     print(f"📦 Configuration Location: {settings.config_path}")
@@ -1672,15 +1674,15 @@ Configuration included with package installation
         ("recommended", "openrouter"),
         ("gpt-4o", "openai"),  # exact model name
     ]
-
+    
     print("Testing model name resolution (Provider REQUIRED):")
     for model, provider in test_cases:
         try:
             resolved = resolve_model_name(model, provider)
-            print(f"  {model:10} + {provider:10} -> {resolved[0]}")
+            print(f"  {model:10} + {provider:10} → {resolved[0]}")
         except Exception as e:
-            print(f"  {model:10} + {provider:10} -> Error: {e}")
-
+            print(f"  {model:10} + {provider:10} → Error: {e}")
+    
     # Test 2: Error handling - provider required
     print("\n=== Test 2: Error Handling (Provider Required) ===")
     try:
@@ -1714,7 +1716,7 @@ Configuration included with package installation
                 print(f"    {tier:12} -> {resolved[0]}")
             except Exception as e:
                 print(f"    {tier:12} -> Error: {e}")
-
+    
     # Test 6: Using exact model names
     print("\n=== Test 6: Exact Model Names ===")
     exact_tests = [
@@ -1773,7 +1775,7 @@ HOW TO USE MODEL SETTINGS IN YOUR CODE:
     print("Tier shortcuts: 'best', 'balanced', 'fast', 'recommended'")
     print("Exact model names: Can still use full model names directly")
     print("Simple JSON config: Easy to update model mappings")
-
+    
     print("\n" + "="*80)
     print("MODEL TIER SUMMARY")
     print("="*80)

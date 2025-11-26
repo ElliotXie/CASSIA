@@ -830,9 +830,9 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
 
         # Data for HTML report (with raw conversation history preserving newlines)
         full_data_for_html.append({
-            'True Cell Type': true_cell_type,
-            'Predicted Main Cell Type': main_cell_type,
-            'Predicted Sub Cell Types': sub_cell_types,
+            'Cluster ID': true_cell_type,
+            'Predicted General Cell Type': main_cell_type,
+            'Predicted Detailed Cell Type': sub_cell_types,
             'Possible Mixed Cell Types': possible_mixed_cell_types,
             'Marker Number': marker_number,
             'Marker List': marker_list,
@@ -883,21 +883,21 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    # Sort the data by True Cell Type with natural/numeric ordering
+    # Sort the data by Cluster ID with natural/numeric ordering
     # This ensures "cluster 1", "cluster 2", "cluster 10" (not "cluster 1", "cluster 10", "cluster 2")
-    full_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (True Cell Type) numerically
-    summary_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (True Cell Type) numerically
+    full_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (Cluster ID) numerically
+    summary_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (Cluster ID) numerically
 
     # Write the full data CSV with updated headers
-    write_csv(full_csv_name, 
-              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types', 
+    write_csv(full_csv_name,
+              ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
                'Possible Mixed Cell Types', 'Marker Number', 'Marker List', 'Iterations',
                'Model', 'Provider', 'Tissue', 'Species', 'Additional Info', 'Conversation History'],
               full_data)
 
     # Write the summary data CSV with updated headers
     write_csv(summary_csv_name,
-              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types',
+              ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
                'Possible Mixed Cell Types', 'Marker List', 'Iterations', 'Model', 'Provider',
                'Tissue', 'Species'],
               summary_data)
@@ -911,7 +911,7 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         except ImportError:
             from generate_batch_report import generate_batch_html_report_from_data
         # Sort the HTML data the same way as CSV
-        full_data_for_html.sort(key=lambda x: natural_sort_key(x['True Cell Type']))
+        full_data_for_html.sort(key=lambda x: natural_sort_key(x['Cluster ID']))
         generate_batch_html_report_from_data(full_data_for_html, html_report_name)
         print(f"Three files have been created:")
         print(f"1. {full_csv_name} (full data CSV)")
@@ -1175,9 +1175,9 @@ def runCASSIA_batch_with_reference(
 
         # Data for HTML report
         full_data_for_html.append({
-            'True Cell Type': true_cell_type,
-            'Predicted Main Cell Type': main_cell_type,
-            'Predicted Sub Cell Types': sub_cell_types,
+            'Cluster ID': true_cell_type,
+            'Predicted General Cell Type': main_cell_type,
+            'Predicted Detailed Cell Type': sub_cell_types,
             'Possible Mixed Cell Types': possible_mixed_cell_types,
             'Marker Number': marker_number,
             'Marker List': marker_list_str,
@@ -1233,20 +1233,20 @@ def runCASSIA_batch_with_reference(
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    # Sort the data by True Cell Type with natural ordering
+    # Sort the data by Cluster ID with natural ordering
     full_data.sort(key=lambda x: natural_sort_key(x[0]))
     summary_data.sort(key=lambda x: natural_sort_key(x[0]))
 
     # Write CSV files with reference columns
     write_csv(full_csv_name,
-              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types',
+              ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
                'Possible Mixed Cell Types', 'Marker Number', 'Marker List', 'Iterations',
                'Model', 'Provider', 'Tissue', 'Species', 'Additional Info',
                'Reference Used', 'Complexity Score', 'Conversation History'],
               full_data)
 
     write_csv(summary_csv_name,
-              ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types',
+              ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
                'Possible Mixed Cell Types', 'Marker List', 'Iterations', 'Model', 'Provider',
                'Tissue', 'Species', 'Reference Used'],
               summary_data)
@@ -1258,7 +1258,7 @@ def runCASSIA_batch_with_reference(
             from .generate_batch_report import generate_batch_html_report_from_data
         except ImportError:
             from generate_batch_report import generate_batch_html_report_from_data
-        full_data_for_html.sort(key=lambda x: natural_sort_key(x['True Cell Type']))
+        full_data_for_html.sort(key=lambda x: natural_sort_key(x['Cluster ID']))
         generate_batch_html_report_from_data(full_data_for_html, html_report_name)
         print(f"Three files have been created:")
         print(f"1. {full_csv_name} (full data CSV)")
@@ -2455,10 +2455,10 @@ def runCASSIA_pipeline(
             except ImportError:
                 from merging_annotation import merge_annotations_all
             
-            # Sort the CSV file by True Cell Type before merging to ensure consistent order
-            print("Sorting CSV by True Cell Type before merging...")
+            # Sort the CSV file by Cluster ID before merging to ensure consistent order
+            print("Sorting CSV by Cluster ID before merging...")
             df = pd.read_csv(raw_full_csv)
-            df = df.sort_values(by=['True Cell Type'])
+            df = df.sort_values(by=['Cluster ID'])
             df.to_csv(raw_sorted_csv, index=False)
             
             # Run the merging process on the sorted CSV
@@ -2494,14 +2494,14 @@ def runCASSIA_pipeline(
         # If merged annotations exist, add merged columns
         if os.path.exists(merged_annotation_file):
             merged_df = pd.read_csv(merged_annotation_file)
-            # Merge on 'True Cell Type' to add merged annotation columns
-            if 'True Cell Type' in merged_df.columns:
+            # Merge on 'Cluster ID' to add merged annotation columns
+            if 'Cluster ID' in merged_df.columns:
                 # Keep only the merged columns (not duplicating existing ones)
-                merge_columns = [col for col in merged_df.columns if col not in final_df.columns or col == 'True Cell Type']
-                final_df = final_df.merge(merged_df[merge_columns], on='True Cell Type', how='left')
-        
-        # Sort the final results by True Cell Type
-        final_df = final_df.sort_values(by=['True Cell Type'])
+                merge_columns = [col for col in merged_df.columns if col not in final_df.columns or col == 'Cluster ID']
+                final_df = final_df.merge(merged_df[merge_columns], on='Cluster ID', how='left')
+
+        # Sort the final results by Cluster ID
+        final_df = final_df.sort_values(by=['Cluster ID'])
         
         # Save the final combined results
         final_combined_file = os.path.join(annotation_results_folder, f"{output_file_name}_FINAL_RESULTS.csv")
@@ -2536,7 +2536,7 @@ def runCASSIA_pipeline(
     print("\n=== Analyzing low-scoring clusters ===")
     # Handle low-scoring clusters
     df = pd.read_csv(score_file_name)
-    low_score_clusters = df[df['Score'] < score_threshold]['True Cell Type'].tolist()
+    low_score_clusters = df[df['Score'] < score_threshold]['Cluster ID'].tolist()
 
     print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
     print(low_score_clusters)

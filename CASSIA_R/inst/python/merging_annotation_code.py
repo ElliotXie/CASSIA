@@ -60,9 +60,9 @@ def merge_annotations(
     # Map expected column names to actual column names
     # Check for the expected column names based on the new information
     column_mapping = {
-        "cluster": "True Cell Type",  # "True Cell Type" is actually the cluster ID column
-        "general_annotation": "Predicted Main Cell Type",
-        "subtype_annotation": "Predicted Sub Cell Types"
+        "cluster": "Cluster ID",  # The cluster identifier column
+        "general_annotation": "Predicted General Cell Type",
+        "subtype_annotation": "Predicted Detailed Cell Type"
     }
     
     # Verify that we found the necessary columns

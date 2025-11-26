@@ -95,7 +95,7 @@ def run_annotation_boost_test():
 
     # Load the batch results to get cluster names
     batch_df = pd.read_csv(batch_results_file)
-    cluster_col = 'True Cell Type' if 'True Cell Type' in batch_df.columns else batch_df.columns[0]
+    cluster_col = 'Cluster ID' if 'Cluster ID' in batch_df.columns else ('True Cell Type' if 'True Cell Type' in batch_df.columns else batch_df.columns[0])
     available_clusters = batch_df[cluster_col].tolist()
 
     # Test cluster for annotation boost - use "plasma cell" as it's well-defined
