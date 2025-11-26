@@ -50,7 +50,7 @@ Please provide a structured summary following the format above:"""
         summary = call_llm(
             prompt=summarization_prompt,
             provider=provider,
-            model=model if model else "google/gemini-2.5-flash-preview",  # Default model for summarization
+            model=model if model else "google/gemini-2.5-flash",  # Default model for summarization
             temperature=temperature
         )
         
@@ -1304,8 +1304,10 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         </GENES_CHECKED>
         
         <KEY_FINDINGS>
-        Concise summary of the key results from gene expression analysis and what was learned.
+        Deatailed summary of the key results from gene expression analysis and what was learned.
+        Make sure it corresponds to the hypotheses tested in the previous iteration (if any). Format as numbered points (1., 2., 3.) each on a new line.
         </KEY_FINDINGS>
+
         </ITERATION_1>
         
         # Repeat for each additional iteration (ITERATION_2, ITERATION_3, etc.)
@@ -1440,7 +1442,7 @@ def runCASSIA_annotationboost(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model, provider)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")
@@ -1556,7 +1558,7 @@ def runCASSIA_annotationboost_additional_task(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model, provider)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")

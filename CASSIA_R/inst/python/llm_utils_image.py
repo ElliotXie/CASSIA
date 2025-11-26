@@ -315,7 +315,7 @@ Please provide your analysis in JSON format:
                 analysis_result = json.loads(json_match.group())
             else:
                 analysis_result = {"analysis": content, "best_parameters": {}}
-        except:
+        except (json.JSONDecodeError, AttributeError):
             analysis_result = {"analysis": content, "best_parameters": {}}
         
         return analysis_result
@@ -394,7 +394,7 @@ Please provide your analysis in JSON format:
                 analysis_result = json.loads(json_match.group())
             else:
                 analysis_result = {"stability_analysis": content, "recommended_resolution": 0.7}
-        except:
+        except (json.JSONDecodeError, AttributeError):
             analysis_result = {"stability_analysis": content, "recommended_resolution": 0.7}
         
         return analysis_result
@@ -469,7 +469,7 @@ Please provide your analysis in JSON format:
                     "final_analysis": content,
                     "recommended_parameters": {"n_pcs": 30, "min_dist": 0.2, "n_neighbors": 30, "resolution": 0.7}
                 }
-        except:
+        except (json.JSONDecodeError, AttributeError):
             analysis_result = {
                 "final_analysis": content,
                 "recommended_parameters": {"n_pcs": 30, "min_dist": 0.2, "n_neighbors": 30, "resolution": 0.7}

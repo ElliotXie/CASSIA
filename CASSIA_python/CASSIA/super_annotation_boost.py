@@ -1134,7 +1134,7 @@ class SuperAnnotationBoost:
                     import ast
                     try:
                         gene_list = ast.literal_eval(gene_list)
-                    except:
+                    except (ValueError, SyntaxError):
                         # Fallback: simple parsing
                         gene_list = gene_list.strip('[]').replace('"', '').replace("'", "").split(',')
                         gene_list = [g.strip() for g in gene_list if g.strip()]
@@ -2749,7 +2749,7 @@ if __name__ == "__main__":
     print("\nExample usage:")
     print("""
 import scanpy as sc
-from super_annottaion_boost import runSuperAnnotationBoost
+from super_annotation_boost import runSuperAnnotationBoost
 
 # Load your data
 adata = sc.read_h5ad("your_data.h5ad")

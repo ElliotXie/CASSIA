@@ -1,0 +1,312 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes an iterative gene expression analysis performed by CASSIA to annotate a cell cluster. The analysis involved 3 iterations and examined a total of 29 unique genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was "Plasma Cell," strongly supported by a robust signature of immunoglobulin genes (e.g., IGHA1, IGHA2) and canonical plasma cell markers such as JCHAIN, TNFRSF17, and MZB1. The specific enrichment of IgA-related genes and CCR10 further refined this to IgA-secreting plasma cells, consistent with a large intestine origin. The presence of MYL2 was noted as an anomaly requiring further investigation.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To investigate the unexpected presence of MYL2, checking for potential contamination or doublet events involving muscle-related cells (using smooth muscle markers like ACTA2, DES) or other immune cells (T-cell marker CD3G, B-cell marker CD19).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To confirm the differentiation state of plasma cells and exclude less mature B-cell populations, by checking key transcription factors for plasma cell differentiation (XBP1, PRDM1, IRF4) and canonical plasma cell surface markers (CD27, CD38), while ruling out B-cell markers (CD20, PAX5).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To characterize the immunoglobulin isotype heterogeneity by quantifying relative expression levels of different heavy chain isotypes (IGHA1, IGHA2, IGHG1, IGHG3, IGHM) and checking for PIGR to support a mucosal IgA-secreting phenotype, along with the pan-plasma cell marker CD138.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">DES</span><span class="gene-badge">CD3G</span><span class="gene-badge">CD19</span><span class="gene-badge">XBP1</span><span class="gene-badge">PRDM1</span><span class="gene-badge">IRF4</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">CD20</span><span class="gene-badge">PAX5</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">PIGR</span><span class="gene-badge">CD138</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                1. Strong expression of MYL2 was observed (avg_log2FC = 8.15, pct.1 = 0.12), indicating it is a strong marker for a small, distinct subpopulation. CD3G showed very low expression (avg_log2FC = -7.63, pct.1 = 0.00), ruling out T-cell contamination. ACTA2, CD19, DES were not in the differential expression list, suggesting no strong evidence for common muscle or B-cell doublets.
+2. High expression of XBP1 (avg_log2FC = 1.17, pct.1 = 0.94), CD27 (avg_log2FC = 3.91, pct.1 = 0.81), and CD38 (avg_log2FC = 4.69, pct.1 = 0.46) was observed, supporting plasma cell identity. However, IRF4 (avg_log2FC = -3.84, pct.1 = 0.01) and PRDM1 (avg_log2FC = -3.32, pct.1 = 0.02) showed low expression. CD20 and PAX5 were not in the differential expression list, consistent with plasma cell differentiation.
+3. Mixed immunoglobulin isotype expression was confirmed with high IGHA2 (avg_log2FC = 7.38, pct.1 = 0.89), and significant expression of IGHG1 (avg_log2FC = 8.60, pct.1 = 0.12), IGHG3 (avg_log2FC = 7.94, pct.1 = 0.12), and IGHM (avg_log2FC = 7.69, pct.1 = 0.21). PIGR showed low expression (avg_log2FC = -4.40, pct.1 = 0.12). CD138 was not in the differential expression list.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further investigate the MYL2 anomaly, re-evaluating the muscle cell hypothesis with more specific smooth muscle markers (ACTA2, DES, TAGLN) and considering endothelial cell doublets (CDH5, PECAM1), to determine if MYL2-expressing cells co-express other non-immune cell markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To clarify the differentiation stage given the low PRDM1 and IRF4 expression despite high XBP1, by re-examining these transcription factors and including CD138 (SDC1), a definitive plasma cell surface marker.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To understand the relative proportions and co-expression patterns of the confirmed multiple immunoglobulin isotypes (IGHA1, IGHA2, IGHG1, IGHG3, IGHM), and re-evaluate PIGR expression, as its low level was unexpected for mucosal IgA plasma cells.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">DES</span><span class="gene-badge">TAGLN</span><span class="gene-badge">CDH5</span><span class="gene-badge">PECAM1</span><span class="gene-badge">XBP1</span><span class="gene-badge">PRDM1</span><span class="gene-badge">IRF4</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">CD138</span><span class="gene-badge">SDC1</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">PIGR</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                1. MYL2 remained highly expressed (avg_log2FC = 8.15, pct.1 = 0.12). However, ACTA2, CDH5, DES, PECAM1, and TAGLN were not in the differential expression list, providing no evidence for co-expression with common muscle or endothelial markers. This suggested MYL2 might be a specific marker for a plasma cell subpopulation or a rare, highly specific doublet.
+2. XBP1 (avg_log2FC = 1.17, pct.1 = 0.94), CD27 (avg_log2FC = 3.91, pct.1 = 0.81), and CD38 (avg_log2FC = 4.69, pct.1 = 0.46) continued to show strong expression. PRDM1 (avg_log2FC = -3.32, pct.1 = 0.02) and IRF4 (avg_log2FC = -3.84, pct.1 = 0.01) remained low. SDC1 (CD138) showed low expression (avg_log2FC = -2.76, pct.1 = 0.01).
+3. JCHAIN showed very high expression (avg_log2FC = 9.82, pct.1 = 0.99). The mixed isotype profile was confirmed with high IGHA2, IGHG1, IGHG3, and IGHM. PIGR remained low (avg_log2FC = -4.40, pct.1 = 0.12).
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To further investigate the MYL2 anomaly, exploring more specific markers for pericytes or other mesenchymal cells (ACTG2, CNN1, MYH11, RGS5, PDGFRB) that might co-express MYL2 and form doublets, given the lack of evidence for common muscle/endothelial markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To clarify the differentiation stage given the low SDC1, PRDM1, and IRF4 despite high XBP1, by confirming the expression of TNFRSF17 (BCMA), a robust plasma cell marker, to support plasma cell identity and potentially indicate a specific subtype or differentiation stage.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To determine if the mixed immunoglobulin isotypes represent distinct subpopulations or co-expression, and to confirm if PIGR is truly absent or just very low, and if its expression correlates with any specific isotype.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTG2</span><span class="gene-badge">CNN1</span><span class="gene-badge">MYH11</span><span class="gene-badge">RGS5</span><span class="gene-badge">PDGFRB</span><span class="gene-badge">XBP1</span><span class="gene-badge">PRDM1</span><span class="gene-badge">IRF4</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">SDC1</span><span class="gene-badge">TNFRSF17</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">PIGR</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                1. MYL2 remained highly expressed (avg_log2FC = 8.15, pct.1 = 0.12). CNN1 showed significant expression (avg_log2FC = 4.19, pct.1 = 0.18), suggesting co-expression with MYL2 in a subset of cells, indicative of a smooth muscle-like doublet. ACTG2, MYH11, PDGFRB, and RGS5 were not in the differential expression list.
+2. TNFRSF17 showed very high expression (avg_log2FC = 8.84, pct.1 = 0.80), strongly supporting plasma cell identity. XBP1, CD27, and CD38 remained high, while SDC1, PRDM1, and IRF4 remained low. This pattern suggests a specific differentiation state, possibly plasmablast-like or a specialized plasma cell subtype.
+3. The mixed immunoglobulin isotype profile (IgA, IgG, IgM) was re-confirmed. JCHAIN remained highly expressed (avg_log2FC = 9.82, pct.1 = 0.99). PIGR remained low (avg_log2FC = -4.40, pct.1 = 0.12).
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type is **Plasma Cells**. The confidence level is **high**. This conclusion is strongly supported by the overwhelming expression of key plasma cell markers including **JCHAIN**, **TNFRSF17 (BCMA)**, **XBP1**, **CD27**, and **CD38**. The presence of multiple immunoglobulin heavy chains (IGHA1, IGHA2, IGHG1, IGHG3, IGHM) indicates a diverse population of plasma cells, consistent with the large intestine environment. The co-expression of **MYL2** and **CNN1** in a small subset of cells points to a minor doublet population involving smooth muscle cells, which should be filtered out during downstream analysis. The low expression of PRDM1, IRF4, and SDC1, while notable, does not negate the plasma cell identity given the strong positive markers, but rather suggests a specific differentiation stage or functional subtype within the plasma cell lineage.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Canonical Plasma Cell Markers:**
+*   **Surface Markers:** CD27, CD38, TNFRSF17 (BCMA)
+*   **Transcription Factors:** XBP1
+*   **Secretory/Assembly:** JCHAIN
+
+**Immunoglobulin Isotypes (Heavy Chains):**
+*   **IgA:** IGHA1, IGHA2
+*   **IgG:** IGHG1, IGHG3
+*   **IgM:** IGHM
+
+**Doublet/Contamination Markers:**
+*   **Smooth Muscle-like:** MYL2, CNN1
+
+**Markers with Low/Absent Expression (suggesting specific differentiation state or absence):**
+*   **Plasma Cell Differentiation/Maturation:** PRDM1, IRF4, SDC1 (CD138)
+*   **Mucosal Transport:** PIGR
+*   **T-cell:** CD3G
+*   **B-cell:** CD19, CD20, PAX5
+*   **Other Muscle/Mesenchymal:** ACTA2, DES, TAGLN, ACTG2, MYH11, RGS5, PDGFRB
+*   **Endothelial:** CDH5, PECAM1
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            The MYL2/CNN1 co-expressing subpopulation should be filtered out during downstream analysis to remove potential smooth muscle cell doublets. Further investigation into the specific differentiation stage or functional subtype of these plasma cells is warranted, given the high XBP1 and TNFRSF17 but low PRDM1, IRF4, and SDC1 expression.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

@@ -186,7 +186,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "json_file",
         type=str,
-        help="Path to the input JSON file from hypothesis_geneartion.py."
+        help="Path to the input JSON file from hypothesis_generation.py."
     )
     parser.add_argument(
         "-o", "--output",

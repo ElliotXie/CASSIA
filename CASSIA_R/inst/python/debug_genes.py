@@ -153,7 +153,7 @@ def test_filter_marker(marker_data: Union[str, pd.DataFrame], gene_list: List[st
         else:
             try:
                 marker_df = pd.read_csv(marker_data, index_col=0)
-            except:
+            except (pd.errors.ParserError, ValueError):
                 marker_df = pd.read_csv(marker_data)
         
         print(f"Loaded marker data with shape: {marker_df.shape}")
@@ -227,7 +227,7 @@ def examine_marker_structure(marker_data: Union[str, pd.DataFrame]):
             try:
                 marker_df = pd.read_csv(marker_data, index_col=0)
                 print(f"Loaded with index_col=0")
-            except:
+            except (pd.errors.ParserError, ValueError):
                 marker_df = pd.read_csv(marker_data)
                 print(f"Loaded without index_col")
         

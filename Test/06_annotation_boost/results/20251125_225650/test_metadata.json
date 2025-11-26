@@ -1,0 +1,18 @@
+{
+  "test_name": "annotation_boost",
+  "timestamp": "2025-11-25T22:57:30.592666",
+  "language": "python",
+  "config": {
+    "model": "google/gemini-2.5-flash",
+    "provider": "openrouter",
+    "tissue": "large intestine",
+    "species": "human",
+    "n_genes": 30
+  },
+  "duration_seconds": 39.87,
+  "status": "passed",
+  "clusters_tested": [
+    "plasma cell"
+  ],
+  "errors": []
+}

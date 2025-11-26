@@ -3,7 +3,7 @@ import glob
 from datetime import datetime
 
 # Import the core functions from our other scripts
-from hypothesis_geneartion import run_multi_analysis
+from hypothesis_generation import run_multi_analysis
 from summarize_hypothesis_runs import summarize_runs
 
 def run_full_pipeline_test():

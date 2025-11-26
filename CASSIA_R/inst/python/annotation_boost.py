@@ -623,7 +623,7 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                     result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
                 else:  # avg_log2FC, pct.1, pct.2 etc. - use regular decimal notation
                     result[col] = result[col].apply(lambda x: f"{float(x):.2f}" if pd.notnull(x) and x != 'NA' else x)
-            except:
+            except (ValueError, TypeError):
                 continue
         
         # Exclude p_val column if it exists and p_val_adj is also present
@@ -868,9 +868,9 @@ def iterative_marker_analysis(
                 with open(f"cassia_error_log_{iteration+1}.txt", "w", encoding="utf-8") as f:
                     f.write(error_log)
                 print(f"Error details saved to cassia_error_log_{iteration+1}.txt")
-            except:
+            except Exception:
                 pass
-                
+
             return f"Error occurred: {str(e)}", messages
     
     # Final response if max iterations reached
@@ -911,9 +911,9 @@ def iterative_marker_analysis(
             with open("cassia_error_log_final.txt", "w", encoding="utf-8") as f:
                 f.write(error_log)
             print(f"Error details saved to cassia_error_log_final.txt")
-        except:
+        except Exception:
             pass
-            
+
         return f"Error in final response: {str(e)}", messages
 
 def validate_findallmarkers_format(marker_df: pd.DataFrame, source_path: str = None) -> None:
@@ -1184,9 +1184,9 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(f"Error saving raw conversation: {str(e)}")
-        except:
+        except Exception:
             pass
-            
+
         return filename
 
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration") -> str:

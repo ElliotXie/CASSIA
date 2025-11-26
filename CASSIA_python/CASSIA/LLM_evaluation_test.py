@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from LLM_evalution import (
+from LLM_evaluation import (
     LLMEvaluator,
     generate_simulated_data,
     generate_multiple_celltype_samples,

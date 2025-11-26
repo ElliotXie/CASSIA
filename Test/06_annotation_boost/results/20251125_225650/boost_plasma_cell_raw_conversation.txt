@@ -1,0 +1,277 @@
+## USER
+
+
+You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
+
+Context Provided to You:
+
+Cluster summary：human large intestine
+
+Top ranked markers (high → low)：
+ IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1
+
+Prior annotation results：
+ **Previously Identified Cell Type**: Plasma Cell
+
+**Key Supporting Markers**:
+The identification of Plasma Cells is strongly supported by the overwhelming presence of immunoglobulin genes, including both heavy (IGHV, IGHG1, IGHG3, IGHM, IGHA1, IGHA2) and light chains (IGLV, IGLC, IGKV, IGKC), indicating active and diverse antibody production. Crucial definitive markers include **JCHAIN** (essential for polymeric IgA and IgM secretion), **TNFRSF17 (BCMA)**, **MZB1**, and **GPRC5D**. The prominent expression of **IGHA1** and **IGHA2**, coupled with JCHAIN, specifically points to IgA-secreting plasma cells, which are predominant in the gut mucosa. **CCR10** further supports their mucosal homing.
+
+**Alternative Hypotheses**:
+No explicit alternative cell types were considered as primary hypotheses due to the overwhelming and specific immune signature. However, within the plasma cell lineage, the presence of IGHG1/IGHG3 and IGHM suggested the possibility of IgG-secreting and IgM-secreting plasma cells, respectively, as secondary and tertiary subtypes.
+
+**Remaining Uncertainties**:
+The presence of **MYL2 (Myosin Light Chain 2)**, typically associated with muscle cells, was noted as unusual for an immune cell. This could indicate potential contamination, doublets, or a less common, specific regulatory role within this cell type, but it was considered a minor or non-specific signal given the dominant immune signature. Additionally, several other markers (e.g., FAM92B, AC026369.3) were identified as largely uncharacterized genes, predicted genes, or lncRNAs, whose specific roles in this cell type remain unclear.
+
+What you should do:
+
+1. Brief Evaluation – One concise paragraph that:
+
+    - Highlights strengths, ambiguities, or contradictions in the current call.
+
+    - Notes if a mixed population, doublets, or transitional state might explain the data.
+
+2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
+
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers if that will clarify the call.
+
+    - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
+
+3. Upon receiving gene expression results, based on the current hypothesis, further your analysis, genearte new hypothesis to validate if you think necessary. Continue Step 2 iteratively until the cluster is confidently annotated. Once finalized, output the single line:
+"FINAL ANNOTATION COMPLETED"
+Then provide a conclusion paragraph that includes:
+
+1.The final cell type
+2.Confidence level (high, medium, or low)
+3.Key markers supporting your conclusion
+4.Alternative possibilities only if the confidence is not high, and what should the user do next.
+
+
+
+Output Template：
+
+Evaluation
+[One short paragraph]
+
+celltype to check 1
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these genes and what we expect to see.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>GENE4,GENE5</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>GENE6,GENE7</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+*Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
+*Provide no more than three total blocks (celltype + hypothesis combined).
+*For each hypothesis check no more than 7 genes.
+*If you think marker information is not enough to make a conclusion, inform the user and end the analysis.
+
+
+Tone & Style Guidelines
+
+Skeptical, critical, and careful
+Professional, succinct, and evidence‑based.
+Progressively deepen the anlaysis, don't repeat the same hypothesis.
+
+
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The current annotation for Plasma Cell is strongly supported by a robust and extensive signature of immunoglobulin genes and canonical plasma cell markers like JCHAIN, TNFRSF17, and MZB1. The specific enrichment of IgA-related genes (IGHA1, IGHA2, JCHAIN) and CCR10 further refines this to IgA-secreting plasma cells, consistent with a large intestine origin. The presence of MYL2 is indeed anomalous and warrants further investigation, as it could indicate a minor contamination, a doublet event with a muscle-like cell, or a highly specific, yet uncharacterized, functional role. The uncharacterized genes and lncRNAs are common in single-cell datasets and do not inherently contradict the primary annotation but highlight areas for future research.
+
+hypothesis to check 1
+
+<check_genes>MYL2,ACTA2,DES,CD3G,CD19</check_genes>
+
+<reasoning>
+Given the unexpected presence of MYL2, a primary concern is potential contamination or a doublet event involving a muscle-related cell type. We should investigate markers for smooth muscle cells (often found in the gut lamina propria) and general immune cell markers. If MYL2 is part of a doublet, we might see co-expression with smooth muscle markers like ACTA2 or DES, alongside the plasma cell markers. Conversely, if it's a contaminant, we might see MYL2 expression without other plasma cell markers in a subset of cells, or a clear bimodal distribution. We should also check for T-cell (CD3G) and B-cell (CD19) markers to rule out doublets with other immune populations, although the strong immunoglobulin signature already makes this less likely for the majority of the cluster.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>XBP1,PRDM1,IRF4,CD27,CD38,CD20,PAX5</check_genes>
+
+<reasoning>
+While the overall plasma cell annotation is strong, it is important to confirm the differentiation state and exclude less mature B-cell populations that might share some immunoglobulin expression. XBP1, PRDM1 (BLIMP1), and IRF4 are transcription factors critical for plasma cell differentiation and maintenance. High expression of these, alongside canonical plasma cell surface markers like CD27 and CD38 (which are typically high on plasma cells), would further solidify the plasma cell identity. Conversely, the absence of B-cell markers such as CD20 and PAX5 (which are downregulated during plasma cell differentiation) would help rule out contaminating B cells or plasmablasts.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>IGHA1,IGHA2,IGHG1,IGHG3,IGHM,PIGR,CD138</check_genes>
+
+<reasoning>
+The current annotation suggests IgA-secreting plasma cells due to IGHA1/IGHA2 and JCHAIN. However, the presence of IGHG1, IGHG3, and IGHM suggests some heterogeneity in isotype. We should quantify the relative expression levels of these different heavy chain isotypes to better characterize the dominant and minor populations within this cluster. Additionally, checking for PIGR (Polymeric Immunoglobulin Receptor), which facilitates transcytosis of polymeric IgA and IgM across epithelial layers, would further support the mucosal IgA-secreting phenotype. CD138 (SDC1) is a pan-plasma cell marker that should be highly expressed.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+ gene avg_log2FC pct.1 pct.2 p_val_adj
+ CD27       3.91  0.81  0.05  0.00e+00
+ CD38       4.69  0.46  0.01  0.00e+00
+ CD3G      -7.63  0.00  0.20  5.07e-25
+IGHA1      -2.53  0.78  0.69  5.74e-10
+IGHA2       7.38  0.89  0.10  0.00e+00
+IGHG1       8.60  0.12  0.01  3.68e-90
+IGHG3       7.94  0.12  0.01  5.12e-40
+ IGHM       7.69  0.21  0.05  8.76e-33
+ IRF4      -3.84  0.01  0.10  5.35e-09
+ MYL2       8.15  0.12  0.00 7.09e-278
+ PIGR      -4.40  0.12  0.54  3.32e-73
+PRDM1      -3.32  0.02  0.20  4.69e-20
+ XBP1       1.17  0.94  0.53  4.06e-49
+Note: The following genes are not in the differential expression list: ACTA2, CD138, CD19, CD20, DES, PAX5
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The new expression data largely reinforces the plasma cell annotation, particularly with strong expression of XBP1, CD27, and CD38, and the absence of CD3G, supporting the immune cell identity and differentiation state. The high expression of MYL2 in a subset of cells remains a significant anomaly, now appearing as a strong marker for a subpopulation rather than a minor signal. The mixed immunoglobulin isotype expression is also clearer, with IgA, IgG, and IgM all present, suggesting a diverse population of plasma cells. The low expression of PIGR and the transcription factors IRF4 and PRDM1, despite high XBP1, warrants further investigation into the precise differentiation stage or functional state of these plasma cells.
+
+hypothesis to check 1
+
+<check_genes>MYL2,ACTA2,DES,TAGLN,CDH5,PECAM1</check_genes>
+
+<reasoning>
+The high avg_log2FC and low p_val_adj for MYL2, despite a low pct.1, indicates it is a strong marker for a small but distinct subpopulation within the cluster. This strengthens the hypothesis of a doublet or contamination. We need to re-evaluate the muscle cell hypothesis with more specific markers. If MYL2 is truly from a muscle cell doublet, we would expect co-expression with other smooth muscle markers (ACTA2, DES, TAGLN). Alternatively, if it's an endothelial cell doublet, we might see markers like CDH5 or PECAM1. The goal is to identify if the MYL2-expressing cells co-express other non-immune cell markers, which would strongly suggest a doublet or contamination.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>XBP1,PRDM1,IRF4,CD27,CD38,CD138,SDC1</check_genes>
+
+<reasoning>
+While XBP1 is highly expressed, the low expression of PRDM1 and IRF4 is somewhat contradictory for fully differentiated plasma cells. This could indicate a population of plasmablasts or early plasma cells rather than terminally differentiated plasma cells. We need to re-examine the expression of these key transcription factors and include CD138 (SDC1), a definitive surface marker for plasma cells, which was missing from the previous check. High expression of CD138 alongside XBP1, but potentially lower PRDM1/IRF4, could point to a plasmablast-like state or a specific functional state of plasma cells.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>IGHA1,IGHA2,IGHG1,IGHG3,IGHM,JCHAIN,PIGR</check_genes>
+
+<reasoning>
+The data confirms the presence of multiple immunoglobulin isotypes (IgA, IgG, IgM). We need to understand the relative proportions and co-expression patterns of these isotypes within the cluster. High IGHA2 expression, coupled with the previously identified JCHAIN, still strongly points to IgA-secreting cells. However, the significant expression of IGHG1, IGHG3, and IGHM suggests distinct subsets. We should also re-evaluate PIGR expression, as its low expression in the previous check was unexpected for mucosal IgA plasma cells. If PIGR is still low, it might suggest these IgA plasma cells are not actively involved in transcytosis, or are in a different anatomical location within the large intestine.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+  gene avg_log2FC pct.1 pct.2 p_val_adj
+  CD27       3.91  0.81  0.05  0.00e+00
+  CD38       4.69  0.46  0.01  0.00e+00
+ IGHA1      -2.53  0.78  0.69  5.74e-10
+ IGHA2       7.38  0.89  0.10  0.00e+00
+ IGHG1       8.60  0.12  0.01  3.68e-90
+ IGHG3       7.94  0.12  0.01  5.12e-40
+  IGHM       7.69  0.21  0.05  8.76e-33
+  IRF4      -3.84  0.01  0.10  5.35e-09
+JCHAIN       9.82  0.99  0.15  0.00e+00
+  MYL2       8.15  0.12  0.00 7.09e-278
+  PIGR      -4.40  0.12  0.54  3.32e-73
+ PRDM1      -3.32  0.02  0.20  4.69e-20
+  SDC1      -2.76  0.01  0.14  1.63e-13
+  XBP1       1.17  0.94  0.53  4.06e-49
+Note: The following genes are not in the differential expression list: ACTA2, CD138, CDH5, DES, PECAM1, TAGLN
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The data continues to strongly support a plasma cell identity, with high expression of JCHAIN, XBP1, CD27, and CD38. The persistent high expression of MYL2 in a small subset, without supporting muscle or endothelial markers, suggests it is either a very specific, uncharacterized marker for a plasma cell subpopulation or a rare, highly specific doublet that we haven't fully characterized yet. The low expression of SDC1 (CD138), PRDM1, and IRF4, despite high XBP1, remains a key ambiguity regarding the precise differentiation stage, potentially indicating a plasmablast-like state or a specific functional subtype. The mixed immunoglobulin isotype expression is confirmed, highlighting heterogeneity within the plasma cell population.
+
+hypothesis to check 1
+
+<check_genes>MYL2,ACTG2,CNN1,MYH11,RGS5,PDGFRB</check_genes>
+
+<reasoning>
+The high expression of MYL2 in a small percentage of cells (pct.1 = 0.12) is still a prominent feature. Since we lack evidence for common muscle or endothelial cell markers, we need to explore more specific markers for pericytes or other mesenchymal cells that might co-express MYL2 and could form doublets with immune cells in the large intestine. ACTG2, CNN1, and MYH11 are smooth muscle markers, while RGS5 and PDGFRB are often associated with pericytes. If MYL2 is part of a doublet, we would expect co-expression with some of these markers in the MYL2-positive cells. If these are also negative, it strengthens the possibility of MYL2 having an uncharacterized role within a plasma cell subpopulation, or a very rare, specific doublet partner not yet identified.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>XBP1,PRDM1,IRF4,CD27,CD38,SDC1,TNFRSF17</check_genes>
+
+<reasoning>
+The low expression of SDC1 (CD138), PRDM1, and IRF4, despite high XBP1, is still a critical point of ambiguity. While XBP1 is essential for plasma cell differentiation, PRDM1 (Blimp-1) and IRF4 are also key transcription factors for terminal differentiation. Low SDC1 is also unusual for mature plasma cells. This pattern could indicate a population of plasmablasts or early plasma cells, or a specific functional state. We need to confirm the expression of TNFRSF17 (BCMA), a robust plasma cell marker, to further solidify the plasma cell identity, especially in light of the SDC1 results. If TNFRSF17 is high, it would support a plasma cell identity despite the SDC1/PRDM1/IRF4 profile, suggesting a specific subtype or differentiation stage.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>IGHG1,IGHG3,IGHM,IGHA1,IGHA2,JCHAIN,PIGR</check_genes>
+
+<reasoning>
+The data clearly shows a mixed isotype profile (IgA, IgG, IgM). We need to determine if these represent distinct subpopulations within the cluster or if individual cells co-express multiple isotypes (which is less common for mature plasma cells but can occur in plasmablasts). We should investigate the co-expression patterns of these heavy chains. The high JCHAIN expression confirms the ability to form polymeric immunoglobulins. The persistent low PIGR expression is still puzzling for mucosal IgA plasma cells. We need to confirm if PIGR is truly absent or just very low, and if its expression correlates with any specific isotype. This will help us understand the functional implications of the IgA-secreting cells in this context.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+    gene avg_log2FC pct.1 pct.2 p_val_adj
+    CD27       3.91  0.81  0.05  0.00e+00
+    CD38       4.69  0.46  0.01  0.00e+00
+    CNN1       4.19  0.18  0.01 5.35e-165
+   IGHA1      -2.53  0.78  0.69  5.74e-10
+   IGHA2       7.38  0.89  0.10  0.00e+00
+   IGHG1       8.60  0.12  0.01  3.68e-90
+   IGHG3       7.94  0.12  0.01  5.12e-40
+    IGHM       7.69  0.21  0.05  8.76e-33
+    IRF4      -3.84  0.01  0.10  5.35e-09
+  JCHAIN       9.82  0.99  0.15  0.00e+00
+    MYL2       8.15  0.12  0.00 7.09e-278
+    PIGR      -4.40  0.12  0.54  3.32e-73
+   PRDM1      -3.32  0.02  0.20  4.69e-20
+    SDC1      -2.76  0.01  0.14  1.63e-13
+TNFRSF17       8.84  0.80  0.00  0.00e+00
+    XBP1       1.17  0.94  0.53  4.06e-49
+Note: The following genes are not in the differential expression list: ACTG2, MYH11, PDGFRB, RGS5
+
+
+================================================================================
+
+## USER
+
+You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response.
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The data strongly supports the primary annotation of Plasma Cells. The high expression of JCHAIN, TNFRSF17, XBP1, CD27, and CD38 are definitive markers. The presence of CNN1 alongside MYL2 in a small subset of cells strongly suggests a doublet population involving a smooth muscle-like cell. The mixed immunoglobulin isotype expression (IgA, IgG, IgM) indicates heterogeneity within the plasma cell population, which is common in mucosal tissues. The low expression of PRDM1, IRF4, and SDC1, despite high XBP1 and TNFRSF17, suggests a specific differentiation state, possibly plasmablast-like or a specialized plasma cell subtype, rather than a contamination by less differentiated B cells.
+
+FINAL ANNOTATION COMPLETED
+The final cell type is **Plasma Cells**. The confidence level is **high**. This conclusion is strongly supported by the overwhelming expression of key plasma cell markers including **JCHAIN**, **TNFRSF17 (BCMA)**, **XBP1**, **CD27**, and **CD38**. The presence of multiple immunoglobulin heavy chains (IGHA1, IGHA2, IGHG1, IGHG3, IGHM) indicates a diverse population of plasma cells, consistent with the large intestine environment. The co-expression of **MYL2** and **CNN1** in a small subset of cells points to a minor doublet population involving smooth muscle cells, which should be filtered out during downstream analysis. The low expression of PRDM1, IRF4, and SDC1, while notable, does not negate the plasma cell identity given the strong positive markers, but rather suggests a specific differentiation stage or functional subtype within the plasma cell lineage.

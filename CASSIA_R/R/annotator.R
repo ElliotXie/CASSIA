@@ -11,10 +11,10 @@ py_uncertainty <- NULL
 py_generate_reports <- NULL
 py_llm_utils <- NULL
 py_generate_hypothesis_report <- NULL
-py_hypothesis_geneartion <- NULL
+py_hypothesis_generation <- NULL
 py_summarize_hypothesis_runs <- NULL
 py_debug_genes <- NULL
-# py_super_annottaion_boost <- NULL
+# py_super_annotation_boost <- NULL
 py_symphony_compare <- NULL
 py_model_settings <- NULL
 
@@ -61,10 +61,10 @@ py_model_settings <- NULL
     py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
     py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
     py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
-    py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
+    py_hypothesis_generation <<- reticulate::import_from_path("hypothesis_generation", path = system.file("python", package = "CASSIA"))
     py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
     py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-    # py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+    # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
     py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
     py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
     
@@ -87,10 +87,10 @@ py_model_settings <- NULL
       py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
       py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
       py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
-      py_hypothesis_geneartion <<- reticulate::import_from_path("hypothesis_geneartion", path = system.file("python", package = "CASSIA"))
+      py_hypothesis_generation <<- reticulate::import_from_path("hypothesis_generation", path = system.file("python", package = "CASSIA"))
       py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
       py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-      # py_super_annottaion_boost <<- reticulate::import_from_path("super_annottaion_boost", path = system.file("python", package = "CASSIA"))
+      # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
       py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
       py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
       

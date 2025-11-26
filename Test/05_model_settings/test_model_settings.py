@@ -324,7 +324,7 @@ def run_model_settings_test():
     resolution_all_passed = total_resolution_passed == total_resolution_tests
     practical_passed = test_results.get("practical_test", {}).get("success", False)
 
-    # Pass if resolution tests pass OR practical test passes (practical is most important)
+    # Pass if resolution tests pass OR practical test passes
     if resolution_all_passed and practical_passed:
         status = "passed"
     elif practical_passed:
