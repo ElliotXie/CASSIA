@@ -623,7 +623,7 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                     result[col] = result[col].apply(lambda x: f"{float(x):.2e}" if pd.notnull(x) and x != 'NA' else x)
                 else:  # avg_log2FC, pct.1, pct.2 etc. - use regular decimal notation
                     result[col] = result[col].apply(lambda x: f"{float(x):.2f}" if pd.notnull(x) and x != 'NA' else x)
-            except:
+            except (ValueError, TypeError):
                 continue
         
         # Exclude p_val column if it exists and p_val_adj is also present
@@ -868,9 +868,9 @@ def iterative_marker_analysis(
                 with open(f"cassia_error_log_{iteration+1}.txt", "w", encoding="utf-8") as f:
                     f.write(error_log)
                 print(f"Error details saved to cassia_error_log_{iteration+1}.txt")
-            except:
+            except Exception:
                 pass
-                
+
             return f"Error occurred: {str(e)}", messages
     
     # Final response if max iterations reached
@@ -911,18 +911,129 @@ def iterative_marker_analysis(
             with open("cassia_error_log_final.txt", "w", encoding="utf-8") as f:
                 f.write(error_log)
             print(f"Error details saved to cassia_error_log_final.txt")
-        except:
+        except Exception:
             pass
-            
+
         return f"Error in final response: {str(e)}", messages
+
+def validate_findallmarkers_format(marker_df: pd.DataFrame, source_path: str = None) -> None:
+    """
+    Validate that the marker DataFrame is in FindAllMarkers format.
+
+    The FindAllMarkers format should have columns like:
+    - p_val: P-value from differential expression test
+    - avg_log2FC: Average log2 fold change
+    - pct.1: Percentage of cells in cluster expressing gene
+    - pct.2: Percentage of cells outside cluster expressing gene
+    - p_val_adj: Adjusted p-value
+    - cluster: Cell type cluster name
+    - gene: Gene symbol
+
+    Args:
+        marker_df: DataFrame to validate
+        source_path: Optional path to the source file (for error messages)
+
+    Raises:
+        ValueError: If the DataFrame is not in FindAllMarkers format
+    """
+    # Required columns for FindAllMarkers format
+    required_columns = {'gene', 'cluster'}
+    expected_numeric_columns = {'p_val', 'avg_log2FC', 'pct.1', 'pct.2', 'p_val_adj'}
+
+    # Check for processed/2-column format (incorrect format)
+    processed_format_columns = {'Broad.cell.type', 'Top.Markers'}
+    if processed_format_columns.issubset(set(marker_df.columns)):
+        source_info = f" (from: {source_path})" if source_path else ""
+        raise ValueError(
+            f"\n{'='*70}\n"
+            f"ERROR: Invalid marker file format detected{source_info}\n"
+            f"{'='*70}\n\n"
+            f"The marker file appears to be in PROCESSED format with columns:\n"
+            f"  - 'Broad.cell.type'\n"
+            f"  - 'Top.Markers'\n\n"
+            f"However, annotation_boost requires the RAW FindAllMarkers output format.\n\n"
+            f"EXPECTED FORMAT (FindAllMarkers output):\n"
+            f"  Required columns:\n"
+            f"    - gene: Gene symbol\n"
+            f"    - cluster: Cell type cluster name\n"
+            f"    - p_val: P-value from differential expression test\n"
+            f"    - avg_log2FC: Average log2 fold change\n"
+            f"    - pct.1: Percentage of cells in cluster expressing gene\n"
+            f"    - pct.2: Percentage of cells outside cluster expressing gene\n"
+            f"    - p_val_adj: Adjusted p-value (Bonferroni corrected)\n\n"
+            f"HOW TO FIX:\n"
+            f"  1. Use the raw output from Seurat's FindAllMarkers() function\n"
+            f"  2. Or use scanpy's rank_genes_groups output converted to this format\n"
+            f"  3. Do NOT use the processed/summarized marker file\n\n"
+            f"Example of correct format:\n"
+            f"  gene,p_val,avg_log2FC,pct.1,pct.2,p_val_adj,cluster\n"
+            f"  CD3D,0,2.5,0.95,0.1,0,T cell\n"
+            f"  CD19,0,3.2,0.88,0.05,0,B cell\n"
+            f"{'='*70}"
+        )
+
+    # Check if it looks like a 2-column format (any variant)
+    if len(marker_df.columns) <= 3:
+        # Check if columns suggest a processed format
+        col_lower = [c.lower() for c in marker_df.columns]
+        if any('marker' in c or 'cell' in c or 'type' in c for c in col_lower):
+            source_info = f" (from: {source_path})" if source_path else ""
+            raise ValueError(
+                f"\n{'='*70}\n"
+                f"ERROR: Invalid marker file format detected{source_info}\n"
+                f"{'='*70}\n\n"
+                f"The marker file has only {len(marker_df.columns)} columns: {list(marker_df.columns)}\n\n"
+                f"This appears to be a PROCESSED/SUMMARIZED marker file.\n"
+                f"annotation_boost requires the RAW FindAllMarkers output with full\n"
+                f"differential expression statistics.\n\n"
+                f"EXPECTED FORMAT (FindAllMarkers output):\n"
+                f"  Required columns: gene, cluster, p_val, avg_log2FC, pct.1, pct.2, p_val_adj\n\n"
+                f"HOW TO FIX:\n"
+                f"  Use the raw output from Seurat's FindAllMarkers() function\n"
+                f"  instead of a processed/summarized version.\n"
+                f"{'='*70}"
+            )
+
+    # Check for required columns
+    marker_columns = set(marker_df.columns)
+    missing_required = required_columns - marker_columns
+
+    if missing_required:
+        source_info = f" (from: {source_path})" if source_path else ""
+        raise ValueError(
+            f"\n{'='*70}\n"
+            f"ERROR: Missing required columns in marker file{source_info}\n"
+            f"{'='*70}\n\n"
+            f"Missing columns: {missing_required}\n"
+            f"Found columns: {list(marker_df.columns)}\n\n"
+            f"The marker file must be in FindAllMarkers format with columns:\n"
+            f"  - gene: Gene symbol\n"
+            f"  - cluster: Cell type cluster name\n"
+            f"  - p_val, avg_log2FC, pct.1, pct.2, p_val_adj (numeric statistics)\n\n"
+            f"HOW TO FIX:\n"
+            f"  Use the raw output from Seurat's FindAllMarkers() function.\n"
+            f"{'='*70}"
+        )
+
+    # Check for at least some numeric columns (differential expression stats)
+    found_numeric = expected_numeric_columns & marker_columns
+    if len(found_numeric) < 2:
+        source_info = f" (from: {source_path})" if source_path else ""
+        print(
+            f"\nWARNING: Marker file may not be in standard FindAllMarkers format{source_info}\n"
+            f"Expected numeric columns like: {expected_numeric_columns}\n"
+            f"Found: {found_numeric}\n"
+            f"Proceeding anyway, but results may be incomplete.\n"
+        )
+
 
 def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
-    
+
     Args:
         full_result_path: Path to the full results CSV file
-        marker_path: Path to the marker genes CSV file
+        marker_path: Path to the marker genes CSV file (must be in FindAllMarkers format)
         cluster_name: Name of the cluster to analyze
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
             - "full": Use the entire conversation history
@@ -930,22 +1041,30 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             - "none": Don't include any conversation history
         provider: LLM provider to use for summarization (when mode is "final")
         model: Specific model to use for summarization (when mode is "final")
-        
+
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
+
+    Raises:
+        ValueError: If the marker file is not in FindAllMarkers format
     """
     # Load the full results - don't use index_col=0 as it's not indexed that way
     full_results = pd.read_csv(full_result_path)
-    
+
     # Load marker data - handle both DataFrame and file path
+    source_path = None
     if isinstance(marker_path, pd.DataFrame):
         marker = marker_path
     else:
+        source_path = marker_path
         marker = pd.read_csv(marker_path)
-        
+
         # Clean up by removing the 'Unnamed: 0' column if it exists
         if 'Unnamed: 0' in marker.columns:
             marker.drop(columns=['Unnamed: 0'], inplace=True)
+
+    # Validate that the marker file is in FindAllMarkers format
+    validate_findallmarkers_format(marker, source_path)
     
     # Try to find the cluster column name - check new name first, then fall back to old names
     cluster_column = 'Cluster ID'  # New default column name
@@ -1065,19 +1184,21 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(f"Error saving raw conversation: {str(e)}")
-        except:
+        except Exception:
             pass
-            
+
         return filename
 
-def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration") -> str:
+def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration", model: str = "google/gemini-2.5-flash", provider: str = "openrouter") -> str:
     """
     Generate a summarized report from the raw conversation history.
-    
+
     Args:
         conversation_history: List of conversation messages
         output_filename: Path to save the summary report
         search_strategy: Search strategy used ("breadth" or "depth")
+        model: LLM model to use for generating the summary
+        provider: LLM provider to use
         report_style: Style of report ("per_iteration" or "total_summary")
         
     Returns:
@@ -1218,9 +1339,9 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         # Use the call_llm function to generate the summary
         summary = call_llm(
             prompt=prompt,
-            provider="openrouter",  # Using OpenRouter as the provider
-            model="google/gemini-2.5-flash-preview",  # Using Gemini 2.5 Flash model
-            temperature=0.3,      # Low temperature for more consistent output
+            provider=provider,
+            model=model,
+            temperature=0.3,
             max_tokens=4096
         )
         

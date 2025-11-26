@@ -1,0 +1,18 @@
+{
+  "input_file": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\02_batch_annotation\\results\\20251125_204754\\batch_results_full.csv",
+  "output_file": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\04_quality_scoring\\results\\20251125_211834\\scored_results.csv",
+  "scoring_results": {
+    "clusters_scored": 6,
+    "avg_score": 98.0,
+    "min_score": 98.0,
+    "max_score": 98.0,
+    "scores": [
+      98,
+      98,
+      98,
+      98,
+      98,
+      98
+    ]
+  }
+}

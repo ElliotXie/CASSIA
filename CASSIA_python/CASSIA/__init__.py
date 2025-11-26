@@ -27,14 +27,13 @@ from .symphony_compare import symphonyCompare
 # Import the new LLM utilities
 from .llm_utils import call_llm
 
-# Import model settings
+# Import model settings (with fuzzy alias support)
 from .model_settings import (
     resolve_model_name,
     get_recommended_model,
-    get_model_info,
-    list_models,
-    get_use_case_recommendations,
-    print_model_recommendations
+    get_available_aliases,
+    print_available_models,
+    print_available_aliases
 )
 
 # Import the annotation boost functionality

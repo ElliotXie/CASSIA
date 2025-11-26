@@ -17,7 +17,14 @@ from pathlib import Path
 # Add shared utilities to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "shared" / "python"))
 
-from fixtures import get_full_marker_dataframe, get_all_clusters, get_marker_file_path
+from fixtures import get_full_marker_dataframe, get_all_clusters
+
+
+def get_local_marker_file_path():
+    """Get the path to the local FindAllMarkers output file."""
+    return Path(__file__).parent / "data" / "findallmarkers_output.csv"
+
+
 from test_utils import (
     setup_cassia_imports,
     load_config,
@@ -105,8 +112,8 @@ def run_annotation_boost_test():
 
     print(f"\nTesting annotation boost for: {test_cluster}")
 
-    # Get marker data path
-    marker_path = str(get_marker_file_path())
+    # Get marker data path (from local data folder)
+    marker_path = str(get_local_marker_file_path())
 
     # Run annotation boost
     start_time = time.time()

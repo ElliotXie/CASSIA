@@ -554,8 +554,8 @@ Median Cluster Size: {cluster_counts.median():.0f}
         else:
             axes[1,1].text(0.1, 0.5, "Quality metrics\nnot available", fontsize=12, 
                           verticalalignment='center')
-    except:
-        axes[1,1].text(0.1, 0.5, "Quality metrics\nnot available", fontsize=12, 
+    except Exception:
+        axes[1,1].text(0.1, 0.5, "Quality metrics\nnot available", fontsize=12,
                       verticalalignment='center')
     
     axes[1,1].set_xlim(0, 1)

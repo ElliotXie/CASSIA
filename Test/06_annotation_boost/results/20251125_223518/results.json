@@ -1,0 +1,10 @@
+{
+  "cluster": "plasma cell",
+  "batch_results_file": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\02_batch_annotation\\results\\20251125_204754\\batch_results_full.csv",
+  "boost_results": {
+    "status": "success",
+    "execution_time": 26.291974306106567,
+    "summary_report": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\06_annotation_boost\\results\\20251125_223518\\boost_plasma_cell_summary.html",
+    "raw_text": "c:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\06_annotation_boost\\results\\20251125_223518\\boost_plasma_cell_raw_conversation.txt"
+  }
+}

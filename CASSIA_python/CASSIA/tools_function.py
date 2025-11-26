@@ -1458,9 +1458,6 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         retry_count = 0
         
         while score is None and retry_count < max_retries_for_none:
-            if retry_count > 0:
-                print(f"Retry {retry_count}/{max_retries_for_none} for row {idx + 1} due to None score")
-            
             score, reasoning = score_single_analysis(
                 major_cluster_info, 
                 marker, 
@@ -1474,77 +1471,94 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
                 
             retry_count += 1
 
-        print(f"Processed row {idx + 1}: Score = {score}")
         return (idx, score, reasoning)
         
     except Exception as e:
-        print(f"Error processing row {idx + 1}: {str(e)}")
         return (idx, None, f"Error: {str(e)}")
 
 
 def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
     """
     Process and score all rows in a results CSV file in parallel.
-    
+
     Args:
         results_file_path (str): Path to the results CSV file
         output_file_path (str, optional): Path to save the updated results
         max_workers (int): Maximum number of parallel threads
         model (str): Model to use
         provider (str): AI provider to use ('openai' or 'anthropic')
-        
+
     Returns:
         pd.DataFrame: Original results with added score and reasoning columns
     """
     # Read results file
     results = pd.read_csv(results_file_path)
-    
+
     # Initialize new columns if they don't exist
     if 'Score' not in results.columns:
         results['Score'] = None
     if 'Scoring_Reasoning' not in results.columns:
         results['Scoring_Reasoning'] = None
-    
+
     # Create a list of unscored rows to process
     rows_to_process = [
-        (idx, row) for idx, row in results.iterrows() 
+        (idx, row) for idx, row in results.iterrows()
         if pd.isna(row['Score'])
     ]
-    
+
     if not rows_to_process:
         print("All rows already scored!")
         return results
-    
+
+    # Initialize progress tracker
+    total_to_score = len(rows_to_process)
+    tracker = BatchProgressTracker(total_to_score)
+    print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
+
     # Set up a lock for DataFrame updates
     df_lock = threading.Lock()
-    
+
+    # Helper to get task name from row
+    def get_task_name(row):
+        for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
+            if col in row.index:
+                return str(row[col])
+        return f"Row {row.name + 1}"
+
     # Process rows in parallel
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all jobs
+        # Submit all jobs with tracker handling
+        def process_with_tracking(row_data):
+            idx, row = row_data
+            task_name = get_task_name(row)
+            tracker.start_task(task_name)
+            result = process_single_row(row_data, model=model, provider=provider)
+            tracker.complete_task(task_name)
+            return result
+
         future_to_row = {
-            executor.submit(
-                process_single_row, 
-                row_data,
-                model=model,
-                provider=provider
-            ): row_data[0] 
+            executor.submit(process_with_tracking, row_data): row_data[0]
             for row_data in rows_to_process
         }
-        
+
         # Process completed jobs
         for future in as_completed(future_to_row):
             idx, score, reasoning = future.result()
-            
+
             # Safely update DataFrame
             with df_lock:
                 results.loc[idx, 'Score'] = score
                 results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                
+
                 # Save intermediate results
                 if output_file_path is None:
                     output_file_path = results_file_path.replace('.csv', '_scored.csv')
                 results.to_csv(output_file_path, index=False)
-    
+
+    # Finalize progress display
+    tracker.finish()
+    print(f"Scoring completed. Results saved to {output_file_path}")
+
     return results
 
 def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
@@ -1590,51 +1604,71 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         if not rows_to_process:
             print("All rows already scored!")
             return results
-        
+
+        # Initialize progress tracker
+        total_to_score = len(rows_to_process)
+        tracker = BatchProgressTracker(total_to_score)
+        print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
+
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
-        
-        # Define a function that includes retry logic
+        failed_analyses = []  # Track failed rows for reporting
+
+        # Helper to get task name from row
+        def get_task_name(row):
+            # Try different column names for Cluster ID
+            for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
+                if col in row.index:
+                    return str(row[col])
+            return f"Row {row.name + 1}"
+
+        # Define a function that includes retry logic and progress tracking
         def process_with_retry(row_data):
             idx, row = row_data
+            task_name = get_task_name(row)
+            tracker.start_task(task_name)
+
             for attempt in range(max_retries + 1):
                 try:
-                    return process_single_row(row_data, model=model, provider=provider)
+                    result = process_single_row(row_data, model=model, provider=provider)
+                    tracker.complete_task(task_name)
+                    return result
                 except Exception as exc:
                     # Don't retry authentication errors
                     if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
-                        print(f'⚠️  Row {idx + 1} API ERROR: {exc}')
-                        print(f'⚠️  This appears to be an API authentication error. Please check your API key.')
-                        # Return error info instead of raising
+                        tracker.complete_task(task_name)
                         return idx, None, f"API error: {str(exc)}"
-                    
+
                     # For other errors, retry if attempts remain
-                    if attempt < max_retries:
-                        print(f'⚠️  Row {idx + 1} ERROR: {exc}')
-                        print(f'🔄 RETRYING row {idx + 1} (exception retry {attempt + 1}/{max_retries})...')
-                    else:
-                        print(f'❌ Row {idx + 1} FAILED after {max_retries + 1} attempts with error: {exc}')
-                        # Return error info instead of raising
+                    if attempt >= max_retries:
+                        tracker.complete_task(task_name)
                         return idx, None, f"Failed after {max_retries + 1} attempts: {str(exc)}"
-        
+
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all jobs
             future_to_row = {
-                executor.submit(process_with_retry, row_data): row_data[0] 
+                executor.submit(process_with_retry, row_data): row_data
                 for row_data in rows_to_process
             }
-            
+
             # Process completed jobs
             for future in as_completed(future_to_row):
+                row_data = future_to_row[future]
+                idx, row = row_data
+                task_name = get_task_name(row)
                 try:
                     idx, score, reasoning = future.result()
-                    
+
                     # Safely update DataFrame
                     with df_lock:
                         results.loc[idx, 'Score'] = score
                         results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                        
+
+                        # Track failures
+                        if score is None:
+                            failed_analyses.append((task_name, reasoning))
+
                         # Save intermediate results if output file is specified
                         if output_file:
                             results.to_csv(output_file, index=False)
@@ -1642,12 +1676,22 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
                             output_file = input_file.replace('.csv', '_scored.csv')
                             results.to_csv(output_file, index=False)
                 except Exception as exc:
-                    print(f"Failed to process row: {exc}")
-        
+                    failed_analyses.append((task_name, str(exc)))
+
+        # Finalize progress display
+        tracker.finish()
+
+        # Report any failures
+        if failed_analyses:
+            print(f"\nWarning: {len(failed_analyses)} scoring(s) failed:")
+            for task_name, error in failed_analyses:
+                print(f"  - {task_name}: {error[:100]}{'...' if len(error) > 100 else ''}")
+            print()
+
         # Print summary statistics
         total_rows = len(results)
         scored_rows = results['Score'].notna().sum()
-        print(f"\nScoring completed!")
+        print(f"Scoring completed. Results saved.")
         print(f"\nSummary:")
         print(f"Total rows: {total_rows}")
         print(f"Successfully scored: {scored_rows}")
