@@ -10,8 +10,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 try:
     from .main_function_code import *
+    from .model_settings import ModelSettings
 except ImportError:
     from main_function_code import *
+    from model_settings import ModelSettings
 
 import requests
 import threading
@@ -525,6 +527,10 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
     Returns:
         tuple: (analysis_result, conversation_history)
     """
+    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.1")
+    settings = ModelSettings()
+    model, provider = settings.resolve_model_name(model, provider)
+
     if provider.lower() == "openai":
         return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower() == "anthropic":

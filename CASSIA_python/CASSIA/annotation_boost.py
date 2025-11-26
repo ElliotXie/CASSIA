@@ -1912,6 +1912,72 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     margin-top: -0.3rem;
                     color: var(--text-light);
                 }}
+
+                /* Sidebar Navigation */
+                .sidebar {{
+                    position: fixed;
+                    top: 100px;
+                    right: 20px;
+                    width: 200px;
+                    max-height: calc(100vh - 140px);
+                    overflow-y: auto;
+                    background: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    padding: 1rem;
+                    z-index: 100;
+                }}
+
+                .sidebar h4 {{
+                    font-size: 0.85rem;
+                    color: var(--text-light);
+                    margin: 0 0 0.75rem 0;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }}
+
+                .sidebar ul {{
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }}
+
+                .sidebar li {{
+                    margin-bottom: 0.4rem;
+                }}
+
+                .sidebar a {{
+                    color: var(--text-color);
+                    text-decoration: none;
+                    font-size: 0.85rem;
+                    display: block;
+                    padding: 0.3rem 0.5rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
+                }}
+
+                .sidebar a:hover {{
+                    background-color: var(--light-bg);
+                    color: var(--primary-color);
+                }}
+
+                .sidebar a.final {{
+                    color: #10b981;
+                    font-weight: 600;
+                }}
+
+                /* Adjust body for sidebar */
+                @media (min-width: 1200px) {{
+                    body {{
+                        margin-right: 240px;
+                    }}
+                }}
+
+                @media (max-width: 1199px) {{
+                    .sidebar {{
+                        display: none;
+                    }}
+                }}
             </style>
         </head>
         <body>
@@ -1921,14 +1987,14 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
                 </header>
                 
-                <section>
+                <section id="overview">
                     <h2>Overview</h2>
                     <div class="content">
                         {sections['overview']}
                     </div>
                 </section>
-                
-                <section>
+
+                <section id="initial-assessment">
                     <h2>{('Initial Hypothesis' if report_style.lower() == 'total_summary' else 'Initial Assessment')}</h2>
                     <div class="content">
                         {sections.get('initial_hypothesis' if report_style.lower() == 'total_summary' else 'initial_assessment', 'No information available')}
@@ -1948,14 +2014,14 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
                 
                 html += f"""
-                    <section>
+                    <section id="gene-analysis-{i}">
                         <h2>Gene Analysis {i}: {group['title']}</h2>
-                        
+
                         <div class="sub-section">
                             <h3>Genes Analyzed</h3>
                             {gene_badges}
                         </div>
-                        
+
                         <div class="sub-section">
                             <h3>Findings & Conclusions</h3>
                             <div class="content">
@@ -1975,21 +2041,21 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
                 
                 html += f"""
-                    <section>
+                    <section id="iteration-{iteration['number']}">
                         <h2>Iteration {iteration['number']}</h2>
-                        
+
                         <div class="sub-section">
                             <h3>Hypotheses</h3>
                             <div class="content">
                                 {format_hypotheses(iteration['hypotheses'])}
                             </div>
                         </div>
-                        
+
                         <div class="sub-section">
                             <h3>Genes Checked</h3>
                             {gene_badges}
                         </div>
-                        
+
                         <div class="sub-section">
                             <h3>Key Findings</h3>
                             <div class="content">
@@ -2003,29 +2069,29 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         final_section_key = 'final_conclusion' if report_style.lower() == 'total_summary' else 'final_annotation'
         final_section_title = 'Final Conclusion' if report_style.lower() == 'total_summary' else 'Final Annotation'
         html += f"""
-                <section class="final-annotation">
+                <section id="final-annotation" class="final-annotation">
                     <h2>{final_section_title}</h2>
                     <div class="content">
                         {sections.get(final_section_key, 'No information available')}
                     </div>
                 </section>
         """
-        
+
         if report_style.lower() == "total_summary":
             # Add sections specific to total summary style
             if sections.get('key_insights') and sections['key_insights'] != "No information available":
                 html += f"""
-                    <section>
+                    <section id="key-insights">
                         <h2>Key Insights</h2>
                         <div class="content">
                             {sections['key_insights']}
                         </div>
                     </section>
                 """
-            
+
             if sections.get('validation_status') and sections['validation_status'] != "No information available":
                 html += f"""
-                    <section>
+                    <section id="validation-status">
                         <h2>Validation Status</h2>
                         <div class="content">
                             {sections['validation_status']}
@@ -2037,18 +2103,18 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
             # Add marker summary
             if sections.get('marker_summary') and sections['marker_summary'] != "No information available":
                 html += f"""
-                    <section>
+                    <section id="marker-genes">
                         <h2>Key Marker Genes</h2>
                         <div class="content">
                             {sections['marker_summary']}
                         </div>
                     </section>
                 """
-            
+
             # Add recommendations if available
             if sections.get('recommendations') and sections['recommendations'] != "No information available":
                 html += f"""
-                    <section>
+                    <section id="recommendations">
                         <h2>Recommendations</h2>
                         <div class="content">
                             {sections['recommendations']}
@@ -2056,9 +2122,66 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     </section>
                 """
         
+        # Build sidebar navigation
+        sidebar_links = [
+            '<li><a href="#overview">Overview</a></li>',
+            f'<li><a href="#initial-assessment">{"Initial Hypothesis" if report_style.lower() == "total_summary" else "Initial Assessment"}</a></li>'
+        ]
+
+        if report_style.lower() == "total_summary":
+            # Add gene analysis links
+            for i in range(1, len(gene_groups) + 1):
+                sidebar_links.append(f'<li><a href="#gene-analysis-{i}">Gene Analysis {i}</a></li>')
+        else:
+            # Add iteration links
+            for iteration in iterations:
+                sidebar_links.append(f'<li><a href="#iteration-{iteration["number"]}">Iteration {iteration["number"]}</a></li>')
+
+        # Add final annotation link
+        final_title = "Final Conclusion" if report_style.lower() == "total_summary" else "Final Annotation"
+        sidebar_links.append(f'<li><a href="#final-annotation" class="final">{final_title}</a></li>')
+
+        # Add optional section links
+        if report_style.lower() == "total_summary":
+            if sections.get('key_insights') and sections['key_insights'] != "No information available":
+                sidebar_links.append('<li><a href="#key-insights">Key Insights</a></li>')
+            if sections.get('validation_status') and sections['validation_status'] != "No information available":
+                sidebar_links.append('<li><a href="#validation-status">Validation Status</a></li>')
+        else:
+            if sections.get('marker_summary') and sections['marker_summary'] != "No information available":
+                sidebar_links.append('<li><a href="#marker-genes">Key Marker Genes</a></li>')
+            if sections.get('recommendations') and sections['recommendations'] != "No information available":
+                sidebar_links.append('<li><a href="#recommendations">Recommendations</a></li>')
+
+        sidebar_html = f"""
+            <nav class="sidebar">
+                <h4>Contents</h4>
+                <ul>
+                    {''.join(sidebar_links)}
+                </ul>
+            </nav>
+        """
+
+        # Add smooth scrolling JavaScript
+        smooth_scroll_js = """
+            <script>
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                });
+            </script>
+        """
+
         # Close the HTML
-        html += """
+        html += f"""
             </div>
+            {sidebar_html}
+            {smooth_scroll_js}
         </body>
         </html>
         """

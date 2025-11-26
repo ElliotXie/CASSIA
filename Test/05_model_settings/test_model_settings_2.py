@@ -18,7 +18,7 @@ from pathlib import Path
 # Add shared utilities to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "shared" / "python"))
 
-from fixtures import get_marker_dataframe_for_cluster
+from fixtures import load_markers
 from test_utils import (
     setup_cassia_imports,
     load_config,
@@ -69,11 +69,13 @@ def run_fuzzy_batch_test():
     print("Preparing marker data (2 clusters for efficiency)")
     print("="*50)
 
-    cluster1_df = get_marker_dataframe_for_cluster("monocyte", n_genes=20)
-    cluster2_df = get_marker_dataframe_for_cluster("plasma cell", n_genes=20)
-    subset_marker_df = pd.concat([cluster1_df, cluster2_df], ignore_index=True)
-    print(f"  Clusters: monocyte, plasma cell")
-    print(f"  Genes per cluster: 20")
+    # Load full marker data and filter to 2 clusters
+    # Format: ['Broad.cell.type', 'Top.Markers'] - one row per cluster with comma-separated genes
+    full_df = load_markers()
+    test_clusters = ['monocyte', 'plasma cell']
+    subset_marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
+    print(f"  Clusters: {', '.join(test_clusters)}")
+    print(f"  Rows in marker dataframe: {len(subset_marker_df)}")
 
     # Define fuzzy model name test cases
     # Each tuple: (fuzzy_name, provider, expected_resolved_contains)

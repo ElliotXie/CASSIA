@@ -1,0 +1,285 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes an iterative gene expression analysis performed by CASSIA to annotate a cell cluster. The analysis involved 3 iterations, examining a total of 34 unique genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial hypothesis was that the cluster represented Plasma Cells, specifically an IgA-secreting, gut-homing population, supported by strong expression of immunoglobulin genes (IGHA1, IGHA2, JCHAIN) and plasma cell markers (JCHAIN, TNFRSF17, MZB1, CCR10). The presence of MYL2 was noted as unusual, and high expression of FAM92B and other uncharacterized genes warranted further investigation.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To investigate if the unexpected presence of MYL2 indicated contamination or doublets with muscle cells.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To perform a more granular assessment of immunoglobulin heavy chain constant regions to confirm the dominant plasma cell subtype and identify potential minor populations.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To explore the role of FAM92B and other highly expressed, but uncharacterized, genes in plasma cells.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">ACTA2</span><span class="gene-badge">MYH11</span><span class="gene-badge">PTPRC</span><span class="gene-badge">CD3E</span><span class="gene-badge">CD19</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">IGLC3</span><span class="gene-badge">IGLC2</span><span class="gene-badge">FAM92B</span><span class="gene-badge">DERL3</span><span class="gene-badge">UBE2QL1</span><span class="gene-badge">GPRC5D</span><span class="gene-badge">FCRL5</span><span class="gene-badge">LILRB4</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> MYL2 was highly expressed, but ACTA2, MYH11, and CD19 were not detected, and CD3E and PTPRC showed very low expression, significantly weakening the muscle cell contamination/doublet hypothesis. (Hypothesis_1)</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> High expression of IGHA2, IGHG1, IGHG3, and IGHM was observed, suggesting a more complex picture than a purely IgA-secreting population, with potential for mixed immunoglobulin isotype secretion. IGLC2 and IGLC3 were also highly expressed. (Hypothesis_2)</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> DERL3, FAM92B, FCRL5, GPRC5D, LILRB4, and UBE2QL1 showed high expression, suggesting active cellular processes and potential functional significance in these plasma cells. (Hypothesis_3)</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To investigate MYL2 as a novel or context-specific marker for a specific plasma cell subset, given the absence of other muscle markers.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To further characterize the heterogeneity of immunoglobulin isotypes within the plasma cell population, quantifying proportions and co-expression patterns.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To understand the functional significance of FAM92B, DERL3, UBE2QL1, GPRC5D, FCRL5, and LILRB4, particularly in relation to protein quality control and plasma cell states.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">MYL2</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">TNFRSF17</span><span class="gene-badge">MZB1</span><span class="gene-badge">CCR10</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">IGLC2</span><span class="gene-badge">IGLC3</span><span class="gene-badge">FAM92B</span><span class="gene-badge">DERL3</span><span class="gene-badge">UBE2QL1</span><span class="gene-badge">GPRC5D</span><span class="gene-badge">FCRL5</span><span class="gene-badge">LILRB4</span><span class="gene-badge">XBP1</span><span class="gene-badge">PRDM1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> MYL2 remained highly expressed, reinforcing the idea that it might be a genuine marker for a subset of these plasma cells, rather than contamination. Co-expression with established plasma cell markers (JCHAIN, TNFRSF17, MZB1, CCR10) was implied by their high expression. (Hypothesis_1)</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> The mixed immunoglobulin isotype expression (IGHA2, IGHG1, IGHG3, IGHM) persisted, suggesting a diverse population of plasma cells secreting different isotypes. (Hypothesis_2)</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> XBP1, a key transcription factor for plasma cell differentiation and ER stress response, was confirmed to be highly expressed, consistent with the secretory function of plasma cells. However, PRDM1 showed low expression, which was unexpected. (Hypothesis_3)</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 3</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To investigate the discrepancy between high XBP1 and low PRDM1 expression, checking for IRF4 and the absence of B cell markers to confirm terminal differentiation.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To further sub-classify plasma cells based on immunoglobulin isotypes and MYL2 expression, exploring co-expression patterns.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To understand the functional role of FAM92B, DERL3, UBE2QL1, GPRC5D, FCRL5, and LILRB4 in plasma cell homeostasis and function, particularly in relation to ER stress.</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">PRDM1</span><span class="gene-badge">XBP1</span><span class="gene-badge">IRF4</span><span class="gene-badge">PAX5</span><span class="gene-badge">CD19</span><span class="gene-badge">MS4A1</span><span class="gene-badge">IGHA1</span><span class="gene-badge">IGHA2</span><span class="gene-badge">IGHG1</span><span class="gene-badge">IGHG3</span><span class="gene-badge">IGHM</span><span class="gene-badge">MYL2</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">TNFRSF17</span><span class="gene-badge">FAM92B</span><span class="gene-badge">DERL3</span><span class="gene-badge">UBE2QL1</span><span class="gene-badge">GPRC5D</span><span class="gene-badge">FCRL5</span><span class="gene-badge">LILRB4</span><span class="gene-badge">HSPA5</span><span class="gene-badge">ERLEC1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> IRF4 showed very low expression, and B cell markers (CD19, MS4A1, PAX5) were not detected, supporting a terminally differentiated state despite low PRDM1. XBP1 remained highly expressed. (Hypothesis_1)</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> The mixed immunoglobulin isotype expression (IGHA2, IGHG1, IGHG3, IGHM) continued to be evident. MYL2 remained highly expressed. (Hypothesis_2)</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> DERL3, ERLEC1, and UBE2QL1, involved in ER-associated degradation, showed high expression, consistent with active protein processing. HSPA5 (BiP) also showed moderate expression, further supporting active ER homeostasis. (Hypothesis_3)</div></div>
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type is **Plasma Cells, predominantly IgA-secreting, with significant IgG and IgM subsets, and a unique MYL2-expressing subpopulation.**
+Confidence level: **High**
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            **Definitive Plasma Cell Markers:** JCHAIN, TNFRSF17 (BCMA), MZB1, CCR10
+**Immunoglobulin Isotypes:** IGHA2 (predominant), IGHA1, IGHG1, IGHG3, IGHM
+**ER Stress & Protein Processing:** XBP1, DERL3, ERLEC1, UBE2QL1, HSPA5
+**Novel/Unusual Marker:** MYL2
+**Other Plasma Cell Associated Markers:** FAM92B, FCRL5, GPRC5D, LILRB4
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        
