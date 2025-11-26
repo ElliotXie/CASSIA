@@ -477,6 +477,553 @@ def create_index_html(csv_files: List[str], output_dir: str) -> None:
     
     print(f"Index page created at {index_path}")
 
+
+# =============================================================================
+# Score Report HTML Generation Functions
+# These functions generate HTML reports from scored annotation results
+# =============================================================================
+
+def generate_analysis_html_report(analysis_text):
+    """
+    Generate an HTML report from conversation analysis text.
+
+    This parses the conversation history and creates a styled HTML report
+    with sections for annotation, validation, formatting, and scoring.
+
+    Args:
+        analysis_text (str): Pipe-separated conversation text from CASSIA analysis
+
+    Returns:
+        str: Complete HTML document as a string
+    """
+    import json
+
+    # Split the text into sections based on agents
+    sections = analysis_text.split(" | ")
+
+    # HTML template with CSS styling - note the double curly braces for CSS
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }}
+            .container {{
+                background-color: white;
+                padding: 40px;
+                border-radius: 16px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }}
+            .agent-section {{
+                margin-bottom: 35px;
+                padding: 25px;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }}
+            .agent-section:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }}
+            .final-annotation {{
+                background-color: #f0f7ff;
+                border-left: 5px solid #2196f3;
+            }}
+            .validator {{
+                background-color: #f0fdf4;
+                border-left: 5px solid #22c55e;
+            }}
+            .formatting {{
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316;
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }}
+            h2 {{
+                color: #1a2b3c;
+                margin-top: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            ul {{
+                margin: 15px 0;
+                padding-left: 20px;
+            }}
+            pre {{
+                background-color: #f8fafc;
+                padding: 20px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }}
+            .validation-result {{
+                font-weight: 600;
+                color: #16a34a;
+                padding: 12px 20px;
+                background-color: #dcfce7;
+                border-radius: 8px;
+                display: inline-block;
+                margin: 10px 0;
+            }}
+            br {{
+                margin-bottom: 8px;
+            }}
+            p {{
+                margin: 12px 0;
+                color: #374151;
+            }}
+            .summary-content {{
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }}
+            .summary-item {{
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }}
+            .summary-label {{
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            .summary-value {{
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }}
+            .summary-list {{
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }}
+            .summary-list li {{
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }}
+            .summary-list li:before {{
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }}
+            .report-header {{
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }}
+            .report-title {{
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }}
+            .report-subtitle {{
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }}
+            .scoring {{
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }}
+            .scoring-content {{
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }}
+            .scoring-content br + br {{
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }}
+            .empty-list {{
+                color: #6b7280;
+                font-style: italic;
+            }}
+            .error-message {{
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }}
+            .score-badge {{
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }}
+            .score-badge::before {{
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            {0}
+        </div>
+    </body>
+    </html>
+    """
+
+    content = []
+
+    # Process each section
+    for section in sections:
+        if section.startswith("Final Annotation Agent:"):
+            annotation_content = section.replace("Final Annotation Agent:", "").strip()
+            content.append("""
+                <div class="agent-section final-annotation">
+                    <h2>Final Annotation Analysis</h2>
+                    {0}
+                </div>
+            """.format(annotation_content.replace('\n', '<br>')))
+
+        elif section.startswith("Coupling Validator:"):
+            validator_content = section.replace("Coupling Validator:", "").strip()
+            validation_result = '<div class="validation-result">VALIDATION PASSED</div>' if "VALIDATION PASSED" in validator_content else ""
+
+            content.append("""
+                <div class="agent-section validator">
+                    <h2>Validation Check</h2>
+                    {0}
+                    {1}
+                </div>
+            """.format(validation_result, validator_content.replace('\n', '<br>')))
+
+        elif section.startswith("Formatting Agent:"):
+            try:
+                # Get the content after "Formatting Agent:"
+                json_text = section.replace("Formatting Agent:", "").strip()
+
+                # Since the JSON is consistently formatted with newlines,
+                # we can find where it ends (the last '}' followed by a newline or end of string)
+                json_end = json_text.rfind('}')
+                if json_end != -1:
+                    json_content = json_text[:json_end + 1]
+                    data = json.loads(json_content)
+
+                    # Process the data...
+                    main_cell_type = data.get('main_cell_type', 'Not specified')
+                    sub_cell_types = data.get('sub_cell_types', [])
+                    mixed_types = data.get('possible_mixed_cell_types', [])
+                    num_markers = data.get('num_markers', 'Not specified')
+
+                    # Format the content...
+                    formatted_content = f"""
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <span class="summary-label">Main Cell Type:</span>
+                                <span class="summary-value">{main_cell_type}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Sub Cell Types:</span>
+                                <ul class="summary-list">
+                                    {"".join(f'<li>{item}</li>' for item in sub_cell_types) if sub_cell_types
+                                     else '<li class="empty-list">No sub cell types identified</li>'}
+                                </ul>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Possible Mixed Cell Types:</span>
+                                <ul class="summary-list">
+                                    {"".join(f'<li>{item}</li>' for item in mixed_types) if mixed_types
+                                     else '<li class="empty-list">No mixed cell types identified</li>'}
+                                </ul>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Number of Markers:</span>
+                                <span class="summary-value">{num_markers}</span>
+                            </div>
+                        </div>
+                    """
+
+                    content.append(f"""
+                        <div class="agent-section formatting">
+                            <h2>Summary</h2>
+                            {formatted_content}
+                        </div>
+                    """)
+                else:
+                    raise ValueError("Could not find JSON content")
+
+            except Exception as e:
+                content.append(f"""
+                    <div class="agent-section formatting">
+                        <h2>Summary</h2>
+                        <p class="error-message">Error formatting data: {str(e)}</p>
+                    </div>
+                """)
+        elif section.startswith("Scoring Agent:"):
+            try:
+                # Get the content after "Scoring Agent:"
+                scoring_text = section.split("Scoring Agent:", 1)[1].strip()
+
+                # Split the score from the main text
+                main_text, score = scoring_text.rsplit("Score:", 1)
+                score = score.strip()
+
+                content.append(r"""
+                    <div class="agent-section scoring">
+                        <h2>Quality Assessment</h2>
+                        <div class="score-badge">{0}</div>
+                        <div class="scoring-content">
+                            {1}
+                        </div>
+                    </div>
+                """.format(score, main_text.replace('\n', '<br>')))
+            except Exception as e:
+                content.append(r"""
+                    <div class="agent-section scoring">
+                        <h2>Quality Assessment</h2>
+                        <p class="error-message">Error formatting scoring data: {0}</p>
+                    </div>
+                """.format(str(e)))
+
+    # Combine all sections
+    final_html = html_template.format(''.join(content))
+    return final_html
+
+
+def process_single_report(text, score_reasoning, score):
+    """
+    Process a single report by combining text with scoring information.
+
+    Args:
+        text (str): Conversation history text
+        score_reasoning (str): Reasoning from the scoring agent
+        score: The numerical score
+
+    Returns:
+        str: HTML report as a string
+    """
+    combined = (
+        f"{text}\n"
+        f" | Scoring Agent: {score_reasoning}\n"
+        f"Score: {score}"
+    )
+    return generate_analysis_html_report(combined)
+
+
+def generate_score_index_page(report_files):
+    """
+    Generate an index HTML page linking to all score reports.
+
+    Args:
+        report_files (list): List of report filenames
+
+    Returns:
+        str: HTML index page as a string
+    """
+    index_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }}
+            .container {{
+                background-color: white;
+                padding: 40px;
+                border-radius: 16px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }}
+            .report-list {{
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+                padding: 20px 0;
+            }}
+            .report-link {{
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                text-decoration: none;
+                color: #1a2b3c;
+                border: 1px solid #e5e7eb;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            .report-link:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                border-color: #f97316;
+            }}
+            .report-icon {{
+                font-size: 24px;
+            }}
+            .report-header {{
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }}
+            .index-title {{
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }}
+            .index-subtitle {{
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="index-title">CASSIA Reports Summary</h1>
+                <p class="index-subtitle">Select a report to view detailed analysis</p>
+            </div>
+            <div class="report-list">
+                {0}
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Generate links for each report
+    links = []
+    for filename in sorted(report_files):
+        display_name = filename.replace('report_', '').replace('.html', '')
+        links.append(f'<a href="{filename}" class="report-link"><span class="report-icon">📊</span>{display_name}</a>')
+
+    return index_template.format('\n'.join(links))
+
+
+def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
+    """
+    Generate HTML reports from a scored CSV file and create an index page.
+
+    Args:
+        csv_path (str): Path to the CSV file containing the score results
+        index_name (str): Base name for the index file (without .html extension)
+    """
+    # Read the CSV file
+    report = pd.read_csv(csv_path)
+    report_files = []
+
+    # Determine output folder (same folder as the CSV file)
+    output_folder = os.path.dirname(csv_path)
+    if not output_folder:
+        output_folder = "."
+
+    # Process each row
+    for index, row in report.iterrows():
+        # Get the first column value for the filename
+        filename = str(row.iloc[0]).strip()
+        filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_')).strip()
+
+        # Handle both 'Conversation History' and 'Conversation.History' column names
+        history_column_options = ['Conversation History', 'Conversation.History', 'conversation_history', 'Conversation_History']
+        text = None
+        for col in history_column_options:
+            if col in row:
+                text = row[col]
+                break
+        if text is None:
+            raise KeyError(f"Could not find conversation history column. Available columns: {list(row.index)}")
+
+        # Handle both 'Scoring_Reasoning' and 'Scoring.Reasoning' column names
+        reasoning_column_options = ['Scoring_Reasoning', 'Scoring.Reasoning', 'scoring_reasoning', 'Scoring_reasoning']
+        score_reasoning = None
+        for col in reasoning_column_options:
+            if col in row:
+                score_reasoning = row[col]
+                break
+        if score_reasoning is None:
+            raise KeyError(f"Could not find scoring reasoning column. Available columns: {list(row.index)}")
+
+        score = row["Score"]
+
+        # Generate HTML for this row
+        html_content = process_single_report(text, score_reasoning, score)
+
+        # Save using the first column value as filename in the output folder
+        output_path = os.path.join(output_folder, f"report_{filename}.html")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        # Store just the filename for the index (not the full path)
+        report_files.append(os.path.basename(output_path))
+        print(f"Report saved to {output_path}")
+
+    # Generate and save index page in the same folder
+    index_html = generate_score_index_page(report_files)
+    index_filename = os.path.join(output_folder, f"{os.path.basename(index_name)}.html")
+    with open(index_filename, "w", encoding="utf-8") as f:
+        f.write(index_html)
+    print(f"Index page saved to {index_filename}")
+
+
 def main():
     import argparse
     

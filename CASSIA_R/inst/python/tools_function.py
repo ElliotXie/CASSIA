@@ -10,8 +10,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 try:
     from .main_function_code import *
+    from .model_settings import ModelSettings
 except ImportError:
     from main_function_code import *
+    from model_settings import ModelSettings
 
 import requests
 import threading
@@ -208,7 +210,7 @@ def set_api_key(api_key, provider="openai"):
     elif provider.lower() == "openrouter":
         os.environ["OPENROUTER_API_KEY"] = api_key
     elif provider.lower().startswith("http"):
-        os.environ["CUSTERMIZED_API_KEY"] = api_key
+        os.environ["CUSTOMIZED_API_KEY"] = api_key
     else:
         raise ValueError("Provider must be either 'openai', 'anthropic', 'openrouter', or a base URL (http...)")
     
@@ -525,6 +527,11 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
     Returns:
         tuple: (analysis_result, conversation_history)
     """
+    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.1")
+    # Use verbose=False since this may be called from batch (which handles its own verbose message)
+    settings = ModelSettings()
+    model, provider = settings.resolve_model_name(model, provider, verbose=False)
+
     if provider.lower() == "openai":
         return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower() == "anthropic":
@@ -532,9 +539,9 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
     elif provider.lower() == "openrouter":
         return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
     elif provider.lower().startswith("http"):
-        api_key = os.environ.get("CUSTERMIZED_API_KEY")
+        api_key = os.environ.get("CUSTOMIZED_API_KEY")
         if not api_key:
-            raise ValueError("CUSTERMIZED_API_KEY environment variable is not set. Please call set_api_key with your API key and provider (base URL).")
+            raise ValueError("CUSTOMIZED_API_KEY environment variable is not set. Please call set_api_key with your API key and provider (base URL).")
         return run_cell_type_analysis_custom(
             base_url=provider,
             api_key=api_key,
@@ -714,8 +721,11 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     Returns:
         dict: Results dictionary containing analysis results for each cell type
     """
-    # Load the dataframe
+    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.1")
+    settings = ModelSettings()
+    model, provider = settings.resolve_model_name(model, provider, verbose=True)
 
+    # Load the dataframe
     if isinstance(marker, pd.DataFrame):
         df = marker.copy()
     elif isinstance(marker, str):
@@ -1458,9 +1468,6 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         retry_count = 0
         
         while score is None and retry_count < max_retries_for_none:
-            if retry_count > 0:
-                print(f"Retry {retry_count}/{max_retries_for_none} for row {idx + 1} due to None score")
-            
             score, reasoning = score_single_analysis(
                 major_cluster_info, 
                 marker, 
@@ -1474,77 +1481,94 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
                 
             retry_count += 1
 
-        print(f"Processed row {idx + 1}: Score = {score}")
         return (idx, score, reasoning)
         
     except Exception as e:
-        print(f"Error processing row {idx + 1}: {str(e)}")
         return (idx, None, f"Error: {str(e)}")
 
 
 def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
     """
     Process and score all rows in a results CSV file in parallel.
-    
+
     Args:
         results_file_path (str): Path to the results CSV file
         output_file_path (str, optional): Path to save the updated results
         max_workers (int): Maximum number of parallel threads
         model (str): Model to use
         provider (str): AI provider to use ('openai' or 'anthropic')
-        
+
     Returns:
         pd.DataFrame: Original results with added score and reasoning columns
     """
     # Read results file
     results = pd.read_csv(results_file_path)
-    
+
     # Initialize new columns if they don't exist
     if 'Score' not in results.columns:
         results['Score'] = None
     if 'Scoring_Reasoning' not in results.columns:
         results['Scoring_Reasoning'] = None
-    
+
     # Create a list of unscored rows to process
     rows_to_process = [
-        (idx, row) for idx, row in results.iterrows() 
+        (idx, row) for idx, row in results.iterrows()
         if pd.isna(row['Score'])
     ]
-    
+
     if not rows_to_process:
         print("All rows already scored!")
         return results
-    
+
+    # Initialize progress tracker
+    total_to_score = len(rows_to_process)
+    tracker = BatchProgressTracker(total_to_score)
+    print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
+
     # Set up a lock for DataFrame updates
     df_lock = threading.Lock()
-    
+
+    # Helper to get task name from row
+    def get_task_name(row):
+        for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
+            if col in row.index:
+                return str(row[col])
+        return f"Row {row.name + 1}"
+
     # Process rows in parallel
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all jobs
+        # Submit all jobs with tracker handling
+        def process_with_tracking(row_data):
+            idx, row = row_data
+            task_name = get_task_name(row)
+            tracker.start_task(task_name)
+            result = process_single_row(row_data, model=model, provider=provider)
+            tracker.complete_task(task_name)
+            return result
+
         future_to_row = {
-            executor.submit(
-                process_single_row, 
-                row_data,
-                model=model,
-                provider=provider
-            ): row_data[0] 
+            executor.submit(process_with_tracking, row_data): row_data[0]
             for row_data in rows_to_process
         }
-        
+
         # Process completed jobs
         for future in as_completed(future_to_row):
             idx, score, reasoning = future.result()
-            
+
             # Safely update DataFrame
             with df_lock:
                 results.loc[idx, 'Score'] = score
                 results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                
+
                 # Save intermediate results
                 if output_file_path is None:
                     output_file_path = results_file_path.replace('.csv', '_scored.csv')
                 results.to_csv(output_file_path, index=False)
-    
+
+    # Finalize progress display
+    tracker.finish()
+    print(f"Scoring completed. Results saved to {output_file_path}")
+
     return results
 
 def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
@@ -1590,51 +1614,71 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         if not rows_to_process:
             print("All rows already scored!")
             return results
-        
+
+        # Initialize progress tracker
+        total_to_score = len(rows_to_process)
+        tracker = BatchProgressTracker(total_to_score)
+        print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
+
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
-        
-        # Define a function that includes retry logic
+        failed_analyses = []  # Track failed rows for reporting
+
+        # Helper to get task name from row
+        def get_task_name(row):
+            # Try different column names for Cluster ID
+            for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
+                if col in row.index:
+                    return str(row[col])
+            return f"Row {row.name + 1}"
+
+        # Define a function that includes retry logic and progress tracking
         def process_with_retry(row_data):
             idx, row = row_data
+            task_name = get_task_name(row)
+            tracker.start_task(task_name)
+
             for attempt in range(max_retries + 1):
                 try:
-                    return process_single_row(row_data, model=model, provider=provider)
+                    result = process_single_row(row_data, model=model, provider=provider)
+                    tracker.complete_task(task_name)
+                    return result
                 except Exception as exc:
                     # Don't retry authentication errors
                     if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
-                        print(f'⚠️  Row {idx + 1} API ERROR: {exc}')
-                        print(f'⚠️  This appears to be an API authentication error. Please check your API key.')
-                        # Return error info instead of raising
+                        tracker.complete_task(task_name)
                         return idx, None, f"API error: {str(exc)}"
-                    
+
                     # For other errors, retry if attempts remain
-                    if attempt < max_retries:
-                        print(f'⚠️  Row {idx + 1} ERROR: {exc}')
-                        print(f'🔄 RETRYING row {idx + 1} (exception retry {attempt + 1}/{max_retries})...')
-                    else:
-                        print(f'❌ Row {idx + 1} FAILED after {max_retries + 1} attempts with error: {exc}')
-                        # Return error info instead of raising
+                    if attempt >= max_retries:
+                        tracker.complete_task(task_name)
                         return idx, None, f"Failed after {max_retries + 1} attempts: {str(exc)}"
-        
+
         # Process rows in parallel
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all jobs
             future_to_row = {
-                executor.submit(process_with_retry, row_data): row_data[0] 
+                executor.submit(process_with_retry, row_data): row_data
                 for row_data in rows_to_process
             }
-            
+
             # Process completed jobs
             for future in as_completed(future_to_row):
+                row_data = future_to_row[future]
+                idx, row = row_data
+                task_name = get_task_name(row)
                 try:
                     idx, score, reasoning = future.result()
-                    
+
                     # Safely update DataFrame
                     with df_lock:
                         results.loc[idx, 'Score'] = score
                         results.loc[idx, 'Scoring_Reasoning'] = reasoning
-                        
+
+                        # Track failures
+                        if score is None:
+                            failed_analyses.append((task_name, reasoning))
+
                         # Save intermediate results if output file is specified
                         if output_file:
                             results.to_csv(output_file, index=False)
@@ -1642,12 +1686,22 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
                             output_file = input_file.replace('.csv', '_scored.csv')
                             results.to_csv(output_file, index=False)
                 except Exception as exc:
-                    print(f"Failed to process row: {exc}")
-        
+                    failed_analyses.append((task_name, str(exc)))
+
+        # Finalize progress display
+        tracker.finish()
+
+        # Report any failures
+        if failed_analyses:
+            print(f"\nWarning: {len(failed_analyses)} scoring(s) failed:")
+            for task_name, error in failed_analyses:
+                print(f"  - {task_name}: {error[:100]}{'...' if len(error) > 100 else ''}")
+            print()
+
         # Print summary statistics
         total_rows = len(results)
         scored_rows = results['Score'].notna().sum()
-        print(f"\nScoring completed!")
+        print(f"Scoring completed. Results saved.")
         print(f"\nSummary:")
         print(f"Total rows: {total_rows}")
         print(f"Successfully scored: {scored_rows}")
@@ -1660,1021 +1714,52 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
 
 
+# =============================================================================
+# RE-EXPORTS FOR BACKWARD COMPATIBILITY
+# =============================================================================
+# The functions below have been moved to separate modules but are re-exported
+# here to maintain backward compatibility with existing code that imports from
+# tools_function.py (including R package via reticulate).
 
-################### Validator plus ########################
+# From annotation_boost.py
+try:
+    from .annotation_boost import runCASSIA_annotationboost, runCASSIA_annotationboost_additional_task
+except ImportError:
+    from annotation_boost import runCASSIA_annotationboost, runCASSIA_annotationboost_additional_task
 
-def runCASSIA_annotationboost_additional_task(
-    full_result_path,
-    marker,
-    cluster_name,
-    major_cluster_info,
-    output_name,
-    num_iterations=5,
-    model="claude-3-5-sonnet-20241022",
-    additional_task="",
-    provider=None,
-    temperature=0,
-    conversation_history_mode="final",
-    report_style="per_iteration"
-):
-    """
-    Generate a detailed HTML report for cell type analysis of a specific cluster.
-    
-    Args:
-        full_result_path (str): Path to the full results CSV file
-        marker_path (str): Path to the marker genes CSV file
-        cluster_name (str): Name of the cluster to analyze
-        major_cluster_info (str): General information about the dataset (e.g., "Human PBMC")
-        output_name (str): Name of the output HTML file
-        num_iterations (int): Number of iterations for marker analysis (default=5)
-        model (str): Model to use for analysis (default="claude-3-5-sonnet-20241022")
-        additional_task (str): Additional analysis task to perform
-        provider (str): AI provider to use (default=None, will be inferred from model name)
-        temperature (float): Sampling temperature (0-1)
-        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
-        report_style (str): Style of report generation ("per_iteration" or "total_summary")
-        
-    Returns:
-        tuple: (analysis_result, messages_history)
-            - analysis_result: Final analysis text
-            - messages_history: Complete conversation history
-    """
-    # Import here to avoid circular imports
-    try:
-        # Try normal import first
-        from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
-    except ImportError:
-        try:
-            # Try relative import as fallback
-            try:
-                from .annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
-            except ImportError:
-                from annotation_boost import runCASSIA_annotationboost_additional_task as run_annotationboost_additional_task
-        except ImportError:
-            raise ImportError("Could not import annotation_boost module.")
-    
-    # Determine provider based on model name if not provided
-    if provider is None:
-        provider = "anthropic"
-        if "gpt" in model.lower():
-            provider = "openai"
-        elif not model.startswith("claude"):
-            provider = "openrouter"
-    
-    return run_annotationboost_additional_task(
-        full_result_path=full_result_path,
-        marker=marker,
-        cluster_name=cluster_name,
-        major_cluster_info=major_cluster_info,
-        output_name=output_name,
-        num_iterations=num_iterations,
-        model=model,
-        provider=provider,
-        additional_task=additional_task,
-        temperature=temperature,
-        conversation_history_mode=conversation_history_mode,
-        report_style=report_style
+# From generate_reports.py (HTML report generation)
+try:
+    from .generate_reports import (
+        generate_analysis_html_report as generate_html_report,  # Renamed for backward compat
+        process_single_report,
+        generate_score_index_page as generate_index_page,  # Renamed for backward compat
+        runCASSIA_generate_score_report
+    )
+except ImportError:
+    from generate_reports import (
+        generate_analysis_html_report as generate_html_report,
+        process_single_report,
+        generate_score_index_page as generate_index_page,
+        runCASSIA_generate_score_report
     )
 
+# From pipeline.py (main pipeline)
+try:
+    from .pipeline import runCASSIA_pipeline
+except ImportError:
+    from pipeline import runCASSIA_pipeline
 
+# From marker_utils.py (marker loading utilities)
+try:
+    from .marker_utils import loadmarker, list_available_markers
+except ImportError:
+    from marker_utils import loadmarker, list_available_markers
 
+# From scoring.py (scoring functions - these are also defined locally but re-exported for clarity)
+# Note: score_annotation_batch is kept as a backward-compatible alias
+try:
+    from .scoring import score_annotation_batch
+except ImportError:
+    from scoring import score_annotation_batch
 
-
-
-def runCASSIA_annotationboost(
-    full_result_path,
-    marker,
-    cluster_name,
-    major_cluster_info,
-    output_name,
-    num_iterations=5,
-    model="google/gemini-2.5-flash-preview",
-    provider="openrouter",
-    temperature=0,
-    conversation_history_mode="final",
-    report_style="per_iteration"
-):
-    """
-    Wrapper function to generate cell type analysis report using either OpenAI or Anthropic models.
-    
-    Args:
-        full_result_path (str): Path to the full results CSV file
-        marker (str): Path to the marker genes CSV file
-        cluster_name (str): Name of the cluster to analyze
-        major_cluster_info (str): General information about the dataset (e.g., "Human PBMC")
-        output_name (str): Name of the output HTML file
-        num_iterations (int): Number of iterations for marker analysis (default=5)
-        model (str): Model to use for analysis 
-            - OpenAI options: "gpt-4", "gpt-3.5-turbo", etc.
-            - Anthropic options: "claude-3-opus-20240229", "claude-3-sonnet-20240229", etc.
-        provider (str): AI provider to use ('openai' or 'anthropic' or 'openrouter')
-        temperature (float): Sampling temperature (0-1)
-        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
-        report_style (str): Style of report generation ("per_iteration" or "total_summary")
-    
-    Returns:
-        tuple: (analysis_result, messages_history)
-            - analysis_result: Final analysis text
-            - messages_history: Complete conversation history
-    """
-    # Import here to avoid circular imports
-    try:
-        # Try normal import first
-        from annotation_boost import runCASSIA_annotationboost as run_annotationboost
-    except ImportError:
-        try:
-            # Try relative import as fallback
-            try:
-                from .annotation_boost import runCASSIA_annotationboost as run_annotationboost
-            except ImportError:
-                from annotation_boost import runCASSIA_annotationboost as run_annotationboost
-        except ImportError:
-            raise ImportError("Could not import annotation_boost module.")
-    
-    return run_annotationboost(
-        full_result_path=full_result_path,
-        marker=marker,
-        cluster_name=cluster_name,
-        major_cluster_info=major_cluster_info,
-        output_name=output_name,
-        num_iterations=num_iterations,
-        model=model,
-        provider=provider,
-        temperature=temperature,
-        conversation_history_mode=conversation_history_mode,
-        report_style=report_style
-    )
-
-
-
-def generate_html_report(analysis_text):
-    # Split the text into sections based on agents
-    sections = analysis_text.split(" | ")
-    
-    # HTML template with CSS styling - note the double curly braces for CSS
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {{ 
-                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
-                max-width: 1200px; 
-                margin: 0 auto; 
-                padding: 20px; 
-                background-color: #f0f2f5;
-                line-height: 1.6;
-            }}
-            .container {{ 
-                background-color: white; 
-                padding: 40px; 
-                border-radius: 16px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }}
-            .agent-section {{ 
-                margin-bottom: 35px; 
-                padding: 25px; 
-                border-radius: 12px; 
-                transition: all 0.3s ease;
-            }}
-            .agent-section:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            }}
-            .final-annotation {{ 
-                background-color: #f0f7ff; 
-                border-left: 5px solid #2196f3; 
-            }}
-            .validator {{ 
-                background-color: #f0fdf4; 
-                border-left: 5px solid #22c55e; 
-            }}
-            .formatting {{ 
-                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
-                border-left: 5px solid #f97316; 
-                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
-            }}
-            h2 {{ 
-                color: #1a2b3c; 
-                margin-top: 0; 
-                font-size: 1.5rem;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }}
-            ul {{ 
-                margin: 15px 0; 
-                padding-left: 20px; 
-            }}
-            pre {{ 
-                background-color: #f8fafc; 
-                padding: 20px; 
-                border-radius: 8px; 
-                overflow-x: auto;
-                font-family: 'Consolas', 'Monaco', monospace;
-                font-size: 0.9rem;
-                line-height: 1.5;
-            }}
-            .validation-result {{ 
-                font-weight: 600; 
-                color: #16a34a; 
-                padding: 12px 20px;
-                background-color: #dcfce7; 
-                border-radius: 8px; 
-                display: inline-block;
-                margin: 10px 0;
-            }}
-            br {{ 
-                margin-bottom: 8px; 
-            }}
-            p {{
-                margin: 12px 0;
-                color: #374151;
-            }}
-            .summary-content {{
-                display: flex;
-                flex-direction: column;
-                gap: 24px;
-            }}
-            .summary-item {{
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                background: rgba(255, 255, 255, 0.7);
-                padding: 16px;
-                border-radius: 12px;
-                backdrop-filter: blur(8px);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            }}
-            .summary-label {{
-                font-weight: 600;
-                color: #c2410c;
-                font-size: 0.95rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }}
-            .summary-value {{
-                color: #1f2937;
-                font-size: 1.1rem;
-                padding: 8px 16px;
-                background-color: rgba(255, 255, 255, 0.9);
-                border-radius: 8px;
-                display: inline-block;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }}
-            .summary-list {{
-                margin: 0;
-                padding-left: 24px;
-                list-style-type: none;
-            }}
-            .summary-list li {{
-                color: #1f2937;
-                padding: 8px 0;
-                position: relative;
-            }}
-            .summary-list li:before {{
-                content: "•";
-                color: #f97316;
-                font-weight: bold;
-                position: absolute;
-                left: -20px;
-            }}
-            .report-header {{
-                text-align: center;
-                margin-bottom: 40px;
-                padding-bottom: 30px;
-                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
-            }}
-            
-            .report-title {{
-                font-size: 2.5rem;
-                font-weight: 800;
-                color: #1a2b3c;
-                margin: 0;
-                padding: 0;
-                background: linear-gradient(135deg, #f97316, #c2410c);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                letter-spacing: -0.5px;
-            }}
-            
-            .report-subtitle {{
-                font-size: 1.1rem;
-                color: #64748b;
-                margin-top: 8px;
-                font-weight: 500;
-            }}
-            .scoring {{ 
-                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
-                border-left: 5px solid #22c55e;
-                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
-            }}
-            .scoring-content {{
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                color: #1f2937;
-                line-height: 1.8;
-            }}
-            .scoring-content br + br {{
-                content: "";
-                display: block;
-                margin: 12px 0;
-            }}
-            .empty-list {{
-                color: #6b7280;
-                font-style: italic;
-            }}
-            .error-message {{
-                color: #dc2626;
-                padding: 12px;
-                background-color: #fef2f2;
-                border-radius: 6px;
-                border-left: 4px solid #dc2626;
-            }}
-            .score-badge {{
-                background: linear-gradient(135deg, #22c55e, #16a34a);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 12px;
-                font-size: 1.5rem;
-                font-weight: 700;
-                display: inline-block;
-                margin: 12px 0;
-                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-                position: relative;
-                top: -10px;
-            }}
-            .score-badge::before {{
-                content: "Score:";
-                font-size: 0.9rem;
-                font-weight: 500;
-                margin-right: 8px;
-                opacity: 0.9;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="report-header">
-                <h1 class="report-title">CASSIA Analysis Report</h1>
-                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
-            </div>
-            {0}
-        </div>
-    </body>
-    </html>
-    """
-    
-    content = []
-    
-    # Process each section
-    for section in sections:
-        if section.startswith("Final Annotation Agent:"):
-            annotation_content = section.replace("Final Annotation Agent:", "").strip()
-            content.append("""
-                <div class="agent-section final-annotation">
-                    <h2>🔍 Final Annotation Analysis</h2>
-                    {0}
-                </div>
-            """.format(annotation_content.replace('\n', '<br>')))
-            
-        elif section.startswith("Coupling Validator:"):
-            validator_content = section.replace("Coupling Validator:", "").strip()
-            validation_result = '<div class="validation-result">✅ VALIDATION PASSED</div>' if "VALIDATION PASSED" in validator_content else ""
-            
-            content.append("""
-                <div class="agent-section validator">
-                    <h2>✓ Validation Check</h2>
-                    {0}
-                    {1}
-                </div>
-            """.format(validation_result, validator_content.replace('\n', '<br>')))
-            
-        elif section.startswith("Formatting Agent:"):
-            try:
-                import json
-                # Get the content after "Formatting Agent:"
-                json_text = section.replace("Formatting Agent:", "").strip()
-                
-                # Since the JSON is consistently formatted with newlines,
-                # we can find where it ends (the last '}' followed by a newline or end of string)
-                json_end = json_text.rfind('}')
-                if json_end != -1:
-                    json_content = json_text[:json_end + 1]
-                    data = json.loads(json_content)
-                    
-                    # Process the data...
-                    main_cell_type = data.get('main_cell_type', 'Not specified')
-                    sub_cell_types = data.get('sub_cell_types', [])
-                    mixed_types = data.get('possible_mixed_cell_types', [])
-                    num_markers = data.get('num_markers', 'Not specified')
-                    
-                    # Format the content...
-                    formatted_content = f"""
-                        <div class="summary-content">
-                            <div class="summary-item">
-                                <span class="summary-label">Main Cell Type:</span>
-                                <span class="summary-value">{main_cell_type}</span>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Sub Cell Types:</span>
-                                <ul class="summary-list">
-                                    {"".join(f'<li>{item}</li>' for item in sub_cell_types) if sub_cell_types 
-                                     else '<li class="empty-list">No sub cell types identified</li>'}
-                                </ul>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Possible Mixed Cell Types:</span>
-                                <ul class="summary-list">
-                                    {"".join(f'<li>{item}</li>' for item in mixed_types) if mixed_types 
-                                     else '<li class="empty-list">No mixed cell types identified</li>'}
-                                </ul>
-                            </div>
-                            
-                            <div class="summary-item">
-                                <span class="summary-label">Number of Markers:</span>
-                                <span class="summary-value">{num_markers}</span>
-                            </div>
-                        </div>
-                    """
-                    
-                    content.append(f"""
-                        <div class="agent-section formatting">
-                            <h2>📋 Summary</h2>
-                            {formatted_content}
-                        </div>
-                    """)
-                else:
-                    raise ValueError("Could not find JSON content")
-                    
-            except Exception as e:
-                content.append(f"""
-                    <div class="agent-section formatting">
-                        <h2>📋 Summary</h2>
-                        <p class="error-message">Error formatting data: {str(e)}</p>
-                    </div>
-                """)
-        elif section.startswith("Scoring Agent:"):
-            try:
-                # Get the content after "Scoring Agent:"
-                scoring_text = section.split("Scoring Agent:", 1)[1].strip()
-                
-                # Split the score from the main text
-                main_text, score = scoring_text.rsplit("Score:", 1)
-                score = score.strip()
-                
-                content.append(r"""
-                    <div class="agent-section scoring">
-                        <h2>🎯 Quality Assessment</h2>
-                        <div class="score-badge">{0}</div>
-                        <div class="scoring-content">
-                            {1}
-                        </div>
-                    </div>
-                """.format(score, main_text.replace('\n', '<br>')))
-            except Exception as e:
-                content.append(r"""
-                    <div class="agent-section scoring">
-                        <h2>🎯 Quality Assessment</h2>
-                        <p class="error-message">Error formatting scoring data: {0}</p>
-                    </div>
-                """.format(str(e)))
-    
-    # Combine all sections
-    final_html = html_template.format(''.join(content))
-    return final_html
-
-
-
-def process_single_report(text, score_reasoning, score):
-    combined = (
-        f"{text}\n"
-        f" | Scoring Agent: {score_reasoning}\n"
-        f"Score: {score}"
-    )
-    return generate_html_report(combined)
-
-
-def generate_index_page(report_files):
-    index_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {{ 
-                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
-                max-width: 1200px; 
-                margin: 0 auto; 
-                padding: 20px; 
-                background-color: #f0f2f5;
-                line-height: 1.6;
-            }}
-            .container {{ 
-                background-color: white; 
-                padding: 40px; 
-                border-radius: 16px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }}
-            .report-list {{
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 20px;
-                padding: 20px 0;
-            }}
-            .report-link {{
-                background: white;
-                padding: 20px;
-                border-radius: 12px;
-                text-decoration: none;
-                color: #1a2b3c;
-                border: 1px solid #e5e7eb;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }}
-            .report-link:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                border-color: #f97316;
-            }}
-            .report-icon {{
-                font-size: 24px;
-            }}
-            .report-header {{
-                text-align: center;
-                margin-bottom: 40px;
-                padding-bottom: 30px;
-                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
-            }}
-            .index-title {{
-                font-size: 2.5rem;
-                font-weight: 800;
-                color: #1a2b3c;
-                margin: 0;
-                padding: 0;
-                background: linear-gradient(135deg, #f97316, #c2410c);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                letter-spacing: -0.5px;
-            }}
-            .index-subtitle {{
-                font-size: 1.1rem;
-                color: #64748b;
-                margin-top: 8px;
-                font-weight: 500;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="report-header">
-                <h1 class="index-title">CASSIA Reports Summary</h1>
-                <p class="index-subtitle">Select a report to view detailed analysis</p>
-            </div>
-            <div class="report-list">
-                {0}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    # Generate links for each report
-    links = []
-    for filename in sorted(report_files):
-        display_name = filename.replace('report_', '').replace('.html', '')
-        links.append(f'<a href="{filename}" class="report-link"><span class="report-icon">📊</span>{display_name}</a>')
-    
-    return index_template.format('\n'.join(links))
-
-def runCASSIA_generate_score_report(csv_path, index_name="CASSIA_reports_summary"):
-    """
-    Generate HTML reports from a scored CSV file and create an index page.
-    
-    Args:
-        csv_path (str): Path to the CSV file containing the score results
-        index_name (str): Base name for the index file (without .html extension)
-    """
-    # Read the CSV file
-    report = pd.read_csv(csv_path)
-    report_files = []
-    
-    # Determine output folder (same folder as the CSV file)
-    output_folder = os.path.dirname(csv_path)
-    if not output_folder:
-        output_folder = "."
-    
-    # Process each row
-    for index, row in report.iterrows():
-        # Get the first column value for the filename
-        filename = str(row.iloc[0]).strip()
-        filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_')).strip()
-        
-        # Handle both 'Conversation History' and 'Conversation.History' column names
-        history_column_options = ['Conversation History', 'Conversation.History', 'conversation_history', 'Conversation_History']
-        text = None
-        for col in history_column_options:
-            if col in row:
-                text = row[col]
-                break
-        if text is None:
-            raise KeyError(f"Could not find conversation history column. Available columns: {list(row.index)}")
-        
-        # Handle both 'Scoring_Reasoning' and 'Scoring.Reasoning' column names
-        reasoning_column_options = ['Scoring_Reasoning', 'Scoring.Reasoning', 'scoring_reasoning', 'Scoring_reasoning']
-        score_reasoning = None
-        for col in reasoning_column_options:
-            if col in row:
-                score_reasoning = row[col]
-                break
-        if score_reasoning is None:
-            raise KeyError(f"Could not find scoring reasoning column. Available columns: {list(row.index)}")
-        
-        score = row["Score"]
-        
-        # Generate HTML for this row
-        html_content = process_single_report(text, score_reasoning, score)
-        
-        # Save using the first column value as filename in the output folder
-        output_path = os.path.join(output_folder, f"report_{filename}.html")
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        
-        # Store just the filename for the index (not the full path)
-        report_files.append(os.path.basename(output_path))
-        print(f"Report saved to {output_path}")
-    
-    # Generate and save index page in the same folder
-    index_html = generate_index_page(report_files)
-    index_filename = os.path.join(output_folder, f"{os.path.basename(index_name)}.html")
-    with open(index_filename, "w", encoding="utf-8") as f:
-        f.write(index_html)
-    print(f"Index page saved to {index_filename}")
-
-
-def runCASSIA_pipeline(
-    output_file_name: str,
-    tissue: str,
-    species: str,
-    marker,  # Can be DataFrame or file path string
-    max_workers: int = 4,
-    annotation_model: str = "meta-llama/llama-4-maverick",
-    annotation_provider: str = "openrouter",
-    score_model: str = "google/gemini-2.5-pro-preview-03-25",
-    score_provider: str = "openrouter",
-    annotationboost_model: str = "google/gemini-2.5-flash-preview",
-    annotationboost_provider: str = "openrouter",
-    score_threshold: float = 75,
-    additional_info: str = "None",
-    max_retries: int = 1,
-    merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324",
-    merge_provider: str = "openrouter",
-    conversation_history_mode: str = "final",
-    ranking_method: str = "avg_log2FC",
-    ascending: bool = None,
-    report_style: str = "per_iteration",
-    validator_involvement: str = "v1"
-):
-    """
-    Run the complete cell analysis pipeline including annotation, scoring, and report generation.
-    
-    Args:
-        output_file_name (str): Base name for output files
-        tissue (str): Tissue type being analyzed
-        species (str): Species being analyzed
-        marker: Marker data (pandas DataFrame or path to CSV file)
-        max_workers (int): Maximum number of concurrent workers
-        annotation_model (str): Model to use for initial annotation
-        annotation_provider (str): Provider for initial annotation
-        score_model (str): Model to use for scoring
-        score_provider (str): Provider for scoring
-        annotationboost_model (str): Model to use for boosting low-scoring annotations
-        annotationboost_provider (str): Provider for boosting low-scoring annotations
-        score_threshold (float): Threshold for identifying low-scoring clusters
-        additional_info (str): Additional information for analysis
-        max_retries (int): Maximum number of retries for failed analyses
-        merge_annotations (bool): Whether to merge annotations from LLM
-        merge_model (str): Model to use for merging annotations
-        merge_provider (str): Provider to use for merging annotations
-        conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
-        ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
-        ascending (bool): Sort direction (None uses default for each method)
-        report_style (str): Style of report generation ("per_iteration" or "total_summary")
-    """
-    # Create a main folder based on tissue and species for organizing reports
-    main_folder_name = f"CASSIA_{tissue}_{species}"
-    main_folder_name = "".join(c for c in main_folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
-    main_folder_name = main_folder_name.replace(' ', '_')
-    
-    # Remove .csv extension if present
-    if output_file_name.lower().endswith('.csv'):
-        output_file_name = output_file_name[:-4] # Remove last 4 characters (.csv)
-
-    # Add timestamp to prevent overwriting existing folders with the same name
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    main_folder_name = f"{main_folder_name}_{timestamp}"
-    
-    # Create the main folder if it doesn't exist
-    if not os.path.exists(main_folder_name):
-        os.makedirs(main_folder_name)
-        print(f"Created main folder: {main_folder_name}")
-        
-    # Create organized subfolders according to user's specifications
-    annotation_results_folder = os.path.join(main_folder_name, "01_annotation_results")  # All CSV files
-    reports_folder = os.path.join(main_folder_name, "02_reports")  # All HTML reports except annotation boost
-    boost_folder = os.path.join(main_folder_name, "03_boost_analysis")   # All annotation boost related results
-    
-    # Create all subfolders
-    for folder in [annotation_results_folder, reports_folder, boost_folder]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-            print(f"Created subfolder: {folder}")
-    
-    # Define derived file names with folder paths
-    # All CSV files go to the annotation_results_folder
-    raw_full_csv = os.path.join(annotation_results_folder, f"{output_file_name}_full.csv")
-    raw_summary_csv = os.path.join(annotation_results_folder, f"{output_file_name}_summary.csv")
-    raw_sorted_csv = os.path.join(annotation_results_folder, f"{output_file_name}_sorted_full.csv")
-    score_file_name = os.path.join(annotation_results_folder, f"{output_file_name}_scored.csv")
-    merged_annotation_file = os.path.join(annotation_results_folder, f"{output_file_name}_merged.csv")
-    
-    # Reports go to the reports_folder - ALL HTML reports should be in this folder
-    report_base_name = os.path.join(reports_folder, f"{output_file_name}")
-    
-    # First annotation output is in the current directory but will be moved later
-    annotation_output = output_file_name
-
-    print("\n=== Starting cell type analysis ===")
-    # Run initial cell type analysis
-    runCASSIA_batch(
-        marker=marker,
-        output_name=annotation_output,
-        model=annotation_model,
-        tissue=tissue,
-        species=species,
-        additional_info=additional_info,
-        provider=annotation_provider,
-        max_workers=max_workers,
-        max_retries=max_retries,
-        ranking_method=ranking_method,
-        ascending=ascending,
-        validator_involvement=validator_involvement
-    )
-    print("✓ Cell type analysis completed")
-    
-    # Copy the generated files to the organized folders
-    original_full_csv = annotation_output + "_full.csv"
-    original_summary_csv = annotation_output + "_summary.csv"
-    
-    # Copy the files if they exist
-    if os.path.exists(original_full_csv):
-        # Read and write instead of just copying to ensure compatibility
-        df_full = pd.read_csv(original_full_csv)
-        df_full.to_csv(raw_full_csv, index=False)
-        print(f"Copied full results to {raw_full_csv}")
-    if os.path.exists(original_summary_csv):
-        df_summary = pd.read_csv(original_summary_csv)
-        df_summary.to_csv(raw_summary_csv, index=False)
-        print(f"Copied summary results to {raw_summary_csv}")
-
-    # Merge annotations if requested
-    if merge_annotations:
-        print("\n=== Starting annotation merging ===")
-        summary_csv = raw_summary_csv
-        
-        # Import the merge_annotations function dynamically
-        try:
-            try:
-                from .merging_annotation import merge_annotations_all
-            except ImportError:
-                from merging_annotation import merge_annotations_all
-            
-            # Sort the CSV file by Cluster ID before merging to ensure consistent order
-            print("Sorting CSV by Cluster ID before merging...")
-            df = pd.read_csv(raw_full_csv)
-            df = df.sort_values(by=['Cluster ID'])
-            df.to_csv(raw_sorted_csv, index=False)
-            
-            # Run the merging process on the sorted CSV
-            merge_annotations_all(
-                csv_path=raw_sorted_csv,
-                output_path=merged_annotation_file,
-                provider=merge_provider,
-                model=merge_model,
-                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
-            )
-            print(f"✓ Annotations merged and saved to {merged_annotation_file}")
-        except Exception as e:
-            print(f"! Error during annotation merging: {str(e)}")
-    
-    print("\n=== Starting scoring process ===")
-    # Run scoring
-    runCASSIA_score_batch(
-        input_file=raw_full_csv,
-        output_file=score_file_name,
-        max_workers=max_workers,
-        model=score_model,
-        provider=score_provider,
-        max_retries=max_retries
-    )
-    print("✓ Scoring process completed")
-
-    print("\n=== Creating final combined results ===")
-    # Create final combined CSV with all results
-    try:
-        # Read the scored file (which has all the original data plus scores)
-        final_df = pd.read_csv(score_file_name)
-        
-        # If merged annotations exist, add merged columns
-        if os.path.exists(merged_annotation_file):
-            merged_df = pd.read_csv(merged_annotation_file)
-            # Merge on 'Cluster ID' to add merged annotation columns
-            if 'Cluster ID' in merged_df.columns:
-                # Keep only the merged columns (not duplicating existing ones)
-                merge_columns = [col for col in merged_df.columns if col not in final_df.columns or col == 'Cluster ID']
-                final_df = final_df.merge(merged_df[merge_columns], on='Cluster ID', how='left')
-
-        # Sort the final results by Cluster ID
-        final_df = final_df.sort_values(by=['Cluster ID'])
-        
-        # Save the final combined results
-        final_combined_file = os.path.join(annotation_results_folder, f"{output_file_name}_FINAL_RESULTS.csv")
-        final_df.to_csv(final_combined_file, index=False)
-        print(f"✓ Final combined results saved to {final_combined_file}")
-        
-    except Exception as e:
-        print(f"Warning: Could not create final combined results: {str(e)}")
-        final_combined_file = score_file_name  # Fallback to scored file
-
-    print("\n=== Generating main reports ===")
-    # Process reports - ensure they go to reports_folder
-    runCASSIA_generate_score_report(
-        csv_path=score_file_name,
-        index_name=report_base_name  # This will create reports in the reports_folder
-    )
-    
-    # Move any HTML files from annotation_results_folder to reports_folder
-    for file in os.listdir(annotation_results_folder):
-        if file.endswith('.html'):
-            src_path = os.path.join(annotation_results_folder, file)
-            dst_path = os.path.join(reports_folder, file)
-            try:
-                shutil.copy2(src_path, dst_path)
-                os.remove(src_path)  # Remove from original location after copying
-                print(f"Moved HTML report {file} to reports folder")
-            except Exception as e:
-                print(f"Error moving HTML file {file}: {str(e)}")
-    
-    print("✓ Main reports generated")
-
-    print("\n=== Analyzing low-scoring clusters ===")
-    # Handle low-scoring clusters
-    df = pd.read_csv(score_file_name)
-    low_score_clusters = df[df['Score'] < score_threshold]['Cluster ID'].tolist()
-
-    print(f"Found {len(low_score_clusters)} clusters with scores below {score_threshold}:")
-    print(low_score_clusters)
-    
-    if low_score_clusters:
-        print("\n=== Starting boost annotation for low-scoring clusters ===")
-        
-        # Create boosted reports list - we will NOT generate a combined report
-        for cluster in low_score_clusters:
-            print(f"Processing low score cluster: {cluster}")
-            
-            # Keep the original cluster name for data lookup
-            original_cluster_name = cluster
-            
-            # Sanitize the cluster name only for file naming purposes
-            sanitized_cluster_name = "".join(c for c in str(cluster) if c.isalnum() or c in (' ', '-', '_')).strip()
-            
-            # Create individual folder for this cluster's boost analysis
-            cluster_boost_folder = os.path.join(boost_folder, sanitized_cluster_name)
-            if not os.path.exists(cluster_boost_folder):
-                os.makedirs(cluster_boost_folder)
-                
-            # Define output name for the cluster boost report
-            cluster_output_name = os.path.join(cluster_boost_folder, f"{output_file_name}_{sanitized_cluster_name}_boosted")
-            
-            # Use the original name for data lookup
-            try:
-                # major_cluster_info should be simple user-provided information like "human large intestine"
-                # NOT complex data extracted from CSV
-                major_cluster_info = f"{species} {tissue}"
-                
-                # Run annotation boost - use original cluster name for data lookup, but sanitized name for output file
-                # NOTE: Using the raw_full_csv path to ensure the CSV can be found
-                runCASSIA_annotationboost(
-                    full_result_path=raw_full_csv,  # This is in the annotation_results_folder
-                    marker=marker,
-                    cluster_name=original_cluster_name,
-                    major_cluster_info=major_cluster_info,
-                    output_name=cluster_output_name,
-                    num_iterations=5,
-                    model=annotationboost_model,
-                    provider=annotationboost_provider,
-                    temperature=0,
-                    conversation_history_mode=conversation_history_mode,
-                    report_style=report_style
-                )
-            except IndexError:
-                print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")
-            except Exception as e:
-                print(f"Error in pipeline processing cluster {original_cluster_name}: {str(e)}")
-        
-        print("✓ Boost annotation completed")
-    
-    print("\n=== Organizing intermediate files ===")
-    # Create intermediate files folder
-    intermediate_folder = os.path.join(annotation_results_folder, "intermediate_files")
-    if not os.path.exists(intermediate_folder):
-        os.makedirs(intermediate_folder)
-    
-    # List of intermediate files to move
-    intermediate_files = [
-        raw_full_csv,
-        raw_summary_csv, 
-        raw_sorted_csv,
-        score_file_name,
-        merged_annotation_file
-    ]
-    
-    # Move intermediate files to intermediate folder
-    for file_path in intermediate_files:
-        if os.path.exists(file_path):
-            try:
-                filename = os.path.basename(file_path)
-                destination = os.path.join(intermediate_folder, filename)
-                shutil.move(file_path, destination)
-                print(f"Moved {filename} to intermediate_files folder")
-            except Exception as e:
-                print(f"Warning: Could not move {filename}: {str(e)}")
-    
-    print("✓ Intermediate files organized")
-    
-    # Try to clean up the original files in the root directory
-    try:
-        for file_to_remove in [original_full_csv, original_summary_csv, annotation_output + "_sorted_full.csv"]:
-            if os.path.exists(file_to_remove):
-                os.remove(file_to_remove)
-                print(f"Removed original file: {file_to_remove}")
-    except Exception as e:
-        print(f"Warning: Could not remove some temporary files: {str(e)}")
-    
-    print("\n=== Cell type analysis pipeline completed ===")
-    print(f"All results have been organized in the '{main_folder_name}' folder:")
-    print(f"  📊 MAIN RESULTS: {final_combined_file}")
-    print(f"  📁 HTML Reports: {reports_folder}")
-    print(f"  🔍 Annotation Boost Results: {boost_folder}")
-    print(f"  📂 Intermediate Files: {intermediate_folder}")
-    print(f"\n✅ Your final results are in: {os.path.basename(final_combined_file)}")
-
-
-def loadmarker(marker_type="processed"):
-    """
-    Load built-in marker files.
-    
-    Args:
-        marker_type (str): Type of markers to load. Options:
-            - "processed": For processed marker data
-            - "unprocessed": For raw unprocessed marker data
-            - "subcluster_results": For subcluster analysis results
-    
-    Returns:
-        pandas.DataFrame: Marker data
-    
-    Raises:
-        ValueError: If marker_type is not recognized
-    """
-    marker_files = {
-        "processed": "processed.csv",
-        "unprocessed": "unprocessed.csv",
-        "subcluster_results": "subcluster_results.csv"
-    }
-    
-    if marker_type not in marker_files:
-        raise ValueError(f"Unknown marker type: {marker_type}. Available types: {list(marker_files.keys())}")
-    
-    filename = marker_files[marker_type]
-    
-    try:
-        # Using importlib.resources for Python 3.7+
-        with resources.path('CASSIA.data', filename) as file_path:
-            return pd.read_csv(file_path)
-    except Exception as e:
-        raise Exception(f"Error loading marker file: {str(e)}")
-
-def list_available_markers():
-    """List all available built-in marker sets."""
-    try:
-        with resources.path('CASSIA.data', '') as data_path:
-            marker_files = [f for f in os.listdir(data_path) if f.endswith('.csv')]
-        return [f.replace('.csv', '') for f in marker_files]
-    except Exception as e:
-        raise Exception(f"Error listing marker files: {str(e)}")
+# End of tools_function.py

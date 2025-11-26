@@ -15,7 +15,7 @@ from pathlib import Path
 # Add shared utilities to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "shared" / "python"))
 
-from fixtures import get_full_marker_dataframe, get_all_clusters
+from fixtures import load_markers
 from test_utils import (
     setup_cassia_imports,
     load_config,
@@ -52,14 +52,16 @@ def run_batch_annotation_test():
     # Import CASSIA functions
     from tools_function import runCASSIA_batch
 
-    # Get all clusters
-    all_clusters = get_all_clusters()
-    print(f"\nTesting batch annotation for {len(all_clusters)} clusters:")
-    for cluster in all_clusters:
-        print(f"  - {cluster}")
+    # Use only 2 clusters for faster testing
+    test_clusters = ['monocyte', 'plasma cell']
 
-    # Get full marker dataframe
-    marker_df = get_full_marker_dataframe()
+    # Load full marker data and filter to test clusters
+    full_df = load_markers()
+    marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
+
+    print(f"\nTesting batch annotation for {len(test_clusters)} clusters:")
+    for cluster in test_clusters:
+        print(f"  - {cluster}")
     print(f"\nLoaded marker data: {marker_df.shape}")
 
     # Create results directory
@@ -97,17 +99,17 @@ def run_batch_annotation_test():
             clusters_annotated = len(results_df)
 
             print(f"\nBatch Results:")
-            print(f"  Clusters annotated: {clusters_annotated}/{len(all_clusters)}")
+            print(f"  Clusters annotated: {clusters_annotated}/{len(test_clusters)}")
             print(f"  Output files created:")
             print(f"    - {full_csv.name}")
             if summary_csv.exists():
                 print(f"    - {summary_csv.name}")
 
-            if clusters_annotated == len(all_clusters):
+            if clusters_annotated == len(test_clusters):
                 status = "passed"
             else:
                 status = "failed"
-                errors.append(f"Only {clusters_annotated}/{len(all_clusters)} clusters annotated")
+                errors.append(f"Only {clusters_annotated}/{len(test_clusters)} clusters annotated")
         else:
             status = "failed"
             errors.append("Output file not created")
@@ -125,7 +127,7 @@ def run_batch_annotation_test():
         config=config,
         duration_seconds=duration,
         status=status,
-        clusters_tested=all_clusters,
+        clusters_tested=test_clusters,
         errors=errors
     )
     save_test_metadata(results_dir, metadata)

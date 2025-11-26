@@ -45,13 +45,36 @@ def load_config() -> dict:
 
 def setup_api_keys():
     """
-    Load API keys from environment file.
-    Looks for api_keys.env in the config directory.
+    Load API keys from config directory.
+
+    Tries in order:
+    1. set_api_keys.py (Python file with keys)
+    2. api_keys.env (environment file)
+
+    Returns:
+        bool: True if keys were loaded, False otherwise
     """
-    env_path = get_test_root() / "config" / "api_keys.env"
+    config_path = get_test_root() / "config"
+
+    # Try loading from set_api_keys.py first
+    set_api_keys_path = config_path / "set_api_keys.py"
+    if set_api_keys_path.exists():
+        # Add config directory to path temporarily
+        config_str = str(config_path)
+        if config_str not in sys.path:
+            sys.path.insert(0, config_str)
+        try:
+            import set_api_keys
+            return True
+        except ImportError:
+            pass
+
+    # Fallback to api_keys.env
+    env_path = config_path / "api_keys.env"
     if env_path.exists():
         load_dotenv(env_path)
         return True
+
     return False
 
 

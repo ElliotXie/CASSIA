@@ -1874,12 +1874,12 @@ def main():
         print(f"Using test provider specified in command line: {provider}")
         if provider.startswith("http"):
             # If a custom provider, set the API key
-            api_key = args.api_key or os.environ.get("CUSTERMIZED_API_KEY", "")
+            api_key = args.api_key or os.environ.get("CUSTOMIZED_API_KEY", "")
             if not api_key:
                 print("Warning: No API key provided for custom provider. Use --api_key to specify it.")
             else:
-                os.environ["CUSTERMIZED_API_KEY"] = api_key
-                print(f"Set CUSTERMIZED_API_KEY for custom provider: {provider}")
+                os.environ["CUSTOMIZED_API_KEY"] = api_key
+                print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
         # Optionally, set a default model for deepseek
         if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
             model_name = "deepseek-chat"
@@ -1889,12 +1889,12 @@ def main():
         # Also handle API key setting for custom providers when using --provider flag
         if provider.startswith("http"):
             # If a custom provider, set the API key
-            api_key = args.api_key or os.environ.get("CUSTERMIZED_API_KEY", "")
+            api_key = args.api_key or os.environ.get("CUSTOMIZED_API_KEY", "")
             if not api_key:
                 print("Warning: No API key provided for custom provider. Use --api_key to specify it.")
             else:
-                os.environ["CUSTERMIZED_API_KEY"] = api_key
-                print(f"Set CUSTERMIZED_API_KEY for custom provider: {provider}")
+                os.environ["CUSTOMIZED_API_KEY"] = api_key
+                print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
             # Set default model for deepseek
             if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
                 model_name = "deepseek-chat"

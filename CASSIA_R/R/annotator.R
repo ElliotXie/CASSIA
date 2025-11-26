@@ -284,8 +284,8 @@ setLLMApiKey <- function(api_key, provider = "anthropic", persist = FALSE) {
     env_var_name <- "OPENROUTER_API_KEY"
   } else if (startsWith(provider, "http")) {
     # Handle custom HTTP endpoints
-    Sys.setenv(CUSTERMIZED_API_KEY = api_key)
-    env_var_name <- "CUSTERMIZED_API_KEY"
+    Sys.setenv(CUSTOMIZED_API_KEY = api_key)
+    env_var_name <- "CUSTOMIZED_API_KEY"
   } else {
     stop("Unsupported provider. Use 'openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints")
   }

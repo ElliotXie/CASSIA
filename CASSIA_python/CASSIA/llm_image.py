@@ -159,9 +159,9 @@ def call_llm_with_image(
         except ImportError:
             raise ImportError("Please install openai package: pip install openai")
         
-        custom_api_key = api_key or os.environ.get("CUSTERMIZED_API_KEY")
+        custom_api_key = api_key or os.environ.get("CUSTOMIZED_API_KEY")
         if not custom_api_key:
-            raise ValueError("API key not provided and CUSTERMIZED_API_KEY not found in environment")
+            raise ValueError("API key not provided and CUSTOMIZED_API_KEY not found in environment")
         
         client = openai.OpenAI(api_key=custom_api_key, base_url=provider)
         
