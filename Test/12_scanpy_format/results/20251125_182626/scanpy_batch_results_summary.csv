@@ -1,0 +1,3 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Marker List,Iterations,Model,Provider,Tissue,Species
+Dendritic cells,Proliferating Cells,"Transit Amplifying (TA) Cells, Intestinal Stem Cells (ISCs) / Crypt Base Columnar (CBC) Cells, Early Progenitor Cells (Undifferentiated)",,"LARS, FAM127A, THEM4, SHOC2, ACAT2, WNK1, UTP6, ATP5SL, GLB1, PLA2G12A, MIS18BP1, MRPL42, BRWD1, PCNA, CSRP1",1,google/gemini-2.5-flash,openrouter,large intestine,human
+FCGR3A+ Monocytes,Pan-cellular / Undifferentiated / Metabolically Active Cells,"Undifferentiated/Progenitor Cells, Highly Metabolically Active Differentiated Cells, General Stromal Cells",,"CPSF3L, ALG5, CYTH2, PSMC6, WNK1, ERI3",1,google/gemini-2.5-flash,openrouter,large intestine,human

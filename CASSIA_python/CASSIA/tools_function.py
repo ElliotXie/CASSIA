@@ -300,14 +300,28 @@ def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC
         # Process Scanpy format
         clusters = df['names'].dtype.names
         top_markers = []
-        
+
         for cluster in clusters:
             # Get data for this cluster
             genes = df['names'][cluster]
-            logfc = df['logfoldchanges'][cluster]
-            pvals_adj = df['pvals_adj'][cluster]
-            pcts = df['pcts'][cluster]  # Get percentage information
-            
+            logfc = df['logfoldchanges'][cluster].astype(float).copy()
+            pvals_adj = df['pvals_adj'][cluster].astype(float).copy()
+            pcts = df['pcts'][cluster].astype(float).copy()
+
+            # Handle NaN and inf values in logfc (like Seurat format does)
+            # Replace inf/-inf and NaN with max/min finite values
+            finite_mask = np.isfinite(logfc)
+            if finite_mask.any():
+                max_finite = logfc[finite_mask].max()
+                min_finite = logfc[finite_mask].min()
+                # Replace inf with max, -inf with min, NaN with max (upregulated markers)
+                logfc = np.where(np.isnan(logfc), max_finite, logfc)
+                logfc = np.where(np.isposinf(logfc), max_finite, logfc)
+                logfc = np.where(np.isneginf(logfc), min_finite, logfc)
+            else:
+                # If all values are non-finite, set to default
+                logfc = np.ones_like(logfc) * 1.0
+
             # Create temporary DataFrame for sorting
             cluster_df = pd.DataFrame({
                 'gene': genes,
@@ -316,9 +330,9 @@ def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC
                 'pct.1': pcts,  # Assuming this represents pct.1
                 'pct.2': np.zeros_like(pcts)  # May need to adjust based on data structure
             })
-            
+
             # Filter for significant upregulated genes with PCT threshold
-            mask = (pvals_adj < 0.05) & (logfc > 0.25) & (pcts >= 0.1)  # Add PCT filter
+            mask = (cluster_df['p_val_adj'] < 0.05) & (cluster_df['avg_log2FC'] > 0.25) & (cluster_df['pct.1'] >= 0.1)
             filtered_df = cluster_df[mask]
             
             if not filtered_df.empty:
