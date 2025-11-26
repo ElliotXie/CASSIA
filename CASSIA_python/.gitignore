@@ -1,3 +1,8 @@
 # Ignore Python package upload scripts that may contain API keys
 upload_to_pypi.py
-upload_to_testpypi.py 
+upload_to_testpypi.py
+
+# API keys configuration file
+CASSIA/set_api_keys.py
+set_api_keys.py
+.env 

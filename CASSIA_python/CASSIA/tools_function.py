@@ -528,8 +528,9 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
         tuple: (analysis_result, conversation_history)
     """
     # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.1")
+    # Use verbose=False since this may be called from batch (which handles its own verbose message)
     settings = ModelSettings()
-    model, provider = settings.resolve_model_name(model, provider)
+    model, provider = settings.resolve_model_name(model, provider, verbose=False)
 
     if provider.lower() == "openai":
         return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
@@ -720,8 +721,11 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
     Returns:
         dict: Results dictionary containing analysis results for each cell type
     """
-    # Load the dataframe
+    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.1")
+    settings = ModelSettings()
+    model, provider = settings.resolve_model_name(model, provider, verbose=True)
 
+    # Load the dataframe
     if isinstance(marker, pd.DataFrame):
         df = marker.copy()
     elif isinstance(marker, str):

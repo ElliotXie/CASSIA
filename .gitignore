@@ -36,8 +36,8 @@ CASSIA_R/test_r/
 # CASSIA test results
 CASSIA/CASSIA_python/CASSIA/test_results/
 
-# Test results folders
-CASSIA/Test/**/results/
+# Test results folders (all results/ directories under Test/)
+Test/**/results/
 
 # Package upload scripts with potentially sensitive API keys
 CASSIA_python/upload_to_pypi.py
