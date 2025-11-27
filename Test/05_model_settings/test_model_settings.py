@@ -286,7 +286,7 @@ def run_model_settings_test():
         print(f"  Provider: openrouter")
         print(f"  Running annotation...")
 
-        result, _ = runCASSIA(
+        result, _, _ = runCASSIA(
             model="google/gemini-2.5-flash",
             temperature=0.3,
             marker_list=marker_df,

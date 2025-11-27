@@ -86,7 +86,7 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
 
 
 def run_single_analysis(args):
-    index, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement = args
+    index, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement, use_reference = args
     print(f"Starting analysis {index+1}")
     start_time = time.time()
     try:
@@ -98,7 +98,8 @@ def run_single_analysis(args):
             marker_list=marker_list,
             model=model,
             provider=provider,
-            validator_involvement=validator_involvement
+            validator_involvement=validator_involvement,
+            use_reference=use_reference
         )
         end_time = time.time()
         print(f"Finished analysis {index+1} in {end_time - start_time:.2f} seconds")
@@ -111,10 +112,10 @@ def run_single_analysis(args):
 
 
 
-def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter", validator_involvement="v1"):
+def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=10, provider="openrouter", validator_involvement="v1", use_reference=False):
     """
     Run multiple cell type analyses in parallel.
-    
+
     Args:
         n (int): Number of analyses to run
         tissue (str): Tissue type
@@ -125,21 +126,23 @@ def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_l
         model (str): Model name to use
         max_workers (int): Maximum number of parallel workers
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
-    
+        validator_involvement (str): Validator involvement level
+        use_reference (bool): Whether to use reference-based annotation for complex cases
+
     Returns:
-        dict: Dictionary of analysis results indexed by iteration number
+        dict: Dictionary of analysis results indexed by iteration number (each result is a 3-tuple)
     """
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
-    
+
     results = {}
-    
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks with the provider parameter
         future_to_index = {
             executor.submit(
-                run_single_analysis, 
-                (i, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement)
+                run_single_analysis,
+                (i, tissue, species, additional_info, temperature, marker_list, model, provider, validator_involvement, use_reference)
             ): i for i in range(n)
         }
         
@@ -372,46 +375,65 @@ def extract_celltypes_from_llm(llm_response, provider="openai", single_analysis=
 
 
 def consensus_similarity_flexible(results, main_weight=0.7, sub_weight=0.3):
+    """
+    Calculate consensus similarity from runCASSIA_n_times results.
+
+    Args:
+        results: dict where values are 3-tuples (analysis_result, conversation_history, reference_info)
+                 analysis_result is a dict with 'main_cell_type' and 'sub_cell_types' keys
+        main_weight: weight for main cell type agreement
+        sub_weight: weight for sub cell type agreement
+
+    Returns:
+        tuple: (similarity_score, consensus_general, consensus_sub)
+    """
     # Check if results is empty
     if not results:
         print("Warning: No results to calculate consensus similarity")
         return 0.0, "Unknown", "Unknown"
-        
-    general_types = [result[0] for result in results.values()]
-    sub_types = [result[1] for result in results.values()]
-    
+
+    # Extract cell types from the 3-tuple structure
+    # result[0] is the analysis_result dict, result[1] is conversation_history, result[2] is reference_info
+    general_types = [result[0]['main_cell_type'] for result in results.values() if result[0] and 'main_cell_type' in result[0]]
+    sub_types = [', '.join(result[0].get('sub_cell_types', [])) for result in results.values() if result[0]]
+
     # Check if general_types or sub_types is empty
     if not general_types or not sub_types:
         print("Warning: Empty general_types or sub_types in consensus calculation")
         return 0.0, "Unknown", "Unknown"
-    
+
     # Use Counter to get most common types
     from collections import Counter
     general_counter = Counter(general_types)
     sub_counter = Counter(sub_types)
-    
+
     # Check if Counter is empty
     if not general_counter or not sub_counter:
         print("Warning: Empty counter in consensus calculation")
         return 0.0, "Unknown", "Unknown"
-    
+
     consensus_general = general_counter.most_common(1)[0][0]
     consensus_sub = sub_counter.most_common(1)[0][0]
-    
+
     total_score = 0
     for result in results.values():
-        if result[0] == consensus_general:
+        if not result[0]:
+            continue
+        result_general = result[0].get('main_cell_type', '')
+        result_sub = ', '.join(result[0].get('sub_cell_types', []))
+
+        if result_general == consensus_general:
             total_score += main_weight
-        elif result[0] == consensus_sub:
+        elif result_general == consensus_sub:
             total_score += main_weight * sub_weight
-        
-        if result[1] == consensus_sub:
+
+        if result_sub == consensus_sub:
             total_score += sub_weight
-        elif result[1] == consensus_general:
+        elif result_sub == consensus_general:
             total_score += sub_weight * main_weight
-    
+
     similarity_score = total_score / (len(results) * (main_weight + sub_weight))
-    
+
     return similarity_score, consensus_general, consensus_sub
 
 
@@ -1249,7 +1271,7 @@ def standardize_cell_types_single(results):
     return ",".join(standardized_results)
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter",main_weight=0.5,sub_weight=0.5, validator_involvement="v1"):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False):
     """
     Wrapper function for processing cell type analysis using any supported provider.
     
@@ -1288,7 +1310,7 @@ Output in JSON format:
 '''
 
     # Run initial analysis
-    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider, validator_involvement=validator_involvement)
+    results = runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_list, model, max_workers=max_workers, provider=provider, validator_involvement=validator_involvement, use_reference=use_reference)
     results = extract_cell_types_from_results_single(results)
     
     # Standardize cell types

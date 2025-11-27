@@ -1,0 +1,200 @@
+# CASSIA Test 15: CASSIA Pipeline (R)
+# =====================================
+# Tests the runCASSIA_pipeline function, the complete end-to-end cell type
+# annotation orchestrator via R package.
+#
+# Usage:
+#     Rscript test_cassia_pipeline.R
+
+# Get script directory (works with Rscript and source())
+get_script_dir <- function() {
+  # Method 1: commandArgs (works with Rscript)
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- grep("--file=", args, value = TRUE)
+  if (length(file_arg) > 0) {
+    return(dirname(normalizePath(sub("--file=", "", file_arg), winslash = "/")))
+  }
+  # Method 2: sys.frame (works with source())
+  for (i in sys.nframe():1) {
+    if (!is.null(sys.frame(i)$ofile)) {
+      return(dirname(normalizePath(sys.frame(i)$ofile, winslash = "/")))
+    }
+  }
+  # Fallback: current working directory
+  return(normalizePath(getwd(), winslash = "/"))
+}
+script_dir <- get_script_dir()
+
+# Source shared utilities
+source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
+source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
+source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+
+run_cassia_pipeline_test <- function() {
+  print_test_header("15 - CASSIA Pipeline (R)")
+
+  # Load configuration
+  config <- load_config()
+  print_config_summary(config)
+
+  # Setup API keys
+  setup_api_keys()
+
+  # Setup CASSIA R package
+  tryCatch({
+    setup_cassia()
+    message("CASSIA R package loaded successfully")
+  }, error = function(e) {
+    message("Error loading CASSIA: ", e$message)
+    return(FALSE)
+  })
+
+  # Get settings
+  llm_config <- config$llm
+  data_config <- config$data
+
+  # Use only 2 clusters for faster testing
+  test_clusters <- c("monocyte", "plasma cell")
+
+  # Load full marker data and filter to test clusters
+  full_df <- load_markers()
+  marker_df <- full_df[full_df$Broad.cell.type %in% test_clusters, ]
+
+  cat("\nTesting pipeline for", length(test_clusters), "clusters:\n")
+  for (cluster in test_clusters) {
+    cat("  -", cluster, "\n")
+  }
+  cat("\nLoaded marker data:", nrow(marker_df), "rows\n")
+
+  # Create results directory
+  results_dir <- create_results_dir("15_cassia_pipeline")
+  output_name <- file.path(results_dir, "pipeline_test")
+  cat("Results will be saved to:", results_dir, "\n")
+
+  # Change to results directory so pipeline output goes there
+  original_dir <- getwd()
+  setwd(results_dir)
+
+  # Run the test
+  start_time <- Sys.time()
+  errors <- list()
+  status <- "error"
+  pipeline_output_dir <- NULL
+
+  tryCatch({
+    cat("\nRunning runCASSIA_pipeline via R package...\n")
+
+    # Call CASSIA R function
+    CASSIA::runCASSIA_pipeline(
+      output_file_name = output_name,
+      tissue = data_config$tissue %||% "large intestine",
+      species = data_config$species %||% "human",
+      marker = marker_df,
+      max_workers = llm_config$max_workers %||% 3,
+      annotation_model = llm_config$model %||% "google/gemini-2.5-flash",
+      annotation_provider = llm_config$provider %||% "openrouter",
+      score_model = llm_config$model %||% "google/gemini-2.5-flash",
+      score_provider = llm_config$provider %||% "openrouter",
+      annotationboost_model = llm_config$model %||% "google/gemini-2.5-flash",
+      annotationboost_provider = llm_config$provider %||% "openrouter",
+      score_threshold = 75,
+      do_merge_annotations = TRUE,
+      merge_model = llm_config$model %||% "google/gemini-2.5-flash",
+      merge_provider = llm_config$provider %||% "openrouter",
+      validator_involvement = config$validator$default %||% "v1"
+    )
+
+    # Find the pipeline output directory (starts with CASSIA_)
+    items <- list.dirs(results_dir, recursive = FALSE, full.names = FALSE)
+    cassia_dirs <- items[grepl("^CASSIA_", items)]
+    if (length(cassia_dirs) > 0) {
+      pipeline_output_dir <- file.path(results_dir, cassia_dirs[1])
+    }
+
+    if (!is.null(pipeline_output_dir) && dir.exists(pipeline_output_dir)) {
+      cat("\nPipeline output directory:", basename(pipeline_output_dir), "\n")
+
+      # Check expected subdirectories
+      annotation_dir <- file.path(pipeline_output_dir, "01_annotation_results")
+      reports_dir_path <- file.path(pipeline_output_dir, "02_reports")
+      boost_dir <- file.path(pipeline_output_dir, "03_boost_analysis")
+
+      checks_passed <- TRUE
+      cat("\nValidating output structure:\n")
+
+      # Check 01_annotation_results
+      if (dir.exists(annotation_dir)) {
+        cat("  [OK] 01_annotation_results exists\n")
+        # Check for FINAL_RESULTS.csv
+        final_results <- file.path(annotation_dir, "FINAL_RESULTS.csv")
+        if (file.exists(final_results)) {
+          cat("  [OK] FINAL_RESULTS.csv exists\n")
+          results_df <- read.csv(final_results)
+          cat("       - Contains", nrow(results_df), "rows\n")
+        } else {
+          cat("  [WARN] FINAL_RESULTS.csv not found\n")
+        }
+      } else {
+        cat("  [FAIL] 01_annotation_results missing\n")
+        checks_passed <- FALSE
+        errors <- list("01_annotation_results directory missing")
+      }
+
+      # Check 02_reports
+      if (dir.exists(reports_dir_path)) {
+        cat("  [OK] 02_reports exists\n")
+        html_files <- list.files(reports_dir_path, pattern = "\\.html$")
+        cat("       - Contains", length(html_files), "HTML report(s)\n")
+      } else {
+        cat("  [WARN] 02_reports missing (may be expected if no reports generated)\n")
+      }
+
+      # Check 03_boost_analysis
+      if (dir.exists(boost_dir)) {
+        cat("  [OK] 03_boost_analysis exists\n")
+      } else {
+        cat("  [INFO] 03_boost_analysis missing (expected if all scores above threshold)\n")
+      }
+
+      if (checks_passed) {
+        status <- "passed"
+      } else {
+        status <- "failed"
+      }
+    } else {
+      status <- "failed"
+      errors <- list("Pipeline output directory not created")
+    }
+
+  }, error = function(e) {
+    errors <<- list(e$message)
+    status <<- "error"
+    cat("\nError:", e$message, "\n")
+  })
+
+  # Change back to original directory
+  setwd(original_dir)
+
+  duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+
+  # Save metadata
+  metadata <- create_test_metadata(
+    test_name = "cassia_pipeline",
+    config = config,
+    duration_seconds = duration,
+    status = status,
+    clusters_tested = as.list(test_clusters),
+    errors = errors
+  )
+  save_test_metadata(results_dir, metadata)
+
+  # Print final result
+  success <- status == "passed"
+  print_test_result(success, paste("Duration:", round(duration, 2), "s"))
+
+  return(success)
+}
+
+# Run test
+success <- run_cassia_pipeline_test()
+quit(status = if (success) 0 else 1)

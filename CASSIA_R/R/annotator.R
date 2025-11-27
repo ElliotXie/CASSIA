@@ -375,9 +375,10 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')
 #'
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
-#' @return A list containing two elements: structured output and conversation history.
+#' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
+#' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1") {
+runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
   tryCatch({
     result <- py_tools$runCASSIA(
       model = model,
@@ -387,12 +388,13 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
       species = species,
       additional_info = additional_info,
       provider = provider,
-      validator_involvement = validator_involvement
+      validator_involvement = validator_involvement,
+      use_reference = use_reference
     )
-    
+
     # Convert structured_output (result[[1]])
     structured_output <- as.list(result[[1]])
-    
+
     # Convert conversation_history (result[[2]])
     conversation_history <- lapply(result[[2]], function(entry) {
       if (is.list(entry) && length(entry) == 2) {
@@ -402,8 +404,11 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
         list(agent = "Unknown", message = "Conversion failed")
       }
     })
-    
-    return(list(structured_output = structured_output, conversation_history = conversation_history))
+
+    # Convert reference_info (result[[3]])
+    reference_info <- as.list(result[[3]])
+
+    return(list(structured_output = structured_output, conversation_history = conversation_history, reference_info = reference_info))
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA:", e$message, "\n",
                        "Python traceback:", reticulate::py_last_error())
@@ -423,11 +428,12 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #' @param max_workers Maximum number of workers for parallel processing.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
 #'
-#' @return A list containing results from multiple runs.
+#' @return A list containing results from multiple runs, each with analysis_result, conversation_history, and reference_info.
 #' @export
-runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list, 
-                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1") {
+runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list,
+                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
   tryCatch({
     result <- py_tools$runCASSIA_n_times(
       n = as.integer(n),
@@ -439,9 +445,10 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
       model = model,
       max_workers = as.integer(max_workers),
       provider = provider,
-      validator_involvement = validator_involvement
+      validator_involvement = validator_involvement,
+      use_reference = use_reference
     )
-    
+
     # Convert the result to an R list
     converted_result <- lapply(seq_len(n), function(i) {
       run_result <- result[[as.character(i-1)]]  # Python uses 0-based indexing
@@ -455,10 +462,11 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
         ),
         conversation_history = lapply(run_result[[2]], function(entry) {
           list(agent = entry[[1]], message = entry[[2]])
-        })
+        }),
+        reference_info = as.list(run_result[[3]])
       )
     })
-    
+
     names(converted_result) <- as.character(seq_len(n) - 1)  # Match Python's 0-based indexing
     return(converted_result)
   }, error = function(e) {
@@ -483,10 +491,11 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 #' @param n Number of times to run the analysis.
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
-runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1") {
+runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
   tryCatch({
     # Call the Python function with the new parameter structure
     processed_results <- py_uncertainty$runCASSIA_n_times_similarity_score(
@@ -498,8 +507,9 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
       model = model,
       max_workers = as.integer(max_workers),
       n = as.integer(n),
-      provider=provider,
-      validator_involvement = validator_involvement
+      provider = provider,
+      validator_involvement = validator_involvement,
+      use_reference = use_reference
     )
     
     # Convert the processed results back to R

@@ -75,7 +75,7 @@ def run_single_annotation_test():
 
     try:
         print("\nRunning runCASSIA...")
-        result, conversation_history = runCASSIA(
+        result, conversation_history, _ = runCASSIA(
             model=llm_config.get('model', 'google/gemini-2.5-flash'),
             temperature=llm_config.get('temperature', 0.3),
             marker_list=marker_df,

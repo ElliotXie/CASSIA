@@ -1364,7 +1364,7 @@ def test_single_annotation_validators(marker_list=None, provider_test=None):
         print(f"\n--- Testing {validator_level} validator on single annotation ---")
         
         try:
-            result, conversation = runCASSIA(
+            result, conversation, _ = runCASSIA(
                 model=current_model,
                 temperature=0,
                 marker_list=marker_list,
