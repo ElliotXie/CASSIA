@@ -19,20 +19,328 @@ py_symphony_compare <- NULL
 py_model_settings <- NULL
 py_logging_config <- NULL
 
+# =============================================================================
+# Internal Diagnostic Functions for Setup Error Handling
+# =============================================================================
+
+# Get platform information for platform-specific error messages
+.get_platform_info <- function() {
+  list(
+    os = .Platform$OS.type,
+    system = Sys.info()["sysname"],
+    is_windows = .Platform$OS.type == "windows",
+    is_mac = Sys.info()["sysname"] == "Darwin",
+    is_linux = Sys.info()["sysname"] == "Linux"
+  )
+}
+
+# Check if Python is available on the system
+.check_python_available <- function() {
+  tryCatch({
+    config <- reticulate::py_discover_config(required_module = NULL, use_environment = NULL)
+    if (!is.null(config) && !is.null(config$python)) {
+      return(list(available = TRUE, path = config$python, version = config$version))
+    }
+    return(list(available = FALSE, path = NULL, version = NULL))
+  }, error = function(e) {
+    return(list(available = FALSE, path = NULL, version = NULL, error = e$message))
+  })
+}
+
+# Check if Python version meets requirements (>= 3.8)
+.check_python_version <- function(required_version = "3.8") {
+  py_info <- .check_python_available()
+  if (!py_info$available) {
+    return(list(ok = FALSE, reason = "Python not found", current = NULL, required = required_version))
+  }
+
+  tryCatch({
+    version_str <- py_info$version
+    # Extract major.minor from version string (e.g., "3.10.1" -> c(3, 10))
+    version_parts <- as.numeric(strsplit(version_str, "\\.")[[1]][1:2])
+    required_parts <- as.numeric(strsplit(required_version, "\\.")[[1]][1:2])
+
+    version_ok <- (version_parts[1] > required_parts[1]) ||
+                  (version_parts[1] == required_parts[1] && version_parts[2] >= required_parts[2])
+
+    return(list(ok = version_ok, current = version_str, required = required_version))
+  }, error = function(e) {
+    return(list(ok = FALSE, reason = e$message, current = py_info$version, required = required_version))
+  })
+}
+
+# Check if environment managers (virtualenv/conda) are available
+.check_env_managers_available <- function() {
+  virtualenv_ok <- tryCatch({
+    reticulate::virtualenv_list()
+    TRUE
+  }, error = function(e) FALSE)
+
+  conda_ok <- tryCatch({
+    conda_bin <- reticulate::conda_binary()
+    !is.null(conda_bin) && file.exists(conda_bin)
+  }, error = function(e) FALSE)
+
+  list(
+    virtualenv = virtualenv_ok,
+    conda = conda_ok,
+    any_available = virtualenv_ok || conda_ok
+  )
+}
+
+# Error message templates with platform-specific fixes
+.error_messages <- list(
+  python_not_found = list(
+    what = "Python is not installed or not found in your system PATH.",
+    why = "CASSIA requires Python 3.8+ to run its cell annotation engine.",
+    fix_windows = c(
+      "1. Download Python from https://www.python.org/downloads/",
+      "2. During installation, CHECK the box 'Add Python to PATH'",
+      "3. Restart R/RStudio after installation",
+      "4. Run: library(CASSIA)"
+    ),
+    fix_mac = c(
+      "Option 1 - Using Homebrew (recommended):",
+      "  Open Terminal and run: brew install python@3.10",
+      "",
+      "Option 2 - Download installer:",
+      "  https://www.python.org/downloads/",
+      "",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    ),
+    fix_linux = c(
+      "Ubuntu/Debian:",
+      "  sudo apt update && sudo apt install python3 python3-pip python3-venv",
+      "",
+      "CentOS/RHEL:",
+      "  sudo yum install python3 python3-pip",
+      "",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    )
+  ),
+
+  python_version = list(
+    what = "Your Python version is not compatible with CASSIA.",
+    why = "CASSIA requires Python 3.8 or higher.",
+    fix_windows = c(
+      "1. Download Python 3.10+ from https://www.python.org/downloads/",
+      "2. During installation, CHECK 'Add Python to PATH'",
+      "3. You may need to uninstall the old Python version first",
+      "4. Restart R/RStudio and run: library(CASSIA)"
+    ),
+    fix_mac = c(
+      "1. Install Python 3.10+ using Homebrew:",
+      "   brew install python@3.10",
+      "",
+      "2. Or download from https://www.python.org/downloads/",
+      "3. Restart R/RStudio and run: library(CASSIA)"
+    ),
+    fix_linux = c(
+      "Ubuntu/Debian:",
+      "  sudo apt update && sudo apt install python3.10 python3.10-venv",
+      "",
+      "Or use pyenv to install a newer Python version.",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    )
+  ),
+
+  no_env_manager = list(
+    what = "Cannot create Python environment (no virtualenv or conda found).",
+    why = "CASSIA needs an isolated Python environment to manage its dependencies.",
+    fix_windows = c(
+      "Option 1 - Install virtualenv (recommended):",
+      "  Open Command Prompt and run: pip install virtualenv",
+      "",
+      "Option 2 - Install Miniconda:",
+      "  Download from https://docs.conda.io/en/latest/miniconda.html",
+      "",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    ),
+    fix_mac = c(
+      "Option 1 - Install virtualenv:",
+      "  pip3 install virtualenv",
+      "",
+      "Option 2 - Install Miniconda:",
+      "  Download from https://docs.conda.io/en/latest/miniconda.html",
+      "",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    ),
+    fix_linux = c(
+      "Ubuntu/Debian:",
+      "  sudo apt install python3-venv",
+      "  # or: pip3 install virtualenv",
+      "",
+      "After installing, restart R/RStudio and run: library(CASSIA)"
+    )
+  ),
+
+  env_setup_failed = list(
+    what = "Failed to create the CASSIA Python environment.",
+    why = "This may be due to permission issues or network problems.",
+    fix_windows = c(
+      "Try these solutions:",
+      "",
+      "1. Run R/RStudio as Administrator (one time only):",
+      "   Right-click R/RStudio -> 'Run as administrator'",
+      "   Then run: library(CASSIA)",
+      "",
+      "2. Check your internet connection (packages need to be downloaded)",
+      "",
+      "3. Try manually creating the environment:",
+      "   Open Command Prompt and run:",
+      "   python -m venv %USERPROFILE%\\.virtualenvs\\cassia_env"
+    ),
+    fix_mac = c(
+      "Try these solutions:",
+      "",
+      "1. Check your internet connection",
+      "",
+      "2. Try manually creating the environment:",
+      "   python3 -m venv ~/.virtualenvs/cassia_env",
+      "",
+      "3. If using conda:",
+      "   conda create -n cassia_env python=3.10"
+    ),
+    fix_linux = c(
+      "Try these solutions:",
+      "",
+      "1. Ensure python3-venv is installed:",
+      "   sudo apt install python3-venv",
+      "",
+      "2. Check your internet connection",
+      "",
+      "3. Try manually creating the environment:",
+      "   python3 -m venv ~/.virtualenvs/cassia_env"
+    )
+  ),
+
+  package_install_failed = list(
+    what = "Failed to install required Python packages.",
+    why = "CASSIA needs packages like openai, pandas, and numpy to function.",
+    fix_windows = c(
+      "1. Check your internet connection",
+      "",
+      "2. If behind a corporate firewall, configure proxy in R:",
+      "   Sys.setenv(http_proxy = 'http://your-proxy:port')",
+      "   Sys.setenv(https_proxy = 'http://your-proxy:port')",
+      "",
+      "3. Try installing packages manually:",
+      "   Open Command Prompt and run:",
+      "   pip install openai pandas numpy anthropic requests matplotlib seaborn"
+    ),
+    fix_mac = c(
+      "1. Check your internet connection",
+      "",
+      "2. Try installing packages manually:",
+      "   pip3 install openai pandas numpy anthropic requests matplotlib seaborn"
+    ),
+    fix_linux = c(
+      "1. Check your internet connection",
+      "",
+      "2. Try installing packages manually:",
+      "   pip3 install openai pandas numpy anthropic requests matplotlib seaborn"
+    )
+  )
+)
+
+# Display formatted error message with platform-specific instructions
+.show_setup_error <- function(error_type, details = NULL) {
+  platform <- .get_platform_info()
+  msg_template <- .error_messages[[error_type]]
+
+  if (is.null(msg_template)) {
+    warning("Unknown setup error occurred. Please check your Python installation.")
+    return(invisible(NULL))
+  }
+
+  # Build the problem description
+  problem_text <- msg_template$what
+  if (!is.null(details)) {
+    if (!is.null(details$current)) {
+      problem_text <- paste0(problem_text, " (Found: Python ", details$current, ")")
+    }
+    if (!is.null(details$error)) {
+      problem_text <- paste0(problem_text, "\nError: ", details$error)
+    }
+  }
+
+  # Build formatted output
+  lines <- c(
+    "",
+    "============================================================",
+    "  CASSIA Setup Error",
+    "============================================================",
+    "",
+    paste0("PROBLEM: ", problem_text),
+    "",
+    paste0("WHY THIS MATTERS: ", msg_template$why),
+    "",
+    "HOW TO FIX:",
+    ""
+  )
+
+  # Add platform-specific instructions
+  if (platform$is_windows) {
+    lines <- c(lines, msg_template$fix_windows)
+  } else if (platform$is_mac) {
+    lines <- c(lines, msg_template$fix_mac)
+  } else {
+    lines <- c(lines, msg_template$fix_linux)
+  }
+
+  lines <- c(lines, "", "============================================================", "")
+
+  # Print as a single message
+  message(paste(lines, collapse = "\n"))
+  invisible(NULL)
+}
+
+# =============================================================================
+# Package Load Function
+# =============================================================================
+
 .onLoad <- function(libname, pkgname) {
+  # =========================================================================
+  # Step 1: Pre-flight checks - Verify Python is available and compatible
+  # =========================================================================
+
+  # Check if Python is available
+  py_check <- .check_python_available()
+  if (!py_check$available) {
+    .show_setup_error("python_not_found", py_check)
+    return(invisible(NULL))
+  }
+
+  # Check Python version (must be >= 3.8)
+  version_check <- .check_python_version("3.8")
+  if (!version_check$ok) {
+    .show_setup_error("python_version", version_check)
+    return(invisible(NULL))
+  }
+
+  # =========================================================================
+  # Step 2: Set up or activate Python environment
+  # =========================================================================
+
   # Get the environment name from the package configuration
-  # Support both new and legacy option names
   env_name <- getOption("CASSIA.env_name", default = NULL)
   if (is.null(env_name)) {
     env_name <- getOption("CASSIA.conda_env", default = "cassia_env")
   }
-  
+
   # Set up the Python environment
   tryCatch({
     # Check if environment exists in either virtualenv or conda
     env_exists <- .check_env_exists(env_name)
-    
+
     if (!env_exists$virtualenv && !env_exists$conda) {
+      # Check if environment managers are available before trying to create
+      env_managers <- .check_env_managers_available()
+      if (!env_managers$any_available) {
+        .show_setup_error("no_env_manager")
+        return(invisible(NULL))
+      }
+
       # Environment doesn't exist, create it using the new setup function
       message("CASSIA Python environment not found. Setting up automatically...")
       setup_cassia_env(conda_env = env_name)
@@ -50,8 +358,11 @@ py_logging_config <- NULL
         options(CASSIA.conda_env = env_name)
       }
     }
-    
-    # Import Python modules
+
+    # =========================================================================
+    # Step 3: Import Python modules
+    # =========================================================================
+
     py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
     py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
     py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
@@ -70,14 +381,15 @@ py_logging_config <- NULL
     py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
     py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
 
-    message("CASSIA loaded successfully!")
-    
+    # Success!
+    message("CASSIA loaded successfully! Happy annotating!")
+
   }, error = function(e) {
     # If setup fails, try to run setup_cassia_env() automatically
     message("Initial setup failed, attempting automatic environment setup...")
     tryCatch({
       setup_cassia_env(conda_env = env_name)
-      
+
       # Try to import Python modules again after successful setup
       py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
       py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
@@ -97,11 +409,21 @@ py_logging_config <- NULL
       py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
       py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
 
-      message("CASSIA environment setup completed successfully!")
-      
+      # Success after retry!
+      message("CASSIA loaded successfully! Happy annotating!")
+
     }, error = function(e2) {
-      warning("Failed to set up Python environment automatically. Error: ", e2$message, 
-              "\nPlease run setup_cassia_env() manually to set up the required environment.")
+      # Determine the most likely cause of failure
+      error_msg <- tolower(e2$message)
+
+      if (grepl("virtualenv|conda|venv|environment", error_msg)) {
+        .show_setup_error("env_setup_failed", list(error = e2$message))
+      } else if (grepl("pip|install|package|module", error_msg)) {
+        .show_setup_error("package_install_failed", list(error = e2$message))
+      } else {
+        # Generic error with details
+        .show_setup_error("env_setup_failed", list(error = e2$message))
+      }
     })
   })
 }
@@ -212,9 +534,9 @@ py_logging_config <- NULL
 #'
 #' @return Invisible NULL. Called for side effects.
 #' @export
-setup_cassia_env <- function(conda_env = NULL, python_version = "3.10", 
-                           pip_packages = c("openai", "pandas", "numpy", "scikit-learn", 
-                                          "requests", "anthropic", "charset-normalizer", "matplotlib", "seaborn"),
+setup_cassia_env <- function(conda_env = NULL, python_version = "3.10",
+                           pip_packages = c("openai", "pandas", "numpy",
+                                          "requests", "anthropic", "matplotlib", "seaborn"),
                            method = "auto") {
   
   # Get environment name

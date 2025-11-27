@@ -193,32 +193,46 @@ class ModelSettings:
             raise ValueError("Model name cannot be empty")
 
         if not provider:
-            raise ValueError("Provider must be specified (openai, anthropic, or openrouter)")
+            raise ValueError("Provider must be specified (openai, anthropic, openrouter, or an HTTP base URL)")
 
-        provider = provider.lower()
+        provider_clean = provider.strip()
+        if not provider_clean:
+            raise ValueError("Provider must be specified (openai, anthropic, openrouter, or an HTTP base URL)")
+
+        provider_lower = provider_clean.lower()
         model_name_lower = model_name.lower().strip()
 
-        if provider not in VALID_PROVIDERS:
-            raise ValueError(f"Unknown provider: {provider}. Must be one of: {VALID_PROVIDERS}")
+        is_custom_provider = provider_lower.startswith("http://") or provider_lower.startswith("https://")
 
-        # 1. Check if it's a tier shortcut
-        if model_name_lower in VALID_TIERS:
-            provider_settings = self.settings.get("providers", {}).get(provider, {})
-            resolved = provider_settings.get(model_name_lower)
-            if resolved:
-                return resolved, provider
-            else:
-                raise ValueError(f"Tier '{model_name}' not found for provider '{provider}'")
+        if not is_custom_provider and provider_lower not in VALID_PROVIDERS:
+            raise ValueError(f"Unknown provider: {provider_clean}. Must be one of: {VALID_PROVIDERS} or an HTTP/HTTPS base URL")
 
-        # 2. Try alias resolution
-        resolved, was_alias = self._resolve_alias(model_name, provider)
+        # For standard providers, support tier shortcuts and aliases
+        if not is_custom_provider:
+            if model_name_lower in VALID_TIERS:
+                provider_settings = self.settings.get("providers", {}).get(provider_lower, {})
+                resolved = provider_settings.get(model_name_lower)
+                if resolved:
+                    return resolved, provider_lower
+                else:
+                    raise ValueError(f"Tier '{model_name}' not found for provider '{provider_clean}'")
+
+            resolved, was_alias = self._resolve_alias(model_name, provider_lower)
+            if was_alias and resolved:
+                if verbose:
+                    print(f"Note: Resolved '{model_name}' to '{resolved}' for {provider_lower}")
+                return resolved, provider_lower
+
+            return model_name, provider_lower
+
+        # Custom HTTP providers: pass through model name to preserve user-specified values
+        resolved, was_alias = self._resolve_alias(model_name, provider_lower)
         if was_alias and resolved:
             if verbose:
-                print(f"Note: Resolved '{model_name}' to '{resolved}' for {provider}")
-            return resolved, provider
+                print(f"Note: Resolved '{model_name}' to '{resolved}' for {provider_clean}")
+            return resolved, provider_clean
 
-        # 3. Pass-through (exact model name)
-        return model_name, provider
+        return model_name, provider_clean
 
     def get_available_tiers(self) -> list:
         """Get list of available tier shortcuts."""
