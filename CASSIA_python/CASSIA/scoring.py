@@ -242,7 +242,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         return (idx, None, f"Error: {str(e)}")
 
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True):
     """
     Run scoring on a batch of cell type annotations with progress tracking.
 
@@ -253,6 +253,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         model (str): Model to use
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
         max_retries (int): Maximum number of retries for failed analyses
+        generate_report (bool): Whether to generate HTML report (default True, set False when called from pipeline)
 
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -368,6 +369,28 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         print(f"Total rows: {total_rows}")
         print(f"Successfully scored: {scored_rows}")
         print(f"Failed/Skipped: {total_rows - scored_rows}")
+
+        # Generate HTML report with scores (unless called from pipeline which handles its own)
+        if generate_report:
+            try:
+                try:
+                    from .generate_batch_report import generate_batch_html_report_from_data
+                except ImportError:
+                    from generate_batch_report import generate_batch_html_report_from_data
+
+                # Convert DataFrame to list of dicts for report generation
+                rows_data = results.to_dict('records')
+
+                # Generate report path based on output file
+                report_output_path = actual_output_file.replace('.csv', '_report.html')
+                generate_batch_html_report_from_data(
+                    rows=rows_data,
+                    output_path=report_output_path,
+                    report_title="CASSIA Scored Analysis Report"
+                )
+                print(f"HTML report generated: {report_output_path}")
+            except Exception as e:
+                print(f"Warning: Could not generate HTML report: {e}")
 
         return results
 

@@ -8,8 +8,10 @@ from functools import partial
 from typing import Dict, Any, Optional, Union, List
 try:
     from .llm_utils import call_llm
+    from .progress_tracker import BatchProgressTracker
 except ImportError:
     from llm_utils import call_llm
+    from progress_tracker import BatchProgressTracker
 
 def merge_annotations(
     csv_path: str,
@@ -55,7 +57,6 @@ def merge_annotations(
     # Read the CSV file
     try:
         df = pd.read_csv(csv_path)
-        print(f"Successfully read CSV file with {len(df)} rows.")
     except Exception as e:
         raise ValueError(f"Error reading CSV file: {str(e)}")
     
@@ -120,10 +121,9 @@ def merge_annotations(
             groupings = _parse_llm_response(response, batch.index)
             for idx, grouping in groupings.items():
                 working_df.at[idx, result_column] = grouping
-                
-            print(f"Processed clusters {i+1}-{batch_end} out of {total_rows}")
         except Exception as e:
-            print(f"Error processing batch {i+1}-{batch_end}: {str(e)}")
+            # Silently continue - errors will be visible from incomplete results
+            pass
     
     # Add the result column to the original DataFrame
     df[result_column] = working_df[result_column]
@@ -131,7 +131,6 @@ def merge_annotations(
     # Save results if output path is provided
     if output_path:
         df.to_csv(output_path, index=False)
-        print(f"Results saved to {output_path}")
     
     return df
 
@@ -289,8 +288,7 @@ def _parse_llm_response(response: str, indices: pd.Index) -> Dict[int, str]:
                     if ':' in line:
                         groupings[indices[i]] = line.split(':', 1)[1].strip()
     except Exception as e:
-        print(f"Error parsing LLM response: {str(e)}")
-        # Fallback: Use the raw response
+        # Fallback: Use the raw response on parse error
         for i, idx in enumerate(indices):
             groupings[idx] = "Error parsing response"
     
@@ -320,8 +318,12 @@ def merge_annotations_all(
     Returns:
         DataFrame with original annotations and all three levels of suggested cell groupings
     """
-    print("Processing all three detail levels in parallel...")
-    
+    # Define the detail levels to process
+    detail_levels = ["broad", "detailed", "very_detailed"]
+
+    # Initialize progress tracker
+    tracker = BatchProgressTracker(total=len(detail_levels), title="Annotation Merging")
+
     # Create a partial function with common arguments
     merge_func = partial(
         merge_annotations,
@@ -333,28 +335,31 @@ def merge_annotations_all(
         additional_context=additional_context,
         batch_size=batch_size
     )
-    
-    # Define the detail levels to process
-    detail_levels = ["broad", "detailed", "very_detailed"]
-    
+
     # Use ThreadPoolExecutor to run in parallel with 3 threads (instead of ProcessPoolExecutor)
     results = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-        # Submit all tasks
-        future_to_level = {
-            executor.submit(merge_func, detail_level=level): level
-            for level in detail_levels
-        }
-        
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(future_to_level):
-            level = future_to_level[future]
-            try:
-                df = future.result()
-                results[level] = df
-                print(f"Completed processing for {level} detail level")
-            except Exception as e:
-                print(f"Error processing {level} detail level: {str(e)}")
+    errors = []
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            # Submit all tasks and mark them as started
+            future_to_level = {}
+            for level in detail_levels:
+                future = executor.submit(merge_func, detail_level=level)
+                future_to_level[future] = level
+                tracker.start_task(level)
+
+            # Process results as they complete
+            for future in concurrent.futures.as_completed(future_to_level):
+                level = future_to_level[future]
+                try:
+                    df = future.result()
+                    results[level] = df
+                    tracker.complete_task(level)
+                except Exception as e:
+                    tracker.complete_task(level)
+                    errors.append(f"Error processing {level}: {str(e)}")
+    finally:
+        tracker.finish()
     
     # If we have results, combine them
     if results:
@@ -379,8 +384,12 @@ def merge_annotations_all(
         # Save combined results if output path is provided
         if output_path and combined_df is not None:
             combined_df.to_csv(output_path, index=False)
-            print(f"Combined results saved to {output_path}")
-        
+
+        # Print any errors that occurred
+        if errors:
+            for error in errors:
+                print(error)
+
         return combined_df
     else:
         raise ValueError("All parallel processing tasks failed. Check logs for details.")

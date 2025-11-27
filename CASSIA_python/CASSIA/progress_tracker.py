@@ -17,12 +17,13 @@ class BatchProgressTracker:
     # Spinner animation frames
     SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 
-    def __init__(self, total, bar_width=40, refresh_rate=0.1):
+    def __init__(self, total, bar_width=40, refresh_rate=0.1, title="CASSIA Batch Analysis"):
         self.total = total
         self.completed = 0
         self.in_progress = set()
         self.lock = threading.Lock()
         self.bar_width = bar_width
+        self.title = title
         self._lines_printed = 0
         self._spinner_idx = 0
         self._running = True
@@ -91,7 +92,7 @@ class BatchProgressTracker:
 
         # Build display lines
         lines = [
-            f"CASSIA Batch Analysis {spinner}",
+            f"{self.title} {spinner}",
             f"[{bar}] {pct*100:.0f}%",
             f"Completed: {self.completed} | Processing: {processing} | Pending: {pending}",
             f"Active: {active_str if active_str else 'None'}"

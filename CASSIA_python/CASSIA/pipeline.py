@@ -67,12 +67,12 @@ def runCASSIA_pipeline(
     try:
         from .tools_function import runCASSIA_batch
         from .scoring import runCASSIA_score_batch
-        from .generate_reports import runCASSIA_generate_score_report
+        from .generate_batch_report import generate_batch_html_report_from_data
         from .annotation_boost import runCASSIA_annotationboost
     except ImportError:
         from tools_function import runCASSIA_batch
         from scoring import runCASSIA_score_batch
-        from generate_reports import runCASSIA_generate_score_report
+        from generate_batch_report import generate_batch_html_report_from_data
         from annotation_boost import runCASSIA_annotationboost
 
     # Create a main folder based on tissue and species for organizing reports
@@ -83,6 +83,10 @@ def runCASSIA_pipeline(
     # Remove .csv extension if present
     if output_file_name.lower().endswith('.csv'):
         output_file_name = output_file_name[:-4]  # Remove last 4 characters (.csv)
+
+    # Extract just the filename (in case an absolute path was provided)
+    # This ensures internal folder paths work correctly
+    output_base_name = os.path.basename(output_file_name)
 
     # Add timestamp to prevent overwriting existing folders with the same name
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -104,19 +108,19 @@ def runCASSIA_pipeline(
             os.makedirs(folder)
             print(f"Created subfolder: {folder}")
 
-    # Define derived file names with folder paths
+    # Define derived file names with folder paths (use output_base_name for internal paths)
     # All CSV files go to the annotation_results_folder
-    raw_full_csv = os.path.join(annotation_results_folder, f"{output_file_name}_full.csv")
-    raw_summary_csv = os.path.join(annotation_results_folder, f"{output_file_name}_summary.csv")
-    raw_sorted_csv = os.path.join(annotation_results_folder, f"{output_file_name}_sorted_full.csv")
-    score_file_name = os.path.join(annotation_results_folder, f"{output_file_name}_scored.csv")
-    merged_annotation_file = os.path.join(annotation_results_folder, f"{output_file_name}_merged.csv")
+    raw_full_csv = os.path.join(annotation_results_folder, f"{output_base_name}_full.csv")
+    raw_summary_csv = os.path.join(annotation_results_folder, f"{output_base_name}_summary.csv")
+    raw_sorted_csv = os.path.join(annotation_results_folder, f"{output_base_name}_sorted_full.csv")
+    score_file_name = os.path.join(annotation_results_folder, f"{output_base_name}_scored.csv")
+    merged_annotation_file = os.path.join(annotation_results_folder, f"{output_base_name}_merged.csv")
 
     # Reports go to the reports_folder - ALL HTML reports should be in this folder
-    report_base_name = os.path.join(reports_folder, f"{output_file_name}")
+    report_base_name = os.path.join(reports_folder, f"{output_base_name}")
 
-    # First annotation output is in the current directory but will be moved later
-    annotation_output = output_file_name
+    # First annotation output uses original output_file_name (may be absolute path from user)
+    annotation_output = output_base_name
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
@@ -181,14 +185,15 @@ def runCASSIA_pipeline(
             print(f"! Error during annotation merging: {str(e)}")
 
     print("\n=== Starting scoring process ===")
-    # Run scoring
+    # Run scoring (generate_report=False because pipeline handles its own report)
     runCASSIA_score_batch(
         input_file=raw_full_csv,
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
         provider=score_provider,
-        max_retries=max_retries
+        max_retries=max_retries,
+        generate_report=False
     )
     print("✓ Scoring process completed")
 
@@ -211,7 +216,7 @@ def runCASSIA_pipeline(
         final_df = final_df.sort_values(by=['Cluster ID'])
 
         # Save the final combined results
-        final_combined_file = os.path.join(annotation_results_folder, f"{output_file_name}_FINAL_RESULTS.csv")
+        final_combined_file = os.path.join(annotation_results_folder, f"{output_base_name}_FINAL_RESULTS.csv")
         final_df.to_csv(final_combined_file, index=False)
         print(f"✓ Final combined results saved to {final_combined_file}")
 
@@ -220,23 +225,28 @@ def runCASSIA_pipeline(
         final_combined_file = score_file_name  # Fallback to scored file
 
     print("\n=== Generating main reports ===")
-    # Process reports - ensure they go to reports_folder
-    runCASSIA_generate_score_report(
-        csv_path=score_file_name,
-        index_name=report_base_name  # This will create reports in the reports_folder
-    )
+    # Read scored CSV and convert to list of dicts for report generation
+    scored_df = pd.read_csv(score_file_name)
+    rows_data = scored_df.to_dict('records')
 
-    # Move any HTML files from annotation_results_folder to reports_folder
-    for file in os.listdir(annotation_results_folder):
-        if file.endswith('.html'):
-            src_path = os.path.join(annotation_results_folder, file)
-            dst_path = os.path.join(reports_folder, file)
-            try:
-                shutil.copy2(src_path, dst_path)
-                os.remove(src_path)  # Remove from original location after copying
-                print(f"Moved HTML report {file} to reports folder")
-            except Exception as e:
-                print(f"Error moving HTML file {file}: {str(e)}")
+    # Generate the HTML report (report_base_name already includes reports_folder path)
+    report_output_path = f"{report_base_name}_report.html"
+    generate_batch_html_report_from_data(
+        rows=rows_data,
+        output_path=report_output_path,
+        report_title=f"CASSIA Pipeline Analysis - {tissue} ({species})"
+    )
+    print(f"✓ Generated report: {report_output_path}")
+
+    # Clean up the batch HTML report (generated by runCASSIA_batch in current directory)
+    # Since we generate our own report, we don't need the batch one
+    batch_report = f"{annotation_output}_report.html"
+    if os.path.exists(batch_report):
+        try:
+            os.remove(batch_report)
+            print(f"Cleaned up redundant batch report: {batch_report}")
+        except Exception as e:
+            print(f"Warning: Could not remove batch report: {e}")
 
     print("✓ Main reports generated")
 
@@ -267,7 +277,7 @@ def runCASSIA_pipeline(
                 os.makedirs(cluster_boost_folder)
 
             # Define output name for the cluster boost report
-            cluster_output_name = os.path.join(cluster_boost_folder, f"{output_file_name}_{sanitized_cluster_name}_boosted")
+            cluster_output_name = os.path.join(cluster_boost_folder, f"{output_base_name}_{sanitized_cluster_name}_boosted")
 
             # Use the original name for data lookup
             try:

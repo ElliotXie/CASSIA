@@ -10,6 +10,7 @@ import csv
 import os
 import html
 import json
+import math
 import re
 from datetime import datetime
 from typing import Optional, Dict, List, Any
@@ -217,6 +218,24 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
     species = html.escape(str(row.get('Species', 'N/A')))
     additional_info = str(row.get('Additional Info', 'N/A'))
 
+    # Extract quality score if available (only shown when scores exist)
+    score_value = row.get('Score', None)
+    score_html = ""
+    if score_value is not None:
+        try:
+            score_num = float(score_value)
+            if math.isnan(score_num):
+                raise ValueError("NaN score")
+            if score_num > 90:
+                score_class = "score-high"
+            elif score_num >= 75:
+                score_class = "score-medium"
+            else:
+                score_class = "score-low"
+            score_html = f'<span class="badge badge-score {score_class}" title="Quality Score">Quality Score: {score_num:.0f}</span>'
+        except (ValueError, TypeError):
+            pass
+
     # Format sub types as list
     sub_types_html = ""
     if sub_types and sub_types.strip():
@@ -247,7 +266,7 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
 
     # Format additional info
     additional_html = ""
-    if additional_info and additional_info.strip() and additional_info != 'N/A':
+    if additional_info and additional_info.strip() and additional_info != 'N/A' and additional_info.lower() != 'nan':
         additional_html = f'''
         <div class="card-field additional-info">
             <span class="field-icon">
@@ -257,6 +276,7 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
                     <path d="M12 8h.01"></path>
                 </svg>
             </span>
+            <span class="field-label">Additional Info:</span>
             <span class="field-value">{html.escape(truncate_text(additional_info, 80))}</span>
         </div>
         '''
@@ -273,6 +293,7 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
             <div class="card-badges">
                 <span class="badge badge-markers" title="Number of markers">{marker_num} markers</span>
                 <span class="badge badge-iterations" title="Iterations">{iterations} iter</span>
+                {score_html}
             </div>
         </div>
 
@@ -738,7 +759,8 @@ def get_css_styles() -> str:
     .card-badges {
         display: flex;
         gap: 6px;
-        flex-shrink: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .badge {
@@ -756,6 +778,25 @@ def get_css_styles() -> str:
 
     .badge-iterations {
         background: linear-gradient(135deg, var(--accent-light), var(--accent));
+        color: white;
+    }
+
+    .badge-score {
+        font-weight: 600;
+    }
+
+    .score-high {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        color: white;
+    }
+
+    .score-medium {
+        background: linear-gradient(135deg, #86efac, #4ade80) !important;
+        color: #166534;
+    }
+
+    .score-low {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
         color: white;
     }
 
