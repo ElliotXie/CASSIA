@@ -12,7 +12,7 @@ runCASSIA_generate_score_report(
 \arguments{
 \item{csv_path}{Character string. Path to the CSV file containing scored results.}
 
-\item{index_name}{Character string. Base name for the index file (default: "CASSIA_reports_summary").}
+\item{output_name}{Character string. Base name for the output index file (default: "CASSIA_reports_summary").}
 }
 \value{
 None. Files are written to the current directory.

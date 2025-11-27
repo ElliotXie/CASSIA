@@ -47,6 +47,8 @@ runCASSIA_annotationboost(
 \item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{...}{Additional arguments passed to the Python function}
 }
 \value{
 None. This function generates output files.

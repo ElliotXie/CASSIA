@@ -47,8 +47,8 @@ py_logging_config <- NULL
   })
 }
 
-# Check if Python version meets requirements (>= 3.8)
-.check_python_version <- function(required_version = "3.8") {
+# Check if Python version meets requirements (>= 3.9)
+.check_python_version <- function(required_version = "3.9") {
   py_info <- .check_python_available()
   if (!py_info$available) {
     return(list(ok = FALSE, reason = "Python not found", current = NULL, required = required_version))
@@ -92,7 +92,7 @@ py_logging_config <- NULL
 .error_messages <- list(
   python_not_found = list(
     what = "Python is not installed or not found in your system PATH.",
-    why = "CASSIA requires Python 3.8+ to run its cell annotation engine.",
+    why = "CASSIA requires Python 3.9+ to run its cell annotation engine.",
     fix_windows = c(
       "1. Download Python from https://www.python.org/downloads/",
       "2. During installation, CHECK the box 'Add Python to PATH'",
@@ -121,7 +121,7 @@ py_logging_config <- NULL
 
   python_version = list(
     what = "Your Python version is not compatible with CASSIA.",
-    why = "CASSIA requires Python 3.8 or higher.",
+    why = "CASSIA requires Python 3.9 or higher.",
     fix_windows = c(
       "1. Download Python 3.10+ from https://www.python.org/downloads/",
       "2. During installation, CHECK 'Add Python to PATH'",
@@ -311,8 +311,8 @@ py_logging_config <- NULL
     return(invisible(NULL))
   }
 
-  # Check Python version (must be >= 3.8)
-  version_check <- .check_python_version("3.8")
+  # Check Python version (must be >= 3.9)
+  version_check <- .check_python_version("3.9")
   if (!version_check$ok) {
     .show_setup_error("python_version", version_check)
     return(invisible(NULL))
@@ -865,7 +865,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 
 #' Run Cell Type Analysis Batch
 #'
-#' @param df_input A data frame or path to the CSV file containing marker data.
+#' @param marker A data frame or path to the CSV file containing marker data.
 #' @param output_name Name of the output JSON file.
 #' @param model Character string specifying the model to use.
 #' @param temperature Numeric value for temperature parameter.
@@ -1060,6 +1060,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param ... Additional arguments passed to the Python function
 #'
 #' @return None. This function generates output files.
 #' @export
@@ -1230,7 +1231,7 @@ runCASSIA_score_batch <- function(input_file,
 #' individual HTML reports for each row, along with an index page.
 #'
 #' @param csv_path Character string. Path to the CSV file containing scored results.
-#' @param index_name Character string. Base name for the index file (default: "CASSIA_reports_summary").
+#' @param output_name Character string. Base name for the output index file (default: "CASSIA_reports_summary").
 #'
 #' @details 
 #' The function generates:
@@ -1384,10 +1385,11 @@ runCASSIA_pipeline <- function(
 #' @param marker Character vector or string of marker genes
 #' @param species Character string specifying the species (default: "human")
 #' @param model_list Character vector of model names to use (optional)
+#' @param output_file Character string specifying output file path (optional)
 #'
 #' @return A list containing responses from different models
 #' @export
-compareCelltypes <- function(tissue, celltypes, marker, species = "human", model_list = NULL,output_file = NULL) {
+compareCelltypes <- function(tissue, celltypes, marker, species = "human", model_list = NULL, output_file = NULL) {
   tryCatch({
     # Input validation
     if (length(celltypes) < 2 || length(celltypes) > 5) {

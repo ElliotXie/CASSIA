@@ -64,11 +64,13 @@ loadExampleMarkers_subcluster <- function() {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' markers <- loadBuiltinMarkers()
 #' head(markers)
-#' 
+#'
 #' subcluster_results <- loadBuiltinMarkers("subcluster_results")
 #' head(subcluster_results)
+#' }
 loadBuiltinMarkers <- function(marker_type = "processed") {
   # Import the Python function
   # tools_function <- reticulate::import_from_path("tools_function", 
@@ -94,8 +96,10 @@ loadBuiltinMarkers <- function(marker_type = "processed") {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' available_markers <- listAvailableMarkers()
 #' print(available_markers)
+#' }
 listAvailableMarkers <- function() {
   # Import the Python function
   # tools_function <- reticulate::import_from_path("tools_function", 

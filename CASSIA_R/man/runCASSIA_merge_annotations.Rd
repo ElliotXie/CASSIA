@@ -34,8 +34,6 @@ runCASSIA_merge_annotations(
 \item{process_all}{If TRUE, processes all detail levels sequentially}
 
 \item{debug}{If TRUE, print additional debugging information}
-
-\item{api_key}{API key for the provider (if NULL, gets from environment)}
 }
 \value{
 Invisibly returns TRUE if successful

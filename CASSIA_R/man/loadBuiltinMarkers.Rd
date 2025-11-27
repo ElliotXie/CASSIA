@@ -21,9 +21,11 @@ A data frame containing marker data
 This function loads built-in marker files from the CASSIA package.
 }
 \examples{
+\dontrun{
 markers <- loadBuiltinMarkers()
 head(markers)
 
 subcluster_results <- loadBuiltinMarkers("subcluster_results")
 head(subcluster_results)
+}
 }

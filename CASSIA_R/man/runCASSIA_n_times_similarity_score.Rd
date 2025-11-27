@@ -14,7 +14,8 @@ runCASSIA_n_times_similarity_score(
   max_workers,
   n,
   provider = "openrouter",
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  use_reference = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ runCASSIA_n_times_similarity_score(
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{use_reference}{Logical. Whether to use reference-based annotation for complex cases (default: FALSE)}
 }
 \value{
 A list containing processed results including variance analysis.

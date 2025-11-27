@@ -7,7 +7,6 @@
 #' @param output_path Path to save the results (if NULL, saves back to input CSV file)
 #' @param provider LLM provider to use ("openai", "anthropic", or "openrouter")
 #' @param model Specific model to use (if NULL, uses default for provider)
-#' @param api_key API key for the provider (if NULL, gets from environment)
 #' @param additional_context Optional domain-specific context to help with annotation
 #' @param batch_size Number of clusters to process in each LLM call
 #' @param detail_level Level of detail for the groupings: "broad", "detailed", or "very_detailed"

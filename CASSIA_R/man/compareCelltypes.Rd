@@ -23,6 +23,8 @@ compareCelltypes(
 \item{species}{Character string specifying the species (default: "human")}
 
 \item{model_list}{Character vector of model names to use (optional)}
+
+\item{output_file}{Character string specifying output file path (optional)}
 }
 \value{
 A list containing responses from different models
