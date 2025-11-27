@@ -1,6 +1,9 @@
 from .main_function_code import *
 from .tools_function import *
 
+# Import logging configuration (errors visible by default)
+from .logging_config import get_logger, set_log_level, warn_user
+
 # Explicitly import the functions we want to expose
 from .tools_function import (
     loadmarker,
@@ -34,6 +37,30 @@ from .model_settings import (
     get_available_aliases,
     print_available_models,
     print_available_aliases
+)
+
+# Import validation utilities and exceptions
+from .exceptions import (
+    CASSIAValidationError,
+    MarkerValidationError,
+    TemperatureValidationError,
+    ProviderValidationError,
+    ModelValidationError,
+    TissueSpeciesValidationError,
+    BatchParameterValidationError
+)
+
+from .validation import (
+    validate_marker_list,
+    validate_temperature,
+    validate_tissue,
+    validate_species,
+    validate_provider,
+    validate_model,
+    validate_marker_dataframe,
+    validate_runCASSIA_inputs,
+    validate_runCASSIA_batch_inputs,
+    validate_runCASSIA_with_reference_inputs
 )
 
 # Import the annotation boost functionality

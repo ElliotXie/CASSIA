@@ -17,6 +17,7 @@ py_debug_genes <- NULL
 # py_super_annotation_boost <- NULL
 py_symphony_compare <- NULL
 py_model_settings <- NULL
+py_logging_config <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # Get the environment name from the package configuration
@@ -67,7 +68,8 @@ py_model_settings <- NULL
     # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
     py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
     py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
-    
+    py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
+
     message("CASSIA loaded successfully!")
     
   }, error = function(e) {
@@ -93,7 +95,8 @@ py_model_settings <- NULL
       # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
       py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
       py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
-      
+      py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
+
       message("CASSIA environment setup completed successfully!")
       
     }, error = function(e2) {
@@ -1408,4 +1411,112 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
                       "Python traceback:", reticulate::py_last_error())
     stop(error_msg)
   })
+}
+
+# =============================================================================
+# Logging Configuration Functions
+# =============================================================================
+
+#' Set CASSIA Log Level
+#'
+#' Control the verbosity of CASSIA error and warning messages.
+#' By default, CASSIA shows informational messages, warnings, and errors.
+#' Use this function to adjust the level of detail in log output.
+#'
+#' @param level Character string specifying the log level. One of:
+#'   \itemize{
+#'     \item "DEBUG" - Show all messages including detailed debug info
+#'     \item "INFO" - Show informational messages, warnings, and errors (default)
+#'     \item "WARNING" - Show only warnings and errors
+#'     \item "ERROR" - Show only errors
+#'     \item "QUIET" - Suppress almost all messages
+#'   }
+#'
+#' @return Invisible NULL. Called for side effects.
+#'
+#' @examples
+#' \dontrun{
+#' # Enable verbose debugging
+#' set_log_level("DEBUG")
+#'
+#' # Show only errors (quiet mode)
+#' set_log_level("ERROR")
+#'
+#' # Suppress all messages
+#' set_log_level("QUIET")
+#'
+#' # Reset to default
+#' set_log_level("INFO")
+#' }
+#'
+#' @export
+set_log_level <- function(level = "INFO") {
+  if (is.null(py_logging_config)) {
+    stop("CASSIA Python environment not initialized. Please restart R or run library(CASSIA) again.")
+  }
+
+  valid_levels <- c("DEBUG", "INFO", "WARNING", "ERROR", "QUIET")
+  level <- toupper(level)
+
+  if (!level %in% valid_levels) {
+    stop(paste("Invalid log level. Must be one of:", paste(valid_levels, collapse = ", ")))
+  }
+
+  py_logging_config$set_log_level(level)
+  invisible(NULL)
+}
+
+#' Get CASSIA Logger
+#'
+#' Get or create a CASSIA logger instance for custom logging.
+#' This is primarily for advanced users who want to add custom log messages
+#' that integrate with CASSIA's logging system.
+#'
+#' @param name Character string specifying the logger name.
+#'   Will be prefixed with "CASSIA." automatically.
+#'   Default is "CASSIA" for the root logger.
+#'
+#' @return A Python logging.Logger object
+#'
+#' @examples
+#' \dontrun{
+#' # Get the default CASSIA logger
+#' logger <- get_logger()
+#'
+#' # Get a named logger for custom module
+#' my_logger <- get_logger("my_analysis")
+#' }
+#'
+#' @export
+get_logger <- function(name = "CASSIA") {
+  if (is.null(py_logging_config)) {
+    stop("CASSIA Python environment not initialized. Please restart R or run library(CASSIA) again.")
+  }
+
+  py_logging_config$get_logger(name)
+}
+
+#' Show a Warning to the User
+#'
+#' Display a warning message that is always visible, regardless of log level.
+#' Uses Python's warnings module to ensure visibility.
+#'
+#' @param message Character string containing the warning message to display.
+#'
+#' @return Invisible NULL. Called for side effects.
+#'
+#' @examples
+#' \dontrun{
+#' warn_user("This operation may take a long time with large datasets.")
+#' }
+#'
+#' @export
+warn_user <- function(message) {
+  if (is.null(py_logging_config)) {
+    warning(paste("[CASSIA]", message))
+    return(invisible(NULL))
+  }
+
+  py_logging_config$warn_user(message)
+  invisible(NULL)
 }

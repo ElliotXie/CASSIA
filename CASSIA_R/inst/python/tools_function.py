@@ -29,6 +29,14 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
 logging.getLogger("anthropic").setLevel(logging.WARNING)
 
+# Import CASSIA logger for actionable error messages
+try:
+    from .logging_config import get_logger
+except ImportError:
+    from logging_config import get_logger
+
+logger = get_logger(__name__)
+
 try:
     from .llm_utils import *
 except ImportError:
@@ -38,6 +46,21 @@ try:
     from .model_settings import resolve_model_name, get_recommended_model
 except ImportError:
     from model_settings import resolve_model_name, get_recommended_model
+
+try:
+    from .validation import (
+        validate_runCASSIA_inputs,
+        validate_runCASSIA_batch_inputs,
+        validate_runCASSIA_with_reference_inputs
+    )
+    from .exceptions import CASSIAValidationError
+except ImportError:
+    from validation import (
+        validate_runCASSIA_inputs,
+        validate_runCASSIA_batch_inputs,
+        validate_runCASSIA_with_reference_inputs
+    )
+    from exceptions import CASSIAValidationError
 
 try:
     from .merging_annotation import *
@@ -514,7 +537,7 @@ def write_csv(filename, headers, row_data):
 def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_list=None, tissue="lung", species="human", additional_info=None, provider="openrouter", validator_involvement="v1"):
     """
     Wrapper function to run cell type analysis using OpenAI, Anthropic, OpenRouter, or a custom OpenAI-compatible provider.
-    
+
     Args:
         model (str): Model name to use
         temperature (float): Temperature parameter for the model
@@ -523,10 +546,34 @@ def runCASSIA(model="google/gemini-2.5-flash-preview", temperature=0, marker_lis
         species (str): Species type
         additional_info (str): Additional information for the analysis
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a base URL)
-    
+
     Returns:
         tuple: (analysis_result, conversation_history)
+
+    Raises:
+        CASSIAValidationError: If input validation fails
     """
+    # Validate all inputs early (fail-fast)
+    validated = validate_runCASSIA_inputs(
+        model=model,
+        temperature=temperature,
+        marker_list=marker_list,
+        tissue=tissue,
+        species=species,
+        provider=provider,
+        additional_info=additional_info,
+        validator_involvement=validator_involvement
+    )
+
+    # Use validated values (some may be normalized)
+    marker_list = validated['marker_list']
+    temperature = validated['temperature']
+    tissue = validated['tissue']
+    species = validated['species']
+    provider = validated['provider']
+    model = validated['model']
+    validator_involvement = validated['validator_involvement']
+
     # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.1")
     # Use verbose=False since this may be called from batch (which handles its own verbose message)
     settings = ModelSettings()
@@ -598,7 +645,34 @@ def runCASSIA_with_reference(
     Returns:
         tuple: (analysis_result, conversation_history, reference_info)
             - reference_info contains details about reference retrieval
+
+    Raises:
+        CASSIAValidationError: If input validation fails
     """
+    # Validate all inputs early (fail-fast)
+    validated = validate_runCASSIA_with_reference_inputs(
+        model=model,
+        temperature=temperature,
+        marker_list=marker_list,
+        tissue=tissue,
+        species=species,
+        provider=provider,
+        additional_info=additional_info,
+        validator_involvement=validator_involvement,
+        reference_threshold=reference_threshold
+    )
+
+    # Use validated values (some may be normalized)
+    marker_list = validated['marker_list']
+    temperature = validated['temperature']
+    tissue = validated['tissue']
+    species = validated['species']
+    provider = validated['provider']
+    model = validated['model']
+    validator_involvement = validated['validator_involvement']
+    if 'reference_threshold' in validated:
+        reference_threshold = validated['reference_threshold']
+
     if ReferenceAgent is None:
         if verbose:
             print("Warning: Reference agent not available. Running standard CASSIA.")
@@ -700,10 +774,10 @@ def runCASSIA_with_reference(
 def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_genes=50, model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, provider="openrouter", max_retries=1, ranking_method="avg_log2FC", ascending=None, validator_involvement="v1"):
     """
     Run cell type analysis on multiple clusters in parallel.
-    
+
     Args:
         marker: Input marker data (pandas DataFrame or path to CSV file)
-        output_name (str): Base name for output files  
+        output_name (str): Base name for output files
         n_genes (int): Number of top genes to extract per cluster
         model (str): Model name to use for analysis
         temperature (float): Temperature parameter for the model
@@ -717,10 +791,42 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
         max_retries (int): Maximum number of retries for failed analyses
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
-    
+
     Returns:
         dict: Results dictionary containing analysis results for each cell type
+
+    Raises:
+        CASSIAValidationError: If input validation fails
     """
+    # Validate all inputs early (fail-fast)
+    validated = validate_runCASSIA_batch_inputs(
+        marker=marker,
+        output_name=output_name,
+        n_genes=n_genes,
+        model=model,
+        temperature=temperature,
+        tissue=tissue,
+        species=species,
+        max_workers=max_workers,
+        provider=provider,
+        max_retries=max_retries,
+        ranking_method=ranking_method,
+        validator_involvement=validator_involvement
+    )
+
+    # Use validated values
+    marker = validated['marker']
+    temperature = validated['temperature']
+    tissue = validated['tissue']
+    species = validated['species']
+    provider = validated['provider']
+    model = validated['model']
+    n_genes = validated['n_genes']
+    max_workers = validated['max_workers']
+    max_retries = validated['max_retries']
+    ranking_method = validated['ranking_method']
+    validator_involvement = validated['validator_involvement']
+
     # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.1")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=True)
@@ -777,13 +883,31 @@ def runCASSIA_batch(marker, output_name="cell_type_analysis_results.json", n_gen
                 # Don't retry authentication errors
                 if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
                     tracker.complete_task(cell_type)  # Remove from active even on failure
+                    logger.error(
+                        f"Authentication failed for cluster '{cell_type}'. "
+                        f"Please check your API key is valid. "
+                        f"Set it with: CASSIA.set_api_key(provider, 'your-key'). "
+                        f"Error: {exc}"
+                    )
                     raise exc
 
                 # For other errors, retry if attempts remain
                 if attempt < max_retries:
-                    pass  # Continue to next attempt
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s...
+                    logger.warning(
+                        f"API call failed for cluster '{cell_type}' (attempt {attempt+1}/{max_retries+1}). "
+                        f"Retrying in {wait_time}s... "
+                        f"If this keeps happening, check your API key or try a different model. "
+                        f"Error: {exc}"
+                    )
+                    time.sleep(wait_time)
                 else:
                     tracker.complete_task(cell_type)  # Remove from active on final failure
+                    logger.error(
+                        f"All {max_retries+1} attempts failed for cluster '{cell_type}'. "
+                        f"Consider using a different model or reducing max_workers. "
+                        f"Error: {exc}"
+                    )
                     raise exc
 
     results = {}
@@ -1283,437 +1407,6 @@ def runCASSIA_batch_with_reference(
     return results
 
 
-############### Scoring annotation #################
-
-def prompt_creator_score(major_cluster_info, marker, annotation_history):
-    prompt = f"""
-        You are an expert in single-cell annotation analysis. Your task is to evaluate and rate single-cell annotation results, focusing on their correctness and ability to capture the overall picture of the data. You will provide a score from 0 to 100 and justify your rating.
-
-Here are the single-cell annotation results to evaluate:
-
-
-
-<marker>
-{marker}
-</marker>
-
-<Cluster Origin>
-{major_cluster_info}
-</Cluster Origin>
-
-<annotation_history>
-{annotation_history}
-</annotation_history>
-
-Carefully analyze these results, paying particular attention to the following aspects:
-1. Correctness of the annotations
-2. Balanced consideration of multiple markers rather than over-focusing on a specific one
-3. Ability to capture the general picture of the cell populations
-
-When evaluating, consider:
-- Are the annotations scientifically accurate?
-- Is there a good balance in the use of different markers?
-- Does the annotation provide a comprehensive view of the cell types present?
-- Are there any obvious misclassifications or oversights?
-- Did it consider the rank of the marker? marker appear first is more important.
-
-Provide your analysis in the following format:
-1. Start with a <reasoning> tag, where you explain your evaluation of the annotation results. Discuss the strengths and weaknesses you've identified, referring to specific examples from the results where possible.
-2. After your reasoning, use a <score> tag to provide a numerical score from 0 to 100, where 0 represents completely incorrect or unusable results, and 100 represents perfect annotation that captures all aspects of the data correctly.
-
-Your response should look like this:
-
-<reasoning>
-[Your detailed analysis and justification here]
-</reasoning>
-
-<score>[Your numerical score between 0 and 100]</score>
-
-Remember, the focus is on correctness and the ability to see the general picture, rather than the structure of the results. Be critical but fair in your assessment.
-    """
-    return prompt
-
-
-def extract_score_and_reasoning(text):
-    """
-    Extract both score and reasoning from annotation text.
-    
-    Args:
-        text (str): Text containing score and reasoning between XML-like tags
-        
-    Returns:
-        tuple: (score, reasoning_text) where score is int or None and reasoning_text is str or None
-        
-    Example:
-        >>> score, reasoning = extract_score_and_reasoning("<reasoning>Good analysis</reasoning><score>85</score>")
-        >>> print(f"Score: {score}, Reasoning: {reasoning[:20]}...")
-        Score: 85, Reasoning: Good analysis...
-    """
-    try:
-        # Initialize results
-        score = None
-        reasoning = None
-        
-        # Extract score - try multiple patterns
-        score_patterns = [
-            r'<score>(\d+)</score>',  # Original format
-            r'Score:\s*(\d+)',        # "Score: 85"
-            r'score:\s*(\d+)',        # "score: 85"  
-            r'(\d+)/100',             # "85/100"
-            r'(\d+)\s*out\s*of\s*100', # "85 out of 100"
-            r'rating.*?(\d+)',        # "rating of 85"
-            r'(\d+)%'                 # "85%"
-        ]
-        
-        for pattern in score_patterns:
-            score_match = re.search(pattern, text, re.IGNORECASE)
-            if score_match:
-                score = int(score_match.group(1))
-                break
-        
-        # Extract reasoning - try multiple patterns
-        reasoning_patterns = [
-            r'<reasoning>(.*?)</reasoning>',  # Original format
-            r'Reasoning:\s*(.*?)(?=Score:|$)',  # "Reasoning: ..." until "Score:" or end
-            r'reasoning:\s*(.*?)(?=score:|$)',  # lowercase version
-            r'Analysis:\s*(.*?)(?=Score:|$)',   # "Analysis: ..."
-            r'Evaluation:\s*(.*?)(?=Score:|$)' # "Evaluation: ..."
-        ]
-        
-        for pattern in reasoning_patterns:
-            reasoning_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-            if reasoning_match:
-                reasoning = reasoning_match.group(1).strip()
-                break
-        
-        # If no specific reasoning found, use the entire text as reasoning
-        if reasoning is None and text.strip():
-            reasoning = text.strip()
-        
-        return score, reasoning
-        
-    except Exception as e:
-        print(f"Error extracting data: {str(e)}")
-        return None, None
-
-def score_single_analysis(major_cluster_info, marker, annotation_history, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
-    """
-    Score a single cell type annotation analysis.
-    
-    Args:
-        major_cluster_info (str): Information about species and tissue
-        marker (str): Comma-separated list of marker genes
-        annotation_history (str): History of annotation conversation
-        model (str): Model to use (e.g., "gpt-4" for OpenAI or "claude-3-5-sonnet-20241022" for Anthropic)
-        provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
-        
-    Returns:
-        tuple: (score, reasoning) where score is int and reasoning is str
-    """
-    prompt = prompt_creator_score(major_cluster_info, marker, annotation_history)
-    
-    # Add explicit max_tokens to ensure responses aren't truncated
-    response = call_llm(
-        prompt=prompt, 
-        provider=provider, 
-        model=model, 
-        max_tokens=4096  # Maximum tokens allowed for most models
-    )
-    
-    score, reasoning = extract_score_and_reasoning(response)
-    return score, reasoning
-
-
-
-def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
-    """
-    Process a single row of data.
-    
-    Args:
-        row_data (tuple): (idx, row) containing index and row data
-        model (str): Model to use
-        provider (str): AI provider to use ('openai' or 'anthropic')
-        
-    Returns:
-        tuple: (idx, score, reasoning)
-    """
-    idx, row = row_data
-    
-    try:
-        major_cluster_info = f"{row['Species']} {row['Tissue']}"
-        
-        # Handle both 'Marker List' and 'Marker.List' column names
-        marker_column_options = ['Marker List', 'Marker.List', 'marker_list', 'Marker_List']
-        marker = None
-        for col in marker_column_options:
-            if col in row:
-                marker = row[col]
-                break
-        if marker is None:
-            raise KeyError(f"Could not find marker column. Available columns: {list(row.index)}")
-        
-        # Handle both 'Conversation History' and 'Conversation.History' column names
-        history_column_options = ['Conversation History', 'Conversation.History', 'conversation_history', 'Conversation_History']
-        annotation_history = None
-        for col in history_column_options:
-            if col in row:
-                annotation_history = row[col]
-                break
-        if annotation_history is None:
-            raise KeyError(f"Could not find conversation history column. Available columns: {list(row.index)}")
-        
-        # Try up to 3 times for a valid score if we get None
-        score, reasoning = None, None
-        max_retries_for_none = 3
-        retry_count = 0
-        
-        while score is None and retry_count < max_retries_for_none:
-            score, reasoning = score_single_analysis(
-                major_cluster_info, 
-                marker, 
-                annotation_history,
-                model=model,
-                provider=provider
-            )
-            
-            if score is not None:
-                break
-                
-            retry_count += 1
-
-        return (idx, score, reasoning)
-        
-    except Exception as e:
-        return (idx, None, f"Error: {str(e)}")
-
-
-def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
-    """
-    Process and score all rows in a results CSV file in parallel.
-
-    Args:
-        results_file_path (str): Path to the results CSV file
-        output_file_path (str, optional): Path to save the updated results
-        max_workers (int): Maximum number of parallel threads
-        model (str): Model to use
-        provider (str): AI provider to use ('openai' or 'anthropic')
-
-    Returns:
-        pd.DataFrame: Original results with added score and reasoning columns
-    """
-    # Read results file
-    results = pd.read_csv(results_file_path)
-
-    # Initialize new columns if they don't exist
-    if 'Score' not in results.columns:
-        results['Score'] = None
-    if 'Scoring_Reasoning' not in results.columns:
-        results['Scoring_Reasoning'] = None
-
-    # Create a list of unscored rows to process
-    rows_to_process = [
-        (idx, row) for idx, row in results.iterrows()
-        if pd.isna(row['Score'])
-    ]
-
-    if not rows_to_process:
-        print("All rows already scored!")
-        return results
-
-    # Initialize progress tracker
-    total_to_score = len(rows_to_process)
-    tracker = BatchProgressTracker(total_to_score)
-    print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
-
-    # Set up a lock for DataFrame updates
-    df_lock = threading.Lock()
-
-    # Helper to get task name from row
-    def get_task_name(row):
-        for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
-            if col in row.index:
-                return str(row[col])
-        return f"Row {row.name + 1}"
-
-    # Process rows in parallel
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all jobs with tracker handling
-        def process_with_tracking(row_data):
-            idx, row = row_data
-            task_name = get_task_name(row)
-            tracker.start_task(task_name)
-            result = process_single_row(row_data, model=model, provider=provider)
-            tracker.complete_task(task_name)
-            return result
-
-        future_to_row = {
-            executor.submit(process_with_tracking, row_data): row_data[0]
-            for row_data in rows_to_process
-        }
-
-        # Process completed jobs
-        for future in as_completed(future_to_row):
-            idx, score, reasoning = future.result()
-
-            # Safely update DataFrame
-            with df_lock:
-                results.loc[idx, 'Score'] = score
-                results.loc[idx, 'Scoring_Reasoning'] = reasoning
-
-                # Save intermediate results
-                if output_file_path is None:
-                    output_file_path = results_file_path.replace('.csv', '_scored.csv')
-                results.to_csv(output_file_path, index=False)
-
-    # Finalize progress display
-    tracker.finish()
-    print(f"Scoring completed. Results saved to {output_file_path}")
-
-    return results
-
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1):
-    """
-    Run scoring with progress updates.
-    
-    Args:
-        input_file (str): Path to input CSV file (with or without .csv extension)
-        output_file (str, optional): Path to output CSV file (with or without .csv extension)
-        max_workers (int): Maximum number of parallel workers
-        model (str): Model to use
-        provider (str): AI provider to use ('openai' or 'anthropic')
-        max_retries (int): Maximum number of retries for failed analyses
-        
-    Returns:
-        pd.DataFrame: Results DataFrame with scores
-    """
-    # Add .csv extension if not present
-    if not input_file.lower().endswith('.csv'):
-        input_file = input_file + '.csv'
-    
-    if output_file and not output_file.lower().endswith('.csv'):
-        output_file = output_file + '.csv'
-    
-    print(f"Starting scoring process with {max_workers} workers using {provider} ({model})...")
-    
-    try:
-        # Read the input file
-        results = pd.read_csv(input_file)
-        
-        # Initialize new columns if they don't exist
-        if 'Score' not in results.columns:
-            results['Score'] = None
-        if 'Scoring_Reasoning' not in results.columns:
-            results['Scoring_Reasoning'] = None
-        
-        # Create a list of unscored rows to process
-        rows_to_process = [
-            (idx, row) for idx, row in results.iterrows() 
-            if pd.isna(row['Score'])
-        ]
-        
-        if not rows_to_process:
-            print("All rows already scored!")
-            return results
-
-        # Initialize progress tracker
-        total_to_score = len(rows_to_process)
-        tracker = BatchProgressTracker(total_to_score)
-        print(f"\nStarting scoring of {total_to_score} rows with {max_workers} parallel workers...\n")
-
-        # Set up a lock for DataFrame updates
-        df_lock = threading.Lock()
-        failed_analyses = []  # Track failed rows for reporting
-
-        # Helper to get task name from row
-        def get_task_name(row):
-            # Try different column names for Cluster ID
-            for col in ['Cluster ID', 'Cluster.ID', 'cluster_id', 'Cluster_ID']:
-                if col in row.index:
-                    return str(row[col])
-            return f"Row {row.name + 1}"
-
-        # Define a function that includes retry logic and progress tracking
-        def process_with_retry(row_data):
-            idx, row = row_data
-            task_name = get_task_name(row)
-            tracker.start_task(task_name)
-
-            for attempt in range(max_retries + 1):
-                try:
-                    result = process_single_row(row_data, model=model, provider=provider)
-                    tracker.complete_task(task_name)
-                    return result
-                except Exception as exc:
-                    # Don't retry authentication errors
-                    if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
-                        tracker.complete_task(task_name)
-                        return idx, None, f"API error: {str(exc)}"
-
-                    # For other errors, retry if attempts remain
-                    if attempt >= max_retries:
-                        tracker.complete_task(task_name)
-                        return idx, None, f"Failed after {max_retries + 1} attempts: {str(exc)}"
-
-        # Process rows in parallel
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all jobs
-            future_to_row = {
-                executor.submit(process_with_retry, row_data): row_data
-                for row_data in rows_to_process
-            }
-
-            # Process completed jobs
-            for future in as_completed(future_to_row):
-                row_data = future_to_row[future]
-                idx, row = row_data
-                task_name = get_task_name(row)
-                try:
-                    idx, score, reasoning = future.result()
-
-                    # Safely update DataFrame
-                    with df_lock:
-                        results.loc[idx, 'Score'] = score
-                        results.loc[idx, 'Scoring_Reasoning'] = reasoning
-
-                        # Track failures
-                        if score is None:
-                            failed_analyses.append((task_name, reasoning))
-
-                        # Save intermediate results if output file is specified
-                        if output_file:
-                            results.to_csv(output_file, index=False)
-                        else:
-                            output_file = input_file.replace('.csv', '_scored.csv')
-                            results.to_csv(output_file, index=False)
-                except Exception as exc:
-                    failed_analyses.append((task_name, str(exc)))
-
-        # Finalize progress display
-        tracker.finish()
-
-        # Report any failures
-        if failed_analyses:
-            print(f"\nWarning: {len(failed_analyses)} scoring(s) failed:")
-            for task_name, error in failed_analyses:
-                print(f"  - {task_name}: {error[:100]}{'...' if len(error) > 100 else ''}")
-            print()
-
-        # Print summary statistics
-        total_rows = len(results)
-        scored_rows = results['Score'].notna().sum()
-        print(f"Scoring completed. Results saved.")
-        print(f"\nSummary:")
-        print(f"Total rows: {total_rows}")
-        print(f"Successfully scored: {scored_rows}")
-        print(f"Failed/Skipped: {total_rows - scored_rows}")
-        
-        
-    except Exception as e:
-        print(f"Error in runCASSIA_score_batch: {str(e)}")
-        raise
-
-
-
 # =============================================================================
 # RE-EXPORTS FOR BACKWARD COMPATIBILITY
 # =============================================================================
@@ -1755,11 +1448,44 @@ try:
 except ImportError:
     from marker_utils import loadmarker, list_available_markers
 
-# From scoring.py (scoring functions - these are also defined locally but re-exported for clarity)
-# Note: score_annotation_batch is kept as a backward-compatible alias
+# From scoring.py (scoring functions)
 try:
-    from .scoring import score_annotation_batch
+    from .scoring import (
+        prompt_creator_score,
+        extract_score_and_reasoning,
+        score_single_analysis,
+        process_single_row,
+        runCASSIA_score_batch,
+        score_annotation_batch
+    )
 except ImportError:
-    from scoring import score_annotation_batch
+    from scoring import (
+        prompt_creator_score,
+        extract_score_and_reasoning,
+        score_single_analysis,
+        process_single_row,
+        runCASSIA_score_batch,
+        score_annotation_batch
+    )
+
+# From Uncertainty_quantification.py (required by R package for uncertainty functions)
+try:
+    from .Uncertainty_quantification import (
+        runCASSIA_n_times,
+        runCASSIA_batch_n_times,
+        runCASSIA_similarity_score_batch,
+        runCASSIA_n_times_similarity_score
+    )
+except ImportError:
+    try:
+        from Uncertainty_quantification import (
+            runCASSIA_n_times,
+            runCASSIA_batch_n_times,
+            runCASSIA_similarity_score_batch,
+            runCASSIA_n_times_similarity_score
+        )
+    except ImportError:
+        # Uncertainty_quantification module may not be available in all deployments
+        pass
 
 # End of tools_function.py

@@ -6,6 +6,14 @@ import json
 from typing import Dict, List, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Import CASSIA logger for actionable error messages
+try:
+    from .logging_config import get_logger
+except ImportError:
+    from logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def extract_celltype_scores(response_text: str, celltypes: List[str]) -> Dict[str, Dict[str, str]]:
     """
@@ -432,7 +440,11 @@ def generate_comparison_html_report(all_results: List[Dict], output_file: str = 
                                 score_num = float(score_str)
                                 scores.append(score_num)
                             except (ValueError, TypeError):
-                                pass
+                                logger.warning(
+                                    f"Could not convert score '{score_str}' to number for cell type '{celltype}'. "
+                                    f"This score will be excluded from analysis. "
+                                    f"Check if the LLM response format is correct."
+                                )
                             break
             celltype_scores[celltype] = scores
         for model in round_models:
@@ -446,6 +458,11 @@ def generate_comparison_html_report(all_results: List[Dict], output_file: str = 
                                 score_num = float(score_str)
                                 model_scores[celltype] = score_num
                             except (ValueError, TypeError):
+                                logger.warning(
+                                    f"Could not convert score '{score_str}' for '{celltype}' from model '{model}'. "
+                                    f"Using 0 as fallback score. "
+                                    f"Check if the LLM response format is correct."
+                                )
                                 model_scores[celltype] = 0
                     break
             if model_scores:
@@ -739,6 +756,11 @@ Ranked marker set: {marker_set}"""
                     try:
                         scores[celltype] = float(data['score'])
                     except (ValueError, TypeError):
+                        logger.warning(
+                            f"Could not convert score '{data.get('score', 'N/A')}' for '{celltype}'. "
+                            f"Using -1 as fallback (will likely lose in comparison). "
+                            f"Check if the LLM response format is correct."
+                        )
                         scores[celltype] = -1
                 if scores:
                     winner = max(scores, key=scores.get)

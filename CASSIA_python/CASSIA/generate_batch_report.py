@@ -14,6 +14,14 @@ import re
 from datetime import datetime
 from typing import Optional, Dict, List, Any
 
+# Import CASSIA logger for actionable error messages
+try:
+    from .logging_config import get_logger
+except ImportError:
+    from logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def parse_conversation_history(history_text: str) -> Dict[str, str]:
     """
@@ -165,8 +173,13 @@ def format_json_summary(json_text: str) -> str:
             </div>
             '''
             return html_content
-    except (json.JSONDecodeError, AttributeError):
-        pass
+    except (json.JSONDecodeError, AttributeError) as e:
+        logger.warning(
+            f"Could not parse JSON in report. "
+            f"This may indicate the LLM returned malformed output. "
+            f"Try running the annotation again or use a different model. "
+            f"Falling back to raw text display. Details: {e}"
+        )
 
     return f'<pre class="json-raw">{html.escape(json_text)}</pre>'
 
