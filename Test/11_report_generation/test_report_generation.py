@@ -96,7 +96,7 @@ def run_report_generation_test():
     print_config_summary(config)
 
     # Import CASSIA function
-    from generate_batch_report import generate_batch_html_report, generate_batch_html_report_from_data
+    from CASSIA.reports.generate_batch_report import generate_batch_html_report, generate_batch_html_report_from_data
 
     # Create results directory
     results_dir = create_results_dir("11_report_generation")

@@ -54,12 +54,11 @@ runCASSIA_merge_annotations <- function(csv_path,
     })
 
 
-    # Use the already imported Python module
-    if (is.null(py_merging)) {
-      stop("Python merging module not loaded. Please restart R and load the CASSIA package.")
+    # Use the already imported CASSIA Python package
+    if (is.null(py_cassia)) {
+      stop("CASSIA Python package not loaded. Please restart R and load the CASSIA package.")
     }
-    merging_module <- py_merging
-    message("Using pre-loaded merging_annotation module.")
+    message("Using pre-loaded CASSIA Python package.")
 
     # Read the data once
     df <- read.csv(csv_path)
@@ -78,7 +77,7 @@ runCASSIA_merge_annotations <- function(csv_path,
       message(paste0("Processing '", level, "' level groupings..."))
 
       # Call the Python function, which returns a pandas DataFrame
-      result_df_py <- merging_module$merge_annotations(
+      result_df_py <- py_cassia$merge_annotations(
         csv_path = csv_path, # Pass path for initial read inside python
         output_path = NULL, # Do not save from Python
         provider = provider,

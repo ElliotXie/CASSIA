@@ -8,11 +8,21 @@
 # Functions tested:
 # - runCASSIA_n_times_similarity_score(): Run n single analyses with similarity score
 
-# Get script directory
-script_dir <- dirname(sys.frame(1)$ofile)
-if (is.null(script_dir) || script_dir == "") {
-  script_dir <- "."
+# Get script directory (works with Rscript and source())
+get_script_dir <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- grep("--file=", args, value = TRUE)
+  if (length(file_arg) > 0) {
+    return(dirname(normalizePath(sub("--file=", "", file_arg), winslash = "/")))
+  }
+  for (i in sys.nframe():1) {
+    if (!is.null(sys.frame(i)$ofile)) {
+      return(dirname(normalizePath(sys.frame(i)$ofile, winslash = "/")))
+    }
+  }
+  return(normalizePath(getwd(), winslash = "/"))
 }
+script_dir <- get_script_dir()
 
 # Source shared utilities
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
@@ -73,8 +83,6 @@ run_uncertainty_quantification_test <- function() {
       max_workers = llm_config$max_workers %||% 3,
       n = 3,  # Reduced for faster testing
       provider = llm_config$provider %||% "openrouter",
-      main_weight = 0.5,
-      sub_weight = 0.5,
       validator_involvement = config$validator$default %||% "v1"
     )
 

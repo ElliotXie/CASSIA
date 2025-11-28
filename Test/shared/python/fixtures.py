@@ -99,3 +99,7 @@ def get_full_marker_dataframe() -> pd.DataFrame:
         pd.DataFrame: DataFrame with all clusters and their markers
     """
     return load_markers()
+
+
+# Alias for backward compatibility
+get_all_cluster_names = get_all_clusters

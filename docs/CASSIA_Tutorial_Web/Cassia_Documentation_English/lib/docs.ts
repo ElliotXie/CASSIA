@@ -2,11 +2,20 @@ import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
 
-const docsDirectory = path.join(process.cwd(), "content/docs")
+const contentDirectory = path.join(process.cwd(), "content")
 
-export function getDocBySlug(slug: string) {
+export function getDocBySlug(slug: string, locale: string = 'en') {
   const realSlug = slug.replace(/\.md$/, "")
-  const fullPath = path.join(docsDirectory, `${realSlug}.md`)
+
+  // Try locale-specific path first
+  let fullPath = path.join(contentDirectory, locale, "docs", `${realSlug}.md`)
+  let isFallback = false
+
+  // Fallback to English if locale-specific file doesn't exist
+  if (!fs.existsSync(fullPath) && locale !== 'en') {
+    fullPath = path.join(contentDirectory, 'en', "docs", `${realSlug}.md`)
+    isFallback = true
+  }
 
   try {
     const fileContents = fs.readFileSync(fullPath, "utf8")
@@ -25,6 +34,7 @@ export function getDocBySlug(slug: string) {
       slug: realSlug,
       frontmatter: data,
       content: processedContent,
+      isFallback,
     }
   } catch (error) {
     console.error(`Error reading file ${fullPath}:`, error)
@@ -32,18 +42,23 @@ export function getDocBySlug(slug: string) {
       slug: realSlug,
       frontmatter: { title: "Not Found" },
       content: "# Not Found\n\nThe requested document could not be found.",
+      isFallback: false,
     }
   }
 }
 
-export function getAllDocs() {
+export function getAllDocs(locale: string = 'en') {
+  // Get docs for the locale, with English fallback
+  const enDocsDir = path.join(contentDirectory, 'en', 'docs')
+
   try {
+    // Use English slugs as the canonical list
     const slugs = fs
-      .readdirSync(docsDirectory)
+      .readdirSync(enDocsDir)
       .filter((file) => file.endsWith(".md"))
       .map((file) => file.replace(/\.md$/, ""))
 
-    const docs = slugs.map((slug) => getDocBySlug(slug))
+    const docs = slugs.map((slug) => getDocBySlug(slug, locale))
 
     return docs
   } catch (error) {

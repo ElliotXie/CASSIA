@@ -29,7 +29,7 @@ from test_utils import (
 setup_cassia_imports()
 
 # Import validation functions and exceptions
-from validation import (
+from CASSIA.core.validation import (
     validate_marker_list,
     validate_temperature,
     validate_tissue,
@@ -41,7 +41,7 @@ from validation import (
     validate_ranking_method,
     validate_runCASSIA_inputs
 )
-from exceptions import (
+from CASSIA.core.exceptions import (
     CASSIAValidationError,
     MarkerValidationError,
     TemperatureValidationError,

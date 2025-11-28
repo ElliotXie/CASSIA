@@ -4,7 +4,7 @@
 # LLM Settings
 llm:
   provider: "openrouter"
-  model: "google/gemini-2.5-flash"
+  model: "google/gemini-2.5-flash-lite"
   temperature: 0.3
   max_workers: 3
 

@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "description": "Reference document index for CASSIA Reference Agent",
+  "last_updated": "2025-01-24",
+  "references": {
+    "t_cell_overview": {
+      "path": "t_cell/_overview.md",
+      "category": "t_cell",
+      "priority": 1,
+      "cell_types": ["T cell", "T lymphocyte"],
+      "trigger_markers": ["CD3D", "CD3E", "CD3G", "CD2", "CD7", "TRAC", "TRBC1"],
+      "exclusion_markers": [],
+      "children": ["cd4_t_cell", "cd8_t_cell"]
+    },
+    "cd4_t_cell": {
+      "path": "t_cell/cd4/_overview.md",
+      "category": "t_cell",
+      "parent": "t_cell_overview",
+      "priority": 2,
+      "cell_types": ["CD4+ T cell", "Helper T cell", "Th1", "Th2", "Th17", "Tfh", "Treg"],
+      "trigger_markers": ["CD4", "IL7R", "CCR7", "SELL", "TCF7"],
+      "exclusion_markers": ["CD8A", "CD8B"],
+      "children": []
+    },
+    "cd8_t_cell": {
+      "path": "t_cell/cd8/_overview.md",
+      "category": "t_cell",
+      "parent": "t_cell_overview",
+      "priority": 2,
+      "cell_types": ["CD8+ T cell", "Cytotoxic T cell", "CTL"],
+      "trigger_markers": ["CD8A", "CD8B", "GZMA", "GZMB", "PRF1"],
+      "exclusion_markers": ["CD4"],
+      "children": []
+    },
+    "b_cell_overview": {
+      "path": "b_cell/_overview.md",
+      "category": "b_cell",
+      "priority": 1,
+      "cell_types": ["B cell", "B lymphocyte", "Plasma cell"],
+      "trigger_markers": ["CD19", "CD79A", "CD79B", "MS4A1", "PAX5"],
+      "exclusion_markers": ["CD3D", "CD3E"],
+      "children": []
+    },
+    "myeloid_overview": {
+      "path": "myeloid/_overview.md",
+      "category": "myeloid",
+      "priority": 1,
+      "cell_types": ["Myeloid cell", "Monocyte", "Macrophage", "Dendritic cell"],
+      "trigger_markers": ["CD14", "CD68", "CSF1R", "ITGAM", "CD33"],
+      "exclusion_markers": ["CD3D", "CD19"],
+      "children": []
+    }
+  },
+  "marker_categories": {
+    "t_cell_markers": ["CD3D", "CD3E", "CD3G", "CD4", "CD8A", "CD8B", "TRAC", "TRBC1"],
+    "b_cell_markers": ["CD19", "CD79A", "CD79B", "MS4A1", "PAX5", "CD27", "IGHM", "IGHD"],
+    "myeloid_markers": ["CD14", "CD68", "CSF1R", "ITGAM", "CD33", "FCGR3A"],
+    "nk_markers": ["NCAM1", "NKG7", "KLRB1", "KLRD1", "GNLY"]
+  }
+}

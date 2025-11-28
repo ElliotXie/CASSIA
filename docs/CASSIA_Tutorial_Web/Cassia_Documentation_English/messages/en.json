@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "docs": "Docs",
+    "vignettes": "Vignettes",
+    "resources": "Resources",
+    "githubRepository": "GitHub Repository",
+    "researchPaper": "Research Paper",
+    "commentSection": "Comment Section"
+  },
+  "sidebar": {
+    "gettingStarted": "Getting Started",
+    "basicWorkflow": "Basic CASSIA Workflow",
+    "advancedWorkflow": "Advanced CASSIA Workflow",
+    "help": "Help",
+    "analysisWithMarker": "Analysis Starting with Provided Marker",
+    "analysisWithSeurat": "Analysis Starting with Raw Seurat Object"
+  },
+  "docs": {
+    "introduction": "Introduction",
+    "settingUpCassia": "Setting Up CASSIA",
+    "fastMode": "Fast Mode",
+    "singleClusterAnalysis": "Single Cluster Analysis",
+    "batchProcessing": "Batch Processing",
+    "qualityScoring": "Quality Scoring and Report Generation",
+    "introToOptionalAgents": "Introduction to Optional Agents",
+    "uncertaintyQuantification": "Uncertainty Quantification",
+    "annotationBoost": "Annotation Boost Agent",
+    "compareCellTypes": "Compare Cell Types",
+    "subclusteringAnalysis": "Subclustering Analysis",
+    "annotationBoostExtra": "Annotation Boost Plus Agent",
+    "ragAgent": "Retrieve Augmented Agent",
+    "troubleshooting": "Troubleshooting"
+  },
+  "vignettes": {
+    "introduction": "Introduction to Vignettes",
+    "basicAnnotation": "Basic Annotation",
+    "extendedAnalysis": "Extended Analysis with Optional Agents",
+    "clusteringAndAnnotation": "Annotation and Visualization using GTEX Breast Data",
+    "fullWorkflow": "Full Workflow Best Practices with Extensive Quality Control"
+  },
+  "home": {
+    "title": "CASSIA",
+    "subtitle": "Advanced single cell analysis platform for researchers and bioinformaticians",
+    "getStarted": "Get Started",
+    "viewOnGithub": "View on GitHub",
+    "readThePaper": "Read the Paper",
+    "interpretable": "Interpretable",
+    "interpretableDesc": "Provides detailed reasoning for each annotation, making the process transparent and understandable.",
+    "referenceFree": "Reference-Free",
+    "referenceFreeDesc": "Annotates cell types without requiring reference datasets, enabling discovery of novel cell populations.",
+    "accurate": "Accurate",
+    "accurateDesc": "Delivers high-quality cell type annotations with precision comparable to expert manual annotation.",
+    "language": "Language"
+  },
+  "outline": {
+    "onThisPage": "On this page"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggleTheme": "Toggle theme"
+  },
+  "common": {
+    "version": "CASSIA v1.2.0",
+    "notFound": "Not Found",
+    "contentNotFound": "The requested document could not be found.",
+    "translationNotAvailable": "This page is not yet translated. Showing English version."
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "english": "English",
+    "chinese": "Chinese"
+  }
+}

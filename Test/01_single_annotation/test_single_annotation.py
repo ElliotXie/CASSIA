@@ -62,7 +62,9 @@ def run_single_annotation_test():
 
     # Get markers for the test cluster
     marker_df = get_marker_dataframe_for_cluster(test_cluster, n_genes)
-    print(f"Loaded {len(marker_df)} markers")
+    # Extract marker list from DataFrame (runCASSIA expects list of strings, not DataFrame)
+    marker_list = marker_df['gene'].tolist()
+    print(f"Loaded {len(marker_list)} markers")
 
     # Create results directory
     results_dir = create_results_dir("01_single_annotation")
@@ -78,7 +80,7 @@ def run_single_annotation_test():
         result, conversation_history, _ = runCASSIA(
             model=llm_config.get('model', 'google/gemini-2.5-flash'),
             temperature=llm_config.get('temperature', 0.3),
-            marker_list=marker_df,
+            marker_list=marker_list,
             tissue=data_config.get('tissue', 'large intestine'),
             species=data_config.get('species', 'human'),
             provider=llm_config.get('provider', 'openrouter'),

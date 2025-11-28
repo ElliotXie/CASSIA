@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "docs": "文档",
+    "vignettes": "教程",
+    "resources": "资源",
+    "githubRepository": "GitHub 仓库",
+    "researchPaper": "研究论文",
+    "commentSection": "评论区"
+  },
+  "sidebar": {
+    "gettingStarted": "入门指南",
+    "basicWorkflow": "基础 CASSIA 工作流",
+    "advancedWorkflow": "高级 CASSIA 工作流",
+    "help": "帮助",
+    "analysisWithMarker": "使用标记文件分析",
+    "analysisWithSeurat": "从 Seurat 对象开始分析"
+  },
+  "docs": {
+    "introduction": "简介",
+    "settingUpCassia": "安装配置",
+    "fastMode": "快速模式",
+    "singleClusterAnalysis": "单细胞簇分析",
+    "batchProcessing": "批量处理",
+    "qualityScoring": "质量评分与报告生成",
+    "introToOptionalAgents": "可选代理简介",
+    "uncertaintyQuantification": "不确定性量化",
+    "annotationBoost": "注释增强代理",
+    "compareCellTypes": "细胞类型比较",
+    "subclusteringAnalysis": "亚群分析",
+    "annotationBoostExtra": "注释增强Plus代理",
+    "ragAgent": "检索增强代理",
+    "troubleshooting": "故障排除"
+  },
+  "vignettes": {
+    "introduction": "教程简介",
+    "basicAnnotation": "基础注释",
+    "extendedAnalysis": "使用可选代理的扩展分析",
+    "clusteringAndAnnotation": "使用 GTEX 乳腺数据进行注释和可视化",
+    "fullWorkflow": "包含详细质量控制的完整工作流最佳实践"
+  },
+  "home": {
+    "title": "CASSIA",
+    "subtitle": "面向研究人员和生物信息学家的高级单细胞分析平台",
+    "getStarted": "开始使用",
+    "viewOnGithub": "GitHub 查看",
+    "readThePaper": "阅读论文",
+    "interpretable": "可解释性",
+    "interpretableDesc": "为每个注释提供详细的推理过程，使分析过程透明易懂。",
+    "referenceFree": "无参考数据",
+    "referenceFreeDesc": "无需参考数据集即可注释细胞类型，支持发现新型细胞群体。",
+    "accurate": "高准确性",
+    "accurateDesc": "提供高质量的细胞类型注释，精确度可与专家手动注释相媲美。",
+    "language": "语言"
+  },
+  "outline": {
+    "onThisPage": "本页目录"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "toggleTheme": "切换主题"
+  },
+  "common": {
+    "version": "CASSIA v1.2.0",
+    "notFound": "未找到",
+    "contentNotFound": "请求的文档未找到。",
+    "translationNotAvailable": "此页面暂无中文翻译，显示英文版本。"
+  },
+  "languageSwitcher": {
+    "label": "语言",
+    "english": "English",
+    "chinese": "中文"
+  }
+}

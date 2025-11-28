@@ -1,68 +1,69 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Menu, X, Dna } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useTranslations, useLocale } from "next-intl"
+import { Link } from "@/i18n/routing"
 
-// Updated chapters to include all CASSIA documentation sections with groupings
+// Define chapter structure with translation keys
 const chapters = [
   {
-    title: "Getting Started",
+    titleKey: "gettingStarted",
     items: [
-      { title: "Introduction", slug: "introduction" },
-      { title: "Setting Up CASSIA", slug: "setting-up-cassia" },
+      { titleKey: "introduction", slug: "introduction" },
+      { titleKey: "settingUpCassia", slug: "setting-up-cassia" },
     ],
   },
   {
-    title: "Basic CASSIA Workflow",
+    titleKey: "basicWorkflow",
     items: [
-      { title: "Fast Mode", slug: "fast-mode" },
-      { title: "Single Cluster Analysis", slug: "single-cluster-analysis" },
-      { title: "Batch Processing", slug: "batch-processing" },
-      { title: "Quality Scoring and Report Generation", slug: "quality-scoring-and-report-generation" },
+      { titleKey: "fastMode", slug: "fast-mode" },
+      { titleKey: "singleClusterAnalysis", slug: "single-cluster-analysis" },
+      { titleKey: "batchProcessing", slug: "batch-processing" },
+      { titleKey: "qualityScoring", slug: "quality-scoring-and-report-generation" },
     ],
   },
   {
-    title: "Advanced CASSIA Workflow",
+    titleKey: "advancedWorkflow",
     items: [
-      { title: "Introduction to Optional Agents", slug: "introduction-to-optional-agents" },
-      { title: "Uncertainty Quantification", slug: "uncertainty-quantification" },
-      { title: "Annotation Boost Agent", slug: "annotation-boost" },
-      { title: "Compare Cell Types", slug: "compare-cell-types" },
-      { title: "Subclustering Analysis", slug: "subclustering-analysis" },
-      { title: "Annotation Boost Plus Agent", slug: "annotation-boost-extra" },
-      { title: "Retrieve Augmented Agent", slug: "ragagent" },
+      { titleKey: "introToOptionalAgents", slug: "introduction-to-optional-agents" },
+      { titleKey: "uncertaintyQuantification", slug: "uncertainty-quantification" },
+      { titleKey: "annotationBoost", slug: "annotation-boost" },
+      { titleKey: "compareCellTypes", slug: "compare-cell-types" },
+      { titleKey: "subclusteringAnalysis", slug: "subclustering-analysis" },
+      { titleKey: "annotationBoostExtra", slug: "annotation-boost-extra" },
+      { titleKey: "ragAgent", slug: "ragagent" },
     ],
   },
   {
-    title: "Help",
-    items: [{ title: "Troubleshooting", slug: "troubleshooting" }],
+    titleKey: "help",
+    items: [{ titleKey: "troubleshooting", slug: "troubleshooting" }],
   },
 ]
 
 // Define vignette chapters
 const vignetteChapters = [
   {
-    title: "Getting Started",
+    titleKey: "gettingStarted",
     items: [
-      { title: "Introduction to Vignettes", slug: "introduction" },
+      { titleKey: "introduction", slug: "introduction" },
     ],
   },
   {
-    title: "Analysis Starting with Provided Marker",
+    titleKey: "analysisWithMarker",
     items: [
-      { title: "Basic Annotation", slug: "basic-annotation" },
-      { title: "Extended Analysis with Optional Agents", slug: "extended-analysis" },
+      { titleKey: "basicAnnotation", slug: "basic-annotation" },
+      { titleKey: "extendedAnalysis", slug: "extended-analysis" },
     ],
   },
   {
-    title: "Analysis Starting with Raw Seurat Object",
+    titleKey: "analysisWithSeurat",
     items: [
-      { title: "Annotation and Visualization using GTEX Breast Data", slug: "clustering-and-annotation" },
-      { title: "Full Workflow Best Practices with Extensive Quality Control", slug: "full-workflow-best-practices" }
+      { titleKey: "clusteringAndAnnotation", slug: "clustering-and-annotation" },
+      { titleKey: "fullWorkflow", slug: "full-workflow-best-practices" }
     ],
   }
 ]
@@ -70,6 +71,13 @@ const vignetteChapters = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const locale = useLocale()
+  const tNav = useTranslations("navigation")
+  const tSidebar = useTranslations("sidebar")
+  const tDocs = useTranslations("docs")
+  const tVignettes = useTranslations("vignettes")
+  const tCommon = useTranslations("common")
+
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -101,11 +109,24 @@ export function Sidebar() {
     }
   }, [pathname, isMobile])
 
-  // Determine if we're in the vignette section
-  const isVignettePath = pathname?.startsWith("/vignette")
-  
+  // Determine if we're in the vignette section (accounting for locale prefix)
+  const isVignettePath = pathname?.includes("/vignette")
+
   // Select which sections to show based on the current path
   const sectionsToShow = isVignettePath ? vignetteChapters : chapters
+
+  // Get the section title translation
+  const getSectionTitle = (titleKey: string) => {
+    return tSidebar(titleKey as any)
+  }
+
+  // Get the item title translation
+  const getItemTitle = (titleKey: string, isVignette: boolean) => {
+    if (isVignette) {
+      return tVignettes(titleKey as any)
+    }
+    return tDocs(titleKey as any)
+  }
 
   return (
     <>
@@ -147,7 +168,7 @@ export function Sidebar() {
                     !isVignettePath ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
                   )}
                 >
-                  Docs
+                  {tNav("docs")}
                 </Link>
               </div>
               <div className="flex justify-center">
@@ -158,15 +179,15 @@ export function Sidebar() {
                     isVignettePath ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
                   )}
                 >
-                  Vignettes
+                  {tNav("vignettes")}
                 </Link>
               </div>
             </div>
-            
+
             {sectionsToShow.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-6">
                 <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {section.title}
+                  {getSectionTitle(section.titleKey)}
                 </div>
                 <ul className="space-y-1">
                   {section.items.map((chapter) => (
@@ -175,12 +196,12 @@ export function Sidebar() {
                         href={`${isVignettePath ? "/vignette" : "/docs"}/${chapter.slug}`}
                         className={cn(
                           "block rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                          pathname === `${isVignettePath ? "/vignette" : "/docs"}/${chapter.slug}`
+                          pathname?.endsWith(`${isVignettePath ? "/vignette" : "/docs"}/${chapter.slug}`)
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground",
                         )}
                       >
-                        {chapter.title}
+                        {getItemTitle(chapter.titleKey, isVignettePath)}
                       </Link>
                     </li>
                   ))}
@@ -189,41 +210,41 @@ export function Sidebar() {
             ))}
 
             <div className="mt-8 mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Resources
+              {tNav("resources")}
             </div>
             <ul className="space-y-1">
               <li>
-                <Link
+                <a
                   href="https://github.com/ElliotXie/CASSIA"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  GitHub Repository
-                </Link>
+                  {tNav("githubRepository")}
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  Research Paper
-                </Link>
+                  {tNav("researchPaper")}
+                </a>
               </li>
               <li>
                 <Link
                   href="/comments"
                   className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  Comment Section
+                  {tNav("commentSection")}
                 </Link>
               </li>
             </ul>
           </nav>
           <div className="border-t p-4">
-            <div className="text-xs text-muted-foreground">CASSIA v1.2.0</div>
+            <div className="text-xs text-muted-foreground">{tCommon("version")}</div>
           </div>
         </div>
       </div>

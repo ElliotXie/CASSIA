@@ -9,11 +9,21 @@
 # Functions tested:
 # - generate_batch_html_report(): Generate HTML report from CSV file (via Python)
 
-# Get script directory
-script_dir <- dirname(sys.frame(1)$ofile)
-if (is.null(script_dir) || script_dir == "") {
-  script_dir <- "."
+# Get script directory (works with Rscript and source())
+get_script_dir <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- grep("--file=", args, value = TRUE)
+  if (length(file_arg) > 0) {
+    return(dirname(normalizePath(sub("--file=", "", file_arg), winslash = "/")))
+  }
+  for (i in sys.nframe():1) {
+    if (!is.null(sys.frame(i)$ofile)) {
+      return(dirname(normalizePath(sys.frame(i)$ofile, winslash = "/")))
+    }
+  }
+  return(normalizePath(getwd(), winslash = "/"))
 }
+script_dir <- get_script_dir()
 
 # Source shared utilities
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
@@ -44,7 +54,7 @@ find_existing_batch_results <- function() {
 
 create_sample_batch_data <- function() {
   # Create sample batch data for testing if no existing results
-  cluster_names <- get_all_cluster_names()
+  cluster_names <- get_all_clusters()
   sample_data <- list()
 
   for (i in 1:min(3, length(cluster_names))) {
@@ -105,16 +115,9 @@ run_report_generation_test <- function() {
   report_results <- list()
 
   tryCatch({
-    # Import Python module
-    reticulate <- reticulate::import("builtins")  # Test reticulate
-    sys <- reticulate::import("sys")
-
-    # Add CASSIA Python path
-    cassia_py_path <- file.path(script_dir, "..", "..", "CASSIA_python", "CASSIA")
-    sys$path$insert(0L, cassia_py_path)
-
-    # Import the report generation module
-    generate_report <- reticulate::import("generate_batch_report")
+    # Import the reports module directly from CASSIA Python package
+    # Note: py_cassia is internal to the CASSIA package, not in global env
+    reports <- reticulate::import("CASSIA.reports.generate_batch_report")
 
     cat("\n--- Test 1: Find existing batch results ---\n")
     existing_csv <- find_existing_batch_results()
@@ -130,7 +133,7 @@ run_report_generation_test <- function() {
       cat("\n--- Test 2: Generate HTML report from CSV ---\n")
       output_html <- file.path(results_dir, "test_report_from_csv.html")
 
-      result_path <- generate_report$generate_batch_html_report(
+      result_path <- reports$generate_batch_html_report(
         full_csv_path = existing_csv,
         output_path = output_html,
         report_title = "CASSIA Test Report (from CSV via R)"
@@ -167,7 +170,7 @@ run_report_generation_test <- function() {
 
     output_html_data <- file.path(results_dir, "test_report_from_data.html")
 
-    result_path_data <- generate_report$generate_batch_html_report(
+    result_path_data <- reports$generate_batch_html_report(
       full_csv_path = sample_csv_path,
       output_path = output_html_data,
       report_title = "CASSIA Test Report (from R Data)"
@@ -257,6 +260,13 @@ run_report_generation_test <- function() {
     status <<- "error"
     cat("\nError:", e$message, "\n")
   })
+
+  # Set final status based on validation results (workaround for tryCatch scoping)
+  if (!is.null(report_results$validation) && report_results$validation$all_passed) {
+    status <- "passed"
+  } else if (status != "error") {
+    status <- "failed"
+  }
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 

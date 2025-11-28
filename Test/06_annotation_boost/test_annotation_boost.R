@@ -102,8 +102,9 @@ run_annotation_boost_test <- function() {
 
   cat("\nTesting annotation boost for:", test_cluster, "\n")
 
-  # Get marker data path
-  marker_path <- get_marker_file_path()
+  # Get marker data path - annotation_boost requires RAW FindAllMarkers format
+  # Use local findallmarkers_output.csv instead of processed.csv
+  marker_path <- file.path(script_dir, "data", "findallmarkers_output.csv")
 
   # Run annotation boost
   start_time <- Sys.time()
@@ -121,7 +122,8 @@ run_annotation_boost_test <- function() {
     cat("  Search strategy: breadth\n")
     cat("  Max iterations: 3 (reduced for testing)\n")
 
-    result <- CASSIA::runCASSIA_annotationboost(
+    # Run annotation boost (returns NULL, outputs are files)
+    CASSIA::runCASSIA_annotationboost(
       full_result_path = batch_results_file,
       marker = marker_path,
       cluster_name = test_cluster,
@@ -137,37 +139,37 @@ run_annotation_boost_test <- function() {
       report_style = "per_iteration"
     )
 
-    # Check result
-    if (is.list(result)) {
-      boost_results <- result
+    # Check output files exist (function outputs files, not return values)
+    summary_report_path <- paste0(output_name, "_summary.html")
+    raw_text_path <- paste0(output_name, "_raw_conversation.txt")
 
-      if (!is.null(result$status) && result$status == "success") {
-        cat("\nAnnotation Boost Results:\n")
-        cat("  Status:", result$status, "\n")
-        cat("  Execution time:", round(result$execution_time %||% 0, 1), "s\n")
+    cat("\nAnnotation Boost Results:\n")
 
-        if (!is.null(result$summary_report_path)) {
-          cat("  Summary report:", basename(result$summary_report_path), "\n")
-        }
-        if (!is.null(result$raw_text_path)) {
-          cat("  Raw conversation:", basename(result$raw_text_path), "\n")
-        }
+    if (file.exists(summary_report_path)) {
+      file_size <- file.info(summary_report_path)$size
+      cat("  Summary report:", basename(summary_report_path), "(", round(file_size/1024, 1), "KB )\n")
+      boost_results$summary_report_path <- summary_report_path
+    }
 
-        # Check if analysis text is valid
-        analysis_text <- result$analysis_text %||% ""
-        if (nchar(analysis_text) > 100) {
-          status <- "passed"
-        } else {
-          status <- "failed"
-          errors <- list("Analysis text is empty or too short")
-        }
+    if (file.exists(raw_text_path)) {
+      # Read raw conversation to check content
+      raw_content <- readLines(raw_text_path, warn = FALSE)
+      raw_text <- paste(raw_content, collapse = "\n")
+      file_size <- file.info(raw_text_path)$size
+      cat("  Raw conversation:", basename(raw_text_path), "(", round(file_size/1024, 1), "KB )\n")
+      boost_results$raw_text_path <- raw_text_path
+
+      # Check if raw conversation has meaningful content (>100 chars)
+      if (nchar(raw_text) > 100) {
+        status <- "passed"
+        cat("  Content length:", nchar(raw_text), "characters\n")
       } else {
         status <- "failed"
-        errors <- list(result$error_message %||% "Unknown error")
+        errors <- list("Raw conversation text is empty or too short")
       }
     } else {
       status <- "failed"
-      errors <- list("Unexpected result format from annotation boost")
+      errors <- list("Output files not generated")
     }
 
   }, error = function(e) {

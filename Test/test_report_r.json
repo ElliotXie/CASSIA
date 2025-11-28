@@ -1,0 +1,136 @@
+{
+  "timestamp": "2025-11-28T13:59:10",
+  "total_duration": 353.79,
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 32.94,
+      "mode": "load_all",
+      "script": "test_single_annotation.R"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 38.31,
+      "mode": "load_all",
+      "script": "test_batch_annotation.R"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 99.85,
+      "mode": "load_all",
+      "script": "test_validator_comparison.R"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 14.39,
+      "mode": "load_all",
+      "script": "test_quality_scoring.R"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 34.83,
+      "mode": "load_all",
+      "script": "test_model_settings.R"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 19.95,
+      "mode": "load_all",
+      "script": "test_annotation_boost.R"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 9.07,
+      "mode": "load_all",
+      "script": "test_merging_annotation.R"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 22.28,
+      "mode": "load_all",
+      "script": "test_uncertainty_quantification.R"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 13.23,
+      "mode": "load_all",
+      "script": "test_subclustering.R"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 27.44,
+      "mode": "load_all",
+      "script": "test_symphony_compare.R"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 7.02,
+      "mode": "load_all",
+      "script": "test_report_generation.R"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "skipped",
+      "reason": "No R test script found (load_all)",
+      "duration": 0,
+      "mode": "load_all"
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "skipped",
+      "reason": "No R test script found (load_all)",
+      "duration": 0,
+      "mode": "load_all"
+    },
+    {
+      "name": "13_call_llm",
+      "status": "skipped",
+      "reason": "No R test script found (load_all)",
+      "duration": 0,
+      "mode": "load_all"
+    },
+    {
+      "name": "14_input_validation",
+      "status": "skipped",
+      "reason": "No R test script found (load_all)",
+      "duration": 0,
+      "mode": "load_all"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 34.38,
+      "mode": "load_all",
+      "script": "test_cassia_pipeline.R"
+    }
+  ]
+}

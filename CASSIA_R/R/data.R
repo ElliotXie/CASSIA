@@ -78,7 +78,7 @@ loadBuiltinMarkers <- function(marker_type = "processed") {
   #                                                                   package = "CASSIA"))
   
   # Call the Python function
-  markers <- py_tools$loadmarker(marker_type = marker_type)
+  markers <- py_cassia$loadmarker(marker_type = marker_type)
   
   # Convert to R data frame if necessary
   if (!is.data.frame(markers)) {
@@ -107,7 +107,7 @@ listAvailableMarkers <- function() {
   #                                                                   package = "CASSIA"))
   
   # Call the Python function and convert to R character vector
-  marker_names <- py_tools$list_available_markers()
+  marker_names <- py_cassia$list_available_markers()
   
   return(marker_names)
 }

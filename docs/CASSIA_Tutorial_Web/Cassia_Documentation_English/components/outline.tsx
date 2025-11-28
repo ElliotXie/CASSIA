@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 interface Heading {
   id: string
@@ -23,6 +25,8 @@ export function Outline() {
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeId, setActiveId] = useState<string>("")
   const { setTheme } = useTheme()
+  const t = useTranslations("outline")
+  const tTheme = useTranslations("theme")
   const githubRepoUrl = "https://github.com/ElliotXie/CASSIA"
   const biorxivUrl = "https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2"
 
@@ -96,6 +100,7 @@ export function Outline() {
     <div className="hidden lg:block">
       <div className="fixed right-8 top-20 w-56 flex flex-col max-h-[calc(100vh-100px)]">
         <div className="mb-4 flex items-center justify-start gap-2 flex-shrink-0">
+          <LanguageSwitcher />
           <Link href={biorxivUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="icon" aria-label="bioRxiv Paper">
               <FileText className="h-[1.2rem] w-[1.2rem]" />
@@ -111,15 +116,15 @@ export function Outline() {
               <Button variant="outline" size="icon">
                 <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
+                <span className="sr-only">{tTheme("toggleTheme")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setTheme("light")}>
-                Light
+                {tTheme("light")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme("dark")}>
-                Dark
+                {tTheme("dark")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -127,7 +132,7 @@ export function Outline() {
 
         {headings.length > 0 && (
           <>
-            <div className="text-sm font-medium text-primary/80 flex-shrink-0">On this page</div>
+            <div className="text-sm font-medium text-primary/80 flex-shrink-0">{t("onThisPage")}</div>
             <div className="overflow-y-auto mt-2 pr-2 flex-grow pb-4">
               <ul className="space-y-1 text-sm">
           {headings.map((heading) => (

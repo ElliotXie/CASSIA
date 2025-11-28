@@ -56,7 +56,8 @@ run_r_test <- function(test_folder, install_mode = FALSE) {
 
   result <- tryCatch({
     # Run the test in a separate R process
-    exit_code <- system2("Rscript", test_script, wait = TRUE)
+    # Use shQuote to handle paths with spaces
+    exit_code <- system2("Rscript", shQuote(test_script), wait = TRUE)
     duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
     list(

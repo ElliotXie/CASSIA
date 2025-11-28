@@ -5,8 +5,8 @@
 #' @export
 check_python_env <- function() {
   tryCatch({
-    py_main <- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
-    py_tools <- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
+    # Test import of CASSIA Python package
+    test_cassia <- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
     return(TRUE)
   }, error = function(e) {
     warning(paste("Python environment not set up correctly:", e$message))

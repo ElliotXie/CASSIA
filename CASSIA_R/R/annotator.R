@@ -1,23 +1,8 @@
 #' @import reticulate
 
-# Use reticulate to import Python modules
-py_main <- NULL
-py_tools <- NULL
-py_merging <- NULL
-py_annotation_boost <- NULL
-py_cell_comparison <- NULL
-py_subclustering <- NULL
-py_uncertainty <- NULL
-py_generate_reports <- NULL
-py_llm_utils <- NULL
-py_generate_hypothesis_report <- NULL
-py_hypothesis_generation <- NULL
-py_summarize_hypothesis_runs <- NULL
-py_debug_genes <- NULL
-# py_super_annotation_boost <- NULL
-py_symphony_compare <- NULL
-py_model_settings <- NULL
-py_logging_config <- NULL
+# Use reticulate to import the CASSIA Python package
+# All functions are exported at package level via __init__.py
+py_cassia <- NULL
 
 # =============================================================================
 # Internal Diagnostic Functions for Setup Error Handling
@@ -37,10 +22,45 @@ py_logging_config <- NULL
 # Check if Python is available on the system
 .check_python_available <- function() {
   tryCatch({
+    # First try py_discover_config (doesn't initialize Python)
     config <- reticulate::py_discover_config(required_module = NULL, use_environment = NULL)
     if (!is.null(config) && !is.null(config$python)) {
       return(list(available = TRUE, path = config$python, version = config$version))
     }
+
+    # If py_discover_config fails, try to find Python in PATH
+    # without initializing reticulate
+    python_path <- Sys.which("python")
+    if (python_path != "" && file.exists(python_path)) {
+      # Get version by running python --version
+      version_output <- tryCatch({
+        system2(python_path, "--version", stdout = TRUE, stderr = TRUE)
+      }, error = function(e) NULL)
+
+      if (!is.null(version_output) && length(version_output) > 0) {
+        # Parse version from output like "Python 3.10.11"
+        version_match <- regmatches(version_output[1], regexpr("\\d+\\.\\d+", version_output[1]))
+        if (length(version_match) > 0) {
+          return(list(available = TRUE, path = python_path, version = version_match))
+        }
+      }
+    }
+
+    # Also try python3 on Unix-like systems
+    python3_path <- Sys.which("python3")
+    if (python3_path != "" && file.exists(python3_path)) {
+      version_output <- tryCatch({
+        system2(python3_path, "--version", stdout = TRUE, stderr = TRUE)
+      }, error = function(e) NULL)
+
+      if (!is.null(version_output) && length(version_output) > 0) {
+        version_match <- regmatches(version_output[1], regexpr("\\d+\\.\\d+", version_output[1]))
+        if (length(version_match) > 0) {
+          return(list(available = TRUE, path = python3_path, version = version_match))
+        }
+      }
+    }
+
     return(list(available = FALSE, path = NULL, version = NULL))
   }, error = function(e) {
     return(list(available = FALSE, path = NULL, version = NULL, error = e$message))
@@ -55,7 +75,8 @@ py_logging_config <- NULL
   }
 
   tryCatch({
-    version_str <- py_info$version
+    # Convert version to string if it's a package_version object
+    version_str <- as.character(py_info$version)
     # Extract major.minor from version string (e.g., "3.10.1" -> c(3, 10))
     version_parts <- as.numeric(strsplit(version_str, "\\.")[[1]][1:2])
     required_parts <- as.numeric(strsplit(required_version, "\\.")[[1]][1:2])
@@ -65,7 +86,7 @@ py_logging_config <- NULL
 
     return(list(ok = version_ok, current = version_str, required = required_version))
   }, error = function(e) {
-    return(list(ok = FALSE, reason = e$message, current = py_info$version, required = required_version))
+    return(list(ok = FALSE, reason = e$message, current = as.character(py_info$version), required = required_version))
   })
 }
 
@@ -360,26 +381,10 @@ py_logging_config <- NULL
     }
 
     # =========================================================================
-    # Step 3: Import Python modules
+    # Step 3: Import CASSIA Python package
     # =========================================================================
-
-    py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
-    py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-    py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
-    py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
-    py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
-    py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
-    py_uncertainty <<- reticulate::import_from_path("Uncertainty_quantification", path = system.file("python", package = "CASSIA"))
-    py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
-    py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
-    py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
-    py_hypothesis_generation <<- reticulate::import_from_path("hypothesis_generation", path = system.file("python", package = "CASSIA"))
-    py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
-    py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-    # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
-    py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
-    py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
-    py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
+    # All functions are exported at the package level via CASSIA/__init__.py
+    py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
     # Success!
     message("CASSIA loaded successfully! Happy annotating!")
@@ -390,24 +395,8 @@ py_logging_config <- NULL
     tryCatch({
       setup_cassia_env(conda_env = env_name)
 
-      # Try to import Python modules again after successful setup
-      py_main <<- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
-      py_tools <<- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
-      py_merging <<- reticulate::import_from_path("merging_annotation", path = system.file("python", package = "CASSIA"))
-      py_annotation_boost <<- reticulate::import_from_path("annotation_boost", path = system.file("python", package = "CASSIA"))
-      py_cell_comparison <<- reticulate::import_from_path("cell_type_comparison", path = system.file("python", package = "CASSIA"))
-      py_subclustering <<- reticulate::import_from_path("subclustering", path = system.file("python", package = "CASSIA"))
-      py_uncertainty <<- reticulate::import_from_path("Uncertainty_quantification", path = system.file("python", package = "CASSIA"))
-      py_generate_reports <<- reticulate::import_from_path("generate_reports", path = system.file("python", package = "CASSIA"))
-      py_llm_utils <<- reticulate::import_from_path("llm_utils", path = system.file("python", package = "CASSIA"))
-      py_generate_hypothesis_report <<- reticulate::import_from_path("generate_hypothesis_report", path = system.file("python", package = "CASSIA"))
-      py_hypothesis_generation <<- reticulate::import_from_path("hypothesis_generation", path = system.file("python", package = "CASSIA"))
-      py_summarize_hypothesis_runs <<- reticulate::import_from_path("summarize_hypothesis_runs", path = system.file("python", package = "CASSIA"))
-      py_debug_genes <<- reticulate::import_from_path("debug_genes", path = system.file("python", package = "CASSIA"))
-      # py_super_annotation_boost <<- reticulate::import_from_path("super_annotation_boost", path = system.file("python", package = "CASSIA"))
-      py_symphony_compare <<- reticulate::import_from_path("symphony_compare", path = system.file("python", package = "CASSIA"))
-      py_model_settings <<- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
-      py_logging_config <<- reticulate::import_from_path("logging_config", path = system.file("python", package = "CASSIA"))
+      # Try to import CASSIA Python package again after successful setup
+      py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
       # Success after retry!
       message("CASSIA loaded successfully! Happy annotating!")
@@ -615,9 +604,9 @@ setLLMApiKey <- function(api_key, provider = "anthropic", persist = FALSE) {
     stop("Unsupported provider. Use 'openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints")
   }
   
-  # Set API key in Python tools if available
-  if (!is.null(py_tools)) {
-    py_tools$set_api_key(api_key, provider)
+  # Set API key in Python CASSIA if available
+  if (!is.null(py_cassia)) {
+    py_cassia$set_api_key(api_key, provider)
   }
   
   # Persist to .Renviron if requested
@@ -690,7 +679,8 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #'
 #' @param model Character string specifying the model to use.
 #' @param temperature Numeric value for temperature parameter.
-#' @param marker_list List of marker genes.
+#' @param marker_list List of marker genes. Can be a character vector, comma-separated string, or
+#'   a data frame with a 'gene' column.
 #' @param tissue Character string specifying the tissue type.
 #' @param species Character string specifying the species.
 #' @param additional_info Additional information as a character string.
@@ -701,8 +691,25 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
 runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
+  # Convert marker_list to character vector if it's a data frame
+  if (is.data.frame(marker_list)) {
+    # Try common column names for gene markers
+    if ("gene" %in% names(marker_list)) {
+      marker_list <- as.character(marker_list$gene)
+    } else if ("Gene" %in% names(marker_list)) {
+      marker_list <- as.character(marker_list$Gene)
+    } else if ("marker" %in% names(marker_list)) {
+      marker_list <- as.character(marker_list$marker)
+    } else if ("Marker" %in% names(marker_list)) {
+      marker_list <- as.character(marker_list$Marker)
+    } else {
+      # Use first column as markers
+      marker_list <- as.character(marker_list[[1]])
+    }
+  }
+
   tryCatch({
-    result <- py_tools$runCASSIA(
+    result <- py_cassia$runCASSIA(
       model = model,
       temperature = temperature,
       marker_list = marker_list,
@@ -730,7 +737,18 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
     # Convert reference_info (result[[3]])
     reference_info <- as.list(result[[3]])
 
-    return(list(structured_output = structured_output, conversation_history = conversation_history, reference_info = reference_info))
+    # Return flattened result with main fields accessible directly
+    # Also include nested structured_output for backward compatibility
+    return(list(
+      main_cell_type = structured_output$main_cell_type,
+      sub_cell_types = structured_output$sub_cell_types,
+      possible_mixed_cell_types = structured_output$possible_mixed_cell_types,
+      num_markers = structured_output$num_markers,
+      iterations = structured_output$iterations,
+      structured_output = structured_output,
+      conversation_history = conversation_history,
+      reference_info = reference_info
+    ))
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA:", e$message, "\n",
                        "Python traceback:", reticulate::py_last_error())
@@ -757,7 +775,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list,
                            model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
   tryCatch({
-    result <- py_tools$runCASSIA_n_times(
+    result <- py_cassia$runCASSIA_n_times(
       n = as.integer(n),
       tissue = tissue,
       species = species,
@@ -820,7 +838,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
   tryCatch({
     # Call the Python function with the new parameter structure
-    processed_results <- py_uncertainty$runCASSIA_n_times_similarity_score(
+    processed_results <- py_cassia$runCASSIA_n_times_similarity_score(
       tissue = tissue,
       species = species,
       additional_info = additional_info,
@@ -905,7 +923,7 @@ if (is.data.frame(marker)) {
   stop("marker must be either a data frame or a character vector")
 }
     
-    py_tools$runCASSIA_batch(
+    py_cassia$runCASSIA_batch(
       marker = marker,  # Changed parameter name to match Python function
       output_name = output_name,
       model = model,
@@ -975,7 +993,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 
   execution_time <- system.time({
     tryCatch({
-      py_uncertainty$runCASSIA_batch_n_times(
+      py_cassia$runCASSIA_batch_n_times(
         as.integer(n), marker, output_name, model, temperature, tissue, 
         species, additional_info, celltype_column, gene_column_name, 
         as.integer(max_workers), as.integer(batch_max_workers), provider,
@@ -1028,7 +1046,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
   execution_time <- system.time({
     tryCatch({
-      py_uncertainty$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
+      py_cassia$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
                                               celltype_column, max_workers, model, provider, main_weight, sub_weight)
     }, error = function(e) {
       stop(paste("Error in runCASSIA_similarity_score_batch:", e$message))
@@ -1092,7 +1110,7 @@ runCASSIA_annotationboost <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_annotation_boost$runCASSIA_annotationboost(
+    py_cassia$runCASSIA_annotationboost(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -1104,12 +1122,11 @@ runCASSIA_annotationboost <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style,
-      validator_involvement = validator_involvement
+      report_style = report_style
     )
-    
+
     invisible(NULL)
-    
+
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_annotationboost:", e$message)
     stop(error_msg)
@@ -1168,7 +1185,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
   }
                                                       
   tryCatch({
-    py_annotation_boost$runCASSIA_annotationboost_additional_task(
+    py_cassia$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
       marker = marker,
       cluster_name = cluster_name,
@@ -1213,7 +1230,7 @@ runCASSIA_score_batch <- function(input_file,
                                     provider = "openrouter",
                                     max_retries = 1) {
   tryCatch({
-    results <- py_tools$runCASSIA_score_batch(
+    results <- py_cassia$runCASSIA_score_batch(
       input_file = input_file,
       output_file = output_file,
       max_workers = as.integer(max_workers),
@@ -1252,7 +1269,7 @@ runCASSIA_score_batch <- function(input_file,
 #' }
 runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_reports_summary") {
   tryCatch({
-    py_tools$runCASSIA_generate_score_report(
+    py_cassia$runCASSIA_generate_score_report(
       csv_path = csv_path,
       index_name = output_name
     )
@@ -1340,7 +1357,7 @@ runCASSIA_pipeline <- function(
   }
 
   tryCatch({
-    py_tools$runCASSIA_pipeline(
+    py_cassia$runCASSIA_pipeline(
       output_file_name = output_file_name,
       tissue = tissue,
       species = species,
@@ -1402,7 +1419,7 @@ compareCelltypes <- function(tissue, celltypes, marker, species = "human", model
     }
     
     # Call the Python function
-    responses <- py_cell_comparison$compareCelltypes(
+    responses <- py_cassia$compareCelltypes(
       tissue = tissue,
       celltypes = celltypes,
       marker_set = marker,
@@ -1513,7 +1530,7 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
     verbose <- as.logical(verbose)
     
     # Call the Python function
-    results <- py_symphony_compare$symphonyCompare(
+    results <- py_cassia$symphonyCompare(
       tissue = tissue,
       celltypes = celltypes,
       marker_set = marker_set,
@@ -1565,7 +1582,7 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name, 
                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                provider = "openrouter", n_genes = 50L) {
-  py_subclustering$runCASSIA_subclusters(
+  py_cassia$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
     output_name = output_name,
@@ -1593,7 +1610,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name, 
                                                model = "google/gemini-2.5-flash-preview", temperature = 0, 
                                                provider = "openrouter", max_workers = 5,n_genes=50L) {
-  py_subclustering$runCASSIA_n_subcluster(
+  py_cassia$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
     major_cluster_info = major_cluster_info,
@@ -1635,7 +1652,7 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
 #' @export
 generate_subclustering_report <- function(csv_path, html_report_path = NULL, model_name = NULL) {
   tryCatch({
-    py_generate_reports$generate_subclustering_report(
+    py_cassia$generate_subclustering_report(
       csv_path = csv_path,
       html_report_path = html_report_path,
       model_name = model_name
@@ -1682,7 +1699,7 @@ generate_html_report <- function(result_df, gold_col, pred_col, score_col = "sco
                                 reasoning_col = "reasoning", metrics = NULL, 
                                 html_report_path = "report.html", model_name = NULL) {
   tryCatch({
-    py_generate_reports$generate_html_report(
+    py_cassia$generate_html_report(
       result_df = result_df,
       gold_col = gold_col,
       pred_col = pred_col,
@@ -1734,7 +1751,7 @@ generate_html_report <- function(result_df, gold_col, pred_col, score_col = "sco
 #' @export
 calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
   tryCatch({
-    result <- py_generate_reports$calculate_evaluation_metrics(
+    result <- py_cassia$calculate_evaluation_metrics(
       eval_df = eval_df,
       score_col = score_col
     )
@@ -1746,6 +1763,123 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
     stop(error_msg)
   })
 }
+
+# =============================================================================
+# Merging Annotation Functions
+# =============================================================================
+
+#' Merge Cell Cluster Annotations
+#'
+#' Agent function that reads a CSV file with cell cluster annotations and merges/groups them
+#' using an LLM to suggest biologically meaningful groupings.
+#'
+#' @param csv_path Path to the CSV file containing cluster annotations
+#' @param output_path Path to save the results (if NULL, returns DataFrame without saving)
+#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openai")
+#' @param model Specific model to use (if NULL, uses default for provider)
+#' @param api_key API key for the provider (if NULL, gets from environment)
+#' @param additional_context Optional domain-specific context to help with annotation
+#' @param batch_size Number of clusters to process in each LLM call (default: 20)
+#' @param detail_level Level of detail for groupings: "broad", "detailed", or "very_detailed" (default: "broad")
+#'
+#' @return A data frame with original annotations and suggested cell groupings
+#'
+#' @examples
+#' \dontrun{
+#' # Basic usage - merge annotations with broad groupings
+#' result <- merge_annotations("annotation_results.csv", "merged_results.csv")
+#'
+#' # Use detailed groupings
+#' result <- merge_annotations(
+#'   csv_path = "annotation_results.csv",
+#'   output_path = "merged_detailed.csv",
+#'   detail_level = "detailed",
+#'   provider = "anthropic"
+#' )
+#' }
+#'
+#' @export
+merge_annotations <- function(csv_path,
+                             output_path = NULL,
+                             provider = "openai",
+                             model = NULL,
+                             api_key = NULL,
+                             additional_context = NULL,
+                             batch_size = 20L,
+                             detail_level = "broad") {
+  tryCatch({
+    result <- py_cassia$merge_annotations(
+      csv_path = csv_path,
+      output_path = output_path,
+      provider = provider,
+      model = model,
+      api_key = api_key,
+      additional_context = additional_context,
+      batch_size = as.integer(batch_size),
+      detail_level = detail_level
+    )
+    # Convert Python DataFrame to R data frame
+    return(reticulate::py_to_r(result))
+  }, error = function(e) {
+    error_msg <- paste("Error in merge_annotations:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}
+
+
+#' Merge All Annotation Levels
+#'
+#' Process all three detail levels (broad, detailed, very_detailed) and return a combined DataFrame
+#' with all three grouping columns.
+#'
+#' @param csv_path Path to the CSV file containing cluster annotations
+#' @param output_path Path to save the results (if NULL, returns DataFrame without saving)
+#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openai")
+#' @param model Specific model to use (if NULL, uses default for provider)
+#' @param api_key API key for the provider (if NULL, gets from environment)
+#' @param additional_context Optional domain-specific context to help with annotation
+#' @param batch_size Number of clusters to process in each LLM call (default: 20)
+#'
+#' @return A data frame with original annotations and all three grouping levels
+#'
+#' @examples
+#' \dontrun{
+#' # Process all grouping levels at once
+#' result <- merge_annotations_all(
+#'   csv_path = "annotation_results.csv",
+#'   output_path = "merged_all_levels.csv",
+#'   provider = "openrouter"
+#' )
+#' }
+#'
+#' @export
+merge_annotations_all <- function(csv_path,
+                                  output_path = NULL,
+                                  provider = "openai",
+                                  model = NULL,
+                                  api_key = NULL,
+                                  additional_context = NULL,
+                                  batch_size = 20L) {
+  tryCatch({
+    result <- py_cassia$merge_annotations_all(
+      csv_path = csv_path,
+      output_path = output_path,
+      provider = provider,
+      model = model,
+      api_key = api_key,
+      additional_context = additional_context,
+      batch_size = as.integer(batch_size)
+    )
+    # Convert Python DataFrame to R data frame
+    return(reticulate::py_to_r(result))
+  }, error = function(e) {
+    error_msg <- paste("Error in merge_annotations_all:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
+  })
+}
+
 
 # =============================================================================
 # Logging Configuration Functions
@@ -1785,7 +1919,7 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
 #'
 #' @export
 set_log_level <- function(level = "INFO") {
-  if (is.null(py_logging_config)) {
+  if (is.null(py_cassia)) {
     stop("CASSIA Python environment not initialized. Please restart R or run library(CASSIA) again.")
   }
 
@@ -1796,7 +1930,7 @@ set_log_level <- function(level = "INFO") {
     stop(paste("Invalid log level. Must be one of:", paste(valid_levels, collapse = ", ")))
   }
 
-  py_logging_config$set_log_level(level)
+  py_cassia$set_log_level(level)
   invisible(NULL)
 }
 
@@ -1823,11 +1957,11 @@ set_log_level <- function(level = "INFO") {
 #'
 #' @export
 get_logger <- function(name = "CASSIA") {
-  if (is.null(py_logging_config)) {
+  if (is.null(py_cassia)) {
     stop("CASSIA Python environment not initialized. Please restart R or run library(CASSIA) again.")
   }
 
-  py_logging_config$get_logger(name)
+  py_cassia$get_logger(name)
 }
 
 #' Show a Warning to the User
@@ -1846,11 +1980,11 @@ get_logger <- function(name = "CASSIA") {
 #'
 #' @export
 warn_user <- function(message) {
-  if (is.null(py_logging_config)) {
+  if (is.null(py_cassia)) {
     warning(paste("[CASSIA]", message))
     return(invisible(NULL))
   }
 
-  py_logging_config$warn_user(message)
+  py_cassia$warn_user(message)
   invisible(NULL)
 }
