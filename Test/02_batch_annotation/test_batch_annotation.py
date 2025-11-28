@@ -50,7 +50,7 @@ def run_batch_annotation_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from tools_function import runCASSIA_batch
+    from CASSIA import runCASSIA_batch
 
     # Use only 2 clusters for faster testing
     test_clusters = ['monocyte', 'plasma cell']

@@ -156,7 +156,7 @@ def test_get_top_markers_with_scanpy():
     """Test get_top_markers() with Scanpy rank_genes_groups output."""
     print("\n--- Testing get_top_markers() with Scanpy output ---")
 
-    from tools_function import get_top_markers
+    from CASSIA import get_top_markers
 
     # Load Scanpy data
     rank_genes_dict, cluster_info = load_scanpy_data()
@@ -218,7 +218,7 @@ def test_runCASSIA_batch_with_scanpy(marker_df):
     # Setup API keys
     setup_api_keys()
 
-    from tools_function import runCASSIA_batch
+    from CASSIA import runCASSIA_batch
 
     print(f"\nInput marker DataFrame:")
     print(f"  Shape: {marker_df.shape}")

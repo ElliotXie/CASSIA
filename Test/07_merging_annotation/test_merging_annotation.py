@@ -55,8 +55,8 @@ def run_merging_annotation_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from tools_function import runCASSIA_batch
-    from merging_annotation import merge_annotations, merge_annotations_all
+    from CASSIA import runCASSIA_batch
+    from CASSIA import merge_annotations, merge_annotations_all
     import pandas as pd
 
     # Create results directory

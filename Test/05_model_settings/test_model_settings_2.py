@@ -50,7 +50,7 @@ def run_fuzzy_batch_test():
     setup_api_keys()
 
     # Import CASSIA functions
-    from tools_function import runCASSIA_batch
+    from CASSIA import runCASSIA_batch
 
     # Create results directory
     results_dir = create_results_dir("05_model_settings")

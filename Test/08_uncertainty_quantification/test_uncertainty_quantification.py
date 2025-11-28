@@ -55,7 +55,7 @@ def run_uncertainty_quantification_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from Uncertainty_quantification import (
+    from CASSIA import (
         runCASSIA_n_times_similarity_score
     )
 

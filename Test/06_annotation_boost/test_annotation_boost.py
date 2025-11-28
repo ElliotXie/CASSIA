@@ -61,8 +61,8 @@ def run_annotation_boost_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from tools_function import runCASSIA_batch
-    from annotation_boost import runCASSIA_annotationboost
+    from CASSIA import runCASSIA_batch
+    from CASSIA import runCASSIA_annotationboost
     import pandas as pd
 
     # Create results directory

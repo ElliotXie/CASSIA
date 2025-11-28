@@ -39,7 +39,7 @@ def run_batch_with_reference_test():
     llm_config = config['llm']
     data_config = config['data']
 
-    from tools_function import runCASSIA_batch_with_reference
+    from CASSIA import runCASSIA_batch_with_reference
 
     all_clusters = get_all_clusters()
     marker_df = get_full_marker_dataframe()

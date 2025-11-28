@@ -51,7 +51,7 @@ def run_cassia_pipeline_test():
     data_config = config['data']
 
     # Import CASSIA pipeline function
-    from pipeline import runCASSIA_pipeline
+    from CASSIA import runCASSIA_pipeline
 
     # Use only 2 clusters for faster testing
     test_clusters = ['monocyte', 'plasma cell']

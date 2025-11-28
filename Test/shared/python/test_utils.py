@@ -22,10 +22,11 @@ def get_cassia_python_path() -> Path:
 
 
 def setup_cassia_imports():
-    """Add CASSIA Python to sys.path for imports."""
-    cassia_path = str(get_cassia_python_path())
-    if cassia_path not in sys.path:
-        sys.path.insert(0, cassia_path)
+    """Add CASSIA Python parent directory to sys.path for package imports."""
+    # Add parent directory so 'import CASSIA' works (not flat imports)
+    cassia_parent = str(get_cassia_python_path().parent)  # CASSIA_python, not CASSIA_python/CASSIA
+    if cassia_parent not in sys.path:
+        sys.path.insert(0, cassia_parent)
 
 
 def load_config() -> dict:

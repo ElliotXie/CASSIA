@@ -54,7 +54,7 @@ def run_symphony_compare_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from symphony_compare import symphonyCompare
+    from CASSIA import symphonyCompare
 
     # Create results directory
     results_dir = create_results_dir("10_symphony_compare")

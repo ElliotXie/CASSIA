@@ -56,7 +56,7 @@ def run_subclustering_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from subclustering import runCASSIA_subclusters
+    from CASSIA import runCASSIA_subclusters
 
     # Create results directory
     results_dir = create_results_dir("09_subclustering")

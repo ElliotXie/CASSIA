@@ -47,8 +47,8 @@ def run_model_settings_test():
     setup_api_keys()
 
     # Import CASSIA functions
-    from model_settings import resolve_model_name, get_recommended_model, get_available_aliases
-    from tools_function import runCASSIA
+    from CASSIA import resolve_model_name, get_recommended_model, get_available_aliases
+    from CASSIA import runCASSIA
 
     # Create results directory
     results_dir = create_results_dir("05_model_settings")

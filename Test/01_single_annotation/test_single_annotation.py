@@ -51,7 +51,7 @@ def run_single_annotation_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from tools_function import runCASSIA
+    from CASSIA import runCASSIA
 
     # Test cluster
     test_cluster = "plasma cell"

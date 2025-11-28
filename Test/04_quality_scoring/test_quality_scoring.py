@@ -53,7 +53,7 @@ def run_quality_scoring_test():
     data_config = config['data']
 
     # Import CASSIA functions
-    from tools_function import runCASSIA_batch, runCASSIA_score_batch
+    from CASSIA import runCASSIA_batch, runCASSIA_score_batch
     import pandas as pd
 
     # Create results directory

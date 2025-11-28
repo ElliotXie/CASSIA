@@ -59,7 +59,7 @@ def run_call_llm_test():
     setup_api_keys()
 
     # Import CASSIA call_llm function
-    from llm_utils import call_llm
+    from CASSIA import call_llm
 
     # Create results directory
     results_dir = create_results_dir("13_call_llm")
