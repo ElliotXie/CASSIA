@@ -29,7 +29,6 @@
 > - **Symphony Compare Update**: Improved comparison module
 > - **Batch Output & Ranking**: Updated HTML output for runCASSIA_batch with new ranking method option
 > - **Fuzzy Model Aliases**: Easier model selection without remembering exact names
-> - **Easier Installation**: Virtualenv-first setup with conda fallback
 
 <details>
 <summary>📜 Previous Updates (click to expand)</summary>
