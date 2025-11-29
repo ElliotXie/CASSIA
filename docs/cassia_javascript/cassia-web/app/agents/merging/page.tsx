@@ -1,0 +1,425 @@
+'use client';
+
+import { useState } from 'react';
+import { ProgressTracker } from '@/components/ProgressTracker';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useApiKeyStore } from '@/lib/stores/api-key-store';
+import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
+import { parseCSV } from '@/lib/utils/csv-parser';
+import { Upload, File, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+
+export default function AnnotationMergingPage() {
+  const [csvData, setCsvData] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState('');
+  const [progress, setProgress] = useState('');
+  
+  // Form state
+  const [detailLevel, setDetailLevel] = useState('broad');
+  const [processAllLevels, setProcessAllLevels] = useState(false);
+  const [batchSize, setBatchSize] = useState(20);
+  const [additionalContext, setAdditionalContext] = useState('');
+  const [provider, setProvider] = useState('openrouter');
+  const [model, setModel] = useState('google/gemini-2.5-flash');
+  
+  const { apiKey } = useApiKeyStore();
+
+  // Custom file upload for CASSIA results files
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const onDrop = useCallback(async (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError('');
+    
+    try {
+      const text = await file.text();
+      const parsed = parseCSV(text);
+      
+      // Basic validation for CASSIA results format
+      if (parsed.length === 0) {
+        throw new Error('CSV file is empty');
+      }
+
+      const firstRow = parsed[0];
+      const requiredColumns = ['True Cell Type', 'Predicted Main Cell Type', 'Predicted Sub Cell Types'];
+      const missingColumns = requiredColumns.filter(col => !firstRow.hasOwnProperty(col));
+      
+      if (missingColumns.length > 0) {
+        throw new Error(`Missing required columns for CASSIA results: ${missingColumns.join(', ')}`);
+      }
+
+      setCsvData(parsed);
+      setUploadedFile(file);
+      setResults(null);
+      setProgress(`Loaded ${parsed.length} rows from CASSIA results file`);
+      
+    } catch (err) {
+      setError(`Error parsing CSV file: ${err.message}`);
+      setCsvData(null);
+      setUploadedFile(null);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/csv': ['.csv']
+    },
+    multiple: false,
+    disabled: isUploading || isProcessing
+  });
+
+  const clearFile = () => {
+    setCsvData(null);
+    setUploadedFile(null);
+    setResults(null);
+    setError('');
+    setProgress('');
+  };
+
+  const handleProcess = async () => {
+    if (!csvData || csvData.length === 0) {
+      setError('Please upload a CSV file first');
+      return;
+    }
+
+    if (!apiKey) {
+      setError('Please set your API key first');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+    setResults(null);
+    setProgress('Starting annotation merging process...');
+
+    try {
+      let result;
+      
+      if (processAllLevels) {
+        setProgress('Processing all detail levels in parallel...');
+        result = await mergeAnnotationsAll({
+          csvData,
+          provider,
+          model,
+          apiKey,
+          additionalContext: additionalContext || null,
+          batchSize: parseInt(batchSize),
+          onProgress: (msg) => setProgress(msg)
+        });
+      } else {
+        setProgress(`Processing with ${detailLevel} detail level...`);
+        result = await mergeAnnotations({
+          csvData,
+          provider,
+          model,
+          apiKey,
+          additionalContext: additionalContext || null,
+          batchSize: parseInt(batchSize),
+          detailLevel,
+          onProgress: (msg) => setProgress(msg)
+        });
+      }
+
+      setResults(result);
+      setProgress('Annotation merging completed successfully!');
+    } catch (err) {
+      setError(`Error during processing: ${err.message}`);
+      setProgress('');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const downloadResults = () => {
+    if (!results) return;
+
+    const csvContent = convertToCSV(results);
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `annotation_merging_results_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const convertToCSV = (data) => {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => {
+          const value = row[header];
+          if (value === null || value === undefined) return '';
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ];
+    
+    return csvRows.join('\n');
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Annotation Merging Agent</h1>
+        <p className="text-gray-600">
+          Merge and group cell cluster annotations using AI to create broader cell type categories. 
+          Upload CASSIA results files (not raw marker data) with existing annotations to group them into hierarchical categories.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* File Upload */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Upload CASSIA Results File</h2>
+          
+          {!uploadedFile ? (
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                isDragActive
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-400'
+              } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <input {...getInputProps()} />
+              <div className="space-y-4">
+                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  {isUploading ? (
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="h-6 w-6 text-blue-500" />
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">
+                    {isUploading
+                      ? 'Processing file...'
+                      : isDragActive
+                      ? 'Drop your file here'
+                      : 'Upload CASSIA Results File'
+                    }
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {isUploading
+                      ? 'Please wait while we process your file'
+                      : 'Drag & drop a CSV file, or click to browse'
+                    }
+                  </p>
+                </div>
+                
+                <div className="text-xs text-gray-500 space-y-1">
+                  <div>📄 Supported format: CSV</div>
+                  <div>📊 Expected columns: "True Cell Type", "Predicted Main Cell Type", "Predicted Sub Cell Types"</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <div>
+                    <h3 className="font-medium text-green-800">{uploadedFile.name}</h3>
+                    <p className="text-sm text-green-600">
+                      {csvData.length} rows loaded successfully
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFile}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Configuration */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="detail-level">Detail Level</Label>
+              <Select value={detailLevel} onValueChange={setDetailLevel} disabled={processAllLevels}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="broad">Broad (General categories)</SelectItem>
+                  <SelectItem value="detailed">Detailed (Intermediate specificity)</SelectItem>
+                  <SelectItem value="very_detailed">Very Detailed (High specificity)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="batch-size">Batch Size</Label>
+              <Input
+                id="batch-size"
+                type="number"
+                value={batchSize}
+                onChange={(e) => setBatchSize(e.target.value)}
+                min="1"
+                max="50"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="provider">Provider</Label>
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openrouter">OpenRouter</SelectItem>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="model">Model</Label>
+              <Input
+                id="model"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="e.g., google/gemini-2.0-flash-exp"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Label htmlFor="process-all">
+              <input
+                id="process-all"
+                type="checkbox"
+                checked={processAllLevels}
+                onChange={(e) => setProcessAllLevels(e.target.checked)}
+                className="mr-2"
+              />
+              Process all detail levels in parallel
+            </Label>
+          </div>
+
+          <div className="mt-4">
+            <Label htmlFor="additional-context">Additional Context (Optional)</Label>
+            <Textarea
+              id="additional-context"
+              value={additionalContext}
+              onChange={(e) => setAdditionalContext(e.target.value)}
+              placeholder="Provide any additional context about the tissue type, species, or experimental conditions that might help with annotation merging..."
+              rows={3}
+            />
+          </div>
+        </Card>
+
+        {/* Process Button */}
+        <Card className="p-6">
+          <Button 
+            onClick={handleProcess}
+            disabled={isProcessing || !csvData || !apiKey}
+            className="w-full"
+          >
+            {isProcessing ? 'Processing...' : 'Start Annotation Merging'}
+          </Button>
+        </Card>
+
+        {/* Progress */}
+        {(progress || isProcessing) && (
+          <Card className="p-6">
+            <ProgressTracker 
+              currentStep={progress || 'Processing...'}
+              isProcessing={isProcessing}
+            />
+          </Card>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <Card className="p-6 border-red-200 bg-red-50">
+            <div className="text-red-800">
+              <h3 className="font-semibold mb-2">Error</h3>
+              <p>{error}</p>
+            </div>
+          </Card>
+        )}
+
+        {/* Results */}
+        {results && (
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Results</h3>
+              <Button onClick={downloadResults}>
+                Download CSV
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <p>Successfully processed {results.length} clusters</p>
+              {processAllLevels && (
+                <p className="text-sm text-gray-600">
+                  Results include all three detail levels: Merged_Grouping_1 (broad), Merged_Grouping_2 (detailed), Merged_Grouping_3 (very detailed)
+                </p>
+              )}
+            </div>
+            
+            {/* Preview of results */}
+            <div className="mt-4 max-h-64 overflow-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {Object.keys(results[0] || {}).slice(0, 5).map(key => (
+                      <th key={key} className="px-2 py-1 text-left">{key}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.slice(0, 10).map((row, idx) => (
+                    <tr key={idx} className="border-t">
+                      {Object.values(row).slice(0, 5).map((value, i) => (
+                        <td key={i} className="px-2 py-1 truncate max-w-32">
+                          {String(value || '')}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {results.length > 10 && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Showing first 10 of {results.length} results
+                </p>
+              )}
+            </div>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

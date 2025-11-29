@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA Symphony Compare Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header .subtitle {
+            margin-top: 10px;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .round-selector {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .round-button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .round-button:hover, .round-button.active {
+            background: #667eea;
+            color: white;
+        }
+        .summary-section {
+            margin-bottom: 40px;
+        }
+        .summary-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .score-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .score-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .score-table tr:hover {
+            background: #f8f9fa;
+        }
+        .cell-type-name {
+            font-weight: bold;
+            text-align: left !important;
+            background: #f8f9fa;
+        }
+        .high-score { background: #d4edda; color: #155724; }
+        .medium-score { background: #fff3cd; color: #856404; }
+        .low-score { background: #f8d7da; color: #721c24; }
+        .majority-winner { background: #e7f3ff; }
+        .details-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+            color: #495057;
+        }
+        .round-section {
+            margin-bottom: 40px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .round-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .result-item {
+            padding: 20px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .model-name {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .celltype-result {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .celltype-name {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .reasoning {
+            line-height: 1.6;
+            color: #6c757d;
+        }
+        .discussion-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .discussion-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        .discussion-content {
+            line-height: 1.6;
+            color: #856404;
+        }
+    </style>
+    <script>
+        function showRound(roundName) {
+            // Hide all round sections
+            const sections = document.querySelectorAll('.summary-section');
+            sections.forEach(section => section.style.display = 'none');
+            
+            // Show selected round
+            const targetSection = document.getElementById('summary_table_' + roundName);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.round-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            const activeButton = document.querySelector('[onclick="showRound(\''+roundName+'\')"]');
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎼 CASSIA Symphony Compare</h1>
+            <div class="subtitle">Multi-Model Cell Type Comparison Report</div>
+            <div class="subtitle">Generated: 7/12/2025, 8:37:37 PM</div>
+        </div>
+        <div class="content"><div class="summary-section" id="summary_table_initial" style="display: block;"><div class="summary-title">Initial Analysis Summary Table</div>
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Cell Type</th><th>deepseek-chat-v3-0324</th><th>gemini-2.5-flash</th>
+                            <th>Average</th>
+                            <th>Majority Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody><tr class=""><td class="cell-type-name">Cell Type A</td><td>45</td><td>75</td><td class="medium-score"><strong>60.0</strong></td><td class="medium-score"><strong>1/2</strong></td></tr><tr class=""><td class="cell-type-name">Cell Type B</td><td>50</td><td>30</td><td class="medium-score"><strong>40.0</strong></td><td class="medium-score"><strong>1/2</strong></td></tr>
+                    </tbody>
+                </table>
+            </div><div class="details-title">🗣️ Discussion Progression by Round</div><div class="round-section"><div class="round-header">Initial Analysis</div><div class="result-item"><div class="model-name">🤖 Dr. Ada Lovelace</div><div class="celltype-result"><div class="celltype-name">Cell Type A</div><div class="score">Score: 75</div><div class="reasoning">The provided marker set includes MARKER1, MARKER2, and MARKER3. To determine the match quality for Cell Type A, we need to assess the known expression patterns of these markers within human tissues and specifically in Cell Type A.
+
+*   **MARKER1:** If MARKER1 is a well-established and highly specific marker for Cell Type A (e.g., a transcription factor exclusively expressed in this lineage, or a unique surface protein), its presence in the ranked set suggests a strong positive correlation.
+*   **MARKER2:** If MARKER2 is also known to be expressed in Cell Type A, but perhaps with broader expression in related cell types or at lower levels, it still contributes positively but with less specificity than MARKER1. If MARKER2 is known to be *absent* from Cell Type A or is a marker for a *different* cell type, it would negatively impact the match.
+*   **MARKER3:** Similar to MARKER2, the relevance of MARKER3 depends on its known expression. If MARKER3 is a universal house-keeping gene or a very broadly expressed gene, its presence is less informative for cell type specificity. If it's a specific negative marker (i.e., known to be *not* expressed in Cell Type A but expressed in contaminants), its *absence* might be useful, but its *presence* here is generally not helpful unless it's a positive marker.
+
+Without specific biological knowledge about MARKER1, MARKER2, and MARKER3 in relation to Cell Type A, I must make assumptions. Given that these markers are "ranked," it implies they were selected for their potential relevance. Assuming MARKER1 is the most specific and highly expressed for Cell Type A, followed by MARKER2, and then MARKER3, the fit would be good. If, however, some markers are not specific or even contradict expression in Cell Type A, the score would decrease. For this analysis, I will assume a generally positive but decreasing specificity/relevance from MARKER1 to MARKER3.</div></div><div class="celltype-result"><div class="celltype-name">Cell Type B</div><div class="score">Score: 30</div><div class="reasoning">Similar to Cell Type A, the match quality for Cell Type B is assessed based on the known expression of MARKER1, MARKER2, and MARKER3 in this cell type.
+
+*   **MARKER1:** If MARKER1 is a known marker for Cell Type A but *not* for Cell Type B, its presence in the ranked set would indicate a poor match for Cell Type B. Conversely, if MARKER1 is strongly expressed in Cell Type B, it would be a strong positive indicator.
+*   **MARKER2:** The relevance of MARKER2 for Cell Type B is crucial. If it's a co-marker for Cell Type B along with MARKER1, the match strengthens. If it's expressed in Cell Type B but also widely in other cell types, it offers less specificity.
+*   **MARKER3:** As with Cell Type A, the utility of MARKER3 depends on its specific expression pattern in Cell Type B. If it's completely absent or known to be a marker for a different, unrelated cell type, it would negatively impact the score.
+
+The "ranked marker set" suggests a primary intended target. If Cell Type B is distinct from the primary target (e.g., Cell Type A), then the markers chosen for Cell Type A might not be appropriate for Cell Type B. Assuming these markers were *not* primarily selected for Cell Type B, and given their "ranked" status implies some specificity, it's likely they would be less relevant or even irrelevant for a different cell type. If there's some overlap in expression (e.g., they share a common lineage marker, but lack specific differentiation markers), the score would reflect that partial match. For this analysis, I will assume Cell Type B is considerably different from Cell Type A, leading to a weaker match with a marker set likely optimized for something else.</div></div></div><div class="result-item"><div class="model-name">🤖 Dr. Alan Turing</div><div class="celltype-result"><div class="celltype-name">Cell Type A</div><div class="score">Score: 45</div><div class="reasoning">The relevance of the marker set for Cell Type A depends on the biological context of the markers and the cell type's known expression profile. Below is the reasoning for each marker:  
+- **MARKER1**: If this marker is commonly associated with Cell Type A (e.g., a surface protein or transcription factor specific to this cell type), it would strongly support the match. However, without further context, this cannot be confirmed.  
+- **MARKER2**: This marker may be less specific to Cell Type A and could also be expressed in other cell types. Its presence alone is insufficient to confirm a high-quality match.  
+- **MARKER3**: If this marker is uniquely or highly expressed in Cell Type A, it would improve the match score. However, its absence in other cell types would need verification for a strong conclusion.  
+
+Given minimal information about the cell type and markers, the match is tentative. Additional experimental validation (e.g., single-cell RNA-seq or immunohistochemistry) would improve confidence.</div></div><div class="celltype-result"><div class="celltype-name">Cell Type B</div><div class="score">Score: 50</div><div class="reasoning">The suitability of the marker set for Cell Type B depends on the following considerations:  
+- **MARKER1**: If this marker is a defining feature of Cell Type B (e.g., specific receptor or cytoskeletal component), it would provide good evidence.  
+- **MARKER2**: This marker’s exact relevance to Cell Type B is unclear without additional data. If previously reported in Cell Type B, it strengthens the match.  
+- **MARKER3**: This marker’s lack of specificity could weaken the match if it’s known in unrelated cell types. However, if highly expressed in Cell Type B, it would be beneficial.  
+
+Similar to Cell Type A, insufficient detail limits confidence. A higher-ranked marker set (e.g., more unique discriminators) could refine scoring.</div></div></div></div>
+        </div>
+    </body>
+    </html>

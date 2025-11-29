@@ -1,0 +1,7 @@
+True Cell Type,main_cell_type,sub_cell_type
+"1","Naive CD4+ T cell","Naive CD8+ T cell"
+"2","Central Memory CD4+ T cell","Central Memory CD8+ T cell"
+"3","Cytotoxic CD8+ T cell","Activated CD8+ T cell"
+"4","Regulatory T cell (Treg)","CD4+ Regulatory T cell"
+"5","Natural Killer (NK) cell","Cytotoxic NK cell"
+"6","Naive B cell","Memory B cell"

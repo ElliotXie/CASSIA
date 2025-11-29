@@ -1,0 +1,264 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Breadth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This report summarizes an iterative gene expression analysis performed by CASSIA to determine the specific cell type of a given cluster, initially annotated as "B lymphocytes." The analysis involved two iterations, examining a total of 25 unique genes.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Assessment</h2>
+                    <div class="content">
+                        The initial cell type hypothesis was "B lymphocytes," supported by the presence of pan-B cell markers CD19, CD79A, and CD79B. However, the top-ranked markers IGLL5, JCHAIN, and IGLC3 were highly suggestive of plasma cells or plasmablasts, creating ambiguity regarding the specific B cell subtype.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Iteration 1</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To confirm if the cluster represents plasma cells or plasmablasts by checking for established plasma cell markers (CD27, CD38, SDC1, MZB1) and assessing the expression of pan-B cell markers (CD19, CD79A, CD79B) which are typically downregulated in plasma cells.</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To differentiate between naive B cells, memory B cells, and plasmablasts/plasma cells by examining markers associated with these distinct B cell states (MS4A1, CD20, CD27, IGHM, IGHD, CD38, FOXP1, PAX5).</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To rule out potential contamination from other immune or non-immune cells by checking for the absence of markers for T cells (CD3E), monocytes/macrophages (CD14, FCGR3A, CD68), and epithelial cells (EPCAM, KRT18), while confirming the presence of the pan-leukocyte marker PTPRC (CD45).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">IGLL5</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">IGLC3</span><span class="gene-badge">CD19</span><span class="gene-badge">CD79A</span><span class="gene-badge">CD79B</span><span class="gene-badge">CD27</span><span class="gene-badge">CD38</span><span class="gene-badge">SDC1</span><span class="gene-badge">MZB1</span><span class="gene-badge">MS4A1</span><span class="gene-badge">CD20</span><span class="gene-badge">IGHM</span><span class="gene-badge">IGHD</span><span class="gene-badge">FOXP1</span><span class="gene-badge">PAX5</span><span class="gene-badge">CD3E</span><span class="gene-badge">CD14</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">CD68</span><span class="gene-badge">EPCAM</span><span class="gene-badge">KRT18</span><span class="gene-badge">PTPRC</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                The system noted that none of the genes checked in this iteration (CD14, CD19, CD20, CD27, CD38, CD3E, CD68, CD79A, CD79B, EPCAM, FCGR3A, FOXP1, IGHD, IGHM, IGLC3, IGLL5, JCHAIN, KRT18, MS4A1, MZB1, PAX5, PTPRC, SDC1) were present in the differential expression list. This indicated a lack of data for these critical markers, preventing a conclusive determination.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Iteration 2</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Hypotheses</h3>
+                            <div class="content">
+                                <div class="hypothesis-list"><div class="hypothesis-item"><span class="hypothesis-number">1.</span> To confirm the plasma cell identity by focusing on canonical plasma cell markers (SDC1, MZB1) in conjunction with the already observed top markers (IGLL5, JCHAIN, IGLC3).</div><div class="hypothesis-item"><span class="hypothesis-number">2.</span> To assess the downregulation of pan-B cell markers (CD19, CD79A, CD79B, MS4A1, PAX5), which is expected during plasma cell differentiation, to distinguish plasma cells from earlier B cell stages.</div><div class="hypothesis-item"><span class="hypothesis-number">3.</span> To ensure the purity of the cluster and rule out potential contamination by confirming the absence of markers for other major cell types, specifically T cells (CD3E), myeloid cells (CD14, FCGR3A), and epithelial cells (EPCAM, KRT18).</div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Checked</h3>
+                            <div class="gene-list"><span class="gene-badge">IGLL5</span><span class="gene-badge">JCHAIN</span><span class="gene-badge">IGLC3</span><span class="gene-badge">SDC1</span><span class="gene-badge">MZB1</span><span class="gene-badge">CD19</span><span class="gene-badge">CD79A</span><span class="gene-badge">CD79B</span><span class="gene-badge">MS4A1</span><span class="gene-badge">PAX5</span><span class="gene-badge">CD3E</span><span class="gene-badge">CD14</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">EPCAM</span><span class="gene-badge">KRT18</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Key Findings</h3>
+                            <div class="content">
+                                Similar to the first iteration, it was noted that none of the genes checked (CD14, CD19, CD3E, CD79A, CD79B, EPCAM, FCGR3A, IGLC3, IGLL5, JCHAIN, KRT18, MS4A1, MZB1, PAX5, SDC1) were present in the differential expression list. This continued lack of data for key positive and negative markers prevented any confident conclusion.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Annotation</h2>
+                    <div class="content">
+                        The final cell type cannot be confidently determined with the provided information. The confidence level is low. The initial markers (IGLL5, JCHAIN, IGLC3) suggest plasma cells, but the absence of differential expression data for these and other critical B cell and plasma cell markers (e.g., CD19, CD79A, CD79B, SDC1, MZB1, MS4A1, PAX5) prevents a definitive conclusion.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Marker Genes</h2>
+                        <div class="content">
+                            Due to the inability to confidently annotate the cell type, a definitive list of marker genes by functional group cannot be provided.
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Recommendations</h2>
+                        <div class="content">
+                            The user should re-evaluate the differential expression analysis to include these critical markers or perform targeted gene expression analysis for them to enable proper cell type annotation.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

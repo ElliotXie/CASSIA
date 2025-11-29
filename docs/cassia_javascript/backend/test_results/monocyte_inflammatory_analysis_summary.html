@@ -1,0 +1,250 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</title>
+            <style>
+                :root {
+                    --primary-color: #2563eb;
+                    --secondary-color: #0891b2;
+                    --accent-color: #4f46e5;
+                    --light-bg: #f3f4f6;
+                    --border-color: #e5e7eb;
+                    --text-color: #1f2937;
+                    --text-light: #6b7280;
+                }
+                
+                body {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-color);
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                }
+                
+                header {
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 1rem;
+                }
+                
+                h1 {
+                    color: var(--primary-color);
+                    font-size: 2.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .subtitle {
+                    color: var(--text-light);
+                    font-size: 1.2rem;
+                    margin-top: 0;
+                }
+                
+                section {
+                    margin-bottom: 2.5rem;
+                    background-color: white;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                h2 {
+                    color: var(--primary-color);
+                    font-size: 1.8rem;
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                h3 {
+                    color: var(--secondary-color);
+                    font-size: 1.3rem;
+                    margin: 1.5rem 0 0.5rem;
+                }
+                
+                ul, ol {
+                    padding-left: 1.5rem;
+                }
+                
+                li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .final-annotation {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #10b981;
+                }
+                
+                .final-annotation h2 {
+                    color: #10b981;
+                }
+                
+                .iteration {
+                    margin-bottom: 1.5rem;
+                    background-color: var(--light-bg);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    border-left: 4px solid var(--secondary-color);
+                }
+                
+                .iteration-title {
+                    font-size: 1.5rem;
+                    color: var(--secondary-color);
+                    margin-top: 0;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 0.5rem;
+                }
+                
+                .gene-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .gene-badge {
+                    background-color: var(--accent-color);
+                    color: white;
+                    padding: 0.3rem 0.7rem;
+                    border-radius: 1rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                
+                .sub-section {
+                    background-color: white;
+                    border-radius: 0.3rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                
+                code {
+                    font-family: ui-monospace, monospace;
+                    font-size: 0.9em;
+                }
+                
+                .marker-category {
+                    margin-bottom: 1rem;
+                }
+                
+                .marker-category-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--secondary-color);
+                }
+                
+                .hypothesis-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                
+                .hypothesis-item {
+                    padding-left: 1.5rem;
+                    position: relative;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .hypothesis-number {
+                    position: absolute;
+                    left: 0;
+                    font-weight: 600;
+                    color: var(--accent-color);
+                }
+                
+                .hypothesis-item-continued {
+                    padding-left: 1.5rem;
+                    margin-top: -0.3rem;
+                    color: var(--text-light);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header>
+                    <h1>CASSIA Cell Type Annotation Summary (Depth-First Analysis)</h1>
+                    <p class="subtitle">Single-cell RNA-seq Analysis Report</p>
+                </header>
+                
+                <section>
+                    <h2>Overview</h2>
+                    <div class="content">
+                        This analysis aimed to characterize an unknown cell cluster based on its gene expression profile. A total of 15 genes were checked across two rounds of hypothesis testing to determine the cell type and its functional state. The initial hypothesis centered on macrophage/myeloid identity, followed by a hypothesis of stromal/mesenchymal cell identity.
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Initial Hypothesis</h2>
+                    <div class="content">
+                        The initial hypothesis was that the cell cluster represents a type of macrophage or myeloid cell, primarily driven by the presence of SPP1, a known macrophage marker.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Gene Analysis 1: Validation of Macrophage/Myeloid Cell Hypothesis</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Analyzed</h3>
+                            <div class="gene-list"><span class="gene-badge">CD68</span><span class="gene-badge">FCGR3A</span><span class="gene-badge">CD14</span><span class="gene-badge">ITGAM</span><span class="gene-badge">MRC1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Findings & Conclusions</h3>
+                            <div class="content">
+                                All tested canonical macrophage and monocyte markers (CD14, CD68, FCGR3A, ITGAM, MRC1) were not differentially expressed in the cluster. This strongly refuted the initial hypothesis, indicating that the cluster is unlikely to be a typical macrophage or monocyte population despite the presence of SPP1. The absence of these core markers suggested either a highly specific, non-canonical macrophage state or that the initial hypothesis was incorrect.
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Gene Analysis 2: Validation of Stromal/Mesenchymal Cell Hypothesis</h2>
+                        
+                        <div class="sub-section">
+                            <h3>Genes Analyzed</h3>
+                            <div class="gene-list"><span class="gene-badge">COL1A1</span><span class="gene-badge">ACTA2</span><span class="gene-badge">PDGFRA</span><span class="gene-badge">RGS5</span><span class="gene-badge">PECAM1</span></div>
+                        </div>
+                        
+                        <div class="sub-section">
+                            <h3>Findings & Conclusions</h3>
+                            <div class="content">
+                                All tested markers for stromal cells, fibroblasts, pericytes, and endothelial cells (ACTA2, COL1A1, PDGFRA, PECAM1, RGS5) were not differentially expressed. This effectively ruled out common stromal, myofibroblast, pericyte, or endothelial cell identities for the cluster.
+                            </div>
+                        </div>
+                    </section>
+                
+                <section class="final-annotation">
+                    <h2>Final Conclusion</h2>
+                    <div class="content">
+                        The cell cluster is definitively **not** a typical inflammatory monocyte or tissue-resident macrophage, nor is it a common stromal or mesenchymal cell type. The analysis strongly refutes these possibilities due to the consistent absence of differential expression for canonical markers of these cell lineages. The cluster is identified as an **Atypical/Specialized Cell Type** with low to medium confidence for a specific subtype, but high confidence in its non-classical nature.
+                    </div>
+                </section>
+        
+                    <section>
+                        <h2>Key Insights</h2>
+                        <div class="content">
+                            The most important biological insight is that the cell cluster represents a highly specialized or atypical cell type that does not fit into common macrophage/monocyte or stromal cell classifications. The unique combination of differentially expressed genes (NKAIN3, SPP1, CDH19, TSPAN11, PLP1), particularly the presence of CDH19 and PLP1 alongside SPP1, suggests a distinct biological role or state. SPP1's presence, without other macrophage markers, indicates an activated or inflammatory phenotype, but not necessarily a macrophage. CDH19 points towards potential epithelial or neural-like characteristics, while PLP1, primarily neural, adds to the unusual profile.
+                        </div>
+                    </section>
+                
+                    <section>
+                        <h2>Validation Status</h2>
+                        <div class="content">
+                            The analysis is complete based on the provided iterations. However, the exact cell type remains uncertain. Further validation would require investigating markers for specialized epithelial cells, rare immune subsets, or novel cell states, potentially involving single-cell RNA sequencing data for deeper characterization and comparison with less common cell atlases.
+                        </div>
+                    </section>
+                
+            </div>
+        </body>
+        </html>
+        

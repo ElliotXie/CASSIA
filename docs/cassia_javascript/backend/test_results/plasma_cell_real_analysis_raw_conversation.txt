@@ -1,0 +1,195 @@
+## USER
+
+
+You are a careful senior computational biologist called in whenever an annotation needs deeper scrutiny, disambiguation, or simply a second opinion. Your job is to (1) assess the current annotation's robustness and (2) propose up to three decisive follow‑up checks that the executor can run (e.g., examine expression of key positive or negative markers). You should do a good job or 10 grandma are going to be in danger. You never rush to conclusions and are always careful.
+
+Context Provided to You:
+
+Cluster summary：Human intestinal single-cell RNA-seq dataset
+
+Top ranked markers (high → low)：
+ IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3
+
+Prior annotation results：
+ 
+
+What you should do:
+
+1. Brief Evaluation – One concise paragraph that:
+
+    - Highlights strengths, ambiguities, or contradictions in the current call.
+
+    - Notes if a mixed population, doublets, or transitional state might explain the data.
+
+2. Design up to 3 follow‑up checks (cell types or biological hypotheses):
+
+    - When listing genes for follow-up checks, use the <check_genes>...</check_genes> tags.
+    - **CRITICAL FORMATTING FOR <check_genes>:**
+        - Inside the tags, provide *ONLY* a comma-separated list of official HGNC gene symbols.
+        - Example: `<check_genes>GENE1,GENE2,GENE3</check_genes>` (no extra spaces, no newlines within the list, no numbering or commentary *inside* the tags).
+        - Strict adherence to this format is ESSENTIAL for the analysis to proceed.
+    - Include both positive and negative markers if that will clarify the call.
+
+    - Including reasoning: why these genes, and what pattern would confirm or refute the hypothesis.
+
+3. Upon receiving gene expression results, based on the current hypothesis, further your analysis, genearte new hypothesis to validate if you think necessary. Continue Step 2 iteratively until the cluster is confidently annotated. Once finalized, output the single line:
+"FINAL ANNOTATION COMPLETED"
+Then provide a conclusion paragraph that includes:
+
+1.The final cell type
+2.Confidence level (high, medium, or low)
+3.Key markers supporting your conclusion
+4.Alternative possibilities only if the confidence is not high, and what should the user do next.
+
+
+
+Output Template：
+
+Evaluation
+[One short paragraph]
+
+celltype to check 1
+
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+
+<reasoning>
+Why these genes and what we expect to see.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>GENE4,GENE5</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>GENE6,GENE7</check_genes>
+
+<reasoning>
+…
+</reasoning>
+
+*Use "hypothesis to check n" instead of "celltype to check n" when proposing non‑canonical possibilities (e.g., "cycling subpopulation", "doublet").
+*Provide no more than three total blocks (celltype + hypothesis combined).
+*For each hypothesis check no more than 7 genes.
+*If you think marker information is not enough to make a conclusion, inform the user and end the analysis.
+
+
+Tone & Style Guidelines
+
+Skeptical, critical, and careful
+Professional, succinct, and evidence‑based.
+Progressively deepen the anlaysis, don't repeat the same hypothesis.
+
+
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The current top markers, IGLL5, IGLV6-57, JCHAIN, and IGLC3, strongly suggest a plasma cell or B cell lineage, specifically related to immunoglobulin production. IGLL5 (Immunoglobulin Lambda-Like Polypeptide 5) and IGLV6-57 (Immunoglobulin Lambda Variable 6-57) are components of the lambda light chain, while IGLC3 (Immunoglobulin Lambda Constant 3) is a constant region of the lambda light chain. JCHAIN (Joining Chain of Immunoglobulin) is crucial for the polymerization of IgA and IgM, characteristic of plasma cells. FAM92B is less specific but has been associated with various cell types. The high expression of multiple immunoglobulin-related genes points towards a terminally differentiated B cell, likely a plasma cell, but further distinction from activated B cells or plasmablasts is warranted.
+
+celltype to check 1
+
+<check_genes>CD79A,CD19,MS4A1,CD27,SDC1,IGHG1,IGHA1</check_genes>
+
+<reasoning>
+To differentiate between mature B cells, plasmablasts, and plasma cells, we should examine key markers. CD79A, CD19, and MS4A1 (CD20) are classic B cell markers that should be low or absent in fully differentiated plasma cells. CD27 is expressed on memory B cells and plasmablasts. SDC1 (CD138) is a well-established marker for plasma cells. IGHG1 and IGHA1 are constant regions of heavy chains, and their expression, particularly high levels, would further support a plasma cell identity, indicating active immunoglobulin secretion. We expect low or absent expression of CD79A, CD19, and MS4A1, and high expression of CD27, SDC1, IGHG1, and IGHA1 if this cluster represents plasma cells.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>MZB1,XBP1,PRDM1,IRF4</check_genes>
+
+<reasoning>
+To further confirm the plasma cell identity and assess their activation/differentiation state, we should check for transcription factors and proteins involved in plasma cell differentiation and function. MZB1 (Marginal Zone B And B1 Cell Specific Protein), XBP1 (X-Box Binding Protein 1), PRDM1 (BLIMP1), and IRF4 are all critical for plasma cell differentiation and function. High expression of these genes would strongly support a plasma cell identity and indicate an active secretory state.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>MKI67,PCNA,TOP2A</check_genes>
+
+<reasoning>
+Given the possibility of a transitional state or plasmablasts, it is prudent to check for proliferation markers. MKI67, PCNA, and TOP2A are markers of cell proliferation. While plasma cells are generally terminally differentiated and non-proliferative, plasmablasts can still be proliferative. Low or absent expression of these genes would support a mature, non-proliferating plasma cell population, whereas significant expression might suggest a population of plasmablasts or a mixed population.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+
+Note: The following genes are not in the differential expression list: CD19, CD27, CD79A, IGHA1, IGHG1, IRF4, MKI67, MS4A1, MZB1, PCNA, PRDM1, SDC1, TOP2A, XBP1
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The absence of the previously requested key markers from the differential expression list is concerning and significantly limits our ability to confidently annotate this cluster. While the initial markers (IGLL5, IGLV6-57, JCHAIN, IGLC3) still point towards an immunoglobulin-producing cell type, the lack of information on canonical B cell, plasma cell, and proliferation markers prevents a robust distinction between B cells, plasmablasts, and mature plasma cells. This situation introduces significant ambiguity, and a mixed population or a specific differentiation stage cannot be ruled out without further data.
+
+celltype to check 1
+
+<check_genes>CD3E,CD14,FCGR3A,CD68,EPCAM,PTPRC</check_genes>
+
+<reasoning>
+Given the limited information on B cell and plasma cell specific markers, it is crucial to rule out other major immune and epithelial cell types that might express some non-specific genes or be present as contaminants. CD3E is a pan T-cell marker, CD14 and FCGR3A (CD16) are myeloid markers, CD68 is a macrophage marker, EPCAM is an epithelial cell marker, and PTPRC (CD45) is a pan-leukocyte marker. We expect low or absent expression of these markers, confirming that the cluster is not composed of T cells, myeloid cells, epithelial cells, or other non-lymphoid populations. This check serves as a broad negative control to ensure the cluster is indeed lymphoid in nature.
+</reasoning>
+
+celltype to check 2
+
+<check_genes>CD24,CD38,CR2,CD1C,CD11C,FCER2</check_genes>
+
+<reasoning>
+To further refine the B cell lineage assessment in the absence of the primary B cell markers, we can look at other B cell-associated markers that might be present. CD24 and CD38 are expressed on various B cell subsets, including immature and activated B cells, and plasmablasts. CR2 (CD21) is a B cell co-receptor. CD1C and CD11C are often associated with dendritic cells but can be expressed on certain B cell subsets. FCER2 (CD23) is expressed on follicular B cells. While not as definitive as CD19 or MS4A1, the expression pattern of these genes could provide clues about the B cell differentiation stage or potential contamination. We would expect some expression of CD24, CD38, and CR2 if it's a B cell population, and low or absent expression of CD1C, CD11C, and FCER2.
+</reasoning>
+
+hypothesis to check 3
+
+<check_genes>IGHM,IGHD,IGKC</check_genes>
+
+<reasoning>
+Since the initial markers pointed to immunoglobulin production, it's important to investigate the expression of other immunoglobulin chains. IGHM (Immunoglobulin Heavy Constant Mu) and IGHD (Immunoglobulin Heavy Constant Delta) are characteristic of naive B cells. IGKC (Immunoglobulin Kappa Constant) is the constant region of the kappa light chain. The presence of IGLL5 and IGLC3 suggests lambda light chain usage. If this cluster is indeed a B cell or plasma cell population, we would expect to see expression of either kappa or lambda light chains, but typically not both at high levels within a single clone. High expression of IGHM and IGHD would suggest a more naive B cell population, while their absence would support a more differentiated state like plasmablasts or plasma cells.
+</reasoning>
+
+
+================================================================================
+
+## USER
+
+
+Note: The following genes are not in the differential expression list: CD11C, CD14, CD1C, CD24, CD38, CD3E, CD68, CR2, EPCAM, FCER2, FCGR3A, IGHD, IGHM, IGKC, PTPRC
+
+
+================================================================================
+
+## USER
+
+You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response.
+
+
+================================================================================
+
+## ASSISTANT
+
+Evaluation
+The repeated absence of key cell type-specific markers from the differential expression list, including those for general immune cells, B cells, and even other immunoglobulin chains, severely compromises the ability to confidently annotate this cluster. The initial markers (IGLL5, IGLV6-57, JCHAIN, IGLC3) remain the only strong indicators, pointing towards an immunoglobulin-producing cell. However, without any supporting or negative markers, it is impossible to distinguish between a mature plasma cell, a plasmablast, or even a specific B cell subset that might be highly active in immunoglobulin production. The lack of information on proliferation markers also prevents assessing the differentiation stage. This situation leaves the annotation highly ambiguous.
+
+FINAL ANNOTATION COMPLETED
+The final cell type is **Immunoglobulin-producing cell (likely Plasma Cell or Plasmablast)**.
+Confidence level: **Low**.
+Key markers supporting your conclusion: IGLL5, IGLV6-57, JCHAIN, IGLC3. These markers are all directly involved in immunoglobulin production and assembly, strongly indicating a cell type dedicated to this function.
+Alternative possibilities: Given the low confidence, several alternative possibilities exist. This cluster could be:
+1.  **Plasmablasts**: These are activated B cells that are differentiating into plasma cells and are highly active in immunoglobulin production but may still retain some B cell characteristics or be proliferative.
+2.  **Activated B cells**: While less likely given the strong immunoglobulin signature, certain activated B cell subsets might show high expression of these genes.
+3.  **A mixed population**: It is possible that this cluster contains a mix of plasmablasts and early plasma cells, or even some highly activated B cells.
+4.  **A specific, less common B cell subset**: There might be a specialized B cell population in the intestinal environment with this unique expression profile.
+
+What should the user do next:
+The user should attempt to obtain expression data for the previously requested key markers (e.g., SDC1, CD19, MS4A1, MKI67, XBP1, PRDM1, IGHG1, IGHA1, CD3E, CD14, EPCAM). Without this critical information, any annotation remains speculative. If obtaining additional gene expression data is not feasible, the user should consider this cluster as "unresolved" or "putative immunoglobulin-producing cells" and acknowledge the high uncertainty in their downstream analysis. Further experimental validation (e.g., flow cytometry or immunofluorescence) targeting these markers on sorted cells from this cluster would be necessary for a definitive annotation.

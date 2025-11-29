@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA Symphony Compare Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header .subtitle {
+            margin-top: 10px;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .round-selector {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .round-button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .round-button:hover, .round-button.active {
+            background: #667eea;
+            color: white;
+        }
+        .summary-section {
+            margin-bottom: 40px;
+        }
+        .summary-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .score-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .score-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .score-table tr:hover {
+            background: #f8f9fa;
+        }
+        .cell-type-name {
+            font-weight: bold;
+            text-align: left !important;
+            background: #f8f9fa;
+        }
+        .high-score { background: #d4edda; color: #155724; }
+        .medium-score { background: #fff3cd; color: #856404; }
+        .low-score { background: #f8d7da; color: #721c24; }
+        .majority-winner { background: #e7f3ff; }
+        .details-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+            color: #495057;
+        }
+        .round-section {
+            margin-bottom: 40px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .round-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .result-item {
+            padding: 20px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .model-name {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .celltype-result {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .celltype-name {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .reasoning {
+            line-height: 1.6;
+            color: #6c757d;
+        }
+        .discussion-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .discussion-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        .discussion-content {
+            line-height: 1.6;
+            color: #856404;
+        }
+    </style>
+    <script>
+        function showRound(roundName) {
+            // Hide all round sections
+            const sections = document.querySelectorAll('.summary-section');
+            sections.forEach(section => section.style.display = 'none');
+            
+            // Show selected round
+            const targetSection = document.getElementById('summary_table_' + roundName);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.round-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            const activeButton = document.querySelector('[onclick="showRound(\''+roundName+'\')"]');
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎼 CASSIA Symphony Compare</h1>
+            <div class="subtitle">Multi-Model Cell Type Comparison Report</div>
+            <div class="subtitle">Generated: 7/12/2025, 8:36:08 PM</div>
+        </div>
+        <div class="content"><div class="summary-section" id="summary_table_initial" style="display: block;"><div class="summary-title">Initial Analysis Summary Table</div>
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Cell Type</th><th>deepseek-chat-v3-0324</th><th>gemini-2.5-flash</th><th>grok-3-mini-beta</th>
+                            <th>Average</th>
+                            <th>Majority Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody><tr class=""><td class="cell-type-name">B cell</td><td>85</td><td>90</td><td>45</td><td class="high-score"><strong>73.3</strong></td><td class="low-score"><strong>0/3</strong></td></tr><tr class=""><td class="cell-type-name">NK cell</td><td>70</td><td>88</td><td>40</td><td class="medium-score"><strong>66.0</strong></td><td class="low-score"><strong>0/3</strong></td></tr><tr class="majority-winner"><td class="cell-type-name">T cell</td><td>90</td><td>95</td><td>85</td><td class="high-score"><strong>90.0</strong></td><td class="high-score"><strong>3/3</strong></td></tr>
+                    </tbody>
+                </table>
+            </div><div class="details-title">🗣️ Discussion Progression by Round</div><div class="round-section"><div class="round-header">Initial Analysis</div><div class="result-item"><div class="model-name">🤖 Dr. Ada Lovelace</div><div class="celltype-result"><div class="celltype-name">B cell</div><div class="score">Score: 90</div><div class="reasoning">The marker set includes two highly specific and well-established markers for B cells, indicating a good match.
+CD19 is a transmembrane glycoprotein expressed on the surface of most B cells from early pre-B cell development through mature plasma cells, making it a pan-B cell marker.
+CD20 is a non-glycosylated phosphoprotein found on the surface of nearly all normal B cells, from pre-B cells to mature B cells, but it is typically absent from plasma cells. Its co-expression with CD19 is highly characteristic of B lymphocytes.
+The presence of other markers in the set could potentially cause confusion if not interpreted in context. CD3D, CD3E, CD4, and CD8A are T cell specific markers and would generally be absent on B cells. CD56 and NCAM1 are NK cell markers and also not present on B cells. The strength of the CD19 and CD20 markers for B cells outweighs the non-B cell markers, as long as co-expression is considered.</div></div><div class="celltype-result"><div class="celltype-name">NK cell</div><div class="score">Score: 88</div><div class="reasoning">The marker set contains key markers for Natural Killer (NK) cells, indicating a strong match.
+CD56 (also known as NCAM, Neural Cell Adhesion Molecule) is a widely used and well-established marker for NK cells. While it can also be found on some T cells (NKT cells), its prominent expression on CD3-negative lymphocytes is a hallmark of NK cells.
+NCAM1 is the gene encoding CD56. Its presence as a gene marker directly correlates with CD56 protein expression, reinforcing its relevance for NK cell identification.
+The absence of pan-T cell markers (CD3D, CD3E) and pan-B cell markers (CD19, CD20) in conjunction with the presence of CD56/NCAM1 is crucial for definitive NK cell identification. While NKT cells express CD56, they also express CD3, which would be identified by CD3D/CD3E. Therefore, the combination of positive CD56/NCAM1 and negative CD3/CD19/CD20 expression strongly points to conventional NK cells.</div></div><div class="celltype-result"><div class="celltype-name">T cell</div><div class="score">Score: 95</div><div class="reasoning">The marker set contains several highly specific markers for T cells, making it an excellent match.
+CD3D and CD3E are subunits of the CD3 complex, which is an essential component of the T cell receptor (TCR) and is universally expressed on all mature T cells (both CD4+ and CD8+). Their presence is a strong indicator of T lymphocyte lineage.
+CD4 is a co-receptor typically found on helper T cells, which constitute a major subset of T lymphocytes.
+CD8A is a component of the CD8 co-receptor, typically found on cytotoxic T cells, another major subset of T lymphocytes.
+The remaining markers (CD19, CD20, CD56, NCAM1) are not typically found on T cells. CD19 and CD20 are B cell markers, while CD56 and NCAM1 are NK cell markers. The absence of these markers, when considered in conjunction with the strong T cell markers, further solidifies the identification.</div></div></div><div class="result-item"><div class="model-name">🤖 Dr. Alan Turing</div><div class="celltype-result"><div class="celltype-name">B cell</div><div class="score">Score: 85</div><div class="reasoning">B cells are primarily identified by CD19 and CD20, both of which are highly specific and sensitive markers for this cell type. The ranked marker set includes both, which is excellent for B-cell identification. However, the presence of T-cell markers (CD3D, CD3E, CD4, CD8A) and NK-cell markers (CD56, NCAM1) does not detract from B-cell identification, as these are expected to be negative in B cells. The lack of additional B-cell markers like CD22 or CD79A slightly reduces the score, but CD19 and CD20 alone are sufficient for a strong match.</div></div><div class="celltype-result"><div class="celltype-name">NK cell</div><div class="score">Score: 70</div><div class="reasoning">NK cells are typically identified by CD56 (also known as NCAM1), both of which are present in the marker set. However, NK cells do not express CD3D, CD3E, CD4, CD8A, CD19, or CD20, so these markers serve as negative controls. The absence of other NK-specific markers (e.g., CD16, CD161) limits the comprehensiveness of the set for NK cells. While CD56 and NCAM1 are correct, the lack of additional supporting markers reduces the confidence in the match.</div></div><div class="celltype-result"><div class="celltype-name">T cell</div><div class="score">Score: 90</div><div class="reasoning">T cells are strongly associated with the markers CD3D and CD3E, which are components of the T-cell receptor (TCR) complex and are highly specific for T cells. Additionally, CD4 and CD8A are key markers for helper T cells and cytotoxic T cells, respectively. The presence of these markers (CD3D, CD3E, CD4/CD8A) provides a robust match for T cells. However, the absence of other T-cell-specific markers like CD2 or CD5 slightly limits the comprehensiveness. The markers CD19, CD20, CD56, and NCAM1 are irrelevant or negative for T cells, but the strong presence of core T-cell markers outweighs this.</div></div></div><div class="result-item"><div class="model-name">🤖 Dr. Marie Curie</div><div class="celltype-result"><div class="celltype-name">B cell</div><div class="score">Score: 45</div><div class="reasoning">The marker set has a moderate match for B cells, as it includes CD19 and CD20, which are among the most specific and reliable markers for this cell type. CD19 is a key B-cell receptor co-stimulatory molecule, and CD20 is involved in B-cell activation and is commonly used in flow cytometry for B-cell enumeration. These two markers alone provide a solid foundation for B-cell identification. However, the majority of the markers in the set—CD3D, CD3E, CD4, and CD8A—are specific to T cells and do not contribute to B-cell matching, potentially complicating analyses by introducing noise from T-cell populations. Additionally, CD56 and NCAM1 (NK cell markers) are irrelevant, further reducing the set's specificity for B cells. Overall, while the set captures essential B-cell markers, the high proportion of unrelated markers limits its effectiveness for targeted B-cell studies.</div></div><div class="celltype-result"><div class="celltype-name">NK cell</div><div class="score">Score: 40</div><div class="reasoning">The marker set shows a moderate match for NK cells, primarily due to the inclusion of CD56 and NCAM1, which are hallmark markers for this cell type. CD56 (neural cell adhesion molecule 1, or NCAM1) is expressed on most NK cells and is critical for their cytotoxic functions and tissue interactions, making these markers highly relevant. However, the set is heavily weighted toward T-cell markers (CD3D, CD3E, CD4, and CD8A), which are not expressed on NK cells and could lead to misidentification or reduced specificity in immune profiling. CD19 and CD20, which are B-cell-specific, are also irrelevant and add to the set's lack of focus. As a result, while the presence of CD56 and NCAM1 allows for basic NK cell detection, the predominance of non-NK markers makes this set suboptimal for precise NK cell analysis in human immune tissue.</div></div><div class="celltype-result"><div class="celltype-name">T cell</div><div class="score">Score: 85</div><div class="reasoning">The marker set includes several highly relevant markers for T cells, making it a strong match overall. Specifically, CD3D and CD3E are core components of the T-cell receptor complex and are expressed on nearly all T cells, providing excellent specificity for this cell type. CD4 and CD8A are also present, which are crucial for distinguishing T-cell subsets—CD4 for helper T cells and CD8A for cytotoxic T cells—enhancing the set's utility for detailed T-cell identification. However, the set includes irrelevant markers such as CD19 and CD20 (specific to B cells) and CD56 and NCAM1 (specific to NK cells), which could dilute the focus on T cells and potentially lead to cross-contamination in analyses. Despite these extraneous markers, the inclusion of the primary T-cell markers (CD3D, CD3E, CD4, and CD8A) ensures that the set is well-suited for reliably identifying and characterizing T cells in human immune tissue samples.</div></div></div></div>
+        </div>
+    </body>
+    </html>

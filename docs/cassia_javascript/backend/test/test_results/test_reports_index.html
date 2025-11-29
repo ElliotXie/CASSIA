@@ -1,0 +1,124 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .report-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-top: 30px;
+            }
+            .report-card {
+                background: linear-gradient(145deg, #fff, #f8fafc);
+                border-radius: 12px;
+                padding: 24px;
+                text-decoration: none;
+                color: #1a2b3c;
+                transition: all 0.3s ease;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            .report-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                background: linear-gradient(145deg, #fff, #f1f5f9);
+                text-decoration: none;
+                color: #1a2b3c;
+            }
+            .report-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #f97316;
+            }
+            .report-description {
+                color: #64748b;
+                font-size: 0.95rem;
+                line-height: 1.5;
+            }
+            .index-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            .index-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            .index-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .report-count {
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                display: inline-block;
+                margin-top: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="index-header">
+                <h1 class="index-title">CASSIA Analysis Reports</h1>
+                <p class="index-subtitle">Comprehensive Cell Type Analysis and Annotation Results</p>
+                <div class="report-count">3 Reports Generated</div>
+            </div>
+            
+            <div class="report-list">
+                
+                        <a href="report_b_cell.html" class="report-card">
+                            <div class="report-title">B cell</div>
+                            <div class="report-description">
+                                Detailed analysis report for b cell cell type annotation
+                            </div>
+                        </a>
+                    
+                        <a href="report_monocyte.html" class="report-card">
+                            <div class="report-title">Monocyte</div>
+                            <div class="report-description">
+                                Detailed analysis report for monocyte cell type annotation
+                            </div>
+                        </a>
+                    
+                        <a href="report_t_cell.html" class="report-card">
+                            <div class="report-title">T cell</div>
+                            <div class="report-description">
+                                Detailed analysis report for t cell cell type annotation
+                            </div>
+                        </a>
+                    
+            </div>
+        </div>
+    </body>
+    </html>
+    

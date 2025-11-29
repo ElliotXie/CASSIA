@@ -1,0 +1,4 @@
+Result ID,main_cell_type,sub_cell_type,reason
+"1","Helper T cells","Th1 cells"
+"2","Cytotoxic T cells","CD8+ effector"
+"3","Regulatory T cells","Tregs"

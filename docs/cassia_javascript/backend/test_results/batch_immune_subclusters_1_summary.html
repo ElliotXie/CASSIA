@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subclustering Report - batch_immune_subclusters_1</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .meta {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px;
+            background-color: white;
+        }
+        th { 
+            background-color: #3498db; 
+            color: white; 
+            padding: 12px; 
+            text-align: left;
+            font-weight: bold;
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .cluster-col { 
+            width: 10%; 
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .annotation-col { 
+            width: 25%; 
+        }
+        .main-type {
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 3px;
+        }
+        .sub-type {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        .marker-col { 
+            width: 25%; 
+        }
+        .reason-col { 
+            width: 40%; 
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        .toggle-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+        .collapsible {
+            display: none;
+            margin-top: 5px;
+            padding: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .no-data {
+            color: #bdc3c7;
+            font-style: italic;
+        }
+    </style>
+    <script>
+    function toggleMarkers(id) {
+        var el = document.getElementById(id);
+        var link = event.target;
+        if (el.style.display === 'none' || el.style.display === '') {
+            el.style.display = 'block';
+            link.textContent = 'Hide markers';
+        } else {
+            el.style.display = 'none';
+            link.textContent = 'Show markers';
+        }
+    }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Subclustering Annotation Report</h1>
+        <div class="meta">
+            <b>Model:</b> batch_immune_subclusters_1 &nbsp; | &nbsp; 
+            <b>Generated:</b> 7/12/2025, 8:21:05 PM &nbsp; | &nbsp;
+            <b>Total Subclusters:</b> 5
+        </div>
+        <table>
+            <tr>
+                <th>Cluster</th>
+                <th>Annotation<br><span style="font-weight:normal;font-size:12px">(Main / Subtype)</span></th>
+                <th>Top Markers</th>
+                <th>Reasoning</th>
+            </tr>
+            
+        <tr>
+            <td class="cluster-col">1</td>
+            <td class="annotation-col">
+                <div class="main-type">Naive CD4+ T cells</div>
+                <div class="sub-type">Naive CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                <span class="no-data">No markers</span>
+            </td>
+            <td class="reason-col"><span class="no-data">No explanation provided</span></td>
+        </tr>
+        <tr>
+            <td class="cluster-col">2</td>
+            <td class="annotation-col">
+                <div class="main-type">CD4+ Central Memory T cells</div>
+                <div class="sub-type">CD8+ Central Memory T cells</div>
+            </td>
+            <td class="marker-col">
+                <span class="no-data">No markers</span>
+            </td>
+            <td class="reason-col"><span class="no-data">No explanation provided</span></td>
+        </tr>
+        <tr>
+            <td class="cluster-col">3</td>
+            <td class="annotation-col">
+                <div class="main-type">Naive CD8+ T cells</div>
+                <div class="sub-type">CD8+ T cells (early developmental stage)</div>
+            </td>
+            <td class="marker-col">
+                <span class="no-data">No markers</span>
+            </td>
+            <td class="reason-col"><span class="no-data">No explanation provided</span></td>
+        </tr>
+        <tr>
+            <td class="cluster-col">4</td>
+            <td class="annotation-col">
+                <div class="main-type">CD8+ Central Memory T cells</div>
+                <div class="sub-type">CD8+ T cells (memory subset)</div>
+            </td>
+            <td class="marker-col">
+                <span class="no-data">No markers</span>
+            </td>
+            <td class="reason-col"><span class="no-data">No explanation provided</span></td>
+        </tr>
+        <tr>
+            <td class="cluster-col">5</td>
+            <td class="annotation-col">
+                <div class="main-type">Natural Killer (NK) cells</div>
+                <div class="sub-type">Cytotoxic T Lymphocytes (CTLs) / Effector CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                <span class="no-data">No markers</span>
+            </td>
+            <td class="reason-col"><span class="no-data">No explanation provided</span></td>
+        </tr>
+        </table>
+    </div>
+</body>
+</html>

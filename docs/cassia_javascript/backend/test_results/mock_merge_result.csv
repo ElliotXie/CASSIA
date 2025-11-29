@@ -1,0 +1,4 @@
+True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,processed_subtype,Merged_Grouping_1,Merged_Grouping_2,Merged_Grouping_3
+1,T cell,naive CD4 T cell,naive CD4 T cell,T cells,CD4 T cells,Naive CD4+ T cells
+2,macrophage,inflammatory macrophage,inflammatory macrophage,Myeloid cells,Macrophages,Inflammatory macrophages
+3,B cell,memory B cell,memory B cell,B cells,B cells,Memory B cells

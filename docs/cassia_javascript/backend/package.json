@@ -1,0 +1,36 @@
+{
+  "name": "cassia-backend",
+  "version": "1.0.0",
+  "description": "CASSIA JavaScript Backend Implementation",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/test_quick.js",
+    "test-simple": "node test/test_simple.js",
+    "test-basic": "node test/test_basic.js",
+    "test-comprehensive": "node test/test_comprehensive.js",
+    "test-scoring": "node test/test_scoring.js",
+    "test-reports": "node test/test_reports.js",
+    "test-annotation-boost": "node test/test_annotation_boost.js",
+    "test-import": "node test/test_import.js",
+    "clean-results": "rm -rf test/test_results/* && mkdir -p test/test_results",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "csv-parse": "^6.0.0",
+    "csv-parser": "^3.0.0",
+    "csv-stringify": "^6.6.0",
+    "csv-writer": "^1.6.0",
+    "openai": "^4.20.0"
+  },
+  "keywords": [
+    "bioinformatics",
+    "single-cell",
+    "llm",
+    "annotation"
+  ],
+  "author": "CASSIA Team",
+  "license": "MIT"
+}

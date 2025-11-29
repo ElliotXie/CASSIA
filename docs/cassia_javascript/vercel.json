@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/doc",
+      "destination": "https://cassia-delta.vercel.app"
+    },
+    {
+      "source": "/doc/:path*",
+      "destination": "https://cassia-delta.vercel.app/:path*"
+    }
+  ]
+}

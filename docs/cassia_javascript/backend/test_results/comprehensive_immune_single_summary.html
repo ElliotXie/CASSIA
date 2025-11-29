@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subclustering Report - comprehensive_immune_single</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .meta {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px;
+            background-color: white;
+        }
+        th { 
+            background-color: #3498db; 
+            color: white; 
+            padding: 12px; 
+            text-align: left;
+            font-weight: bold;
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .cluster-col { 
+            width: 10%; 
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .annotation-col { 
+            width: 25%; 
+        }
+        .main-type {
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 3px;
+        }
+        .sub-type {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        .marker-col { 
+            width: 25%; 
+        }
+        .reason-col { 
+            width: 40%; 
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        .toggle-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+        .collapsible {
+            display: none;
+            margin-top: 5px;
+            padding: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .no-data {
+            color: #bdc3c7;
+            font-style: italic;
+        }
+    </style>
+    <script>
+    function toggleMarkers(id) {
+        var el = document.getElementById(id);
+        var link = event.target;
+        if (el.style.display === 'none' || el.style.display === '') {
+            el.style.display = 'block';
+            link.textContent = 'Hide markers';
+        } else {
+            el.style.display = 'none';
+            link.textContent = 'Show markers';
+        }
+    }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Subclustering Annotation Report</h1>
+        <div class="meta">
+            <b>Model:</b> comprehensive_immune_single &nbsp; | &nbsp; 
+            <b>Generated:</b> 7/12/2025, 8:21:26 PM &nbsp; | &nbsp;
+            <b>Total Subclusters:</b> 6
+        </div>
+        <table>
+            <tr>
+                <th>Cluster</th>
+                <th>Annotation<br><span style="font-weight:normal;font-size:12px">(Main / Subtype)</span></th>
+                <th>Top Markers</th>
+                <th>Reasoning</th>
+            </tr>
+            
+        <tr>
+            <td class="cluster-col">1</td>
+            <td class="annotation-col">
+                <div class="main-type">Naive CD4+ T cells</div>
+                <div class="sub-type">Naive CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_1')" class="toggle-link">Show markers</a>
+                <div id="marker_1" class="collapsible">CCR7, LEF1, TCF7, SELL, IL7R, CD45RA</div>
+                
+            </td>
+            <td class="reason-col">This set of markers is highly characteristic of naive T cells. CCR7 and SELL (CD62L) are homing receptors that direct naive T cells to lymph nodes. LEF1 and TCF7 are transcription factors crucial for T cell development and maintenance of naive state. IL7R (CD127) is important for T cell survival, and CD45RA is a common isoform expressed on naive T cells. The presence of these markers strongly indicates a naive phenotype within the immune cell cluster.</td>
+        </tr>
+        <tr>
+            <td class="cluster-col">2</td>
+            <td class="annotation-col">
+                <div class="main-type">Central Memory CD4+ T cells</div>
+                <div class="sub-type">Central Memory CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_2')" class="toggle-link">Show markers</a>
+                <div id="marker_2" class="collapsible">IL7R, CCR7, CD44, CD62L, CD45RO</div>
+                
+            </td>
+            <td class="reason-col">This marker set points towards central memory T cells. While CCR7 and CD62L (SELL) are present, indicating lymph node homing potential, the co-expression of CD44 (a general activation/memory marker) and CD45RO (the memory isoform of CD45) is key. IL7R is important for survival of memory T cells. LCK is a T-cell specific kinase. This combination distinguishes them from naive cells by their memory phenotype but retains some homing characteristics of naive cells.</td>
+        </tr>
+        <tr>
+            <td class="cluster-col">3</td>
+            <td class="annotation-col">
+                <div class="main-type">Cytotoxic CD8+ T cells</div>
+                <div class="sub-type">Effector Memory CD8+ T cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_3')" class="toggle-link">Show markers</a>
+                <div id="marker_3" class="collapsible">CD8A, CD8B, GZMA, GZMB, PRF1, NKG7, CCL4, FGFBP2</div>
+                
+            </td>
+            <td class="reason-col">This is a classic signature for cytotoxic T lymphocytes (CTLs). CD8A and CD8B are co-receptors defining CD8+ T cells. GZMA, GZMB (granzymes), and PRF1 (perforin) are key effector molecules used by CTLs to induce apoptosis in target cells. NKG7 is a marker associated with cytotoxic granules. CCL4 is a chemokine often secreted by activated T cells, and FGFBP2 is also associated with cytotoxic function. The strong presence of cytotoxic machinery is definitive.</td>
+        </tr>
+        <tr>
+            <td class="cluster-col">4</td>
+            <td class="annotation-col">
+                <div class="main-type">Regulatory T cells (Tregs)</div>
+                <div class="sub-type">Activated Regulatory T cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_4')" class="toggle-link">Show markers</a>
+                <div id="marker_4" class="collapsible">FOXP3, IL2RA, CTLA4, TIGIT, ICOS, TNFRSF18, IKZF2</div>
+                
+            </td>
+            <td class="reason-col">This set of markers is highly specific for regulatory T cells (Tregs). FOXP3 is the master transcription factor for Tregs. IL2RA (CD25) is the alpha chain of the IL-2 receptor, constitutively expressed at high levels on Tregs. CTLA4, TIGIT, and ICOS are inhibitory or co-stimulatory receptors crucial for Treg function and immune suppression. TNFRSF18 (GITR) and IKZF2 (Helios) are also associated with Treg identity and stability. This combination unequivocally points to a suppressive T cell phenotype.</td>
+        </tr>
+        <tr>
+            <td class="cluster-col">5</td>
+            <td class="annotation-col">
+                <div class="main-type">Natural Killer (NK) cells</div>
+                <div class="sub-type">CD56dimCD16+ NK cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_5')" class="toggle-link">Show markers</a>
+                <div id="marker_5" class="collapsible">GNLY, NKG7, KLRF1, FCER1G, TYROBP, CD38, FCGR3A</div>
+                
+            </td>
+            <td class="reason-col">This marker set is characteristic of Natural Killer (NK) cells. GNLY (Granulysin) and NKG7 are cytotoxic granule components, similar to those in CTLs but highly expressed in NK cells. KLRF1 (NKG2D) is an activating receptor on NK cells. FCER1G and TYROBP are adaptor proteins involved in signaling downstream of activating receptors on NK cells. FCGR3A (CD16) is a low-affinity Fc receptor that enables NK cells to perform antibody-dependent cell-mediated cytotoxicity (ADCC). CD38 can be expressed on activated NK cells. The presence of CD16 along with cytotoxic markers is a strong indicator of NK cells.</td>
+        </tr>
+        <tr>
+            <td class="cluster-col">6</td>
+            <td class="annotation-col">
+                <div class="main-type">Naive B cells</div>
+                <div class="sub-type">Memory B cells</div>
+            </td>
+            <td class="marker-col">
+                
+                <a href="javascript:void(0)" onclick="toggleMarkers('marker_6')" class="toggle-link">Show markers</a>
+                <div id="marker_6" class="collapsible">MS4A1, CD79A, CD79B, IGHD, IGHM, CD27, TNFRSF13B, CR2</div>
+                
+            </td>
+            <td class="reason-col">This is a definitive signature for B lymphocytes. MS4A1 (CD20) is a pan-B cell marker. CD79A and CD79B are components of the-B cell receptor (BCR) complex, essential for B cell signaling. IGHD (IgD) and IGHM (IgM) are the primary immunoglobulin heavy chains expressed on naive B cells. CD27 is a marker for memory B cells, and TNFRSF13B (TACI) and CR2 (CD21) are receptors involved in B cell activation and survival. The combination of BCR components and specific B cell surface markers is conclusive.</td>
+        </tr>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+model,researcher,tissue,species,round,status,T cell_score,T cell_reasoning,B cell_score,B cell_reasoning,discussion
+"anthropic/claude-3.7-sonnet","Dr. Claude Shannon","blood","human","initial","success","60","CD3D is a highly specific marker for T cells. It is part of the CD3 complex which associates with the T cell receptor (TCR) and is essential for T cell activation and signaling. CD3D is expressed in virtually all mature T cells and is considered one of the most reliable T cell lineage markers. Its presence as the top marker strongly indicates T cells.
+
+CD19 and CD79A are both B cell markers and are not expressed in T cells. Therefore, while the marker set contains a strong T cell marker (CD3D), the presence of these B cell markers suggests this is not an exclusive T cell signature. However, in blood samples, having CD3D as a prominent marker would still allow for T cell identification.
+
+The marker set lacks other common T cell markers such as CD4 (helper T cells), CD8 (cytotoxic T cells), or other T cell subset markers like CD45RA/RO that would further strengthen T cell identification or help discriminate T cell subsets.","90","Both CD19 and CD79A are definitive B cell markers:
+
+CD19 is a co-receptor expressed on the surface of virtually all B cells from early development until plasma cell differentiation. It is involved in B cell receptor (BCR) signaling and is considered one of the most reliable B cell lineage markers.
+
+CD79A (also known as Igα) is a component of the BCR complex required for surface expression and signaling function of the B cell receptor. It's expressed throughout B cell development from early progenitors to plasma cells, making it another very specific B cell marker.
+
+Having both of these high-specificity B cell markers in the set provides robust identification of B cells. The combination of CD19 and CD79A is particularly powerful, as they are functionally related in the BCR complex, reinforcing B cell identification.
+
+The presence of CD3D (a T cell marker) in the set doesn't detract from B cell identification since B cells are CD3D-negative, allowing for clear discrimination between B and T cells in a blood sample.","N/A"
+"openai/o4-mini-high","Dr. Albert Einstein","blood","human","initial","success","33","• CD3D: A defining component of the T-cell receptor complex; robustly and specifically expressed in virtually all mature T cells.  
+• CD19: A pan–B-cell surface marker; not expressed on T cells.  
+• CD79A: Part of the B-cell receptor complex; absent from T cells.  
+Overall, only one of the three markers (CD3D) is genuinely T-cell specific, while the other two are strongly associated with B cells, reducing the specificity of this set for T cells.","67","• CD3D: A T-cell receptor component; not expressed in B cells.  
+• CD19: A canonical pan–B-cell marker present from early B-cell development through to most mature B cells.  
+• CD79A: An invariant component of the B-cell receptor complex, critical for B-cell signaling and expressed across B-cell stages.  
+Two out of three markers are highly specific to B cells, giving this set good but not perfect specificity (one off-target T-cell marker).","N/A"
+"google/gemini-2.5-pro-preview","Dr. Emmy Noether","blood","human","initial","success","25","The marker set provided is a poor match for the specific identification of T cells.
+
+- **CD3D:** This is an excellent and highly specific marker for T cells. CD3D is a chain of the CD3 protein complex, which is physically associated with the T-cell receptor (TCR). The presence of the TCR-CD3 complex is the defining lineage feature of all T cells. Therefore, CD3D is a canonical T-cell marker.
+
+- **CD19:** This marker is a strong negative indicator for T cells. CD19 is a classic B-cell lineage marker, part of the B-cell co-receptor complex, and is not expressed on T cells. Its inclusion in a marker set intended to identify T cells is contradictory.
+
+- **CD79A:** Similar to CD19, this is a strong negative indicator. CD79A (also known as Ig-alpha) is a component of the B-cell receptor (BCR) and is specific to the B-cell lineage. It is not present on T cells.
+
+In conclusion, while the set contains one perfect T-cell marker (CD3D), it is undermined by the inclusion of two highly specific markers for a different, mutually exclusive lineage (B cells). A cell would be identified as a T cell if it is CD3D positive, but CD19 and CD79A negative. As a ""T cell marker set"", it is flawed because two-thirds of the markers are irrelevant for positive identification and only serve to identify a different cell type.","85","The marker set provided is a very good match for the identification of B cells.
+
+- **CD3D:** This is a T-cell specific marker and is not expressed on B cells. In a practical setting, this marker serves as an excellent 'negative' or 'exclusionary' marker to distinguish B cells from T cells, which are the other major lymphocyte population in blood. Identifying a cell as CD3D-negative is a key first step in B-cell analysis.
+
+- **CD19:** This is a canonical and highly specific positive marker for B cells. It is expressed on the surface of virtually all B cells throughout their development, from pro-B cells to mature B cells, and is only lost upon terminal differentiation into plasma cells. It is one of the most reliable markers for B-cell identification.
+
+- **CD79A:** This is another excellent and highly specific positive marker for the B-cell lineage. CD79A is a component of the B-cell receptor (BCR) and is required for its surface expression and signal transduction. Its presence is a definitive sign of a B cell.
+
+In summary, this set contains two of the most important and specific positive markers for identifying B cells (CD19 and CD79A). The inclusion of a T-cell marker (CD3D) strengthens the set's utility by allowing for the confident exclusion of T cells, thereby increasing the purity and accuracy of B-cell identification. This combination is highly effective for isolating and defining the B-cell population from a mixed sample like human blood.","N/A"

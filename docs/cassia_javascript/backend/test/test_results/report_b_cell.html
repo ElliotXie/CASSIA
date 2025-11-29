@@ -1,0 +1,227 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    Okay, I will proceed with the cell type annotation based on the provided ranked marker list from a human lung tissue single-cell dataset.<br><br>**Step 1: Analyze Marker Genes**<br><br>*   **CD79A (IGHM-associated protein):** This gene encodes a protein that is part of the B-cell antigen receptor (BCR) complex. It is a well-established and highly specific marker for B lymphocytes. Its presence is crucial for BCR signaling and B cell development/function.<br>*   **CD79B (IGL-associated protein):** Similar to CD79A, CD79B is another component of the B-cell antigen receptor (BCR) complex. It forms a disulfide-linked heterodimer with CD79A, and both are essential for surface expression of the BCR and subsequent signal transduction. It is also a highly specific marker for B lymphocytes.<br>*   **CD19:** This gene encodes a transmembrane glycoprotein that is expressed on the surface of B lymphocytes from early pre-B cells through to plasma cell differentiation (though expression can be lost in terminally differentiated plasma cells). CD19 is a widely used and highly reliable pan-B cell marker, involved in regulating B cell activation and proliferation.<br><br>All three markers (CD79A, CD79B, and CD19) are canonical and highly specific markers for B lymphocytes. The fact that they are all present and ranked highly suggests a strong signal for this cell lineage.<br><br>**Step 2: Consider Biological Context**<br><br>*   **Tissue Type: Human Lung Tissue:** B cells are a common and expected immune cell population in the lung. They reside in the lung parenchyma, airways, and associated lymphoid tissues (e.g., bronchus-associated lymphoid tissue - BALT). Their presence is crucial for local immune responses, including antibody production against inhaled pathogens.<br>*   **Species: Human:** The marker genes are well-conserved and their roles as B cell markers are consistent across human and mouse, making the interpretation straightforward.<br>*   **Biological Plausibility:** The identification of B cells in lung tissue is entirely biologically plausible and expected.<br><br>**Step 3: Formulate Hypotheses**<br><br>Based on the strong and consistent expression of pan-B cell markers, the hypotheses are quite focused:<br><br>1.  **Primary Hypothesis: B Lymphocytes (B cells).** This is the most likely and direct interpretation of the marker set.<br>2.  **Secondary Hypothesis (less likely, but worth considering for completeness):** A very early B cell progenitor or a B cell-derived tumor cell (e.g., B-cell lymphoma). However, without additional markers (e.g., progenitor markers or malignancy-associated markers), the default assumption is healthy, mature B cells.<br>3.  **Tertiary Hypothesis (highly unlikely given the markers):** A mixed population where B cells are the dominant component, but other cell types are present. However, the provided list only shows B cell markers, suggesting a relatively pure population.<br><br>**Step 4: Final Decision**<br><br>*   **Definitive Cell Type Identification:** B Lymphocytes (B cells).<br>*   **Supporting Evidence:**<br>    *   **CD79A and CD79B:** These are integral components of the B-cell receptor complex, essential for B cell development and function. Their co-expression is highly specific to B cells.<br>    *   **CD19:** A widely recognized and robust pan-B cell marker expressed throughout most stages of B cell development.<br>    *   The co-expression and high ranking of all three markers, which are exclusively associated with the B cell lineage, provide overwhelming evidence for this annotation. No other major immune or stromal cell type in the lung would express this combination of markers.<br>*   **Why this cell type is most likely:** The provided markers are the quintessential identifiers of B cells. Their presence, especially in a ranked list implying high expression, leaves little room for alternative interpretations for a healthy cell population.<br><br>**Step 5: Consider Subtypes and Mixed Populations**<br><br>*   **Relevant Subtypes/States:** While the markers strongly indicate B cells, they do not differentiate between specific B cell subtypes (e.g., naive B cells, memory B cells, plasma cells, follicular B cells, marginal zone B cells, regulatory B cells).<br>    *   **Naive B cells** would typically express high levels of surface IgM/IgD.<br>    *   **Memory B cells** might show different Ig isotypes and specific activation markers.<br>    *   **Plasma cells** would typically downregulate CD19, CD79A/B, and surface Ig, while upregulating markers like CD138 (SDC1), IRF4, and PRDM1 (Blimp-1), and showing high expression of immunoglobulin genes (e.g., IGHG1, IGKC, IGLC). Since CD19, CD79A, and CD79B are highly expressed, it is unlikely to be a pure population of terminally differentiated plasma cells.<br>    *   Therefore, this cluster most likely represents **naive B cells or memory B cells**, or a mixture thereof, but *not* predominantly plasma cells.<br>*   **Mixed Population:** Based *solely* on the provided markers, it appears to be a relatively pure population of B cells. If other cell types were significantly present, we would expect to see markers for those cell types in the ranked list.<br>*   **Confidence Level:** **High (5/5).** The markers are unambiguous for B lymphocytes.<br><br>FINAL ANNOTATION COMPLETED<br>**Cell Type: B Lymphocytes (B cells)**. This cluster most likely represents a population of naive and/or memory B cells within the human lung tissue.
+                </div>
+            
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">98</div>
+                        <div class="scoring-content">
+                            The annotation process demonstrates an excellent understanding of single-cell data analysis principles and biological context.<br><br>**Strengths:**<br><br>1.  **Correctness of Annotation:** The final annotation "B Lymphocytes (B cells)" is unequivocally correct given the provided markers (CD79A, CD79B, CD19). These are canonical and highly specific pan-B cell markers.<br>2.  **Thorough Marker Analysis:** The analysis of each marker (CD79A, CD79B, CD19) is detailed and accurate, explaining their biological roles and specificity to B lymphocytes. The recognition that all three are "canonical and highly specific markers for B lymphocytes" is a key strength.<br>3.  **Consideration of Biological Context:** The agent correctly identifies that B cells are an expected and plausible population in human lung tissue, demonstrating an understanding of tissue-specific cell composition.<br>4.  **Balanced Marker Consideration:** The agent does not over-focus on a single marker but synthesizes the information from all three, noting their co-expression and consistent signal for the B cell lineage. The statement "All three markers (CD79A, CD79B, and CD19) are canonical and highly specific markers for B lymphocytes. The fact that they are all present and ranked highly suggests a strong signal for this cell lineage" highlights this balance.<br>5.  **Comprehensive View (within limits of input):** While the input markers are limited to B cell markers, the agent correctly infers that this likely represents a relatively pure population of B cells. It also appropriately discusses the limitations regarding B cell subtypes (e.g., distinguishing naive, memory, or plasma cells) and explains why it's unlikely to be predominantly plasma cells given the markers. This demonstrates an awareness of the nuances of B cell biology.<br>6.  **Structured Hypothesis Formulation:** The step-by-step approach of formulating primary, secondary, and tertiary hypotheses is a robust way to explore possibilities before settling on a definitive answer.<br>7.  **Confidence Level Justification:** The high confidence level is well-justified by the unambiguous nature of the markers.<br>8.  **Consideration of Marker Rank:** Although not explicitly stated as a distinct step, the phrase "The fact that they are all present and ranked highly suggests a strong signal for this cell lineage" indicates that the rank (implied as high since they are the only markers provided) was considered in the interpretation.<br><br>**Weaknesses/Areas for Minor Improvement (very minor):**<br><br>1.  **"Marker Rank" section:** The prompt specifically asked if the rank was considered. While the analysis implies it, explicitly stating how the "ranked marker list" was used (e.g., "The top three markers are all indicative of B cells, reinforcing the annotation") could make this point clearer. However, given only three markers were provided and all are B cell specific, the "rank" aspect is less critical here than if there were many more markers of mixed specificity.<br><br>Overall, the annotation is highly accurate, well-reasoned, and demonstrates a deep understanding of the data and biological context.
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

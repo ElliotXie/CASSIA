@@ -1,0 +1,227 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background-color: #f0f2f5;
+                line-height: 1.6;
+            }
+            .container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 16px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .agent-section { 
+                margin-bottom: 35px; 
+                padding: 25px; 
+                border-radius: 12px; 
+                transition: all 0.3s ease;
+            }
+            .agent-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .final-annotation { 
+                background-color: #f0f7ff; 
+                border-left: 5px solid #2196f3; 
+            }
+            .validator { 
+                background-color: #f0fdf4; 
+                border-left: 5px solid #22c55e; 
+            }
+            .formatting { 
+                background: linear-gradient(145deg, #fff7ed, #ffe4c4);
+                border-left: 5px solid #f97316; 
+                box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+            }
+            h2 { 
+                color: #1a2b3c; 
+                margin-top: 0; 
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            ul { 
+                margin: 15px 0; 
+                padding-left: 20px; 
+            }
+            pre { 
+                background-color: #f8fafc; 
+                padding: 20px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .validation-result { 
+                font-weight: 600; 
+                color: #16a34a; 
+                padding: 12px 20px;
+                background-color: #dcfce7; 
+                border-radius: 8px; 
+                display: inline-block;
+                margin: 10px 0;
+            }
+            br { 
+                margin-bottom: 8px; 
+            }
+            p {
+                margin: 12px 0;
+                color: #374151;
+            }
+            .summary-content {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            .summary-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.7);
+                padding: 16px;
+                border-radius: 12px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .summary-label {
+                font-weight: 600;
+                color: #c2410c;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .summary-value {
+                color: #1f2937;
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 8px;
+                display: inline-block;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .summary-list {
+                margin: 0;
+                padding-left: 24px;
+                list-style-type: none;
+            }
+            .summary-list li {
+                color: #1f2937;
+                padding: 8px 0;
+                position: relative;
+            }
+            .summary-list li:before {
+                content: "•";
+                color: #f97316;
+                font-weight: bold;
+                position: absolute;
+                left: -20px;
+            }
+            .report-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+                border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+            }
+            
+            .report-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #1a2b3c;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f97316, #c2410c);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            
+            .report-subtitle {
+                font-size: 1.1rem;
+                color: #64748b;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+            .scoring { 
+                background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+                border-left: 5px solid #22c55e;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+            }
+            .scoring-content {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                color: #1f2937;
+                line-height: 1.8;
+            }
+            .scoring-content br + br {
+                content: "";
+                display: block;
+                margin: 12px 0;
+            }
+            .empty-list {
+                color: #6b7280;
+                font-style: italic;
+            }
+            .error-message {
+                color: #dc2626;
+                padding: 12px;
+                background-color: #fef2f2;
+                border-radius: 6px;
+                border-left: 4px solid #dc2626;
+            }
+            .score-badge {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: inline-block;
+                margin: 12px 0;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+                position: relative;
+                top: -10px;
+            }
+            .score-badge::before {
+                content: "Score:";
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-right: 8px;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="report-header">
+                <h1 class="report-title">CASSIA Analysis Report</h1>
+                <p class="report-subtitle">Comprehensive Cell Type Analysis and Annotation</p>
+            </div>
+            
+                <div class="agent-section final-annotation">
+                    <h2>🔍 Final Annotation Analysis</h2>
+                    As a professional computational biologist, I will now proceed with the step-by-step analysis to identify the cell type based on the provided ranked marker list from a human lung tissue single-cell dataset.<br><br>**Step 1: Analyze Marker Genes**<br><br>The provided ranked marker list is:<br>1.  **CD3D**<br>2.  **CD3E**<br>3.  **CD3G**<br><br>All three markers (CD3D, CD3E, CD3G) are well-established and highly specific components of the **CD3 complex**. The CD3 complex is a crucial part of the T-cell receptor (TCR) complex, which is essential for T-cell activation.<br>*   **CD3D (CD3 delta chain)**: A subunit of the T-cell receptor-associated CD3 complex.<br>*   **CD3E (CD3 epsilon chain)**: Another subunit of the T-cell receptor-associated CD3 complex.<br>*   **CD3G (CD3 gamma chain)**: The third subunit of the T-cell receptor-associated CD3 complex.<br><br>The high expression and ranking of all three core CD3 components strongly indicate the presence of T lymphocytes. The fact that these are the *only* markers provided and they are ranked highly suggests a very strong and specific signal for this cell lineage.<br><br>**Step 2: Consider Biological Context**<br><br>*   **Tissue Type:** Human lung tissue. The lung is a major site for immune surveillance and inflammation, and T cells are abundant in healthy lung tissue and even more so in various lung pathologies (e.g., infections, asthma, COPD, cancer). Therefore, the presence of T cells in lung tissue is biologically highly plausible and expected.<br>*   **Species:** Human. The marker genes (CD3D, CD3E, CD3G) are universally recognized T cell markers across mammalian species, including humans.<br><br>**Step 3: Formulate Hypotheses**<br><br>Based on the strong and specific expression of CD3 complex components, the hypotheses are straightforward:<br><br>1.  **Hypothesis 1 (Most Likely): T cells (T lymphocytes)**. This is the primary and most direct interpretation of the marker genes.<br>2.  **Hypothesis 2 (Less Likely, but worth considering for completeness): Natural Killer T (NKT) cells**. NKT cells are a specialized subset of T cells that express markers of both T cells (like CD3) and NK cells. While they express CD3, the absence of typical NK cell markers (e.g., NCAM1/CD56, KLRD1/CD94) in the provided list makes this less likely as the primary annotation, but they are a T cell subtype.<br>3.  **Hypothesis 3 (Highly Unlikely): Other immune cells or non-immune cells**. Cells like B cells, macrophages, dendritic cells, epithelial cells, or fibroblasts do not express the CD3 complex. Therefore, these are effectively ruled out.<br><br>**Ranking of Hypotheses:**<br>1.  **T cells (T lymphocytes)**: Extremely high likelihood.<br>2.  **Natural Killer T (NKT) cells**: Possible subtype, but the primary identification is still "T cell".<br><br>**Step 4: Final Decision**<br><br>*   **Definitive Cell Type Identification:** **T cells (T lymphocytes)**.<br><br>*   **Supporting Evidence:** The exclusive and high expression of CD3D, CD3E, and CD3G, which together form the invariant CD3 complex essential for T cell receptor signaling, is the hallmark of T lymphocytes. No other major cell type expresses this combination of markers.<br><br>*   **Explanation:** The CD3 complex is a defining feature of the T cell lineage. Its presence is non-negotiable for T cell identity. The fact that all three core components are highly ranked indicates a robust and unambiguous signal for T cells.<br><br>**Step 5: Consider Subtypes and Mixed Populations**<br><br>*   **Relevant Subtypes/States:** While the provided markers definitively identify the cluster as T cells, they do not provide enough information to distinguish between major T cell subtypes such as:<br>    *   **CD4+ T helper cells** (e.g., Th1, Th2, Th17, Treg)<br>    *   **CD8+ cytotoxic T lymphocytes (CTLs)**<br>    *   **Gamma-delta T cells**<br>    *   **Natural Killer T (NKT) cells** (as mentioned above, these would also express CD3)<br>    *   **Regulatory T cells (Tregs)** (which are typically CD4+CD25+FOXP3+)<br><br>    To further resolve these subtypes, additional markers would be required (e.g., CD4, CD8A, CD8B, FOXP3, CCR7, CD45RA, GZMB, PRF1, etc.).<br><br>*   **Mixed Population:** It is highly unlikely that this is a mixed population of *non-T cells* given the specificity of the CD3 markers. However, it is very likely a mixed population *of different T cell subtypes* (e.g., CD4+ and CD8+ T cells, or naive and effector T cells), as is typical for a T cell cluster in scRNA-seq data from a complex tissue like the lung. The current markers only define the broad T cell lineage.<br><br>*   **Confidence Level in Annotation:** **Very High (5/5)**. The identification of the cluster as "T cells" is unequivocal based on the provided markers. The confidence in identifying specific *subtypes* is low, as the markers are too general for that purpose.<br><br>FINAL ANNOTATION COMPLETED<br>**Final Conclusion: The cell type is T cells (T lymphocytes).** This identification is based on the high and specific expression of CD3D, CD3E, and CD3G, which are integral components of the T-cell receptor CD3 complex, a definitive marker for T lymphocytes. While the cluster is clearly T cells, further markers would be needed to resolve specific T cell subtypes.
+                </div>
+            
+                    <div class="agent-section scoring">
+                        <h2>🎯 Quality Assessment</h2>
+                        <div class="score-badge">100</div>
+                        <div class="scoring-content">
+                            The annotation process is exceptionally well-executed, demonstrating a deep understanding of single-cell annotation principles and immunology.<br><br>**Strengths:**<br><br>1.  **Correctness of Annotations:** The identification of "T cells (T lymphocytes)" based on the markers CD3D, CD3E, and CD3G is unequivocally correct. These are definitive pan-T cell markers, and their co-expression is the hallmark of T lymphocytes.<br>2.  **Balanced Consideration of Markers:** The analysis correctly identifies that all three markers (CD3D, CD3E, CD3G) are components of the CD3 complex, which is crucial for T cell receptor signaling. This shows a holistic understanding of the markers rather than just listing individual genes. The "Final Annotation Agent" correctly emphasizes that the high ranking of *all three* core CD3 components strongly indicates T lymphocytes, rather than over-focusing on just one.<br>3.  **Ability to Capture the General Picture:** The annotation clearly captures the general picture that these cells are T lymphocytes. It correctly acknowledges that while the broad lineage is clear, finer-grained subtypes cannot be resolved with these limited, pan-T cell markers. This demonstrates an accurate understanding of the resolution limit of the provided data.<br>4.  **Consideration of Biological Context:** The analysis appropriately incorporates the tissue origin (human lung) and species (human), noting that T cells are expected in this tissue.<br>5.  **Hypothesis Formulation and Ranking:** The structured approach of formulating hypotheses, ranking them, and then making a final decision is exemplary. It systematically rules out improbable cell types and clearly states the most likely one.<br>6.  **Acknowledging Limitations and Subtypes:** A significant strength is the explicit discussion of what *cannot* be resolved with the given markers (e.g., CD4+ vs. CD8+ T cells, NKT cells without NK markers). This demonstrates a sophisticated understanding of the data's limitations and avoids over-interpretation. The recognition that the cluster is likely a mixed population *of different T cell subtypes* is also very insightful.<br>7.  **Confidence Level:** The "Very High (5/5)" confidence for the broad T cell annotation, coupled with the implicit low confidence for specific subtypes, is accurate and well-justified.<br>8.  **Clarity and Justification:** The step-by-step reasoning is clear, logical, and thoroughly justified with biological facts.<br><br>**Weaknesses:**<br><br>No significant weaknesses were identified. The annotation is precise, comprehensive within the constraints of the provided markers, and scientifically sound. The prompt explicitly states that the marker appearing first is more important, and while the agent mentions the "high expression and ranking of all three core CD3 components," it doesn't explicitly state that the first one (CD3D) is *more* important than CD3E or CD3G. However, given that these three form a complex and are all highly specific, treating them equally as strong indicators for the CD3 complex is not a flaw in this context. The primary goal is to identify the overall picture, which it does perfectly.
+                        </div>
+                    </div>
+                
+        </div>
+    </body>
+    </html>
+    

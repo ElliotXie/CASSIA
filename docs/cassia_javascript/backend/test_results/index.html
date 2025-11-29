@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subclustering Batch Results</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center;
+        }
+        .summary {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px;
+        }
+        th { 
+            background-color: #3498db; 
+            color: white; 
+            padding: 12px; 
+            text-align: left;
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .no-report {
+            color: #bdc3c7;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Subclustering Batch Results</h1>
+        <div class="summary">
+            <b>Total Runs:</b> 2 &nbsp; | &nbsp;
+            <b>Generated:</b> 7/12/2025, 8:21:34 PM
+        </div>
+        <table>
+            <tr>
+                <th>Analysis Name</th>
+                <th>Subclusters</th>
+                <th>CSV File</th>
+                <th>HTML Report</th>
+            </tr>
+            
+            <tr>
+                <td><strong>comprehensive_batch_1</strong></td>
+                <td>6</td>
+                <td><a href="comprehensive_batch_1.csv">comprehensive_batch_1.csv</a></td>
+                <td><a href="comprehensive_batch_1_summary.html">View Report</a></td>
+            </tr>
+            <tr>
+                <td><strong>comprehensive_batch_2</strong></td>
+                <td>6</td>
+                <td><a href="comprehensive_batch_2.csv">comprehensive_batch_2.csv</a></td>
+                <td><a href="comprehensive_batch_2_summary.html">View Report</a></td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
