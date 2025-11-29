@@ -171,7 +171,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 
 Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://cassia-documentation-en-new.vercel.app/).
+[CASSIA Complete Tutorial](cassia-delta.vercel.app).
 
 ## 📖 Citation
 
@@ -187,4 +187,5 @@ bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476
 
 If you have any questions or need help, feel free to email us. We are always happy to help:
 **xie227@wisc.edu**
-If you find this project helpful, please share it with your friend, and give this repo a star ⭐. Many thanks!
+If you find this project helpful, please share it with your friend, and give this repo a star ⭐
+Many thanks!
