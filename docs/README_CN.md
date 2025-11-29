@@ -121,13 +121,15 @@ runCASSIA_pipeline(
 您可以为注释和评分选择任何模型。下面列出了一些经典模型。OpenRouter支持当前大多数流行的模型，尽管有些模型在CASSIA论文中尚未进行全面基准测试 — 欢迎尝试。
 
 
-### OpenRouter
-- `google/gemini-2.5-flash`: 最好的低费率大模型之一，性能可与gpt-4o媲美（最推荐）
-- `deepseek/deepseek-chat-v3-0324`: 最好的开源大模型之一，经常给出非常详细的注释
-- `x-ai/grok-4-fast`: 最好的低费率大模型之一
 
 ### OpenAI
+- `gpt-5.1`: 均衡选择（推荐）
 - `gpt-4o`: 用于文章的基准测试
+
+### OpenRouter
+- `google/gemini-2.5-flash`: 最好的低费率大模型之一，性能可与gpt-4o媲美（推荐）
+- `deepseek/deepseek-chat-v3-0324`: 最好的开源大模型之一，经常给出非常详细的注释
+- `x-ai/grok-4-fast`: 最好的低费率大模型之一
 
 ### Anthropic
 - `claude-sonnet-4-5`: 最新的高性能模型（最推荐）
