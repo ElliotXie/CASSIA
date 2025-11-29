@@ -51,7 +51,7 @@
 </details>
 
 
-## 🏗️ Installation (R, for Python tutorial please visit [here](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
+## 🏗️ Installation
 
 ```R
 # Install dependencies
