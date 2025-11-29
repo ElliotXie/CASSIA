@@ -9,7 +9,7 @@
 **CASSIA** (Collaborative Agent System for Single-cell Interpretable Annotation) is a tool that enhances cell type annotation using multi-agent Large Language Models (LLMs).
 
 
-🌐 [CASSIA Web UI](https://cassia.bio/) - A web interface supporting most of CASSIA’s functionality
+🌐 [CASSIA Web UI (cassia.bio)](https://cassia.bio/) - A web interface supporting most of CASSIA’s functionality
 
 📚 [Complete R Documentation/Vignette](https://cassia-documentation-en-new.vercel.app/)
 
