@@ -105,7 +105,9 @@ runCASSIA_pipeline(
   annotation_provider = "openrouter",
   score_model = "google/gemini-2.5-flash-lite",
   score_provider = "openrouter",
-  score_threshold = 98
+  score_threshold = 98,
+  annotationboost_model = "google/gemini-2.5-flash-lite",
+  annotationboost_provider = "openrouter"
 )
 
 
