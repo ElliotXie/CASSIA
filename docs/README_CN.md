@@ -10,11 +10,7 @@
 
 🌐 [体验 CASSIA 网页界面 (cassia.bio)](https://cassia.bio/) - 支持大部分CASSIA功能
 
-📚 [完整 R 文档及示例/英文版/最新](https://cassia-documentation-en-new.vercel.app/)
-
-📚 [完整 R 文档/中文版](https://cassia-documentation-cn.vercel.app/)
-
-📝 [Python 工作流示例](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
+📚 [完整文档及示例/中英文版 (docs.cassia.bio)](cassia-delta.vercel.app)
 
 🤖 [模型注释能力排行榜](https://sc-llm-benchmark.com/methods/cassia)
 
