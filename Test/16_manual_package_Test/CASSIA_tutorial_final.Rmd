@@ -32,6 +32,24 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 # Load libraries
 library(reticulate)
 library(CASSIA)
+
+# Create output directory structure
+output_base <- "results/r"
+output_dirs <- list(
+    pipeline = file.path(output_base, "01_pipeline"),
+    batch = file.path(output_base, "02_batch_analysis"),
+    scoring = file.path(output_base, "03_scoring"),
+    uncertainty = file.path(output_base, "04_uncertainty"),
+    annotation_boost = file.path(output_base, "05_annotation_boost"),
+    compare = file.path(output_base, "06_compare_celltypes"),
+    subclustering = file.path(output_base, "07_subclustering"),
+    additional_task = file.path(output_base, "08_annotation_boost_additional")
+)
+
+for (dir_path in output_dirs) {
+    dir.create(dir_path, recursive = TRUE, showWarnings = FALSE)
+}
+print("Output directories created")
 ```
 
 ### Setting up the Python Environment
@@ -78,14 +96,14 @@ head(markers_processed)
 ```{r}
 
 runCASSIA_pipeline(
-  output_file_name = "test_output",
+  output_file_name = file.path(output_dirs$pipeline, "test_output"),
   tissue = "large intestine",
   species = "human",
   marker = markers_unprocessed,
   max_workers = 3,
-  annotation_model = "google/gemini-2.5-flash",
+  annotation_model = "google/gemini-2.5-flash-lite",
   annotation_provider = "openrouter",
-  score_model = "google/gemini-2.5-flash",
+  score_model = "google/gemini-2.5-flash-lite",
   score_provider = "openrouter",
   score_threshold = 98
 )
@@ -119,14 +137,14 @@ runCASSIA_pipeline(
 # Calculate recommended workers
 available_cores <- parallel::detectCores()
 recommended_workers <- floor(available_cores * 0.75)
-output_name="intestine_detailed"
+output_name <- file.path(output_dirs$batch, "intestine_detailed")
 
 
 # Run batch analysis
 batch_results <- runCASSIA_batch(
     marker = markers_unprocessed,
     output_name = output_name,
-    model = "openai/gpt-4o-2024-11-20",
+    model = "google/gemini-2.5-flash-lite",
     tissue = "large intestine",
     species = "human",
     max_workers = 6,  # Matching cluster count
@@ -172,17 +190,17 @@ batch_results <- runCASSIA_batch(
 # Run quality scoring
 quality_scores <- runCASSIA_score_batch(
   input_file = paste0(output_name, "_full.csv"),
-  output_file = paste0(output_name, "_scored.csv"),
+  output_file = file.path(output_dirs$scoring, "intestine_detailed_scored.csv"),
   max_workers = 6,
-  model = "anthropic/claude-3.5-sonnet",
+  model = "google/gemini-2.5-flash-lite",
   provider = "openrouter"
 )
 
 
 # Generate quality report
 runCASSIA_generate_score_report(
-  csv_path = paste0(output_name, "_scored.csv"),
-  output_name = paste0(output_name, "_report.html")
+  csv_path = file.path(output_dirs$scoring, "intestine_detailed_scored.csv"),
+  output_name = file.path(output_dirs$scoring, "intestine_detailed_report")
 )
 
 ```
@@ -199,8 +217,8 @@ runCASSIA_generate_score_report(
 iteration_results <- runCASSIA_batch_n_times(
     n = 5,
     marker = markers_unprocessed,
-    output_name = paste0(output_name,"_Uncertainty"),
-    model = "openai/gpt-4o-2024-11-20",
+    output_name = file.path(output_dirs$uncertainty, "intestine_Uncertainty"),
+    model = "google/gemini-2.5-flash-lite",
     provider = "openrouter",
     tissue = "large intestine",
     species = "human",
@@ -209,16 +227,14 @@ iteration_results <- runCASSIA_batch_n_times(
 )
 
 
-#######Note:Openrouter is not supported for this analysis for now.#######
-
 # Calculate similarity scores
 similarity_scores <- runCASSIA_similarity_score_batch(
     marker = markers_unprocessed,
-    file_pattern = paste0(output_name,"_Uncertainty_*_full.csv"),
-    output_name = "intestine_similarity2",
+    file_pattern = file.path(output_dirs$uncertainty, "intestine_Uncertainty_*_full.csv"),
+    output_name = file.path(output_dirs$uncertainty, "intestine_similarity"),
     max_workers = 6,
-    model = "claude-3-5-sonnet-20241022",
-    provider = "anthropic",
+    model = "google/gemini-2.5-flash-lite",
+    provider = "openrouter",
     main_weight = 0.5,
     sub_weight = 0.5
 )
@@ -237,11 +253,11 @@ Here we use annotation boost agent to test these hypothesis in more detail.
 validation_results <- runCASSIA_annotationboost(
     full_result_path = paste0(output_name, "_full.csv"),
     marker = markers_unprocessed,
-    output_name="monocyte_annotationboost2",
+    output_name = file.path(output_dirs$annotation_boost, "monocyte_annotationboost"),
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-3.5-sonnet",
+    model = "google/gemini-2.5-flash-lite",
     provider = "openrouter"
 )
 
@@ -266,7 +282,7 @@ marker="IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, 
       celltypes = c("Plasma Cells","IgA-secreting Plasma Cells","IgG-secreting Plasma Cells","IgM-secreting Plasma Cells"),
       marker = marker,
       species = "human",
-      output_file = "plasama_cell_subtype"
+      output_file = file.path(output_dirs$compare, "plasma_cell_subtype")
     )
 
 
@@ -315,8 +331,8 @@ marker_sub=loadExampleMarkers_subcluster()
 
 runCASSIA_subclusters(marker = marker_sub,
     major_cluster_info = "cd8 t cell",
-    output_name = "subclustering_results",
-    model = "anthropic/claude-3.5-sonnet",
+    output_name = file.path(output_dirs$subclustering, "subclustering_results"),
+    model = "google/gemini-2.5-flash-lite",
     provider = "openrouter")
 
 
@@ -326,8 +342,8 @@ runCASSIA_subclusters(marker = marker_sub,
 
 runCASSIA_subclusters(marker = marker_sub,
     major_cluster_info = "cd8 t cell mixed with other celltypes",
-    output_name = "subclustering_results2",
-    model = "anthropic/claude-3.5-sonnet",
+    output_name = file.path(output_dirs$subclustering, "subclustering_results2"),
+    model = "google/gemini-2.5-flash-lite",
     provider = "openrouter")
 
 ```
@@ -336,9 +352,10 @@ runCASSIA_subclusters(marker = marker_sub,
 It is recommend to run the CS score for the subclustering to get a more confident answer. (Unfinished)
 ```{r}
 
-runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell", "subclustering_results_n", 
-                                               model = "anthropic/claude-3.5-sonnet", temperature = 0, 
-                                               provider = "openrouter", max_workers = 5,n_genes=50L)
+runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell",
+                       file.path(output_dirs$subclustering, "subclustering_results_n"),
+                       model = "google/gemini-2.5-flash-lite", temperature = 0,
+                       provider = "openrouter", max_workers = 5, n_genes=50L)
 
 
 
@@ -346,11 +363,11 @@ runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell", "subclustering_results_n",
 # Calculate similarity scores
 similarity_scores <- runCASSIA_similarity_score_batch(
     marker = marker_sub,
-    file_pattern = "subclustering_results_n_*.csv",
-    output_name = "subclustering_uncertainty",
+    file_pattern = file.path(output_dirs$subclustering, "subclustering_results_n_*.csv"),
+    output_name = file.path(output_dirs$subclustering, "subclustering_uncertainty"),
     max_workers = 6,
-    model = "claude-3-5-sonnet-20241022",
-    provider = "anthropic",
+    model = "google/gemini-2.5-flash-lite",
+    provider = "openrouter",
     main_weight = 0.5,
     sub_weight = 0.5
 )
@@ -373,11 +390,11 @@ This can be used to study a given problem related to a cluster, such as infer th
 runCASSIA_annotationboost_additional_task(
     full_result_path = paste0(output_name, "_full.csv"),
     marker = markers_unprocessed,
-    output_name="T_cell_state",
-    cluster_name = "cd8-positive, alpha-beta t cell",  # Cluster with high mitochondrial content
+    output_name = file.path(output_dirs$additional_task, "T_cell_state"),
+    cluster_name = "cd8-positive, alpha-beta t cell",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-3.5-sonnet",
+    model = "google/gemini-2.5-flash-lite",
     additional_task = "infer the state of this T cell cluster"
 )
 
