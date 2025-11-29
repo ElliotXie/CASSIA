@@ -21,22 +21,37 @@
 
 ## 📰 News
 
-> **2025-05-05**  
-> 📊 **CASSIA annotation benchmark is now online!**  
-> The latest update introduces a new benchmarking platform that evaluates how different LLMs perform on single-cell annotation tasks, including accuracy and cost.  
-> **LLaMA4 Maverick, Gemini 2.5 Flash, and DeepSeekV3** are the top three most balanced options—nearly free!  
+> **2025-11-29**
+> Major update with new features and improvements:
+> - **Python Documentation**: Complete Python docs and vignettes now available
+> - **Annotation Boost Improvements**: Sidebar navigation, better reports, bug fixes
+> - **Better Scanpy Support**: Fixed marker processing, improved R/Python sync
+> - **Symphony Compare Update**: Improved comparison module
+> - **Batch Output & Ranking**: Updated HTML output for runCASSIA_batch with new ranking method option
+> - **Fuzzy Model Aliases**: Easier model selection without remembering exact names
+> - **Easier Installation**: Virtualenv-first setup with conda fallback
+
+<details>
+<summary>📜 Previous Updates (click to expand)</summary>
+
+> **2025-05-05**
+> 📊 **CASSIA annotation benchmark is now online!**
+> The latest update introduces a new benchmarking platform that evaluates how different LLMs perform on single-cell annotation tasks, including accuracy and cost.
+> **LLaMA4 Maverick, Gemini 2.5 Flash, and DeepSeekV3** are the top three most balanced options—nearly free!
 > 🔧 A new **auto-merge** function unifies CASSIA output across different levels, making subclustering much easier.
 > 🐛 Fixed a bug in the annotation boost agent to improve downstream refinement.
 
-> **2025-04-19**  
-> 🔄 **CASSIA adds a retry mechanism and optimized report storage!**  
-> The latest update introduces an automatic retry mechanism for failed tasks and optimizes how reports are stored for easier access and management.  
+> **2025-04-19**
+> 🔄 **CASSIA adds a retry mechanism and optimized report storage!**
+> The latest update introduces an automatic retry mechanism for failed tasks and optimizes how reports are stored for easier access and management.
 > 🎨 **The CASSIA logo has been drawn and added to the project!**
 
-> **2025-04-17**  
-> 🚀 **CASSIA now supports automatic single-cell annotation benchmarking!**  
-> The latest update introduces a new function that enables fully automated benchmarking of single-cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.  
+> **2025-04-17**
+> 🚀 **CASSIA now supports automatic single-cell annotation benchmarking!**
+> The latest update introduces a new function that enables fully automated benchmarking of single-cell annotation. Results are evaluated automatically using LLMs, achieving performance on par with human experts.
 > **A dedicated benchmark website is coming soon—stay tuned!**
+
+</details>
 
 
 ## 🏗️ Installation (R, for Python tutorial please visit [here](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
