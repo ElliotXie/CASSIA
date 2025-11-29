@@ -7,7 +7,7 @@ markers <- loadExampleMarkers(processed = FALSE)
 outputdir="C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/Test/16_manual_package_Test/"
 
 runCASSIA_pipeline(
-  output_file_name = file.path(outputdir, "test_output"),
+  output_dir = file.path(outputdir, "test_output"),
   tissue = "large intestine",
   species = "human",
   marker = markers,
