@@ -71,5 +71,18 @@
     "label": "语言",
     "english": "English",
     "chinese": "中文"
+  },
+  "programmingLanguage": {
+    "label": "代码语言",
+    "r": "R",
+    "python": "Python",
+    "pythonComingSoon": "Python 版本即将推出！显示 R 版本。"
+  },
+  "search": {
+    "button": "搜索...",
+    "placeholder": "搜索文档...",
+    "noResults": "未找到结果。",
+    "docs": "文档",
+    "vignettes": "教程"
   }
 }

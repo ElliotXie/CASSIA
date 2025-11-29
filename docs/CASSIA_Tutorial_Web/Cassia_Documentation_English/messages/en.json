@@ -71,5 +71,18 @@
     "label": "Language",
     "english": "English",
     "chinese": "Chinese"
+  },
+  "programmingLanguage": {
+    "label": "Code Language",
+    "r": "R",
+    "python": "Python",
+    "pythonComingSoon": "Python version coming soon! Showing R version."
+  },
+  "search": {
+    "button": "Search...",
+    "placeholder": "Search documentation...",
+    "noResults": "No results found.",
+    "docs": "Documentation",
+    "vignettes": "Tutorials"
   }
 }

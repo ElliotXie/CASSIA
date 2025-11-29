@@ -34,7 +34,8 @@ def runCASSIA_pipeline(
     ranking_method: str = "avg_log2FC",
     ascending: bool = None,
     report_style: str = "per_iteration",
-    validator_involvement: str = "v1"
+    validator_involvement: str = "v1",
+    output_dir: str = None
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -62,6 +63,7 @@ def runCASSIA_pipeline(
         ascending (bool): Sort direction (None uses default for each method)
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
         validator_involvement (str): Validator involvement level
+        output_dir (str): Directory where the output folder will be created. If None, uses current working directory.
     """
     # Import dependencies here to avoid circular imports
     try:
@@ -81,6 +83,15 @@ def runCASSIA_pipeline(
             from generate_batch_report import generate_batch_html_report_from_data
             from annotation_boost import runCASSIA_annotationboost
 
+    # Determine base directory for output
+    if output_dir is not None:
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            print(f"Created output directory: {output_dir}")
+        base_dir = output_dir
+    else:
+        base_dir = "."  # Current working directory (backward compatible)
+
     # Create a main folder based on tissue and species for organizing reports
     main_folder_name = f"CASSIA_{tissue}_{species}"
     main_folder_name = "".join(c for c in main_folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
@@ -98,15 +109,16 @@ def runCASSIA_pipeline(
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     main_folder_name = f"{main_folder_name}_{timestamp}"
 
-    # Create the main folder if it doesn't exist
-    if not os.path.exists(main_folder_name):
-        os.makedirs(main_folder_name)
-        print(f"Created main folder: {main_folder_name}")
+    # Create the main folder inside base_dir
+    main_folder_path = os.path.join(base_dir, main_folder_name)
+    if not os.path.exists(main_folder_path):
+        os.makedirs(main_folder_path)
+        print(f"Created main folder: {main_folder_path}")
 
     # Create organized subfolders according to user's specifications
-    annotation_results_folder = os.path.join(main_folder_name, "01_annotation_results")  # All CSV files
-    reports_folder = os.path.join(main_folder_name, "02_reports")  # All HTML reports except annotation boost
-    boost_folder = os.path.join(main_folder_name, "03_boost_analysis")  # All annotation boost related results
+    annotation_results_folder = os.path.join(main_folder_path, "01_annotation_results")  # All CSV files
+    reports_folder = os.path.join(main_folder_path, "02_reports")  # All HTML reports except annotation boost
+    boost_folder = os.path.join(main_folder_path, "03_boost_analysis")  # All annotation boost related results
 
     # Create all subfolders
     for folder in [annotation_results_folder, reports_folder, boost_folder]:
@@ -354,7 +366,7 @@ def runCASSIA_pipeline(
         print(f"Warning: Could not remove some temporary files: {str(e)}")
 
     print("\n=== Cell type analysis pipeline completed ===")
-    print(f"All results have been organized in the '{main_folder_name}' folder:")
+    print(f"All results have been organized in the '{main_folder_path}' folder:")
     print(f"  📊 MAIN RESULTS: {final_combined_file}")
     print(f"  📁 HTML Reports: {reports_folder}")
     print(f"  🔍 Annotation Boost Results: {boost_folder}")

@@ -13,6 +13,22 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      // Redirect old docs URLs to new R version
+      {
+        source: '/:locale/docs/:slug',
+        destination: '/:locale/docs/r/:slug',
+        permanent: true,
+      },
+      // Redirect old vignette URLs to new R version
+      {
+        source: '/:locale/vignette/:slug',
+        destination: '/:locale/vignette/r/:slug',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withNextIntl(nextConfig)

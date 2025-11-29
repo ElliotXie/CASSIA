@@ -897,6 +897,8 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param n_genes Number of top genes to use (default: 50)
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param ranking_method Method used to rank marker genes: "avg_log2FC" (default), "p_val_adj", "pct_diff", or "Score".
+#' @param ascending Logical value indicating sort direction. If NULL (default), uses method-specific default.
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -905,7 +907,8 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           species = "human", additional_info = NULL, 
                           celltype_column = NULL, gene_column_name = NULL, 
                           max_workers = 10, provider = "openrouter", n_genes = 50,
-                          max_retries = 1, validator_involvement = "v1") {
+                          max_retries = 1, validator_involvement = "v1",
+                          ranking_method = "avg_log2FC", ascending = NULL) {
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -937,7 +940,9 @@ if (is.data.frame(marker)) {
       provider = provider,
       n_genes = as.integer(n_genes),
       max_retries = as.integer(max_retries),
-      validator_involvement = validator_involvement
+      validator_involvement = validator_involvement,
+      ranking_method = ranking_method,
+      ascending = ascending
     )
   })
   
@@ -1307,6 +1312,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param ranking_method Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score') (default: "avg_log2FC")
 #' @param ascending Sort direction (NULL uses default for each method) (default: NULL)
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param output_dir Directory where the output folder will be created. If NULL, uses current working directory. (default: NULL)
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -1333,7 +1339,8 @@ runCASSIA_pipeline <- function(
     report_style = "per_iteration",
     ranking_method = "avg_log2FC",
     ascending = NULL,
-    validator_involvement = "v1"
+    validator_involvement = "v1",
+    output_dir = NULL
 ) {
   # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
@@ -1379,7 +1386,8 @@ runCASSIA_pipeline <- function(
       ranking_method = ranking_method,
       ascending = ascending,
       report_style = report_style,
-      validator_involvement = validator_involvement
+      validator_involvement = validator_involvement,
+      output_dir = output_dir
     )
     
     invisible(NULL)

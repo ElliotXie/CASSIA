@@ -5,6 +5,8 @@ import { notFound } from "next/navigation"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Sidebar } from "@/components/sidebar"
 import { routing } from "@/i18n/routing"
+import { SearchProvider } from "@/contexts/search-context"
+import { SearchDialog } from "@/components/search-dialog"
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
@@ -30,12 +32,15 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <div className="flex min-h-screen bg-gradient-to-br from-background to-background/95">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto px-4 pb-16 lg:pr-72 md:px-8">
-            {children}
-          </main>
-        </div>
+        <SearchProvider>
+          <div className="flex min-h-screen bg-gradient-to-br from-background to-background/95">
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto px-4 pb-16 lg:pr-72 md:px-8">
+              {children}
+            </main>
+          </div>
+          <SearchDialog />
+        </SearchProvider>
       </ThemeProvider>
     </NextIntlClientProvider>
   )

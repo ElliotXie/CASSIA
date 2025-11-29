@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-search-index.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-search": "node scripts/generate-search-index.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useTranslations, useLocale } from "next-intl"
 import { Link } from "@/i18n/routing"
+import { ProgrammingLanguageSwitcher } from "@/components/programming-language-switcher"
+import { getProgrammingLanguageFromPath, type ProgrammingLanguage } from "@/contexts/programming-language-context"
+import { SearchButton } from "@/components/search-dialog"
 
 // Define chapter structure with translation keys
 const chapters = [
@@ -77,9 +80,13 @@ export function Sidebar() {
   const tDocs = useTranslations("docs")
   const tVignettes = useTranslations("vignettes")
   const tCommon = useTranslations("common")
+  const tProg = useTranslations("programmingLanguage")
 
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  // Get current programming language from URL
+  const currentProgLang = getProgrammingLanguageFromPath(pathname || '')
 
   useEffect(() => {
     const checkMobile = () => {
@@ -128,6 +135,19 @@ export function Sidebar() {
     return tDocs(titleKey as any)
   }
 
+  // Build the correct href with programming language
+  const getNavHref = (section: "docs" | "vignette", slug: string) => {
+    return `/${section}/${currentProgLang}/${slug}`
+  }
+
+  // Check if a nav item is active
+  const isNavItemActive = (section: "docs" | "vignette", slug: string) => {
+    if (!pathname) return false
+    // Match pattern: /locale/section/lang/slug or /locale/section/slug
+    return pathname.includes(`/${section}/${currentProgLang}/${slug}`) ||
+           pathname.endsWith(`/${section}/${slug}`)
+  }
+
   return (
     <>
       {/* Mobile toggle button */}
@@ -157,12 +177,22 @@ export function Sidebar() {
               <span className="font-semibold text-xl tracking-tight">CASSIA</span>
             </Link>
           </div>
-          <nav className="flex-1 overflow-y-auto p-6">
+          <nav className="flex-1 overflow-y-auto p-6" style={{ scrollbarGutter: 'stable' }}>
+            {/* Search Button */}
+            <div className="mb-4">
+              <SearchButton />
+            </div>
+
+            {/* Programming Language Switcher */}
+            <div className="mb-4">
+              <ProgrammingLanguageSwitcher className="w-full" />
+            </div>
+
             {/* Navigation tabs with equal width and centered content */}
             <div className="mb-6 grid grid-cols-2 border-b">
               <div className="flex justify-center">
                 <Link
-                  href="/docs/introduction"
+                  href={`/docs/${currentProgLang}/introduction`}
                   className={cn(
                     "px-4 py-2 text-sm font-medium flex-1 text-center",
                     !isVignettePath ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
@@ -173,7 +203,7 @@ export function Sidebar() {
               </div>
               <div className="flex justify-center">
                 <Link
-                  href="/vignette/introduction"
+                  href={`/vignette/${currentProgLang}/introduction`}
                   className={cn(
                     "px-4 py-2 text-sm font-medium flex-1 text-center",
                     isVignettePath ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
@@ -193,10 +223,10 @@ export function Sidebar() {
                   {section.items.map((chapter) => (
                     <li key={chapter.slug}>
                       <Link
-                        href={`${isVignettePath ? "/vignette" : "/docs"}/${chapter.slug}`}
+                        href={getNavHref(isVignettePath ? "vignette" : "docs", chapter.slug)}
                         className={cn(
                           "block rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                          pathname?.endsWith(`${isVignettePath ? "/vignette" : "/docs"}/${chapter.slug}`)
+                          isNavItemActive(isVignettePath ? "vignette" : "docs", chapter.slug)
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground",
                         )}
