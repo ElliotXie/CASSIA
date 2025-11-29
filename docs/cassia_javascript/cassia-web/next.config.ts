@@ -19,11 +19,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/doc',
-        destination: 'https://cassia-delta.vercel.app',
+        destination: 'https://cassia-delta.vercel.app/en',
       },
       {
         source: '/doc/:path*',
-        destination: 'https://cassia-delta.vercel.app/:path*',
+        destination: 'https://cassia-delta.vercel.app/en/:path*',
       },
     ];
   },
