@@ -1,21 +1,22 @@
 # Model Settings Functions for CASSIA R Package
 
-#' Get Python Model Settings Module
+#' Get Python CASSIA Module
 #'
-#' @return Python model settings module
+#' @return Python CASSIA module (all functions available at package level)
 #' @keywords internal
 .get_py_model_settings <- function() {
-  # Use the py_model_settings from annotator.R if available
-  if (exists("py_model_settings", envir = .GlobalEnv) && !is.null(py_model_settings)) {
-    return(py_model_settings)
+  # Use the py_cassia from annotator.R if available
+  # All model settings functions are exported at the CASSIA package level
+  if (exists("py_cassia", envir = .GlobalEnv) && !is.null(py_cassia)) {
+    return(py_cassia)
   }
-  
+
   # Otherwise, try to import directly
   tryCatch({
-    py_settings <- reticulate::import_from_path("model_settings", path = system.file("python", package = "CASSIA"))
-    return(py_settings)
+    py_cassia_local <- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
+    return(py_cassia_local)
   }, error = function(e) {
-    warning("Could not load model settings module: ", e$message)
+    warning("Could not load CASSIA Python package: ", e$message)
     return(NULL)
   })
 }

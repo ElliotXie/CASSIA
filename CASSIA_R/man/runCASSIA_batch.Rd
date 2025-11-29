@@ -22,6 +22,8 @@ runCASSIA_batch(
 )
 }
 \arguments{
+\item{marker}{A data frame or path to the CSV file containing marker data.}
+
 \item{output_name}{Name of the output JSON file.}
 
 \item{model}{Character string specifying the model to use.}
@@ -47,8 +49,6 @@ runCASSIA_batch(
 \item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
-
-\item{df_input}{A data frame or path to the CSV file containing marker data.}
 }
 \value{
 None. This function creates output files and prints execution time.

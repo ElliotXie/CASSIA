@@ -25,6 +25,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+# PyPI API token from environment variable
+PYPI_TOKEN = os.environ.get("PYPI_TOKEN")
+
 def run_command(command, check=True):
     """Run a shell command."""
     print(f"Running: {command}")
@@ -175,9 +178,16 @@ def main():
 
     # --- Step 4: Upload to PyPI ---
     print("\n--- Step 4: Uploading to PyPI ---")
+
+    if not PYPI_TOKEN:
+        print("Error: PYPI_TOKEN environment variable is not set.", file=sys.stderr)
+        print("Set it with: set PYPI_TOKEN=your-token-here (Windows)", file=sys.stderr)
+        print("Or: export PYPI_TOKEN=your-token-here (Linux/Mac)", file=sys.stderr)
+        sys.exit(1)
+
     upload_command = f'python -m twine upload -u __token__ -p "{PYPI_TOKEN}" dist/*'
-    
-    print("Attempting to upload with embedded API token...")
+
+    print("Attempting to upload with API token from environment...")
 
     try:
         run_command(upload_command)

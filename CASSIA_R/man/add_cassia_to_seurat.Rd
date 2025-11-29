@@ -8,7 +8,7 @@ add_cassia_to_seurat(
   seurat_obj,
   cassia_results_path,
   cluster_col = "seurat_clusters",
-  cassia_cluster_col = "True Cell Type",
+  cassia_cluster_col = "Cluster ID",
   prefix = "CASSIA_",
   replace_existing = FALSE,
   fuzzy_match = TRUE,
@@ -22,7 +22,7 @@ add_cassia_to_seurat(
 
 \item{cluster_col}{Name of the column in Seurat metadata containing cluster IDs (default: "seurat_clusters")}
 
-\item{cassia_cluster_col}{Name of the column in CASSIA results containing cluster IDs (default: "True Cell Type")}
+\item{cassia_cluster_col}{Name of the column in CASSIA results containing cluster IDs (default: "Cluster ID")}
 
 \item{prefix}{Prefix to add to the new metadata columns (default: "CASSIA_")}
 

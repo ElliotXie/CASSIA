@@ -14,7 +14,8 @@ runCASSIA_n_times(
   model = "google/gemini-2.5-flash-preview",
   max_workers = 10,
   provider = "openrouter",
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  use_reference = FALSE
 )
 }
 \arguments{
@@ -37,9 +38,11 @@ runCASSIA_n_times(
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{use_reference}{Logical. Whether to use reference-based annotation for complex cases (default: FALSE)}
 }
 \value{
-A list containing results from multiple runs.
+A list containing results from multiple runs, each with analysis_result, conversation_history, and reference_info.
 }
 \description{
 Run Cell Type Analysis Multiple Times

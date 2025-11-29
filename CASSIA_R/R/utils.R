@@ -5,8 +5,8 @@
 #' @export
 check_python_env <- function() {
   tryCatch({
-    py_main <- reticulate::import_from_path("main_function_code", path = system.file("python", package = "CASSIA"))
-    py_tools <- reticulate::import_from_path("tools_function", path = system.file("python", package = "CASSIA"))
+    # Test import of CASSIA Python package
+    test_cassia <- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
     return(TRUE)
   }, error = function(e) {
     warning(paste("Python environment not set up correctly:", e$message))
@@ -67,7 +67,7 @@ set_python_env <- function(conda_env) {
 #' @param seurat_obj A Seurat object
 #' @param cassia_results_path Path to the CASSIA output CSV file
 #' @param cluster_col Name of the column in Seurat metadata containing cluster IDs (default: "seurat_clusters")
-#' @param cassia_cluster_col Name of the column in CASSIA results containing cluster IDs (default: "True Cell Type")
+#' @param cassia_cluster_col Name of the column in CASSIA results containing cluster IDs (default: "Cluster ID")
 #' @param prefix Prefix to add to the new metadata columns (default: "CASSIA_")
 #' @param replace_existing Whether to replace existing annotations (default: FALSE)
 #' @param fuzzy_match Whether to perform fuzzy matching on cluster names (default: TRUE)
@@ -77,8 +77,8 @@ set_python_env <- function(conda_env) {
 #' @importFrom utils read.csv
 #' @importFrom Seurat AddMetaData
 #' @export
-add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = "seurat_clusters", 
-                                cassia_cluster_col = "True Cell Type", prefix = "CASSIA_", 
+add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = "seurat_clusters",
+                                cassia_cluster_col = "Cluster ID", prefix = "CASSIA_", 
                                 replace_existing = FALSE, fuzzy_match = TRUE,
                                 columns_to_include = 1) {
   # Check if required packages are installed
@@ -114,7 +114,7 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
   # Check if the cluster column exists in the CASSIA results
   if (!cassia_cluster_col %in% colnames(cassia_results)) {
     # Check for common alternative names
-    alt_cluster_cols <- c("True Cell Type", "Cluster", "cluster_id", "ClusterID", "Cluster_ID", "cluster")
+    alt_cluster_cols <- c("Cluster ID", "True Cell Type", "Cluster", "cluster_id", "ClusterID", "Cluster_ID", "cluster")
     found_cols <- alt_cluster_cols[alt_cluster_cols %in% colnames(cassia_results)]
     
     if (length(found_cols) == 0) {
@@ -234,10 +234,10 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
     }
   }
   
-  # Define the column mappings for CASSIA output
+  # Define the column mappings for CASSIA output (new names first, then old names for backward compatibility)
   column_mapping <- list(
-    general_celltype = c("Predicted Main Cell Type", "General Cell Type", "General_Cell_Type"),
-    sub_celltype = c("Predicted Sub Cell Types", "Sub Cell Type", "Sub_Cell_Type"),
+    general_celltype = c("Predicted General Cell Type", "Predicted Main Cell Type", "General Cell Type", "General_Cell_Type"),
+    sub_celltype = c("Predicted Detailed Cell Type", "Predicted Sub Cell Types", "Sub Cell Type", "Sub_Cell_Type"),
     mixed_celltype = c("Possible Mixed Cell Types", "Mixed Cell Types", "Possible_Mixed_Cell_Types"),
     score = c("Score", "Consensus Score", "Consensus_Score")
   )

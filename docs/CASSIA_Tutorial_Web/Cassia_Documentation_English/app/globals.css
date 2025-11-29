@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.prose {
+  @apply max-w-none;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold tracking-tight mt-8 mb-4 text-foreground;
+}
+
+.prose h2 {
+  @apply text-2xl font-semibold tracking-tight mt-8 mb-4 text-foreground;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold tracking-tight mt-6 mb-3 text-foreground;
+}
+
+.prose h4 {
+  @apply text-lg font-semibold tracking-tight mt-6 mb-3 text-foreground;
+}
+
+.prose p {
+  @apply mb-4 leading-7;
+}
+
+.prose ul {
+  @apply my-6 ml-6 list-disc;
+}
+
+.prose ol {
+  @apply my-6 ml-6 list-decimal;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary/30 pl-4 italic my-6;
+}
+
+.prose pre {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6;
+}
+
+.prose code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 text-sm text-foreground font-medium;
+}
+
+.prose img {
+  @apply rounded-lg my-8 mx-auto;
+}
+
+.prose a {
+  @apply text-primary hover:underline;
+}
+
+.prose table {
+  @apply w-full my-6 border-collapse;
+}
+
+.prose thead {
+  @apply bg-muted;
+}
+
+.prose th {
+  @apply p-2 text-left font-semibold border;
+}
+
+.prose td {
+  @apply p-2 border;
+}
+
+.prose hr {
+  @apply my-8 border-muted;
+}
+
+/* Remove underscores from headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  border-bottom: none;
+  text-decoration: none;
+}
+
+/* Add this to remove underscores from links */
+.prose a {
+  text-decoration: none;
+  color: var(--primary);
+}
+
+.prose a:hover {
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+/* Make sure all headings have no underscores */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6,
+.prose a {
+  text-decoration: none;
+  border-bottom: none;
+}
+
+/* Add scroll margin to headings for better navigation */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  scroll-margin-top: 80px;
+}
+
+/* Ensure smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improve code block visibility */
+.prose pre {
+  @apply bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700;
+}
+
+.prose code {
+  @apply text-slate-800 dark:text-slate-200 font-medium;
+}
+
+.prose pre code {
+  @apply text-slate-800 dark:text-slate-200;
+}
+
+/* Add these styles to remove the double border effect in code blocks */
+
+/* Remove the inner pre border and adjust styling */
+.prose pre {
+  @apply bg-transparent border-0 p-0 m-0;
+}
+
+/* Style the outer container instead */
+.prose .relative {
+  @apply bg-slate-50 dark:bg-slate-800 rounded-md p-4 overflow-x-auto;
+}

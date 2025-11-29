@@ -12,7 +12,8 @@ runCASSIA(
   species,
   additional_info = NULL,
   provider = "openrouter",
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  use_reference = FALSE
 )
 }
 \arguments{
@@ -31,9 +32,11 @@ runCASSIA(
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter', default='openai')}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{use_reference}{Logical. Whether to use reference-based annotation for complex cases (default: FALSE)}
 }
 \value{
-A list containing two elements: structured output and conversation history.
+A list containing three elements: structured_output, conversation_history, and reference_info.
 }
 \description{
 Run Cell Type Analysis

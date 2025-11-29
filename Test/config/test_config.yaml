@@ -1,0 +1,25 @@
+# CASSIA Test Suite Configuration
+# ================================
+
+# LLM Settings
+llm:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash-lite"
+  temperature: 0.3
+  max_workers: 3
+
+# Test Data Settings
+data:
+  marker_file: "data/markers/processed.csv"
+  tissue: "large intestine"
+  species: "human"
+  n_genes: 30
+
+# Results Management
+results:
+  keep_last_n: 10
+  auto_cleanup: false
+
+# Validator Settings
+validator:
+  default: "v1"  # v0 = strict, v1 = moderate

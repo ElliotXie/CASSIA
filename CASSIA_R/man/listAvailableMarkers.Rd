@@ -13,6 +13,8 @@ A character vector containing names of available marker files
 This function lists all available built-in marker sets in the CASSIA package.
 }
 \examples{
+\dontrun{
 available_markers <- listAvailableMarkers()
 print(available_markers)
+}
 }

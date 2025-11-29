@@ -64,11 +64,13 @@ loadExampleMarkers_subcluster <- function() {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' markers <- loadBuiltinMarkers()
 #' head(markers)
-#' 
+#'
 #' subcluster_results <- loadBuiltinMarkers("subcluster_results")
 #' head(subcluster_results)
+#' }
 loadBuiltinMarkers <- function(marker_type = "processed") {
   # Import the Python function
   # tools_function <- reticulate::import_from_path("tools_function", 
@@ -76,7 +78,7 @@ loadBuiltinMarkers <- function(marker_type = "processed") {
   #                                                                   package = "CASSIA"))
   
   # Call the Python function
-  markers <- py_tools$loadmarker(marker_type = marker_type)
+  markers <- py_cassia$loadmarker(marker_type = marker_type)
   
   # Convert to R data frame if necessary
   if (!is.data.frame(markers)) {
@@ -94,8 +96,10 @@ loadBuiltinMarkers <- function(marker_type = "processed") {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' available_markers <- listAvailableMarkers()
 #' print(available_markers)
+#' }
 listAvailableMarkers <- function() {
   # Import the Python function
   # tools_function <- reticulate::import_from_path("tools_function", 
@@ -103,7 +107,7 @@ listAvailableMarkers <- function() {
   #                                                                   package = "CASSIA"))
   
   # Call the Python function and convert to R character vector
-  marker_names <- py_tools$list_available_markers()
+  marker_names <- py_cassia$list_available_markers()
   
   return(marker_names)
 }

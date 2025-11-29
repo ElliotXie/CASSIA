@@ -4,8 +4,12 @@
 """
 Python File Sync Script for CASSIA
 
-This script automatically syncs Python files from the CASSIA_python directory 
-to the CASSIA_R package directory, excluding files that should not be overwritten.
+This script automatically syncs the CASSIA Python package from the CASSIA_python directory
+to the CASSIA_R package directory.
+
+The new approach copies the entire CASSIA/ folder to maintain the organized structure.
+The R package imports the package via:
+    py_cassia <- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
 Usage:
     python sync_python_files.py
@@ -15,218 +19,198 @@ Author: CASSIA Development Team
 
 import os
 import shutil
-import filecmp
 from pathlib import Path
 from datetime import datetime
 
+
 def sync_python_files():
     """
-    Sync Python files from CASSIA_python/CASSIA/ to CASSIA_R/inst/python/
-    
+    Sync the CASSIA Python package to CASSIA_R/inst/python/
+
+    This copies the entire CASSIA/ folder, preserving the organized structure:
+    - core/
+    - engine/
+    - agents/
+    - evaluation/
+    - comparison/
+    - hypothesis/
+    - reports/
+    - imaging/
+    - pipeline/
+    - config/
+    - data/
+    - reference_agent/
+    - __init__.py (with all public exports)
+
     Excludes:
-    - merging_annotation_code.py (R-specific version, should not be overwritten)
     - __pycache__ directories
     - .pyc files
-    - Test files and notebooks (optional)
+    - Test files and notebooks
     """
-    
+
     # Get the script directory and set up paths
     script_dir = Path(__file__).parent.resolve()
-    
-    # Source directory (where you make changes)
+
+    # Source directory (the CASSIA package)
     source_dir = script_dir / "CASSIA"
-    
+
     # Destination directory (R package python files)
     dest_dir = script_dir.parent / "CASSIA_R" / "inst" / "python"
-    
-    # Files to exclude from syncing
-    excluded_files = {
-        "merging_annotation_code.py",  # R-specific version
-        "__init__.py",                 # May have R-specific content
-    }
-    
-    # File patterns to exclude
-    excluded_patterns = {
-        "__pycache__",
-        ".pyc",
-        ".ipynb",         # Jupyter notebooks
-        ".code-workspace", # VS Code workspace files
-        "_test.py",       # Test files
-        "test_",          # Test files
-    }
-    
-    print("🔄 CASSIA Python File Sync")
-    print("=" * 50)
-    print(f"📁 Source:      {source_dir}")
-    print(f"📁 Destination: {dest_dir}")
-    print(f"⏰ Time:        {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Destination CASSIA folder
+    dest_cassia = dest_dir / "CASSIA"
+
+    print("CASSIA Python Package Sync")
+    print("=" * 60)
+    print(f"Source:      {source_dir}")
+    print(f"Destination: {dest_cassia}")
+    print(f"Time:        {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    
+
     # Check if directories exist
     if not source_dir.exists():
-        print(f"❌ Error: Source directory not found: {source_dir}")
+        print(f"Error: Source directory not found: {source_dir}")
         return False
-        
+
     if not dest_dir.exists():
-        print(f"❌ Error: Destination directory not found: {dest_dir}")
+        print(f"Error: Destination directory not found: {dest_dir}")
         return False
-    
-    # Get list of Python files in source directory
-    python_files = []
-    for file_path in source_dir.iterdir():
-        if file_path.is_file() and file_path.suffix == '.py':
-            python_files.append(file_path)
-    
-    if not python_files:
-        print("⚠️  No Python files found in source directory")
-        return True
-    
-    # Statistics
-    copied_files = []
-    skipped_files = []
-    updated_files = []
-    error_files = []
-    
-    print("📋 Processing files:")
-    print("-" * 30)
-    
-    for source_file in python_files:
-        filename = source_file.name
-        
-        # Check if file should be excluded
-        should_exclude = False
-        
-        # Check exact filename exclusions
-        if filename in excluded_files:
-            should_exclude = True
-            reason = "excluded file"
-        
-        # Check pattern exclusions
-        for pattern in excluded_patterns:
-            if pattern in filename:
-                should_exclude = True
-                reason = f"matches pattern '{pattern}'"
-                break
-        
-        if should_exclude:
-            print(f"⏭️  SKIP: {filename:<30} ({reason})")
-            skipped_files.append(filename)
-            continue
-        
-        # Destination file path
-        dest_file = dest_dir / filename
-        
-        try:
-            # Check if file needs updating
-            needs_update = True
-            if dest_file.exists():
-                # Compare files to see if they're different
-                if filecmp.cmp(source_file, dest_file, shallow=False):
-                    needs_update = False
-                    print(f"✅ SAME: {filename:<30} (no changes)")
-                else:
-                    print(f"🔄 UPDATE: {filename:<28} (modified)")
-                    updated_files.append(filename)
-            else:
-                print(f"➕ NEW: {filename:<31} (new file)")
-                copied_files.append(filename)
-            
-            # Copy the file if it needs updating
-            if needs_update:
-                shutil.copy2(source_file, dest_file)
-                
-        except Exception as e:
-            print(f"❌ ERROR: {filename:<29} ({str(e)})")
-            error_files.append(filename)
-    
-    # Print summary
+
+    # Patterns to exclude during copy
+    def ignore_patterns(directory, files):
+        """Return files/folders to ignore during copy."""
+        ignored = []
+        for f in files:
+            # Ignore __pycache__ directories
+            if f == "__pycache__":
+                ignored.append(f)
+            # Ignore .pyc files
+            elif f.endswith(".pyc"):
+                ignored.append(f)
+            # Ignore .ipynb files
+            elif f.endswith(".ipynb"):
+                ignored.append(f)
+            # Ignore test files (but not test_data or test fixtures)
+            elif f.startswith("test_") and f.endswith(".py"):
+                ignored.append(f)
+            elif f.endswith("_test.py"):
+                ignored.append(f)
+            # Ignore VS Code workspace files
+            elif f.endswith(".code-workspace"):
+                ignored.append(f)
+        return ignored
+
+    # Remove existing CASSIA folder in destination if it exists
+    if dest_cassia.exists():
+        print("Removing old CASSIA folder...")
+        shutil.rmtree(dest_cassia)
+
+    # Copy the entire CASSIA folder
+    print("Copying CASSIA package...")
+    shutil.copytree(source_dir, dest_cassia, ignore=ignore_patterns)
+
+    # Count copied files
+    file_count = sum(1 for _ in dest_cassia.rglob("*.py"))
+    folder_count = sum(1 for p in dest_cassia.rglob("*") if p.is_dir())
+
     print()
-    print("📊 Sync Summary:")
-    print("-" * 20)
-    print(f"✅ Total files processed: {len(python_files)}")
-    print(f"➕ New files copied:      {len(copied_files)}")
-    print(f"🔄 Files updated:         {len(updated_files)}")
-    print(f"⏭️  Files skipped:         {len(skipped_files)}")
-    print(f"❌ Errors:                {len(error_files)}")
-    
-    if copied_files:
-        print(f"\n📋 New files: {', '.join(copied_files)}")
-    
-    if updated_files:
-        print(f"\n📋 Updated files: {', '.join(updated_files)}")
-    
-    if skipped_files:
-        print(f"\n📋 Skipped files: {', '.join(skipped_files)}")
-    
-    if error_files:
-        print(f"\n⚠️  Error files: {', '.join(error_files)}")
-        return False
-    
-    print(f"\n✅ Sync completed successfully!")
+    print("Sync Summary:")
+    print("-" * 30)
+    print(f"Python files copied: {file_count}")
+    print(f"Folders created:     {folder_count}")
+    print()
+
+    # List the structure
+    print("Package structure:")
+    for item in sorted(dest_cassia.iterdir()):
+        if item.is_dir():
+            subfiles = list(item.rglob("*.py"))
+            print(f"  {item.name}/ ({len(subfiles)} files)")
+        elif item.suffix == ".py":
+            print(f"  {item.name}")
+
+    print()
+    print("Sync completed successfully!")
     return True
+
 
 def verify_sync():
     """
-    Verify that the sync was successful by comparing key files
+    Verify that the sync was successful by checking key files exist.
     """
     script_dir = Path(__file__).parent.resolve()
-    source_dir = script_dir / "CASSIA"
-    dest_dir = script_dir.parent / "CASSIA_R" / "inst" / "python"
-    
-    print("\n🔍 Verifying sync...")
-    
-    # Key files to verify (these should be identical)
+    dest_cassia = script_dir.parent / "CASSIA_R" / "inst" / "python" / "CASSIA"
+
+    print()
+    print("Verifying sync...")
+
+    # Key files that should exist
     key_files = [
-        "tools_function.py",
-        "annotation_boost.py", 
-        "main_function_code.py",
-        "llm_utils.py"
+        "__init__.py",
+        "core/__init__.py",
+        "core/llm_utils.py",
+        "core/validation.py",
+        "engine/__init__.py",
+        "engine/tools_function.py",
+        "engine/main_function_code.py",
+        "agents/annotation_boost/annotation_boost.py",
+        "agents/merging/merging_annotation.py",
+        "agents/uncertainty/Uncertainty_quantification.py",
+        "agents/subclustering/subclustering.py",
+        "evaluation/scoring.py",
+        "pipeline/pipeline.py",
+        "reports/generate_reports.py",
     ]
-    
+
     all_good = True
-    for filename in key_files:
-        source_file = source_dir / filename
-        dest_file = dest_dir / filename
-        
-        if source_file.exists() and dest_file.exists():
-            if filecmp.cmp(source_file, dest_file, shallow=False):
-                print(f"✅ {filename} - synced correctly")
-            else:
-                print(f"❌ {filename} - files differ!")
-                all_good = False
-        elif source_file.exists():
-            print(f"⚠️  {filename} - missing in destination")
-            all_good = False
+    for rel_path in key_files:
+        file_path = dest_cassia / rel_path
+        if file_path.exists():
+            print(f"  OK: {rel_path}")
         else:
-            print(f"ℹ️  {filename} - not found in source")
-    
+            print(f"  MISSING: {rel_path}")
+            all_good = False
+
     if all_good:
-        print("✅ All key files verified successfully!")
+        print()
+        print("All key files verified!")
     else:
-        print("⚠️  Some files may not have synced correctly")
-    
+        print()
+        print("Warning: Some files may not have synced correctly")
+
     return all_good
+
 
 def main():
     """Main function"""
-    print("🚀 Starting CASSIA Python file sync...\n")
-    
+    print()
+    print("Starting CASSIA Python package sync...")
+    print()
+
     try:
         # Perform the sync
         success = sync_python_files()
-        
+
         if success:
             # Verify the sync
             verify_sync()
-            print(f"\n🎉 All done! Python files have been synced to the R package.")
-            print("💡 You can now use the updated Python functions in your R package.")
+            print()
+            print("All done! The CASSIA Python package has been synced to the R package.")
+            print("The R package can now import it via:")
+            print('  py_cassia <- reticulate::import_from_path("CASSIA", ...)')
         else:
-            print(f"\n💥 Sync completed with errors. Please check the messages above.")
-            
+            print()
+            print("Sync completed with errors. Please check the messages above.")
+
     except KeyboardInterrupt:
-        print(f"\n🛑 Sync interrupted by user")
+        print()
+        print("Sync interrupted by user")
     except Exception as e:
-        print(f"\n💥 Unexpected error: {str(e)}")
+        print()
+        print(f"Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 
 if __name__ == "__main__":
-    main() 
+    main()
