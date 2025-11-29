@@ -22,7 +22,7 @@
 ## 📰 News
 
 > **2025-11-29**
->🎇 **Major update with new features and improvements**:
+>🎇 **Major update with new features and improvements！**
 > - **Python Documentation**: Complete Python docs and vignettes now available
 > - **Annotation Boost Improvements**: Sidebar navigation, better reports, bug fixes
 > - **Better Scanpy Support**: Fixed marker processing, improved R/Python sync
