@@ -11,9 +11,7 @@
 
 🌐 [CASSIA Web UI (cassia.bio)](https://cassia.bio/) - A web interface supporting most of CASSIA’s functionality
 
-📚 [Complete R Documentation/Vignette](https://cassia-documentation-en-new.vercel.app/)
-
-📝 [Example Python workflow/Vignette](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb)
+📚 [Complete Documentation/Vignette (docs.cassia.bio)](cassia-delta.vercel.app)
 
 🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.com/methods/cassia)
 
