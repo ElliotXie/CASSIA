@@ -47,6 +47,10 @@ CASSIA_python/cassia_secrets.py
 CASSIA_R/inst/python/CASSIA/config/set_api_keys.py
 **/set_api_keys.py
 **/.env
+
+# Tutorial files with API keys
+Test/16_manual_package_Test/CASSIA_tutorial_final.Rmd
+Test/16_manual_package_Test/CASSIA_python_tutorial.ipynb
 # Ignore development documentation
  dev_docs/ 
 CLAUDE.md

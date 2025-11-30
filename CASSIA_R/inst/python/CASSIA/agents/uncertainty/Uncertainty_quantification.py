@@ -45,6 +45,19 @@ def _get_call_llm():
             from llm_utils import call_llm
             return call_llm
 
+def _get_get_top_markers():
+    """Lazy import of get_top_markers to avoid circular imports."""
+    try:
+        from CASSIA.core.marker_utils import get_top_markers
+        return get_top_markers
+    except ImportError:
+        try:
+            from ...core.marker_utils import get_top_markers
+            return get_top_markers
+        except ImportError:
+            from marker_utils import get_top_markers
+            return get_top_markers
+
 
 
 def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1, validator_involvement="v1"):
@@ -776,6 +789,7 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
 
     # Only process with get_top_markers if more than 2 columns
     if len(df.columns) > 2:
+        get_top_markers = _get_get_top_markers()
         marker = get_top_markers(df, n_genes=50)
     else:
         marker = df  # Use the DataFrame directly if it has 2 or fewer columns
