@@ -25,13 +25,16 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -56,9 +59,12 @@ def run_symphony_compare_test():
     # Import CASSIA functions
     from CASSIA import symphonyCompare
 
-    # Create results directory
-    results_dir = create_results_dir("10_symphony_compare")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("10_symphony_compare", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # Test parameters - compare cell types with a marker set
     test_cluster = "plasma cell"
@@ -89,7 +95,7 @@ def run_symphony_compare_test():
             marker_set=marker_set,
             species=data_config.get('species', 'human'),
             model_preset="budget",  # Use budget preset for cost-effective testing
-            output_dir=str(results_dir),
+            output_dir=str(results['outputs']),
             output_basename="symphony_test",
             enable_discussion=False,  # Disable discussion for faster testing
             max_discussion_rounds=0,
@@ -158,9 +164,9 @@ def run_symphony_compare_test():
         clusters_tested=celltypes,
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results['outputs'], {
         "celltypes_compared": celltypes,
         "marker_set": marker_set,
         "model_preset": "budget",
@@ -170,6 +176,9 @@ def run_symphony_compare_test():
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

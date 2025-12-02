@@ -19,12 +19,15 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 setup_cassia_imports()
@@ -44,8 +47,11 @@ def run_batch_with_reference_test():
     all_clusters = get_all_clusters()
     marker_df = get_full_marker_dataframe()
 
-    results_dir = create_results_dir("12_batch_with_reference")
-    output_name = str(results_dir / "batch_ref_results")
+    results = create_results_dir("12_batch_with_reference", get_test_mode())
+    output_name = str(results['outputs'] / "batch_ref_results")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     start_time = time.time()
     errors = []
@@ -111,10 +117,13 @@ def run_batch_with_reference_test():
         errors=errors
     )
     metadata['use_reference'] = True  # Additional metadata
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

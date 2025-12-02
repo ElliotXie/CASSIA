@@ -28,6 +28,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_merging_annotation_test <- function() {
   print_test_header("07 - Merging Annotation (R)")
@@ -53,8 +54,10 @@ run_merging_annotation_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("07_merging_annotation")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("07_merging_annotation", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Check for existing batch results from Test 02
   batch_results_dir <- get_latest_results("02_batch_annotation")
@@ -64,15 +67,15 @@ run_merging_annotation_test <- function() {
     potential_file <- file.path(batch_results_dir, "batch_results_full.csv")
     if (file.exists(potential_file)) {
       batch_results_file <- potential_file
-      cat("\nUsing existing batch results:", batch_results_file, "\n")
+      log_msg("\nUsing existing batch results:", batch_results_file)
     }
   }
 
   # If no existing results, run batch annotation first
   if (is.null(batch_results_file)) {
-    cat("\nNo existing batch results found. Running batch annotation first...\n")
+    log_msg("\nNo existing batch results found. Running batch annotation first...")
     marker_df <- get_full_marker_dataframe()
-    batch_output <- file.path(results_dir, "batch_for_merge")
+    batch_output <- file.path(results$outputs, "batch_for_merge")
 
     CASSIA::runCASSIA_batch(
       marker = marker_df,
@@ -97,8 +100,8 @@ run_merging_annotation_test <- function() {
 
   tryCatch({
     # Test 1: Single detail level merge (broad)
-    cat("\n--- Test 1: Single detail level merge (broad) ---\n")
-    broad_output <- file.path(results_dir, "merge_broad.csv")
+    log_msg("\n--- Test 1: Single detail level merge (broad) ---")
+    broad_output <- file.path(results$outputs, "merge_broad.csv")
 
     result_broad <- CASSIA::merge_annotations(
       csv_path = batch_results_file,
@@ -110,12 +113,12 @@ run_merging_annotation_test <- function() {
     )
 
     if (!is.null(result_broad) && "Merged_Grouping_1" %in% names(result_broad)) {
-      cat("  Broad merge: SUCCESS\n")
-      cat("  Output rows:", nrow(result_broad), "\n")
-      cat("  Sample groupings:\n")
+      log_msg("  Broad merge: SUCCESS")
+      log_msg("  Output rows:", nrow(result_broad))
+      log_msg("  Sample groupings:")
       cluster_col <- if ("Cluster ID" %in% names(result_broad)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_broad))) {
-        cat("   ", result_broad[[cluster_col]][i], "->", result_broad$Merged_Grouping_1[i], "\n")
+        log_msg("   ", result_broad[[cluster_col]][i], "->", result_broad$Merged_Grouping_1[i])
       }
       merge_results$broad <- list(status = "success", output_file = broad_output, num_rows = nrow(result_broad))
     } else {
@@ -124,8 +127,8 @@ run_merging_annotation_test <- function() {
     }
 
     # Test 2: Single detail level merge (detailed)
-    cat("\n--- Test 2: Single detail level merge (detailed) ---\n")
-    detailed_output <- file.path(results_dir, "merge_detailed.csv")
+    log_msg("\n--- Test 2: Single detail level merge (detailed) ---")
+    detailed_output <- file.path(results$outputs, "merge_detailed.csv")
 
     result_detailed <- CASSIA::merge_annotations(
       csv_path = batch_results_file,
@@ -137,12 +140,12 @@ run_merging_annotation_test <- function() {
     )
 
     if (!is.null(result_detailed) && "Merged_Grouping_2" %in% names(result_detailed)) {
-      cat("  Detailed merge: SUCCESS\n")
-      cat("  Output rows:", nrow(result_detailed), "\n")
-      cat("  Sample groupings:\n")
+      log_msg("  Detailed merge: SUCCESS")
+      log_msg("  Output rows:", nrow(result_detailed))
+      log_msg("  Sample groupings:")
       cluster_col <- if ("Cluster ID" %in% names(result_detailed)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_detailed))) {
-        cat("   ", result_detailed[[cluster_col]][i], "->", result_detailed$Merged_Grouping_2[i], "\n")
+        log_msg("   ", result_detailed[[cluster_col]][i], "->", result_detailed$Merged_Grouping_2[i])
       }
       merge_results$detailed <- list(status = "success", output_file = detailed_output, num_rows = nrow(result_detailed))
     } else {
@@ -151,8 +154,8 @@ run_merging_annotation_test <- function() {
     }
 
     # Test 3: All detail levels merge (parallel)
-    cat("\n--- Test 3: All detail levels merge (parallel) ---\n")
-    all_output <- file.path(results_dir, "merge_all.csv")
+    log_msg("\n--- Test 3: All detail levels merge (parallel) ---")
+    all_output <- file.path(results$outputs, "merge_all.csv")
 
     result_all <- CASSIA::merge_annotations_all(
       csv_path = batch_results_file,
@@ -164,16 +167,16 @@ run_merging_annotation_test <- function() {
 
     expected_columns <- c("Merged_Grouping_1", "Merged_Grouping_2", "Merged_Grouping_3")
     if (!is.null(result_all) && all(expected_columns %in% names(result_all))) {
-      cat("  All levels merge: SUCCESS\n")
-      cat("  Output rows:", nrow(result_all), "\n")
-      cat("  Columns:", paste(expected_columns, collapse = ", "), "\n")
-      cat("\n  Sample comparison:\n")
+      log_msg("  All levels merge: SUCCESS")
+      log_msg("  Output rows:", nrow(result_all))
+      log_msg("  Columns:", paste(expected_columns, collapse = ", "))
+      log_msg("\n  Sample comparison:")
       cluster_col <- if ("Cluster ID" %in% names(result_all)) "Cluster ID" else "True Cell Type"
       for (i in 1:min(3, nrow(result_all))) {
-        cat("   ", result_all[[cluster_col]][i], ":\n")
-        cat("      Broad:        ", result_all$Merged_Grouping_1[i], "\n")
-        cat("      Detailed:     ", result_all$Merged_Grouping_2[i], "\n")
-        cat("      Very Detailed:", result_all$Merged_Grouping_3[i], "\n")
+        log_msg("   ", result_all[[cluster_col]][i], ":")
+        log_msg("      Broad:        ", result_all$Merged_Grouping_1[i])
+        log_msg("      Detailed:     ", result_all$Merged_Grouping_2[i])
+        log_msg("      Very Detailed:", result_all$Merged_Grouping_3[i])
       }
       merge_results$all <- list(status = "success", output_file = all_output, num_rows = nrow(result_all), columns = expected_columns)
     } else {
@@ -195,7 +198,7 @@ run_merging_annotation_test <- function() {
   }, error = function(e) {
     errors <<- c(errors, e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -209,9 +212,9 @@ run_merging_annotation_test <- function() {
     clusters_tested = list("all"),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     batch_results_file = batch_results_file,
     merge_results = merge_results,
     detail_levels_tested = c("broad", "detailed", "very_detailed", "all")
@@ -221,6 +224,8 @@ run_merging_annotation_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

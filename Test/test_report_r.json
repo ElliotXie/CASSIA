@@ -1,9 +1,10 @@
 {
-  "timestamp": "2025-11-28T18:52:00",
-  "total_duration": 19033.65,
+  "timestamp": "2025-11-30T22:39:11",
+  "mode": "installed",
+  "total_duration": 946.24,
   "summary": {
     "passed": 13,
-    "failed": 2,
+    "failed": 1,
     "errors": 0,
     "skipped": 1
   },
@@ -12,128 +13,120 @@
       "name": "01_single_annotation",
       "status": "passed",
       "returncode": 0,
-      "duration": 24.17,
-      "mode": "load_all",
-      "script": "test_single_annotation.R"
+      "duration": 54.82,
+      "mode": "install",
+      "script": "test_single_annotation_install.R"
     },
     {
       "name": "02_batch_annotation",
       "status": "passed",
       "returncode": 0,
-      "duration": 54.3,
-      "mode": "load_all",
-      "script": "test_batch_annotation.R"
+      "duration": 68.78,
+      "mode": "install",
+      "script": "test_batch_annotation_install.R"
     },
     {
       "name": "03_validator_comparison",
       "status": "passed",
       "returncode": 0,
-      "duration": 18657.88,
-      "mode": "load_all",
-      "script": "test_validator_comparison.R"
+      "duration": 99.54,
+      "mode": "install",
+      "script": "test_validator_comparison_install.R"
     },
     {
       "name": "04_quality_scoring",
       "status": "passed",
       "returncode": 0,
-      "duration": 17.35,
-      "mode": "load_all",
-      "script": "test_quality_scoring.R"
+      "duration": 85.11,
+      "mode": "install",
+      "script": "test_quality_scoring_install.R"
     },
     {
       "name": "05_model_settings",
-      "status": "failed",
-      "returncode": 1,
-      "duration": 13.96,
-      "mode": "load_all",
-      "script": "test_model_settings.R"
+      "status": "passed",
+      "returncode": 0,
+      "duration": 57.08,
+      "mode": "install",
+      "script": "test_model_settings_install.R"
     },
     {
       "name": "06_annotation_boost",
       "status": "passed",
       "returncode": 0,
-      "duration": 26.91,
-      "mode": "load_all",
-      "script": "test_annotation_boost.R"
+      "duration": 82.32,
+      "mode": "install",
+      "script": "test_annotation_boost_install.R"
     },
     {
       "name": "07_merging_annotation",
       "status": "passed",
       "returncode": 0,
-      "duration": 15.54,
-      "mode": "load_all",
-      "script": "test_merging_annotation.R"
+      "duration": 73.84,
+      "mode": "install",
+      "script": "test_merging_annotation_install.R"
     },
     {
       "name": "08_uncertainty_quantification",
       "status": "passed",
       "returncode": 0,
-      "duration": 29.24,
-      "mode": "load_all",
-      "script": "test_uncertainty_quantification.R"
+      "duration": 56.78,
+      "mode": "install",
+      "script": "test_uncertainty_quantification_install.R"
     },
     {
       "name": "09_subclustering",
       "status": "passed",
       "returncode": 0,
-      "duration": 26.24,
-      "mode": "load_all",
-      "script": "test_subclustering.R"
+      "duration": 48.29,
+      "mode": "install",
+      "script": "test_subclustering_install.R"
     },
     {
       "name": "10_symphony_compare",
       "status": "passed",
       "returncode": 0,
-      "duration": 33.17,
-      "mode": "load_all",
-      "script": "test_symphony_compare.R"
+      "duration": 77.53,
+      "mode": "install",
+      "script": "test_symphony_compare_install.R"
     },
     {
       "name": "11_report_generation",
       "status": "passed",
       "returncode": 0,
-      "duration": 13.55,
-      "mode": "load_all",
-      "script": "test_report_generation.R"
+      "duration": 47.67,
+      "mode": "install",
+      "script": "test_report_generation_install.R"
     },
     {
       "name": "12_batch_with_reference",
       "status": "passed",
       "returncode": 0,
-      "duration": 51.8,
-      "mode": "load_all",
-      "script": "test_batch_with_reference.R"
+      "duration": 83.13,
+      "mode": "install",
+      "script": "test_batch_with_reference_install.R"
     },
     {
       "name": "12_scanpy_format",
       "status": "skipped",
-      "reason": "No R test script found (load_all)",
+      "reason": "No R test script found (install)",
       "duration": 0,
-      "mode": "load_all"
-    },
-    {
-      "name": "13_call_llm",
-      "status": "failed",
-      "returncode": 1,
-      "duration": 15.18,
-      "mode": "load_all",
-      "script": "test_call_llm.R"
+      "mode": "install"
     },
     {
       "name": "14_input_validation",
-      "status": "passed",
-      "returncode": 0,
-      "duration": 12.97,
-      "mode": "load_all",
-      "script": "test_input_validation.R"
+      "status": "failed",
+      "returncode": 1,
+      "duration": 42.01,
+      "mode": "install",
+      "script": "test_input_validation_install.R"
     },
     {
       "name": "15_cassia_pipeline",
       "status": "passed",
       "returncode": 0,
-      "duration": 41.36,
-      "mode": "load_all",
-      "script": "test_cassia_pipeline.R"
+      "duration": 69.33,
+      "mode": "install",
+      "script": "test_cassia_pipeline_install.R"
     }
   ]
 }

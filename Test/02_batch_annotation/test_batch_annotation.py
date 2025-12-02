@@ -22,12 +22,15 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -64,10 +67,13 @@ def run_batch_annotation_test():
         print(f"  - {cluster}")
     print(f"\nLoaded marker data: {marker_df.shape}")
 
-    # Create results directory
-    results_dir = create_results_dir("02_batch_annotation")
-    output_name = str(results_dir / "batch_results")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("02_batch_annotation", get_test_mode())
+    output_name = str(results['outputs'] / "batch_results")
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # Run the test
     start_time = time.time()
@@ -130,11 +136,14 @@ def run_batch_annotation_test():
         clusters_tested=test_clusters,
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

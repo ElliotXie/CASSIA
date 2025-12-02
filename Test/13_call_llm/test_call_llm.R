@@ -30,6 +30,7 @@ script_dir <- get_script_dir()
 # Source shared utilities
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_call_llm_test <- function() {
   print_test_header("13 - call_llm Provider Testing (R)")
@@ -52,7 +53,9 @@ run_call_llm_test <- function() {
 
   # Create results directory
   results_dir <- create_results_dir("13_call_llm")
-  cat("Results will be saved to:", results_dir, "\n")
+
+  start_logging(results_dir)
+  log_msg("Results will be saved to:", results_dir)
 
   # Import Python call_llm function via reticulate
   cassia_module <- reticulate::import("CASSIA")
@@ -79,10 +82,10 @@ run_call_llm_test <- function() {
   total_tests <- length(test_cases)
 
   for (tc in test_cases) {
-    cat("\n", strrep("=", 50), "\n", sep = "")
-    cat("Provider:", tc$display_name, "\n")
-    cat("  Model:", tc$model, "\n")
-    cat(strrep("=", 50), "\n")
+    log_separator()
+    log_msg("Provider:", tc$display_name)
+    log_msg("  Model:", tc$model)
+    log_separator()
 
     test_result <- list(
       provider = tc$provider,
@@ -97,15 +100,15 @@ run_call_llm_test <- function() {
     # Check if API key is set
     api_key <- Sys.getenv(tc$env_var, unset = "")
     if (api_key == "") {
-      cat("  Status: [SKIP]", tc$env_var, "not set in environment\n")
+      log_msg("  Status: [SKIP]", tc$env_var, "not set in environment")
       test_result$status <- "skipped"
       skipped_count <- skipped_count + 1
       test_results <- c(test_results, list(test_result))
       next
     }
 
-    cat("  Status: API key found\n")
-    cat("  Sending test prompt...\n")
+    log_msg("  Status: API key found")
+    log_msg("  Sending test prompt...")
 
     tryCatch({
       response <- call_llm(
@@ -120,13 +123,13 @@ run_call_llm_test <- function() {
         test_result$status <- "passed"
         test_result$response_length <- nchar(response)
         test_result$response_preview <- substr(response, 1, 100)
-        cat("  [OK] Response received (", nchar(response), " chars)\n", sep = "")
-        cat("  Response:", substr(response, 1, 80), if (nchar(response) > 80) "..." else "", "\n")
+        log_msg("  [OK] Response received (", nchar(response), " chars)", sep = "")
+        log_msg("  Response:", substr(response, 1, 80), if (nchar(response) > 80) "..." else "")
         passed_count <- passed_count + 1
       } else {
         test_result$status <- "failed"
         test_result$error <- "Empty response received"
-        cat("  [X] FAILED: Empty response received\n")
+        log_msg("  [X] FAILED: Empty response received")
         errors <- c(errors, paste0(tc$display_name, ": Empty response"))
         failed_count <- failed_count + 1
       }
@@ -134,7 +137,7 @@ run_call_llm_test <- function() {
       test_result$status <<- "failed"
       test_result$error <<- e$message
       error_msg <- substr(e$message, 1, 200)
-      cat("  [X] ERROR:", error_msg, "\n")
+      log_msg("  [X] ERROR:", error_msg)
       errors <<- c(errors, paste0(tc$display_name, ": ", substr(e$message, 1, 100)))
       failed_count <<- failed_count + 1
     })
@@ -145,19 +148,19 @@ run_call_llm_test <- function() {
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
   # Summary
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("SUMMARY\n")
-  cat(strrep("=", 50), "\n")
-  cat("  Passed: ", passed_count, "/", total_tests, "\n", sep = "")
-  cat("  Failed: ", failed_count, "/", total_tests, "\n", sep = "")
-  cat("  Skipped:", skipped_count, "/", total_tests, "\n", sep = "")
-  cat("  Duration:", round(duration, 2), "s\n")
+  log_separator()
+  log_msg("SUMMARY")
+  log_separator()
+  log_msg("  Passed: ", passed_count, "/", total_tests, "", sep = "")
+  log_msg("  Failed: ", failed_count, "/", total_tests, "", sep = "")
+  log_msg("  Skipped:", skipped_count, "/", total_tests, "", sep = "")
+  log_msg("  Duration:", round(duration, 2), "s")
 
   # Determine overall status
   tests_run <- total_tests - skipped_count
   if (tests_run == 0) {
     status <- "skipped"
-    cat("\n  Note: All tests skipped (no API keys configured)\n")
+    log_msg("\n  Note: All tests skipped (no API keys configured)")
   } else if (passed_count == tests_run) {
     status <- "passed"
   } else {
@@ -189,6 +192,8 @@ run_call_llm_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

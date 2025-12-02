@@ -8,14 +8,20 @@ This script automates the process of:
 3. Uploading the package to the official PyPI repository.
 
 Usage:
-    # Auto-increment patch version (e.g., 0.2.2 -> 0.2.3) and upload
+    # Auto-increment dev version (e.g., 0.3.1.dev5 -> 0.3.1.dev6) and upload
     python upload_to_pypi.py
+
+    # Release official stable version (e.g., 0.3.1.dev5 -> 0.3.1)
+    python upload_to_pypi.py --release
 
     # Increment minor version and upload
     python upload_to_pypi.py --increment minor
-    
+
     # Manually specify a version and upload
     python upload_to_pypi.py --version 0.3.0
+
+    # Release official stable version from local source
+    python "C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\CASSIA_python\\upload_to_pypi.py" --release
 """
 
 import argparse
@@ -26,6 +32,16 @@ import sys
 from pathlib import Path
 
 # PyPI API token from environment variable
+# Check .env file first
+env_path = Path(__file__).parent / ".env"
+if env_path.exists():
+    with open(env_path, "r") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#") and "=" in line:
+                key, value = line.strip().split("=", 1)
+                if key.strip() == "PYPI_TOKEN":
+                    os.environ["PYPI_TOKEN"] = value.strip()
+
 PYPI_TOKEN = os.environ.get("PYPI_TOKEN")
 
 def run_command(command, check=True):
@@ -51,12 +67,18 @@ def get_current_version():
         return match.group(1)
     return None
 
-def increment_version(version, increment_type='patch'):
-    """Increment version number based on semantic versioning, with support for .devN suffixes."""
-    
+def increment_version(version, increment_type='patch', release=False):
+    """Increment version number based on semantic versioning, with support for .devN suffixes.
+
+    Args:
+        version: Current version string (e.g., "0.3.1.dev5")
+        increment_type: 'major', 'minor', or 'patch'
+        release: If True, strip .devN suffix and release as stable version
+    """
+
     base_version = version
     dev_part = None
-    
+
     # Handle .dev suffixes
     if '.dev' in version:
         parts = version.split('.dev')
@@ -65,7 +87,11 @@ def increment_version(version, increment_type='patch'):
 
     try:
         major, minor, patch = map(int, base_version.split('.'))
-        
+
+        # If releasing, just use the base version (strip .devN)
+        if release:
+            return f"{major}.{minor}.{patch}"
+
         if increment_type == 'major':
             major += 1
             minor = 0
@@ -80,13 +106,13 @@ def increment_version(version, increment_type='patch'):
             else:
                 # If it's a release, increment the patch number
                 patch += 1
-        
+
         new_base = f"{major}.{minor}.{patch}"
         if dev_part is not None:
             return f"{new_base}.dev{dev_part}"
         else:
             return new_base
-            
+
     except (ValueError, IndexError):
         print(f"Warning: Could not parse base version '{base_version}'. Appending '.1'.")
         return f"{version}.1"
@@ -97,14 +123,19 @@ def main():
         description="Build and upload CASSIA package to the official PyPI. Automatically increments version."
     )
     parser.add_argument(
-        '--increment', 
+        '--increment',
         choices=['major', 'minor', 'patch'],
         default='patch',
         help="Type of version increment (default: patch)."
     )
     parser.add_argument(
-        '--version', 
+        '--version',
         help='Manually specify a version number, overriding the increment logic.'
+    )
+    parser.add_argument(
+        '--release',
+        action='store_true',
+        help='Release official stable version (strips .devN suffix). E.g., 0.3.1.dev5 -> 0.3.1'
     )
     args = parser.parse_args()
 
@@ -116,15 +147,18 @@ def main():
         # Change to script directory to find setup.py
         script_dir = Path(__file__).parent.resolve()
         os.chdir(script_dir)
-        
+
         current_version = get_current_version()
         if not current_version:
             print("Error: Could not determine current version from setup.py", file=sys.stderr)
             sys.exit(1)
-        
-        new_version = increment_version(current_version, args.increment)
+
+        new_version = increment_version(current_version, args.increment, release=args.release)
         print(f"Current version: {current_version}")
-        print(f"New version will be: {new_version} (increment type: {args.increment})")
+        if args.release:
+            print(f"New version will be: {new_version} (OFFICIAL RELEASE)")
+        else:
+            print(f"New version will be: {new_version} (increment type: {args.increment})")
 
     # --- Confirmation Step ---
     print("\n" + "="*60)

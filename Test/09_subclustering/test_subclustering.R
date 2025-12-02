@@ -28,6 +28,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_subclustering_test <- function() {
   print_test_header("09 - Subclustering (R)")
@@ -53,8 +54,10 @@ run_subclustering_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("09_subclustering")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("09_subclustering", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Get marker data and create simulated subclusters
   marker_df <- get_full_marker_dataframe()
@@ -76,13 +79,13 @@ run_subclustering_test <- function() {
   subcluster_results <- list()
 
   tryCatch({
-    cat("\n--- Test: runCASSIA_subclusters ---\n")
-    cat("  Major cluster:", major_cluster_info, "\n")
-    cat("  Subclusters to annotate:", nrow(subcluster_df), "\n")
-    cat("  Model:", llm_config$model %||% "google/gemini-2.5-flash", "\n")
-    cat("  Provider:", llm_config$provider %||% "openrouter", "\n")
+    log_msg("\n--- Test: runCASSIA_subclusters ---")
+    log_msg("  Major cluster:", major_cluster_info)
+    log_msg("  Subclusters to annotate:", nrow(subcluster_df))
+    log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
+    log_msg("  Provider:", llm_config$provider %||% "openrouter")
 
-    output_name <- file.path(results_dir, "subcluster_results")
+    output_name <- file.path(results$outputs, "subcluster_results")
 
     CASSIA::runCASSIA_subclusters(
       marker = subcluster_df,
@@ -98,16 +101,14 @@ run_subclustering_test <- function() {
     csv_file <- paste0(output_name, ".csv")
     if (file.exists(csv_file)) {
       result_df <- read.csv(csv_file)
-      cat("\nSubclustering Results:\n")
-      cat("  Output file:", basename(csv_file), "\n")
-      cat("  Subclusters annotated:", nrow(result_df), "\n")
+      log_msg("\nSubclustering Results:")
+      log_msg("  Output file:", basename(csv_file))
+      log_msg("  Subclusters annotated:", nrow(result_df))
 
       if (nrow(result_df) > 0) {
-        cat("\n  Sample annotations:\n")
+        log_msg("\n  Sample annotations:")
         for (i in 1:min(3, nrow(result_df))) {
-          cat("   ", result_df$Result.ID[i] %||% i, ":",
-              result_df$main_cell_type[i] %||% "N/A", "/",
-              result_df$sub_cell_type[i] %||% "N/A", "\n")
+          log_msg("   ", result_df$Result.ID[i] %||% i, ":", result_df$main_cell_type[i] %||% "N/A", "/", result_df$sub_cell_type[i] %||% "N/A", "\n")
         }
       }
 
@@ -120,7 +121,7 @@ run_subclustering_test <- function() {
       # Check for HTML report
       html_file <- paste0(output_name, ".html")
       if (file.exists(html_file)) {
-        cat("  HTML report:", basename(html_file), "\n")
+        log_msg("  HTML report:", basename(html_file))
         subcluster_results$html_report <- html_file
       }
 
@@ -133,7 +134,7 @@ run_subclustering_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -147,9 +148,9 @@ run_subclustering_test <- function() {
     clusters_tested = list(major_cluster_info),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     major_cluster_info = major_cluster_info,
     num_input_subclusters = nrow(subcluster_df),
     results = subcluster_results
@@ -159,6 +160,8 @@ run_subclustering_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

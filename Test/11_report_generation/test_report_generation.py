@@ -27,13 +27,16 @@ from test_utils import (
     load_config,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -98,9 +101,12 @@ def run_report_generation_test():
     # Import CASSIA function
     from CASSIA.reports.generate_batch_report import generate_batch_html_report, generate_batch_html_report_from_data
 
-    # Create results directory
-    results_dir = create_results_dir("11_report_generation")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("11_report_generation", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # Run tests
     start_time = time.time()
@@ -124,7 +130,7 @@ def run_report_generation_test():
 
             # Generate report from existing CSV
             print(f"\n--- Test 2: Generate HTML report from CSV ---")
-            output_html = str(results_dir / "test_report_from_csv.html")
+            output_html = str(results['outputs'] / "test_report_from_csv.html")
 
             result_path = generate_batch_html_report(
                 full_csv_path=existing_csv,
@@ -156,7 +162,7 @@ def run_report_generation_test():
         sample_data = create_sample_batch_data()
         print(f"  Created sample data: {len(sample_data)} clusters")
 
-        output_html_data = str(results_dir / "test_report_from_data.html")
+        output_html_data = str(results['outputs'] / "test_report_from_data.html")
 
         result_path_data = generate_batch_html_report_from_data(
             rows=sample_data,
@@ -249,15 +255,18 @@ def run_report_generation_test():
         clusters_tested=[],
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results['outputs'], {
         "report_results": report_results
     })
 
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

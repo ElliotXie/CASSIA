@@ -26,6 +26,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_batch_with_reference_test <- function() {
   print_test_header("12 - Batch Annotation with Reference (R)")
@@ -51,13 +52,15 @@ run_batch_with_reference_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("12_batch_with_reference")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("12_batch_with_reference", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Get marker data
   marker_df <- get_full_marker_dataframe()
   all_clusters <- get_all_clusters()
-  cat("\nMarker data loaded:", nrow(marker_df), "clusters\n")
+  log_msg("\nMarker data loaded:", nrow(marker_df), "clusters")
 
   # Run tests
   start_time <- Sys.time()
@@ -71,12 +74,12 @@ run_batch_with_reference_test <- function() {
     cassia_module <- reticulate::import("CASSIA")
     run_batch_with_ref <- cassia_module$runCASSIA_batch_with_reference
 
-    cat("\n--- Running runCASSIA_batch_with_reference with use_reference=TRUE ---\n")
-    cat("  Model:", llm_config$model %||% "google/gemini-2.5-flash", "\n")
-    cat("  Provider:", llm_config$provider %||% "openrouter", "\n")
-    cat("  Clusters:", length(all_clusters), "\n")
+    log_msg("\n--- Running runCASSIA_batch_with_reference with use_reference=TRUE ---")
+    log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
+    log_msg("  Provider:", llm_config$provider %||% "openrouter")
+    log_msg("  Clusters:", length(all_clusters))
 
-    output_name <- file.path(results_dir, "batch_ref_results")
+    output_name <- file.path(results$outputs, "batch_ref_results")
 
     # Run batch with reference
     run_batch_with_ref(
@@ -104,13 +107,13 @@ run_batch_with_reference_test <- function() {
       # Verify reference columns exist
       has_ref_column <- "Reference.Used" %in% names(results_df)
 
-      cat("\nBatch with Reference Results:\n")
-      cat("  Clusters annotated:", clusters_annotated, "/", length(all_clusters), "\n")
-      cat("  Reference column present:", has_ref_column, "\n")
+      log_msg("\nBatch with Reference Results:")
+      log_msg("  Clusters annotated:", clusters_annotated, "/", length(all_clusters))
+      log_msg("  Reference column present:", has_ref_column)
 
       if (has_ref_column) {
         ref_usage <- table(results_df$Reference.Used)
-        cat("  Reference usage:\n")
+        log_msg("  Reference usage:")
         print(ref_usage)
       }
 
@@ -137,7 +140,7 @@ run_batch_with_reference_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -152,9 +155,9 @@ run_batch_with_reference_test <- function() {
     errors = errors
   )
   metadata$use_reference <- TRUE
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     test_results = test_results
   ))
 
@@ -162,6 +165,8 @@ run_batch_with_reference_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

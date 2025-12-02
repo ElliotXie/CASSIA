@@ -29,6 +29,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 find_existing_batch_results <- function() {
   # Find existing batch results from Test 02
@@ -105,8 +106,10 @@ run_report_generation_test <- function() {
   })
 
   # Create results directory
-  results_dir <- create_results_dir("11_report_generation")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("11_report_generation", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Run tests
   start_time <- Sys.time()
@@ -119,19 +122,19 @@ run_report_generation_test <- function() {
     # Note: py_cassia is internal to the CASSIA package, not in global env
     reports <- reticulate::import("CASSIA.reports.generate_batch_report")
 
-    cat("\n--- Test 1: Find existing batch results ---\n")
+    log_msg("\n--- Test 1: Find existing batch results ---")
     existing_csv <- find_existing_batch_results()
 
     if (!is.null(existing_csv)) {
-      cat("  Found existing results:", basename(existing_csv), "\n")
+      log_msg("  Found existing results:", basename(existing_csv))
 
       # Read CSV to count rows
       csv_data <- read.csv(existing_csv, stringsAsFactors = FALSE)
-      cat("  CSV contains:", nrow(csv_data), "clusters\n")
+      log_msg("  CSV contains:", nrow(csv_data), "clusters")
 
       # Generate report from existing CSV
-      cat("\n--- Test 2: Generate HTML report from CSV ---\n")
-      output_html <- file.path(results_dir, "test_report_from_csv.html")
+      log_msg("\n--- Test 2: Generate HTML report from CSV ---")
+      output_html <- file.path(results$outputs, "test_report_from_csv.html")
 
       result_path <- reports$generate_batch_html_report(
         full_csv_path = existing_csv,
@@ -141,8 +144,8 @@ run_report_generation_test <- function() {
 
       if (file.exists(result_path)) {
         file_size <- file.info(result_path)$size
-        cat("  Generated:", basename(result_path), "\n")
-        cat("  File size:", round(file_size / 1024, 1), "KB\n")
+        log_msg("  Generated:", basename(result_path))
+        log_msg("  File size:", round(file_size / 1024, 1), "KB")
 
         report_results$csv_report <- list(
           source = "existing_csv",
@@ -155,20 +158,20 @@ run_report_generation_test <- function() {
         errors <- c(errors, "CSV report not created")
       }
     } else {
-      cat("  No existing batch results found\n")
-      cat("  Will create sample data for testing\n")
+      log_msg("  No existing batch results found")
+      log_msg("  Will create sample data for testing")
     }
 
     # Test 3: Generate report from sample data
-    cat("\n--- Test 3: Generate HTML report from data ---\n")
+    log_msg("\n--- Test 3: Generate HTML report from data ---")
     sample_data <- create_sample_batch_data()
-    cat("  Created sample data:", nrow(sample_data), "clusters\n")
+    log_msg("  Created sample data:", nrow(sample_data), "clusters")
 
     # Save sample data to CSV first (required by Python function)
-    sample_csv_path <- file.path(results_dir, "sample_batch_results.csv")
+    sample_csv_path <- file.path(results$outputs, "sample_batch_results.csv")
     write.csv(sample_data, sample_csv_path, row.names = FALSE)
 
-    output_html_data <- file.path(results_dir, "test_report_from_data.html")
+    output_html_data <- file.path(results$outputs, "test_report_from_data.html")
 
     result_path_data <- reports$generate_batch_html_report(
       full_csv_path = sample_csv_path,
@@ -178,8 +181,8 @@ run_report_generation_test <- function() {
 
     if (file.exists(result_path_data)) {
       file_size_data <- file.info(result_path_data)$size
-      cat("  Generated:", basename(result_path_data), "\n")
-      cat("  File size:", round(file_size_data / 1024, 1), "KB\n")
+      log_msg("  Generated:", basename(result_path_data))
+      log_msg("  File size:", round(file_size_data / 1024, 1), "KB")
 
       report_results$data_report <- list(
         source = "sample_data",
@@ -192,7 +195,7 @@ run_report_generation_test <- function() {
     }
 
     # Test 4: Validate HTML content
-    cat("\n--- Test 4: Validate HTML content ---\n")
+    log_msg("\n--- Test 4: Validate HTML content ---")
     report_to_check <- if (file.exists(result_path_data)) {
       result_path_data
     } else if (!is.null(report_results$csv_report)) {
@@ -217,12 +220,12 @@ run_report_generation_test <- function() {
         css_styles = grepl("<style>", html_content)
       )
 
-      cat("  Validation results:\n")
+      log_msg("  Validation results:")
       all_passed <- TRUE
       for (check_name in names(checks)) {
         passed <- checks[[check_name]]
         status_str <- if (passed) "PASS" else "FAIL"
-        cat("   ", check_name, ":", status_str, "\n")
+        log_msg("   ", check_name, ":", status_str)
         if (!passed) all_passed <- FALSE
       }
 
@@ -244,21 +247,21 @@ run_report_generation_test <- function() {
     }
 
     # Summary
-    cat("\n--- Report Generation Summary ---\n")
+    log_msg("\n--- Report Generation Summary ---")
     if (!is.null(report_results$csv_report)) {
-      cat("  CSV Report:", basename(report_results$csv_report$output_file), "\n")
+      log_msg("  CSV Report:", basename(report_results$csv_report$output_file))
     }
     if (!is.null(report_results$data_report)) {
-      cat("  Data Report:", basename(report_results$data_report$output_file), "\n")
+      log_msg("  Data Report:", basename(report_results$data_report$output_file))
     }
     if (!is.null(report_results$validation)) {
-      cat("  Validation:", if (report_results$validation$all_passed) "PASSED" else "FAILED", "\n")
+      log_msg("  Validation:", if (report_results$validation$all_passed) "PASSED" else "FAILED")
     }
 
   }, error = function(e) {
     errors <<- c(errors, e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   # Set final status based on validation results (workaround for tryCatch scoping)
@@ -279,9 +282,9 @@ run_report_generation_test <- function() {
     clusters_tested = list(),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     report_results = report_results
   ))
 
@@ -289,6 +292,8 @@ run_report_generation_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

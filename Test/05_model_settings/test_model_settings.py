@@ -22,13 +22,16 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -50,9 +53,12 @@ def run_model_settings_test():
     from CASSIA import resolve_model_name, get_recommended_model, get_available_aliases
     from CASSIA import runCASSIA
 
-    # Create results directory
-    results_dir = create_results_dir("05_model_settings")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("05_model_settings", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     start_time = time.time()
     errors = []
@@ -343,12 +349,15 @@ def run_model_settings_test():
         clusters_tested=["plasma cell"],
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
-    save_test_results(results_dir, test_results)
+    save_test_metadata(results['outputs'], metadata)
+    save_test_results(results['outputs'], test_results)
 
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

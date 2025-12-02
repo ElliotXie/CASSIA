@@ -21,13 +21,16 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -59,9 +62,12 @@ def run_validator_comparison_test():
 
     print(f"\nComparing validators on {len(all_clusters)} clusters")
 
-    # Create results directory
-    results_dir = create_results_dir("03_validator_comparison")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("03_validator_comparison", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # Run with both validators
     validators = ["v0", "v1"]
@@ -75,7 +81,7 @@ def run_validator_comparison_test():
         print(f"Testing {validator} validator ({'strict' if validator == 'v0' else 'moderate'})")
         print(f"{'='*40}")
 
-        output_name = str(results_dir / f"results_{validator}")
+        output_name = str(results['outputs'] / f"results_{validator}")
 
         try:
             runCASSIA_batch(
@@ -139,9 +145,9 @@ def run_validator_comparison_test():
         clusters_tested=all_clusters,
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results['outputs'], {
         "validator_results": validator_results,
         "comparison": comparison
     })
@@ -149,6 +155,9 @@ def run_validator_comparison_test():
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

@@ -16,17 +16,48 @@ def get_test_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
+def get_test_mode() -> str:
+    """
+    Get the current test mode from environment variable.
+
+    Returns:
+        str: 'installed' or 'development' (default)
+    """
+    return os.environ.get('CASSIA_TEST_MODE', 'development')
+
+
 def get_cassia_python_path() -> Path:
     """Get the path to CASSIA Python source."""
     return get_test_root().parent / "CASSIA_python" / "CASSIA"
 
 
-def setup_cassia_imports():
-    """Add CASSIA Python parent directory to sys.path for package imports."""
-    # Add parent directory so 'import CASSIA' works (not flat imports)
-    cassia_parent = str(get_cassia_python_path().parent)  # CASSIA_python, not CASSIA_python/CASSIA
-    if cassia_parent not in sys.path:
-        sys.path.insert(0, cassia_parent)
+def setup_cassia_imports(mode: str = None):
+    """
+    Setup CASSIA imports based on test mode.
+
+    Args:
+        mode: 'installed' or 'development'. If None, uses get_test_mode().
+
+    For development mode: adds local source to sys.path
+    For installed mode: uses pip-installed package (no path modification)
+    """
+    if mode is None:
+        mode = get_test_mode()
+
+    if mode == 'installed':
+        # For installed mode, verify CASSIA is installed from pip
+        info = verify_cassia_pip_install()
+        if not info['installed']:
+            raise ImportError("CASSIA is not installed. Run 'pip install CASSIA' first.")
+        if not info['is_pip_install']:
+            print(f"Warning: CASSIA found at {info['location']} - may not be pip install")
+        print(f"Using installed CASSIA package (version: {info['version']})")
+    else:
+        # Development mode: add local source to sys.path
+        cassia_parent = str(get_cassia_python_path().parent)  # CASSIA_python, not CASSIA_python/CASSIA
+        if cassia_parent not in sys.path:
+            sys.path.insert(0, cassia_parent)
+        print("Using development CASSIA (local source)")
 
 
 def load_config() -> dict:
@@ -143,3 +174,61 @@ def print_config_summary(config: dict):
     print(f"  Model: {llm.get('model', 'N/A')}")
     print(f"  Tissue: {data.get('tissue', 'N/A')}")
     print(f"  Species: {data.get('species', 'N/A')}")
+
+
+def setup_cassia_pip_install(upgrade: bool = False, pre: bool = True):
+    """
+    Ensure CASSIA is installed from PyPI.
+
+    Args:
+        upgrade: If True, upgrade to latest version
+        pre: If True, include pre-release/dev versions (default True)
+
+    Returns:
+        bool: True if installation successful
+    """
+    import subprocess
+    cmd = [sys.executable, "-m", "pip", "install"]
+    if upgrade:
+        cmd.append("--upgrade")
+    if pre:
+        cmd.append("--pre")
+    cmd.append("CASSIA")
+
+    try:
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(f"CASSIA pip package ready")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install CASSIA: {e.stderr}")
+        return False
+
+
+def verify_cassia_pip_install():
+    """
+    Verify CASSIA is installed from pip (not local source).
+
+    Returns:
+        dict: Installation info with version and location
+    """
+    try:
+        import CASSIA
+        version = getattr(CASSIA, '__version__', 'unknown')
+        location = getattr(CASSIA, '__file__', 'unknown')
+
+        # Check if it's from site-packages (pip) not local
+        is_pip_install = 'site-packages' in str(location)
+
+        return {
+            'installed': True,
+            'version': version,
+            'location': location,
+            'is_pip_install': is_pip_install
+        }
+    except ImportError:
+        return {
+            'installed': False,
+            'version': None,
+            'location': None,
+            'is_pip_install': False
+        }

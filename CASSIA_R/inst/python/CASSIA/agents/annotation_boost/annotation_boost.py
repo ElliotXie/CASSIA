@@ -1491,7 +1491,8 @@ def runCASSIA_annotationboost_additional_task(
     temperature: float = 0,
     conversation_history_mode: str = "final",
     search_strategy: str = "breadth",
-    report_style: str = "per_iteration"
+    report_style: str = "per_iteration",
+    validator_involvement: str = "v1"
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.

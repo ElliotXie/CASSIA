@@ -26,6 +26,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_single_annotation_test <- function() {
   print_test_header("01 - Single Cluster Annotation (R) [INSTALL MODE]")
@@ -54,16 +55,19 @@ run_single_annotation_test <- function() {
   test_cluster <- "plasma cell"
   n_genes <- data_config$n_genes %||% 30
 
-  cat("\nTesting single annotation for:", test_cluster, "\n")
-  cat("Using top", n_genes, "markers\n")
+  # Create results directory (BEFORE any logging)
+  results_dirs <- create_results_dir("01_single_annotation", get_test_mode())
+  start_logging(results_dirs$logs)
+
+  log_msg("Testing single annotation for:", test_cluster)
+  log_msg("Using top", n_genes, "markers")
 
   # Get markers for the test cluster
   marker_df <- get_marker_dataframe_for_cluster(test_cluster, n_genes)
-  cat("Loaded", nrow(marker_df), "markers\n")
-
-  # Create results directory
-  results_dir <- create_results_dir("01_single_annotation")
-  cat("Results will be saved to:", results_dir, "\n")
+  log_msg("Loaded", nrow(marker_df), "markers")
+  log_msg("Results will be saved to:", results_dirs$base)
+  log_msg("Results will be saved to:", results_dirs$logs)
+  log_msg("Results will be saved to:", results_dirs$outputs)
 
   # Run the test
   start_time <- Sys.time()
@@ -72,7 +76,7 @@ run_single_annotation_test <- function() {
   status <- "error"
 
   tryCatch({
-    cat("\nRunning runCASSIA via R package (install mode)...\n")
+    log_msg("Running runCASSIA via R package (install mode)...")
 
     # Call CASSIA R function
     result <- CASSIA::runCASSIA(
@@ -89,20 +93,20 @@ run_single_annotation_test <- function() {
     validation <- validate_result(result)
 
     if (validation$valid) {
-      cat("\nAnnotation Result:\n")
-      cat("  Main cell type:", result$main_cell_type, "\n")
-      cat("  Sub cell types:", paste(result$sub_cell_types, collapse = ", "), "\n")
+      log_msg("Annotation Result:")
+      log_msg("  Main cell type:", result$main_cell_type)
+      log_msg("  Sub cell types:", paste(result$sub_cell_types, collapse = ", "))
       status <- "passed"
     } else {
       errors <- validation$errors
       status <- "failed"
-      cat("\nValidation errors:", paste(errors, collapse = ", "), "\n")
+      log_msg("Validation errors:", paste(errors, collapse = ", "))
     }
 
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_error(e)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -116,10 +120,10 @@ run_single_annotation_test <- function() {
     clusters_tested = list(test_cluster),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results_dirs$outputs, metadata)
 
   if (!is.null(result)) {
-    save_test_results(results_dir, list(
+    save_test_results(results_dirs$outputs, list(
       cluster = test_cluster,
       result = result,
       mode = "install"
@@ -130,6 +134,7 @@ run_single_annotation_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+  stop_logging()
   return(success)
 }
 

@@ -22,13 +22,16 @@ from test_utils import (
     validate_annotation_result,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
-    create_test_metadata
+    create_test_metadata,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -66,9 +69,12 @@ def run_single_annotation_test():
     marker_list = marker_df['gene'].tolist()
     print(f"Loaded {len(marker_list)} markers")
 
-    # Create results directory
-    results_dir = create_results_dir("01_single_annotation")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("01_single_annotation", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # Run the test
     start_time = time.time()
@@ -116,10 +122,10 @@ def run_single_annotation_test():
         clusters_tested=[test_cluster],
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
     if result:
-        save_test_results(results_dir, {
+        save_test_results(results['outputs'], {
             "cluster": test_cluster,
             "result": result,
             "validation": validation
@@ -128,6 +134,9 @@ def run_single_annotation_test():
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

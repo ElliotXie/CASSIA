@@ -4,6 +4,52 @@
 
 library(yaml)
 
+# Source the logging manager for timestamped console logging
+# Use tryCatch to handle the case where this file is being sourced from different locations
+tryCatch({
+  # Try to find logging_manager.R relative to this file
+  this_file <- NULL
+  for (i in sys.nframe():1) {
+    if (!is.null(sys.frame(i)$ofile)) {
+      this_file <- sys.frame(i)$ofile
+      break
+    }
+  }
+  if (!is.null(this_file)) {
+    source(file.path(dirname(this_file), "logging_manager.R"))
+  } else {
+    # Fallback: try common locations
+    possible_paths <- c(
+      "shared/r/logging_manager.R",
+      "../shared/r/logging_manager.R",
+      "Test/shared/r/logging_manager.R"
+    )
+    for (path in possible_paths) {
+      if (file.exists(path)) {
+        source(path)
+        break
+      }
+    }
+  }
+}, error = function(e) {
+  # If logging_manager.R can't be loaded, create stub functions
+  if (!exists("log_msg")) {
+    log_msg <<- function(..., sep = " ") cat(paste(..., sep = sep), "\n")
+    start_logging <<- function(results_dir) invisible(NULL)
+    stop_logging <<- function() invisible(NULL)
+    log_error <<- function(e) cat("ERROR:", e$message, "\n")
+  }
+})
+
+#' Get the current test mode from environment variable
+#'
+#' @return Character string: 'installed' or 'development' (default)
+get_test_mode <- function() {
+  mode <- Sys.getenv("CASSIA_TEST_MODE", unset = "development")
+  if (mode == "") mode <- "development"
+  return(mode)
+}
+
 #' Get the test suite root directory
 #'
 #' @return Character path to test root
@@ -119,33 +165,61 @@ setup_cassia_dev <- function() {
   return(TRUE)
 }
 
-#' Setup CASSIA R package using devtools::install_local() (Install Mode)
+#' Setup CASSIA R package using devtools::install_github() (Install Mode)
 #'
-#' Installs CASSIA from local source. Use this for full package installation testing.
+#' Installs CASSIA from GitHub. Use this for full package installation testing.
+#' If CASSIA_PREINSTALLED env var is set, skips installation (used by run_all_tests.R).
 #'
 #' @param force Force reinstall even if already installed (default: FALSE)
 #' @return TRUE if successful
 setup_cassia_install <- function(force = FALSE) {
-  cassia_path <- get_cassia_r_path()
+  # Check if already pre-installed by test runner
+  preinstalled <- Sys.getenv("CASSIA_PREINSTALLED", unset = "") == "TRUE"
 
   # Check if CASSIA is already installed
-  if (force || !requireNamespace("CASSIA", quietly = TRUE)) {
-    message("Installing CASSIA R package from source...")
-    devtools::install_local(cassia_path, force = TRUE, quiet = TRUE)
+  if (!preinstalled && (force || !requireNamespace("CASSIA", quietly = TRUE))) {
+    # Clean up any stale lock directories that may cause installation to fail
+    lib_path <- .libPaths()[1]
+    lock_dir <- file.path(lib_path, "00LOCK-CASSIA")
+    if (dir.exists(lock_dir)) {
+      message("Removing stale lock directory: ", lock_dir)
+      unlink(lock_dir, recursive = TRUE)
+    }
+
+    message("Installing CASSIA R package from GitHub...")
+    devtools::install_github(
+      "ElliotXie/CASSIA/CASSIA_R",
+      force = TRUE,
+      upgrade = "never",  # Don't update any dependencies (equivalent to selecting "None")
+      quiet = FALSE  # Show full output for testing
+    )
+  } else if (preinstalled) {
+    message("Using pre-installed CASSIA package")
   }
 
   library(CASSIA)
   return(TRUE)
 }
 
-#' Setup CASSIA R package (default: development mode)
+#' Setup CASSIA R package based on test mode
 #'
-#' Wrapper that defaults to setup_cassia_dev() for fast iteration.
-#' Use setup_cassia_install() for full package installation testing.
+#' Uses environment variable CASSIA_TEST_MODE to determine whether to use
+#' devtools::load_all() (development) or devtools::install_local() (installed).
 #'
+#' @param mode Override mode: 'installed' or 'development'. If NULL, reads from env var.
 #' @return TRUE if successful
-setup_cassia <- function() {
-  setup_cassia_dev()
+setup_cassia <- function(mode = NULL) {
+  if (is.null(mode)) {
+    mode <- get_test_mode()
+  }
+
+  if (mode == "installed") {
+    message("Using installed CASSIA package")
+    setup_cassia_install()
+  } else {
+    message("Using development CASSIA (load_all)")
+    setup_cassia_dev()
+  }
 }
 
 #' Load test configuration from YAML
@@ -217,10 +291,10 @@ validate_result <- function(result) {
 #'
 #' @param test_name Name of the test
 print_test_header <- function(test_name) {
-  cat("\n")
-  cat(strrep("=", 60), "\n")
-  cat("  CASSIA TEST:", test_name, "\n")
-  cat(strrep("=", 60), "\n")
+  log_msg("")
+  log_separator("=", 60)
+  log_msg("CASSIA TEST:", test_name)
+  log_separator("=", 60)
 }
 
 #' Print test result
@@ -230,9 +304,10 @@ print_test_header <- function(test_name) {
 print_test_result <- function(success, message = "") {
   status <- if (success) "PASSED" else "FAILED"
   symbol <- if (success) "[OK]" else "[X]"
-  cat("\n", symbol, "Test", status, "\n")
+  log_msg("")
+  log_msg(symbol, "Test", status)
   if (message != "") {
-    cat("    ", message, "\n")
+    log_msg("   ", message)
   }
 }
 
@@ -242,11 +317,12 @@ print_test_result <- function(success, message = "") {
 print_config_summary <- function(config) {
   llm <- config$llm
   data <- config$data
-  cat("\nConfiguration:\n")
-  cat("  Provider:", llm$provider %||% "N/A", "\n")
-  cat("  Model:", llm$model %||% "N/A", "\n")
-  cat("  Tissue:", data$tissue %||% "N/A", "\n")
-  cat("  Species:", data$species %||% "N/A", "\n")
+  log_msg("")
+  log_msg("Configuration:")
+  log_msg("  Provider:", llm$provider %||% "N/A")
+  log_msg("  Model:", llm$model %||% "N/A")
+  log_msg("  Tissue:", data$tissue %||% "N/A")
+  log_msg("  Species:", data$species %||% "N/A")
 }
 
 # Null coalesce operator

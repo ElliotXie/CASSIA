@@ -8,7 +8,67 @@ Uncertainty quantification in CASSIA helps assess annotation reliability through
 - Quantifying annotation confidence
 - Understanding prediction variability
 
-### Multiple Iteration Analysis
+### Single Cluster Uncertainty Analysis
+
+For analyzing uncertainty in a single cluster, use `runCASSIA_n_times_similarity_score()`:
+
+```python
+from CASSIA import runCASSIA_n_times_similarity_score
+
+# Run multiple iterations on a single cluster with similarity scoring
+result = runCASSIA_n_times_similarity_score(
+    tissue="large intestine",
+    species="human",
+    marker_list=["CD38", "CD138", "JCHAIN", "MZB1", "SDC1"],
+    model="google/gemini-2.5-flash",
+    provider="openrouter",
+    n=5,  # Number of iterations
+    temperature=0.3,
+    max_workers=3,
+    main_weight=0.5,
+    sub_weight=0.5,
+    validator_involvement="v1"
+)
+
+# Access results
+print(f"Main cell type: {result['general_celltype_llm']}")
+print(f"Sub cell type: {result['sub_celltype_llm']}")
+print(f"Similarity score: {result['similarity_score']}")
+print(f"Consensus types: {result['consensus_types']}")
+
+# Check for mixed cell types
+if result.get('Possible_mixed_celltypes_llm'):
+    print(f"Possible mixed types: {result['Possible_mixed_celltypes_llm']}")
+```
+
+#### Parameter Details (Single Cluster)
+
+- **`tissue`**: Tissue type for context.
+- **`species`**: Species for context.
+- **`marker_list`**: List of marker genes for the cluster.
+- **`model`**: LLM model to use.
+- **`provider`**: API provider ("openrouter", "openai", "anthropic").
+- **`n`**: Number of analysis iterations (default: 5).
+- **`temperature`**: LLM temperature (lower = more consistent).
+- **`max_workers`**: Parallel processing workers.
+- **`main_weight`**: Weight for main cell type in similarity (0-1).
+- **`sub_weight`**: Weight for subtype in similarity (0-1).
+- **`validator_involvement`**: Validator mode ("v0" strict, "v1" moderate).
+- **`additional_info`**: Optional additional context string.
+
+#### Return Values (Single Cluster)
+
+The function returns a dictionary containing:
+- **`general_celltype_llm`**: Consensus main cell type.
+- **`sub_celltype_llm`**: Consensus sub cell type.
+- **`similarity_score`**: Overall similarity across iterations (0-1).
+- **`consensus_types`**: Cell types that appeared most frequently.
+- **`Possible_mixed_celltypes_llm`**: Detected mixed cell type populations.
+- **`original_results`**: Raw results from each iteration.
+
+### Batch Iteration Analysis
+
+For batch processing across multiple clusters, use `runCASSIA_batch_n_times`:
 
 ```python
 # Run multiple iterations

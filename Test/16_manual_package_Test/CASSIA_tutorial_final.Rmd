@@ -22,11 +22,11 @@ First, let's install and load the required packages:
 
 ```{r}
 
-# Install required packages if not already installed
-install.packages("reticulate")
-install.packages("devtools")
-library(devtools)
-devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
+# Install required packages if not already installed (uncomment if needed)
+# install.packages("reticulate")
+# install.packages("devtools")
+ library(devtools)
+ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 
 # Load libraries
@@ -69,11 +69,12 @@ We recommend setting up APIs for anthropic and openrouter to use this tutorial
 
 ```{r}
 
-# Set up API keys (replace with your actual keys)
+# Set up API keys from environment variables
+setLLMApiKey(Sys.getenv("OPENAI_API_KEY"), provider = "openai", persist = TRUE)
+setLLMApiKey(Sys.getenv("ANTHROPIC_API_KEY"), provider = "anthropic", persist = TRUE)
+setLLMApiKey("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", provider = "openrouter", persist = TRUE)
 
-setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
-setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
-setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
+print("API keys loaded from environment variables")
 
 ```
 

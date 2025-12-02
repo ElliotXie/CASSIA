@@ -29,6 +29,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_annotation_boost_test <- function() {
   print_test_header("06 - Annotation Boost (R) [INSTALL MODE]")
@@ -54,8 +55,10 @@ run_annotation_boost_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("06_annotation_boost")
-  cat("Results will be saved to:", results_dir, "\n")
+  results_dirs <- create_results_dir("06_annotation_boost", get_test_mode())
+
+  start_logging(results_dirs$logs)
+  log_msg("Results will be saved to:", results_dirs$base)
 
   # Check for existing batch results from Test 02
   batch_results_dir <- get_latest_results("02_batch_annotation")
@@ -65,15 +68,15 @@ run_annotation_boost_test <- function() {
     potential_file <- file.path(batch_results_dir, "batch_results_full.csv")
     if (file.exists(potential_file)) {
       batch_results_file <- potential_file
-      cat("\nUsing existing batch results:", batch_results_file, "\n")
+      log_msg("\nUsing existing batch results:", batch_results_file)
     }
   }
 
   # If no existing results, run batch annotation first
   if (is.null(batch_results_file)) {
-    cat("\nNo existing batch results found. Running batch annotation first...\n")
+    log_msg("\nNo existing batch results found. Running batch annotation first...")
     marker_df <- get_full_marker_dataframe()
-    batch_output <- file.path(results_dir, "batch_for_boost")
+    batch_output <- file.path(results_dirs$outputs, "batch_for_boost")
 
     CASSIA::runCASSIA_batch(
       marker = marker_df,
@@ -101,10 +104,11 @@ run_annotation_boost_test <- function() {
     test_cluster <- available_clusters[1]
   }
 
-  cat("\nTesting annotation boost for:", test_cluster, "\n")
+  log_msg("\nTesting annotation boost for:", test_cluster)
 
-  # Get marker data path
-  marker_path <- get_marker_file_path()
+  # Get marker data path - annotation_boost requires RAW FindAllMarkers format
+  # Use local findallmarkers_output.csv instead of processed.csv
+  marker_path <- file.path(script_dir, "data", "findallmarkers_output.csv")
 
   # Run annotation boost
   start_time <- Sys.time()
@@ -112,17 +116,18 @@ run_annotation_boost_test <- function() {
   status <- "error"
   boost_results <- list()
 
-  output_name <- file.path(results_dir, paste0("boost_", gsub(" ", "_", test_cluster)))
+  output_name <- file.path(results_dirs$outputs, paste0("boost_", gsub(" ", "_", test_cluster)))
 
   tryCatch({
-    cat("\nRunning annotation boost (install mode)...\n")
-    cat("  Cluster:", test_cluster, "\n")
-    cat("  Model:", llm_config$model %||% "google/gemini-2.5-flash", "\n")
-    cat("  Provider:", llm_config$provider %||% "openrouter", "\n")
-    cat("  Search strategy: breadth\n")
-    cat("  Max iterations: 3 (reduced for testing)\n")
+    log_msg("\nRunning annotation boost (install mode)...")
+    log_msg("  Cluster:", test_cluster)
+    log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
+    log_msg("  Provider:", llm_config$provider %||% "openrouter")
+    log_msg("  Search strategy: breadth")
+    log_msg("  Max iterations: 3 (reduced for testing)")
 
-    result <- CASSIA::runCASSIA_annotationboost(
+    # Run annotation boost (returns NULL, outputs are files)
+    CASSIA::runCASSIA_annotationboost(
       full_result_path = batch_results_file,
       marker = marker_path,
       cluster_name = test_cluster,
@@ -138,43 +143,43 @@ run_annotation_boost_test <- function() {
       report_style = "per_iteration"
     )
 
-    # Check result
-    if (is.list(result)) {
-      boost_results <- result
+    # Check output files exist (function outputs files, not return values)
+    summary_report_path <- paste0(output_name, "_summary.html")
+    raw_text_path <- paste0(output_name, "_raw_conversation.txt")
 
-      if (!is.null(result$status) && result$status == "success") {
-        cat("\nAnnotation Boost Results:\n")
-        cat("  Status:", result$status, "\n")
-        cat("  Execution time:", round(result$execution_time %||% 0, 1), "s\n")
+    log_msg("\nAnnotation Boost Results:")
 
-        if (!is.null(result$summary_report_path)) {
-          cat("  Summary report:", basename(result$summary_report_path), "\n")
-        }
-        if (!is.null(result$raw_text_path)) {
-          cat("  Raw conversation:", basename(result$raw_text_path), "\n")
-        }
+    if (file.exists(summary_report_path)) {
+      file_size <- file.info(summary_report_path)$size
+      log_msg("  Summary report:", basename(summary_report_path), "(", round(file_size/1024, 1), "KB )")
+      boost_results$summary_report_path <- summary_report_path
+    }
 
-        # Check if analysis text is valid
-        analysis_text <- result$analysis_text %||% ""
-        if (nchar(analysis_text) > 100) {
-          status <- "passed"
-        } else {
-          status <- "failed"
-          errors <- list("Analysis text is empty or too short")
-        }
+    if (file.exists(raw_text_path)) {
+      # Read raw conversation to check content
+      raw_content <- readLines(raw_text_path, warn = FALSE)
+      raw_text <- paste(raw_content, collapse = "\n")
+      file_size <- file.info(raw_text_path)$size
+      log_msg("  Raw conversation:", basename(raw_text_path), "(", round(file_size/1024, 1), "KB )")
+      boost_results$raw_text_path <- raw_text_path
+
+      # Check if raw conversation has meaningful content (>100 chars)
+      if (nchar(raw_text) > 100) {
+        status <- "passed"
+        log_msg("  Content length:", nchar(raw_text), "characters")
       } else {
         status <- "failed"
-        errors <- list(result$error_message %||% "Unknown error")
+        errors <- list("Raw conversation text is empty or too short")
       }
     } else {
       status <- "failed"
-      errors <- list("Unexpected result format from annotation boost")
+      errors <- list("Output files not generated")
     }
 
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -188,9 +193,9 @@ run_annotation_boost_test <- function() {
     clusters_tested = list(test_cluster),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results_dirs$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results_dirs$outputs, list(
     cluster = test_cluster,
     batch_results_file = batch_results_file,
     boost_results = list(
@@ -206,6 +211,8 @@ run_annotation_boost_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

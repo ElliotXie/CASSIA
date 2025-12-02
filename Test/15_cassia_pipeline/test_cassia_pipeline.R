@@ -29,6 +29,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_cassia_pipeline_test <- function() {
   print_test_header("15 - CASSIA Pipeline (R)")
@@ -60,20 +61,22 @@ run_cassia_pipeline_test <- function() {
   full_df <- load_markers()
   marker_df <- full_df[full_df$Broad.cell.type %in% test_clusters, ]
 
-  cat("\nTesting pipeline for", length(test_clusters), "clusters:\n")
+  log_msg("\nTesting pipeline for", length(test_clusters), "clusters:")
   for (cluster in test_clusters) {
-    cat("  -", cluster, "\n")
+    log_msg("  -", cluster)
   }
-  cat("\nLoaded marker data:", nrow(marker_df), "rows\n")
+  log_msg("\nLoaded marker data:", nrow(marker_df), "rows")
 
   # Create results directory
-  results_dir <- create_results_dir("15_cassia_pipeline")
-  output_name <- file.path(results_dir, "pipeline_test")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("15_cassia_pipeline", get_test_mode())
+
+  start_logging(results$logs)
+  output_name <- file.path(results$outputs, "pipeline_test")
+  log_msg("Results will be saved to:", results$base)
 
   # Change to results directory so pipeline output goes there
   original_dir <- getwd()
-  setwd(results_dir)
+  setwd(results$outputs)
 
   # Run the test
   start_time <- Sys.time()
@@ -82,7 +85,7 @@ run_cassia_pipeline_test <- function() {
   pipeline_output_dir <- NULL
 
   tryCatch({
-    cat("\nRunning runCASSIA_pipeline via R package...\n")
+    log_msg("\nRunning runCASSIA_pipeline via R package...")
 
     # Call CASSIA R function
     CASSIA::runCASSIA_pipeline(
@@ -105,14 +108,14 @@ run_cassia_pipeline_test <- function() {
     )
 
     # Find the pipeline output directory (starts with CASSIA_)
-    items <- list.dirs(results_dir, recursive = FALSE, full.names = FALSE)
+    items <- list.dirs(results$outputs, recursive = FALSE, full.names = FALSE)
     cassia_dirs <- items[grepl("^CASSIA_", items)]
     if (length(cassia_dirs) > 0) {
-      pipeline_output_dir <- file.path(results_dir, cassia_dirs[1])
+      pipeline_output_dir <- file.path(results$outputs, cassia_dirs[1])
     }
 
     if (!is.null(pipeline_output_dir) && dir.exists(pipeline_output_dir)) {
-      cat("\nPipeline output directory:", basename(pipeline_output_dir), "\n")
+      log_msg("\nPipeline output directory:", basename(pipeline_output_dir))
 
       # Check expected subdirectories
       annotation_dir <- file.path(pipeline_output_dir, "01_annotation_results")
@@ -120,40 +123,40 @@ run_cassia_pipeline_test <- function() {
       boost_dir <- file.path(pipeline_output_dir, "03_boost_analysis")
 
       checks_passed <- TRUE
-      cat("\nValidating output structure:\n")
+      log_msg("\nValidating output structure:")
 
       # Check 01_annotation_results
       if (dir.exists(annotation_dir)) {
-        cat("  [OK] 01_annotation_results exists\n")
+        log_msg("  [OK] 01_annotation_results exists")
         # Check for FINAL_RESULTS.csv
         final_results <- file.path(annotation_dir, "FINAL_RESULTS.csv")
         if (file.exists(final_results)) {
-          cat("  [OK] FINAL_RESULTS.csv exists\n")
+          log_msg("  [OK] FINAL_RESULTS.csv exists")
           results_df <- read.csv(final_results)
-          cat("       - Contains", nrow(results_df), "rows\n")
+          log_msg("       - Contains", nrow(results_df), "rows")
         } else {
-          cat("  [WARN] FINAL_RESULTS.csv not found\n")
+          log_msg("  [WARN] FINAL_RESULTS.csv not found")
         }
       } else {
-        cat("  [FAIL] 01_annotation_results missing\n")
+        log_msg("  [FAIL] 01_annotation_results missing")
         checks_passed <- FALSE
         errors <- list("01_annotation_results directory missing")
       }
 
       # Check 02_reports
       if (dir.exists(reports_dir_path)) {
-        cat("  [OK] 02_reports exists\n")
+        log_msg("  [OK] 02_reports exists")
         html_files <- list.files(reports_dir_path, pattern = "\\.html$")
-        cat("       - Contains", length(html_files), "HTML report(s)\n")
+        log_msg("       - Contains", length(html_files), "HTML report(s)")
       } else {
-        cat("  [WARN] 02_reports missing (may be expected if no reports generated)\n")
+        log_msg("  [WARN] 02_reports missing (may be expected if no reports generated)")
       }
 
       # Check 03_boost_analysis
       if (dir.exists(boost_dir)) {
-        cat("  [OK] 03_boost_analysis exists\n")
+        log_msg("  [OK] 03_boost_analysis exists")
       } else {
-        cat("  [INFO] 03_boost_analysis missing (expected if all scores above threshold)\n")
+        log_msg("  [INFO] 03_boost_analysis missing (expected if all scores above threshold)")
       }
 
       if (checks_passed) {
@@ -169,7 +172,7 @@ run_cassia_pipeline_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   # Change back to original directory
@@ -186,12 +189,14 @@ run_cassia_pipeline_test <- function() {
     clusters_tested = as.list(test_clusters),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
   # Print final result
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

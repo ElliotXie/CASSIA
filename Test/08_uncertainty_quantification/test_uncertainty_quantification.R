@@ -28,6 +28,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_uncertainty_quantification_test <- function() {
   print_test_header("08 - Uncertainty Quantification (R)")
@@ -53,8 +54,10 @@ run_uncertainty_quantification_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("08_uncertainty_quantification")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("08_uncertainty_quantification", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Test cluster
   test_cluster <- "plasma cell"
@@ -67,11 +70,11 @@ run_uncertainty_quantification_test <- function() {
   uq_results <- list()
 
   tryCatch({
-    cat("\n--- Test: runCASSIA_n_times_similarity_score ---\n")
-    cat("  Cluster:", test_cluster, "\n")
-    cat("  Model:", llm_config$model %||% "google/gemini-2.5-flash", "\n")
-    cat("  Provider:", llm_config$provider %||% "openrouter", "\n")
-    cat("  N iterations: 3 (reduced for testing)\n")
+    log_msg("\n--- Test: runCASSIA_n_times_similarity_score ---")
+    log_msg("  Cluster:", test_cluster)
+    log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
+    log_msg("  Provider:", llm_config$provider %||% "openrouter")
+    log_msg("  N iterations: 3 (reduced for testing)")
 
     result <- CASSIA::runCASSIA_n_times_similarity_score(
       tissue = data_config$tissue %||% "large intestine",
@@ -88,10 +91,10 @@ run_uncertainty_quantification_test <- function() {
 
     # Check result
     if (is.list(result)) {
-      cat("\nResults:\n")
-      cat("  General cell type (LLM):", result$general_celltype_llm %||% "N/A", "\n")
-      cat("  Sub cell type (LLM):", result$sub_celltype_llm %||% "N/A", "\n")
-      cat("  Similarity score:", result$similarity_score %||% "N/A", "\n")
+      log_msg("\nResults:")
+      log_msg("  General cell type (LLM):", result$general_celltype_llm %||% "N/A")
+      log_msg("  Sub cell type (LLM):", result$sub_celltype_llm %||% "N/A")
+      log_msg("  Similarity score:", result$similarity_score %||% "N/A")
 
       uq_results <- list(
         general_celltype_llm = result$general_celltype_llm,
@@ -116,7 +119,7 @@ run_uncertainty_quantification_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -130,9 +133,9 @@ run_uncertainty_quantification_test <- function() {
     clusters_tested = list(test_cluster),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     test_cluster = test_cluster,
     n_iterations = 3,
     results = uq_results
@@ -142,6 +145,8 @@ run_uncertainty_quantification_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

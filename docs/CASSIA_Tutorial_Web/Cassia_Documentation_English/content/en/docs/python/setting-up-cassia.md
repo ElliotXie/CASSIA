@@ -75,6 +75,74 @@ You can also use common names, and CASSIA will resolve them to the correct versi
 - `"claude"` -> resolves to `claude-sonnet-4.5` (for Anthropic)
 - `"gemini"` -> resolves to `google/gemini-2.5-flash` (for OpenRouter)
 
+### Complete Alias Reference
+
+| Alias | OpenAI | Anthropic | OpenRouter |
+|-------|--------|-----------|------------|
+| `gpt` | gpt-5.1 | - | openai/gpt-5.1 |
+| `claude` | - | claude-sonnet-4-5 | anthropic/claude-sonnet-4.5 |
+| `gemini` | - | - | google/gemini-2.5-flash |
+| `flash` | - | - | google/gemini-2.5-flash |
+| `sonnet` | - | claude-sonnet-4-5 | anthropic/claude-sonnet-4.5 |
+| `opus` | - | claude-opus-4-5 | anthropic/claude-opus-4.5 |
+| `haiku` | - | claude-haiku-4-5 | anthropic/claude-haiku-4.5 |
+| `4o` | gpt-4o | - | openai/gpt-4o |
+| `deepseek` | - | - | deepseek/deepseek-chat |
+
+### Advanced Model Resolution Functions
+
+For advanced users, CASSIA provides helper functions for programmatic model name resolution:
+
+#### resolve_model_name()
+
+Resolves aliases and tier names to actual model IDs:
+
+```python
+from CASSIA import resolve_model_name
+
+# Resolve a tier shortcut
+model_name, provider = resolve_model_name("best", "openai")
+print(f"Resolved: {model_name}")  # -> gpt-5.1
+
+# Resolve a fuzzy alias
+model_name, provider = resolve_model_name("claude", "anthropic")
+print(f"Resolved: {model_name}")  # -> claude-sonnet-4-5
+
+# Resolve with verbose output (shows notification when alias is used)
+model_name, provider = resolve_model_name("gemini", "openrouter", verbose=True)
+# Note: Resolved 'gemini' to 'google/gemini-2.5-flash'
+```
+
+#### get_recommended_model()
+
+Get the recommended default model for a provider:
+
+```python
+from CASSIA import get_recommended_model
+
+model = get_recommended_model("openrouter")
+print(model)  # -> google/gemini-2.5-flash
+
+model = get_recommended_model("openai")
+print(model)  # -> gpt-5.1
+```
+
+#### get_available_aliases()
+
+List all available aliases for model resolution:
+
+```python
+from CASSIA import get_available_aliases
+
+# Get all aliases (returns dict with 'provider_specific' and 'global' keys)
+all_aliases = get_available_aliases()
+print(all_aliases['global'])  # Tier shortcuts: best, balanced, fast
+
+# Get aliases for a specific provider
+openai_aliases = get_available_aliases("openai")
+print(openai_aliases['provider_specific'])  # Provider-specific aliases
+```
+
 ## Loading Example Markers
 
 You can load example marker data provided with the package:

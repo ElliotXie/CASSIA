@@ -29,6 +29,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_symphony_compare_test <- function() {
   print_test_header("10 - Symphony Compare (R)")
@@ -54,8 +55,10 @@ run_symphony_compare_test <- function() {
   data_config <- config$data
 
   # Create results directory
-  results_dir <- create_results_dir("10_symphony_compare")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("10_symphony_compare", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   # Test parameters
   test_cluster <- "plasma cell"
@@ -72,13 +75,13 @@ run_symphony_compare_test <- function() {
   symphony_results <- list()
 
   tryCatch({
-    cat("\n--- Test: symphonyCompare ---\n")
-    cat("  Tissue:", data_config$tissue %||% "large intestine", "\n")
-    cat("  Species:", data_config$species %||% "human", "\n")
-    cat("  Cell types to compare:", paste(celltypes, collapse = ", "), "\n")
-    cat("  Marker set:", substr(marker_set, 1, 50), "...\n")
-    cat("  Model preset: budget (cost-effective for testing)\n")
-    cat("  Discussion: Disabled (for faster testing)\n")
+    log_msg("\n--- Test: symphonyCompare ---")
+    log_msg("  Tissue:", data_config$tissue %||% "large intestine")
+    log_msg("  Species:", data_config$species %||% "human")
+    log_msg("  Cell types to compare:", paste(celltypes, collapse = ", "))
+    log_msg("  Marker set:", substr(marker_set, 1, 50), "...")
+    log_msg("  Model preset: budget (cost-effective for testing)")
+    log_msg("  Discussion: Disabled (for faster testing)")
 
     result <- CASSIA::symphonyCompare(
       tissue = data_config$tissue %||% "large intestine",
@@ -86,7 +89,7 @@ run_symphony_compare_test <- function() {
       marker_set = marker_set,
       species = data_config$species %||% "human",
       model_preset = "budget",
-      output_dir = results_dir,
+      output_dir = results$outputs,
       output_basename = "symphony_test",
       enable_discussion = FALSE,
       max_discussion_rounds = 0,
@@ -97,19 +100,19 @@ run_symphony_compare_test <- function() {
 
     # Check result
     if (is.list(result)) {
-      cat("\n--- Symphony Compare Results ---\n")
-      cat("  Consensus:", result$consensus %||% "No consensus", "\n")
-      cat("  Confidence:", sprintf("%.1f%%", (result$confidence %||% 0) * 100), "\n")
-      cat("  CSV file:", basename(result$csv_file %||% "N/A"), "\n")
-      cat("  HTML report:", basename(result$html_file %||% "N/A"), "\n")
+      log_msg("\n--- Symphony Compare Results ---")
+      log_msg("  Consensus:", result$consensus %||% "No consensus")
+      log_msg("  Confidence:", sprintf("%.1f%%", (result$confidence %||% 0) * 100))
+      log_msg("  CSV file:", basename(result$csv_file %||% "N/A"))
+      log_msg("  HTML report:", basename(result$html_file %||% "N/A"))
 
       # Summary statistics
       summary_data <- result$summary
       if (!is.null(summary_data)) {
-        cat("\n  Summary:\n")
-        cat("    Models used:", summary_data$models_used %||% "N/A", "\n")
-        cat("    Total rounds:", summary_data$total_rounds %||% "N/A", "\n")
-        cat("    Consensus reached:", summary_data$consensus_reached %||% FALSE, "\n")
+        log_msg("\n  Summary:")
+        log_msg("    Models used:", summary_data$models_used %||% "N/A")
+        log_msg("    Total rounds:", summary_data$total_rounds %||% "N/A")
+        log_msg("    Consensus reached:", summary_data$consensus_reached %||% FALSE)
       }
 
       symphony_results <- list(
@@ -135,7 +138,7 @@ run_symphony_compare_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_msg("\nError:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -149,9 +152,9 @@ run_symphony_compare_test <- function() {
     clusters_tested = as.list(celltypes),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     celltypes_compared = celltypes,
     marker_set = marker_set,
     model_preset = "budget",
@@ -162,6 +165,8 @@ run_symphony_compare_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

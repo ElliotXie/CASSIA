@@ -29,13 +29,14 @@ script_dir <- get_script_dir()
 # Source shared utilities
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 # Helper function to print individual test results
 print_subtest_result <- function(test_name, passed, message = NULL) {
   status <- if (passed) "[OK]" else "[X]"
-  cat(" ", status, test_name, "\n")
+  log_msg(" ", status, test_name)
   if (!is.null(message) && !passed) {
-    cat("      ", message, "\n")
+    log_msg("      ", message)
   }
 }
 
@@ -50,9 +51,9 @@ setup_validation_modules <- function() {
 }
 
 test_marker_list_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Marker List Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Marker List Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -152,9 +153,9 @@ test_marker_list_validation <- function() {
 }
 
 test_temperature_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Temperature Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Temperature Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -238,9 +239,9 @@ test_temperature_validation <- function() {
 }
 
 test_tissue_species_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Tissue/Species Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Tissue/Species Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -294,9 +295,9 @@ test_tissue_species_validation <- function() {
 }
 
 test_provider_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Provider Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Provider Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -378,9 +379,9 @@ test_provider_validation <- function() {
 }
 
 test_model_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Model Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Model Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -426,9 +427,9 @@ test_model_validation <- function() {
 }
 
 test_batch_parameters <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Batch Parameter Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Batch Parameter Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -505,9 +506,9 @@ test_batch_parameters <- function() {
 }
 
 test_integrated_validation <- function() {
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("Testing Integrated runCASSIA Validation\n")
-  cat(strrep("=", 50), "\n")
+  log_separator()
+  log_msg("Testing Integrated runCASSIA Validation")
+  log_separator()
 
   tests_passed <- 0
   tests_failed <- 0
@@ -607,8 +608,10 @@ run_all_tests <- function() {
   })
 
   # Create results directory
-  results_dir <- create_results_dir("14_input_validation")
-  cat("Results will be saved to:", results_dir, "\n")
+  results_dirs <- create_results_dir("14_input_validation", get_test_mode())
+
+  start_logging(results_dirs$logs)
+  log_msg("Results will be saved to:", results_dirs$base)
 
   # Setup validation modules
   setup_validation_modules()
@@ -657,19 +660,19 @@ run_all_tests <- function() {
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
   # Print summary
-  cat("\n", strrep("=", 50), "\n", sep = "")
-  cat("TEST SUMMARY\n")
-  cat(strrep("=", 50), "\n")
-  cat("Tests passed:", total_passed, "\n")
-  cat("Tests failed:", total_failed, "\n")
-  cat("Total tests: ", total_passed + total_failed, "\n")
+  log_separator()
+  log_msg("TEST SUMMARY")
+  log_separator()
+  log_msg("Tests passed:", total_passed)
+  log_msg("Tests failed:", total_failed)
+  log_msg("Total tests: ", total_passed + total_failed)
 
   # Determine status
   if (total_failed == 0) {
-    cat("\n*** ALL TESTS PASSED ***\n")
+    log_msg("\n*** ALL TESTS PASSED ***")
     status <- "passed"
   } else {
-    cat("\n***", total_failed, "TEST(S) FAILED ***\n")
+    log_msg("\n***", total_failed, "TEST(S) FAILED ***")
     status <- "failed"
   }
 
@@ -687,9 +690,9 @@ run_all_tests <- function() {
     failed = total_failed,
     total = total_passed + total_failed
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results_dirs$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results_dirs$outputs, list(
     test_groups = test_group_results
   ))
 
@@ -697,6 +700,8 @@ run_all_tests <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

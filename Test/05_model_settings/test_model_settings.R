@@ -25,6 +25,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_model_settings_test <- function() {
   print_test_header("05 - Model Settings (R)")
@@ -46,8 +47,10 @@ run_model_settings_test <- function() {
   })
 
   # Create results directory
-  results_dir <- create_results_dir("05_model_settings")
-  cat("Results will be saved to:", results_dir, "\n")
+  results <- create_results_dir("05_model_settings", get_test_mode())
+
+  start_logging(results$logs)
+  log_msg("Results will be saved to:", results$base)
 
   start_time <- Sys.time()
   errors <- list()
@@ -57,9 +60,9 @@ run_model_settings_test <- function() {
   )
 
   # Test 1: Model name resolution via Python (through reticulate)
-  cat("\n", strrep("=", 40), "\n")
-  cat("Testing Model Name Resolution\n")
-  cat(strrep("=", 40), "\n")
+  log_separator()
+  log_msg("Testing Model Name Resolution")
+  log_separator()
 
   resolution_tests <- list(
     list(simple_name = "gemini", provider = "openrouter", expected_contains = "gemini"),
@@ -72,7 +75,7 @@ run_model_settings_test <- function() {
 
   tryCatch({
     # Import model_settings module via reticulate
-    model_settings <- reticulate::import("model_settings")
+    model_settings <- reticulate::import("CASSIA.core.model_settings")
 
     for (test in resolution_tests) {
       tryCatch({
@@ -97,8 +100,7 @@ run_model_settings_test <- function() {
         )))
 
         status_symbol <- if (success) "[OK]" else "[X]"
-        cat("  ", status_symbol, " '", test$simple_name, "' + '", test$provider,
-            "' -> '", resolved_name, "'\n", sep = "")
+        log_msg("  ", status_symbol, " '", test$simple_name, "' + '", test$provider, "' -> '", resolved_name, "'", sep = "")
 
         if (success) resolution_passed <- resolution_passed + 1
 
@@ -110,28 +112,28 @@ run_model_settings_test <- function() {
           success = FALSE
         )))
         errors <<- c(errors, paste0("Resolution failed for '", test$simple_name, "': ", e$message))
-        cat("  [X] '", test$simple_name, "' + '", test$provider, "' -> ERROR: ", e$message, "\n", sep = "")
+        log_msg("  [X] '", test$simple_name, "' + '", test$provider, "' -> ERROR: ", e$message, "", sep = "")
       })
     }
   }, error = function(e) {
-    cat("  [X] Could not import model_settings module:", e$message, "\n")
+    log_msg("  [X] Could not import model_settings module:", e$message)
     errors <<- c(errors, paste0("Module import failed: ", e$message))
   })
 
-  cat("\nResolution tests:", resolution_passed, "/", length(resolution_tests), "passed\n")
+  log_msg("\nResolution tests:", resolution_passed, "/", length(resolution_tests), "passed")
 
   # Test 2: Practical test with gemini-2.5-flash via OpenRouter
-  cat("\n", strrep("=", 40), "\n")
-  cat("Testing Practical Annotation with OpenRouter\n")
-  cat(strrep("=", 40), "\n")
+  log_separator()
+  log_msg("Testing Practical Annotation with OpenRouter")
+  log_separator()
 
   data_config <- config$data
   marker_df <- get_marker_dataframe_for_cluster("plasma cell", 20)
 
   tryCatch({
-    cat("  Model: google/gemini-2.5-flash\n")
-    cat("  Provider: openrouter\n")
-    cat("  Running annotation...\n")
+    log_msg("  Model: google/gemini-2.5-flash")
+    log_msg("  Provider: openrouter")
+    log_msg("  Running annotation...")
 
     result <- CASSIA::runCASSIA(
       model = "google/gemini-2.5-flash",
@@ -151,10 +153,10 @@ run_model_settings_test <- function() {
     )
 
     if (practical_success) {
-      cat("  [OK] Annotation successful\n")
-      cat("       Main type:", result$main_cell_type, "\n")
+      log_msg("  [OK] Annotation successful")
+      log_msg("       Main type:", result$main_cell_type)
     } else {
-      cat("  [X] Annotation returned empty result\n")
+      log_msg("  [X] Annotation returned empty result")
       errors <- c(errors, "Practical test returned empty result")
     }
 
@@ -164,7 +166,7 @@ run_model_settings_test <- function() {
       error = e$message
     )
     errors <<- c(errors, paste0("Practical test failed: ", e$message))
-    cat("  [X] ERROR:", e$message, "\n")
+    log_msg("  [X] ERROR:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -191,13 +193,15 @@ run_model_settings_test <- function() {
     clusters_tested = list("plasma cell"),
     errors = as.list(errors)
   )
-  save_test_metadata(results_dir, metadata)
-  save_test_results(results_dir, test_results)
+  save_test_metadata(results$outputs, metadata)
+  save_test_results(results$outputs, test_results)
 
   # Print final result
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+
+  stop_logging()
   return(success)
 }
 

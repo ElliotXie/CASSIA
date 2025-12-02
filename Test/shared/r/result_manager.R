@@ -6,17 +6,35 @@
 
 library(jsonlite)
 
-#' Create a timestamped results directory
+#' Create a timestamped results directory with organized subfolders
 #'
 #' @param test_folder Name of the test folder (e.g., '01_single_annotation')
-#' @return Path to the created results directory
-create_results_dir <- function(test_folder) {
+#' @param mode 'installed' or 'development' (default: 'development')
+#' @return List with paths:
+#'   - base: Path to the timestamp directory
+#'   - logs: Path to logs/ subdirectory
+#'   - outputs: Path to outputs/ subdirectory
+#'
+#' Directory structure:
+#'   results/r/{mode}/{timestamp}/outputs/
+#'   results/r/{mode}/{timestamp}/logs/
+create_results_dir <- function(test_folder, mode = "development") {
   test_root <- get_test_root()
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-  results_dir <- file.path(test_root, test_folder, "results", timestamp)
+  timestamp_dir <- file.path(test_root, test_folder, "results", "r", mode, timestamp)
 
-  dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
-  return(results_dir)
+  # Create organized subdirectories
+  logs_dir <- file.path(timestamp_dir, "logs")
+  outputs_dir <- file.path(timestamp_dir, "outputs")
+
+  dir.create(logs_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(outputs_dir, recursive = TRUE, showWarnings = FALSE)
+
+  return(list(
+    base = timestamp_dir,
+    logs = logs_dir,
+    outputs = outputs_dir
+  ))
 }
 
 #' Save test metadata to JSON

@@ -26,6 +26,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_batch_annotation_test <- function() {
   print_test_header("02 - Batch Annotation (R) [INSTALL MODE]")
@@ -52,19 +53,24 @@ run_batch_annotation_test <- function() {
 
   # Get all clusters
   all_clusters <- get_all_clusters()
-  cat("\nTesting batch annotation for", length(all_clusters), "clusters:\n")
+
+  # Create results directory (BEFORE any logging)
+  results_dirs <- create_results_dir("02_batch_annotation", get_test_mode())
+  start_logging(results_dirs$logs)
+
+  log_msg("Testing batch annotation for", length(all_clusters), "clusters:")
   for (cluster in all_clusters) {
-    cat("  -", cluster, "\n")
+    log_msg("  -", cluster)
   }
 
   # Get full marker dataframe
   marker_df <- get_full_marker_dataframe()
-  cat("\nLoaded marker data:", nrow(marker_df), "rows\n")
+  log_msg("Loaded marker data:", nrow(marker_df), "rows")
 
-  # Create results directory
-  results_dir <- create_results_dir("02_batch_annotation")
-  output_name <- file.path(results_dir, "batch_results")
-  cat("Results will be saved to:", results_dir, "\n")
+  output_name <- file.path(results_dirs$outputs, "batch_results")
+  log_msg("Results will be saved to:", results_dirs$base)
+  log_msg("Results will be saved to:", results_dirs$logs)
+  log_msg("Results will be saved to:", results_dirs$outputs)
 
   # Run the test
   start_time <- Sys.time()
@@ -72,7 +78,7 @@ run_batch_annotation_test <- function() {
   status <- "error"
 
   tryCatch({
-    cat("\nRunning runCASSIA_batch via R package (install mode)...\n")
+    log_msg("Running runCASSIA_batch via R package (install mode)...")
 
     # Call CASSIA R function
     CASSIA::runCASSIA_batch(
@@ -96,12 +102,12 @@ run_batch_annotation_test <- function() {
       results_df <- read.csv(full_csv)
       clusters_annotated <- nrow(results_df)
 
-      cat("\nBatch Results:\n")
-      cat("  Clusters annotated:", clusters_annotated, "/", length(all_clusters), "\n")
-      cat("  Output files created:\n")
-      cat("    -", basename(full_csv), "\n")
+      log_msg("Batch Results:")
+      log_msg("  Clusters annotated:", clusters_annotated, "/", length(all_clusters))
+      log_msg("  Output files created:")
+      log_msg("    -", basename(full_csv))
       if (file.exists(summary_csv)) {
-        cat("    -", basename(summary_csv), "\n")
+        log_msg("    -", basename(summary_csv))
       }
 
       if (clusters_annotated == length(all_clusters)) {
@@ -118,7 +124,7 @@ run_batch_annotation_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_error(e)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -132,12 +138,13 @@ run_batch_annotation_test <- function() {
     clusters_tested = as.list(all_clusters),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results_dirs$outputs, metadata)
 
   # Print final result
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+  stop_logging()
   return(success)
 }
 

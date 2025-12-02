@@ -31,14 +31,17 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
     create_test_metadata,
-    get_latest_results
+    get_latest_results,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -65,9 +68,12 @@ def run_annotation_boost_test():
     from CASSIA import runCASSIA_annotationboost
     import pandas as pd
 
-    # Create results directory
-    results_dir = create_results_dir("06_annotation_boost")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("06_annotation_boost", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # First, we need batch results for annotation boost
     # Check if we have existing batch results
@@ -84,7 +90,7 @@ def run_annotation_boost_test():
     if not batch_results_file:
         print("\nNo existing batch results found. Running batch annotation first...")
         marker_df = get_full_marker_dataframe()
-        batch_output = str(results_dir / "batch_for_boost")
+        batch_output = str(results['outputs'] / "batch_for_boost")
 
         runCASSIA_batch(
             marker=marker_df,
@@ -121,7 +127,7 @@ def run_annotation_boost_test():
     status = "error"
     boost_results = {}
 
-    output_name = str(results_dir / f"boost_{test_cluster.replace(' ', '_')}")
+    output_name = str(results['outputs'] / f"boost_{test_cluster.replace(' ', '_')}")
 
     try:
         print(f"\nRunning annotation boost...")
@@ -192,9 +198,9 @@ def run_annotation_boost_test():
         clusters_tested=[test_cluster],
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results['outputs'], {
         "cluster": test_cluster,
         "batch_results_file": batch_results_file,
         "boost_results": {
@@ -208,6 +214,9 @@ def run_annotation_boost_test():
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

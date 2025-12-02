@@ -25,6 +25,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_validator_comparison_test <- function() {
   print_test_header("03 - Validator Comparison (R)")
@@ -53,11 +54,12 @@ run_validator_comparison_test <- function() {
   marker_df <- get_full_marker_dataframe()
   all_clusters <- get_all_clusters()
 
-  cat("\nComparing validators on", length(all_clusters), "clusters\n")
+  # Create results directory (BEFORE any logging)
+  results <- create_results_dir("03_validator_comparison", get_test_mode())
+  start_logging(results$logs)
 
-  # Create results directory
-  results_dir <- create_results_dir("03_validator_comparison")
-  cat("Results will be saved to:", results_dir, "\n")
+  log_msg("Comparing validators on", length(all_clusters), "clusters")
+  log_msg("Results will be saved to:", results$base)
 
   # Run with both validators
   validators <- c("v0", "v1")
@@ -67,12 +69,12 @@ run_validator_comparison_test <- function() {
   start_time <- Sys.time()
 
   for (validator in validators) {
-    cat("\n", strrep("=", 40), "\n")
-    cat("Testing", validator, "validator",
-        if (validator == "v0") "(strict)" else "(moderate)", "\n")
-    cat(strrep("=", 40), "\n")
+    log_separator()
+    log_msg("Testing", validator, "validator",
+        if (validator == "v0") "(strict)" else "(moderate)")
+    log_separator()
 
-    output_name <- file.path(results_dir, paste0("results_", validator))
+    output_name <- file.path(results$outputs, paste0("results_", validator))
 
     tryCatch({
       CASSIA::runCASSIA_batch(
@@ -96,23 +98,23 @@ run_validator_comparison_test <- function() {
           clusters_annotated = nrow(df),
           results_file = full_csv
         )
-        cat("  Annotated", nrow(df), "clusters\n")
+        log_msg("  Annotated", nrow(df), "clusters")
       } else {
         errors <- c(errors, paste0(validator, ": Output file not created"))
       }
 
     }, error = function(e) {
       errors <<- c(errors, paste0(validator, ": ", e$message))
-      cat("  Error:", e$message, "\n")
+      log_error(e)
     })
   }
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
   # Compare results
-  cat("\n", strrep("=", 40), "\n")
-  cat("Comparison Results\n")
-  cat(strrep("=", 40), "\n")
+  log_separator()
+  log_msg("Comparison Results")
+  log_separator()
 
   comparison <- list()
   status <- "failed"
@@ -125,11 +127,11 @@ run_validator_comparison_test <- function() {
       v1_clusters = v1_count,
       both_complete = (v0_count == length(all_clusters) && v1_count == length(all_clusters))
     )
-    cat("  v0 (strict):", v0_count, "clusters\n")
-    cat("  v1 (moderate):", v1_count, "clusters\n")
+    log_msg("  v0 (strict):", v0_count, "clusters")
+    log_msg("  v1 (moderate):", v1_count, "clusters")
     status <- if (comparison$both_complete) "passed" else "failed"
   } else {
-    cat("  Could not compare - one or both validators failed\n")
+    log_msg("  Could not compare - one or both validators failed")
   }
 
   # Save metadata and results
@@ -141,9 +143,9 @@ run_validator_comparison_test <- function() {
     clusters_tested = as.list(all_clusters),
     errors = as.list(errors)
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results$outputs, list(
     validator_results = validator_results,
     comparison = comparison
   ))
@@ -152,6 +154,7 @@ run_validator_comparison_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+  stop_logging()
   return(success)
 }
 

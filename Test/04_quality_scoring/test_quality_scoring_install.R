@@ -28,6 +28,7 @@ script_dir <- get_script_dir()
 source(file.path(script_dir, "..", "shared", "r", "test_utils.R"))
 source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
+source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_quality_scoring_test <- function() {
   print_test_header("04 - Quality Scoring (R) [INSTALL MODE]")
@@ -52,9 +53,11 @@ run_quality_scoring_test <- function() {
   llm_config <- config$llm
   data_config <- config$data
 
-  # Create results directory
-  results_dir <- create_results_dir("04_quality_scoring")
-  cat("Results will be saved to:", results_dir, "\n")
+  # Create results directory (BEFORE any logging)
+  results_dirs <- create_results_dir("04_quality_scoring", get_test_mode())
+  start_logging(results_dirs$logs)
+
+  log_msg("Results will be saved to:", results_dirs$base)
 
   # Check for existing batch results from Test 02
   batch_results_dir <- get_latest_results("02_batch_annotation")
@@ -64,15 +67,15 @@ run_quality_scoring_test <- function() {
     potential_file <- file.path(batch_results_dir, "batch_results_full.csv")
     if (file.exists(potential_file)) {
       input_file <- potential_file
-      cat("\nUsing existing batch results:", input_file, "\n")
+      log_msg("Using existing batch results:", input_file)
     }
   }
 
   # If no existing results, run a quick batch annotation
   if (is.null(input_file)) {
-    cat("\nNo existing batch results found. Running batch annotation first...\n")
+    log_msg("No existing batch results found. Running batch annotation first...")
     marker_df <- get_full_marker_dataframe()
-    batch_output <- file.path(results_dir, "batch_for_scoring")
+    batch_output <- file.path(results_dirs$outputs, "batch_for_scoring")
 
     CASSIA::runCASSIA_batch(
       marker = marker_df,
@@ -95,12 +98,12 @@ run_quality_scoring_test <- function() {
   status <- "error"
   scoring_results <- list()
 
-  output_file <- file.path(results_dir, "scored_results.csv")
+  output_file <- file.path(results_dirs$outputs, "scored_results.csv")
 
   tryCatch({
-    cat("\nRunning quality scoring (install mode)...\n")
-    cat("Input:", input_file, "\n")
-    cat("Output:", output_file, "\n")
+    log_msg("Running quality scoring (install mode)...")
+    log_msg("Input:", input_file)
+    log_msg("Output:", output_file)
 
     CASSIA::runCASSIA_score_batch(
       input_file = input_file,
@@ -135,10 +138,10 @@ run_quality_scoring_test <- function() {
           scores = as.list(scores)
         )
 
-        cat("\nScoring Results:\n")
-        cat("  Clusters scored:", length(scores), "\n")
-        cat("  Average score:", round(mean(scores), 1), "\n")
-        cat("  Score range:", min(scores), "-", max(scores), "\n")
+        log_msg("Scoring Results:")
+        log_msg("  Clusters scored:", length(scores))
+        log_msg("  Average score:", round(mean(scores), 1))
+        log_msg("  Score range:", min(scores), "-", max(scores))
 
         # Validate scores are in expected range
         if (min(scores) >= 0 && max(scores) <= 100) {
@@ -159,7 +162,7 @@ run_quality_scoring_test <- function() {
   }, error = function(e) {
     errors <<- list(e$message)
     status <<- "error"
-    cat("\nError:", e$message, "\n")
+    log_error(e)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
@@ -174,9 +177,9 @@ run_quality_scoring_test <- function() {
     clusters_tested = as.list(all_clusters),
     errors = errors
   )
-  save_test_metadata(results_dir, metadata)
+  save_test_metadata(results_dirs$outputs, metadata)
 
-  save_test_results(results_dir, list(
+  save_test_results(results_dirs$outputs, list(
     input_file = input_file,
     output_file = output_file,
     scoring_results = scoring_results,
@@ -187,6 +190,7 @@ run_quality_scoring_test <- function() {
   success <- status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
+  stop_logging()
   return(success)
 }
 

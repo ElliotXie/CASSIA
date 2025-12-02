@@ -25,14 +25,17 @@ from test_utils import (
     setup_api_keys,
     print_test_header,
     print_test_result,
-    print_config_summary
+    print_config_summary,
+    get_test_mode
 )
 from result_manager import (
     create_results_dir,
     save_test_metadata,
     save_test_results,
     create_test_metadata,
-    get_latest_results
+    get_latest_results,
+    setup_logging,
+    cleanup_logging
 )
 
 # Setup CASSIA imports
@@ -59,9 +62,12 @@ def run_merging_annotation_test():
     from CASSIA import merge_annotations, merge_annotations_all
     import pandas as pd
 
-    # Create results directory
-    results_dir = create_results_dir("07_merging_annotation")
-    print(f"Results will be saved to: {results_dir}")
+    # Create results directory with organized structure
+    results = create_results_dir("07_merging_annotation", get_test_mode())
+    print(f"Results will be saved to: {results['base']}")
+
+    # Setup logging to capture console output
+    logging_ctx = setup_logging(results['logs'])
 
     # First, we need batch results for merging
     # Check if we have existing batch results
@@ -78,7 +84,7 @@ def run_merging_annotation_test():
     if not batch_results_file:
         print("\nNo existing batch results found. Running batch annotation first...")
         marker_df = get_full_marker_dataframe()
-        batch_output = str(results_dir / "batch_for_merge")
+        batch_output = str(results['outputs'] / "batch_for_merge")
 
         runCASSIA_batch(
             marker=marker_df,
@@ -103,7 +109,7 @@ def run_merging_annotation_test():
     try:
         # Test 1: Single detail level merge (broad)
         print("\n--- Test 1: Single detail level merge (broad) ---")
-        broad_output = str(results_dir / "merge_broad.csv")
+        broad_output = str(results['outputs'] / "merge_broad.csv")
 
         result_broad = merge_annotations(
             csv_path=batch_results_file,
@@ -132,7 +138,7 @@ def run_merging_annotation_test():
 
         # Test 2: Single detail level merge (detailed)
         print("\n--- Test 2: Single detail level merge (detailed) ---")
-        detailed_output = str(results_dir / "merge_detailed.csv")
+        detailed_output = str(results['outputs'] / "merge_detailed.csv")
 
         result_detailed = merge_annotations(
             csv_path=batch_results_file,
@@ -161,7 +167,7 @@ def run_merging_annotation_test():
 
         # Test 3: All detail levels merge (parallel)
         print("\n--- Test 3: All detail levels merge (parallel) ---")
-        all_output = str(results_dir / "merge_all.csv")
+        all_output = str(results['outputs'] / "merge_all.csv")
 
         result_all = merge_annotations_all(
             csv_path=batch_results_file,
@@ -220,9 +226,9 @@ def run_merging_annotation_test():
         clusters_tested=["all"],
         errors=errors
     )
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results['outputs'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results['outputs'], {
         "batch_results_file": batch_results_file,
         "merge_results": merge_results,
         "detail_levels_tested": ["broad", "detailed", "very_detailed", "all"]
@@ -231,6 +237,9 @@ def run_merging_annotation_test():
     # Print final result
     success = status == "passed"
     print_test_result(success, f"Duration: {duration:.2f}s")
+
+    # Cleanup logging
+    cleanup_logging(logging_ctx)
 
     return success
 

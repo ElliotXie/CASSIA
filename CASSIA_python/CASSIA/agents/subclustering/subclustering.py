@@ -17,6 +17,19 @@ except ImportError:
 import pandas as pd
 
 
+def _get_get_top_markers():
+    """Lazy import of get_top_markers to avoid circular imports."""
+    try:
+        from CASSIA.core.marker_utils import get_top_markers
+        return get_top_markers
+    except ImportError:
+        try:
+            from ...core.marker_utils import get_top_markers
+            return get_top_markers
+        except ImportError:
+            from marker_utils import get_top_markers
+            return get_top_markers
+
 
 def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=0, provider="anthropic"):
     """
@@ -103,6 +116,7 @@ def construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=50):
     # Process DataFrame if it has more than 2 columns
     if len(marker.columns) > 2:
         print(f"Processing input dataframe to get top {n_genes} markers")
+        get_top_markers = _get_get_top_markers()
         marker = get_top_markers(marker, n_genes=n_genes)
     else:
         print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
@@ -481,6 +495,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         try:
             # Try to get top markers, but handle the case where required columns are missing
             try:
+                get_top_markers = _get_get_top_markers()
                 marker_df = get_top_markers(marker, n_genes=n_genes)
             except KeyError as e:
                 # If get_top_markers fails due to missing columns, use the original marker dataframe
