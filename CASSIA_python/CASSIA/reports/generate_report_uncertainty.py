@@ -716,3 +716,406 @@ def generate_uq_html_report(
 
     print(f"Uncertainty quantification report saved to: {output_path}")
     return output_path
+
+
+def generate_uq_batch_html_report(
+    processed_results: Dict[str, Any],
+    organized_results: Dict[str, List],
+    output_path: str,
+    model: str = None,
+    provider: str = None
+) -> str:
+    """
+    Generate an HTML report for batch uncertainty quantification results.
+
+    Args:
+        processed_results: Dictionary mapping cluster IDs to their processed results
+        organized_results: Dictionary mapping cluster IDs to their original iteration results
+        output_path: Path to save the HTML report
+        model: Model name used
+        provider: Provider used
+
+    Returns:
+        Path to the generated HTML report
+    """
+    # Calculate summary statistics
+    total_clusters = len(processed_results)
+    scores = []
+    high_confidence = 0
+    medium_confidence = 0
+    low_confidence = 0
+
+    for cluster_id, result in processed_results.items():
+        if isinstance(result, dict) and 'error' not in result:
+            score = result.get('consensus_score_llm', 0)
+            if isinstance(score, (int, float)):
+                scores.append(score)
+                if score >= 0.8:
+                    high_confidence += 1
+                elif score >= 0.5:
+                    medium_confidence += 1
+                else:
+                    low_confidence += 1
+
+    avg_score = sum(scores) / len(scores) if scores else 0
+    avg_score_class, _, avg_interpretation = _get_score_class(avg_score)
+
+    # Build cluster rows
+    cluster_rows = []
+    for cluster_id, result in processed_results.items():
+        if isinstance(result, dict) and 'error' not in result:
+            main_type = result.get('general_celltype_llm', 'Unknown')
+            sub_type = result.get('sub_celltype_llm', 'Unknown')
+            score = result.get('consensus_score_llm', 0)
+            mixed_types = result.get('mixed_celltypes_llm', [])
+
+            # Get score styling
+            score_class, score_color, _ = _get_score_class(score)
+            score_pct = int(score * 100)
+
+            # Format mixed types
+            mixed_html = ', '.join(mixed_types) if mixed_types else '<span style="color: #999;">None</span>'
+
+            # Build iteration details
+            original = organized_results.get(cluster_id, [])
+            iteration_rows = []
+            for i, item in enumerate(original, 1):
+                if isinstance(item, tuple) and len(item) >= 2:
+                    iter_main = str(item[0]) if item[0] else 'N/A'
+                    iter_sub = str(item[1]) if item[1] else 'N/A'
+                else:
+                    iter_main = 'N/A'
+                    iter_sub = 'N/A'
+                iteration_rows.append(f'<tr><td>{i}</td><td>{iter_main}</td><td>{iter_sub}</td></tr>')
+
+            iterations_table = '\n'.join(iteration_rows) if iteration_rows else '<tr><td colspan="3">No iteration data</td></tr>'
+            detail_id = f"cluster_detail_{cluster_id.replace(' ', '_').replace('.', '_')}"
+
+            cluster_rows.append(f'''
+            <tr class="cluster-row">
+                <td style="font-weight: 600;">{cluster_id}</td>
+                <td>{main_type}</td>
+                <td>{sub_type}</td>
+                <td style="text-align: center;">
+                    <span class="score-pill {score_class}" style="background: {score_color};">{score_pct}%</span>
+                </td>
+                <td>{mixed_html}</td>
+                <td style="text-align: center;">
+                    <button class="toggle-btn" onclick="toggleClusterDetail('{detail_id}')">Show</button>
+                </td>
+            </tr>
+            <tr id="{detail_id}" class="detail-row" style="display: none;">
+                <td colspan="6">
+                    <div class="iteration-box">
+                        <strong>Per-Iteration Results:</strong>
+                        <table class="iteration-table">
+                            <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
+                            <tbody>{iterations_table}</tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            ''')
+        else:
+            # Handle error cases
+            error_msg = result.get('error', 'Unknown error') if isinstance(result, dict) else 'Processing failed'
+            cluster_rows.append(f'''
+            <tr class="cluster-row row-error">
+                <td style="font-weight: 600;">{cluster_id}</td>
+                <td colspan="4" style="color: #ef4444;">{error_msg}</td>
+                <td></td>
+            </tr>
+            ''')
+
+    cluster_table = '\n'.join(cluster_rows)
+
+    # Build HTML
+    html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Uncertainty Quantification Report</title>
+    <style>
+        * {{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }}
+        body {{
+            font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }}
+        .header h1 {{
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }}
+        .header-meta {{
+            font-size: 14px;
+            opacity: 0.9;
+        }}
+        .header-meta span {{
+            margin: 0 10px;
+        }}
+        .section {{
+            padding: 25px 30px;
+            border-bottom: 1px solid #e5e7eb;
+        }}
+        .section:last-child {{
+            border-bottom: none;
+        }}
+        .section-title {{
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        .summary-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }}
+        .summary-card {{
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }}
+        .summary-value {{
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }}
+        .summary-label {{
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        .score-badge {{
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }}
+        .score-high {{
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }}
+        .score-medium {{
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+        }}
+        .score-low {{
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }}
+        .score-pill {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+        }}
+        .confidence-bar {{
+            display: flex;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 10px;
+        }}
+        .confidence-segment {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }}
+        th {{
+            background: #f1f5f9;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        td {{
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }}
+        .cluster-row:hover {{
+            background: #f8fafc;
+        }}
+        .row-error {{
+            background-color: #fef2f2 !important;
+        }}
+        .toggle-btn {{
+            background: #e0e7ff;
+            color: #4338ca;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }}
+        .toggle-btn:hover {{
+            background: #c7d2fe;
+        }}
+        .detail-row {{
+            background: #f8fafc;
+        }}
+        .iteration-box {{
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }}
+        .iteration-table {{
+            margin-top: 10px;
+            font-size: 13px;
+        }}
+        .iteration-table th {{
+            background: #f8fafc;
+            padding: 8px;
+        }}
+        .iteration-table td {{
+            padding: 8px;
+        }}
+        .footer {{
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 12px;
+        }}
+    </style>
+    <script>
+        function toggleClusterDetail(id) {{
+            var row = document.getElementById(id);
+            var btn = row.previousElementSibling.querySelector('.toggle-btn');
+            if (row.style.display === 'none') {{
+                row.style.display = 'table-row';
+                btn.textContent = 'Hide';
+            }} else {{
+                row.style.display = 'none';
+                btn.textContent = 'Show';
+            }}
+        }}
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Batch Uncertainty Quantification Report</h1>
+            <div class="header-meta">
+                <span><strong>Model:</strong> {model or 'N/A'}</span>
+                <span>|</span>
+                <span><strong>Provider:</strong> {provider or 'N/A'}</span>
+                <span>|</span>
+                <span><strong>Total Clusters:</strong> {total_clusters}</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Summary Statistics</h3>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-value">{total_clusters}</div>
+                    <div class="summary-label">Total Clusters</div>
+                </div>
+                <div class="summary-card">
+                    <div class="score-badge {avg_score_class}">
+                        <span style="font-size: 24px;">{int(avg_score * 100)}%</span>
+                    </div>
+                    <div class="summary-label">Average Score</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" style="color: #22c55e;">{high_confidence}</div>
+                    <div class="summary-label">High Confidence</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" style="color: #eab308;">{medium_confidence}</div>
+                    <div class="summary-label">Medium Confidence</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" style="color: #ef4444;">{low_confidence}</div>
+                    <div class="summary-label">Low Confidence</div>
+                </div>
+            </div>
+            <div class="confidence-bar">
+                <div class="confidence-segment" style="width: {high_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #22c55e;">{high_confidence}</div>
+                <div class="confidence-segment" style="width: {medium_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #eab308;">{medium_confidence}</div>
+                <div class="confidence-segment" style="width: {low_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #ef4444;">{low_confidence}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Cluster Results</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cluster ID</th>
+                        <th>Main Cell Type</th>
+                        <th>Sub Cell Type</th>
+                        <th style="text-align: center;">Score</th>
+                        <th>Mixed Types</th>
+                        <th style="text-align: center;">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {cluster_table}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Generated by CASSIA on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+    # Write to file
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+    print(f"Batch uncertainty quantification report saved to: {output_path}")
+    return output_path

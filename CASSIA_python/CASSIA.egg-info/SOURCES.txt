@@ -67,4 +67,5 @@ CASSIA/reference_agent/utils.py
 CASSIA/reports/__init__.py
 CASSIA/reports/generate_batch_report.py
 CASSIA/reports/generate_hypothesis_report.py
+CASSIA/reports/generate_report_uncertainty.py
 CASSIA/reports/generate_reports.py

@@ -19,6 +19,7 @@ Author: CASSIA Development Team
 
 import os
 import shutil
+import filecmp
 from pathlib import Path
 from datetime import datetime
 
@@ -77,57 +78,116 @@ def sync_python_files():
         return False
 
     # Patterns to exclude during copy
-    def ignore_patterns(directory, files):
-        """Return files/folders to ignore during copy."""
-        ignored = []
-        for f in files:
-            # Ignore __pycache__ directories
-            if f == "__pycache__":
-                ignored.append(f)
-            # Ignore .pyc files
-            elif f.endswith(".pyc"):
-                ignored.append(f)
-            # Ignore .ipynb files
-            elif f.endswith(".ipynb"):
-                ignored.append(f)
-            # Ignore test files (but not test_data or test fixtures)
-            elif f.startswith("test_") and f.endswith(".py"):
-                ignored.append(f)
-            elif f.endswith("_test.py"):
-                ignored.append(f)
-            # Ignore VS Code workspace files
-            elif f.endswith(".code-workspace"):
-                ignored.append(f)
-        return ignored
+    def should_ignore(filename):
+        """Check if a file/folder should be ignored."""
+        if filename == "__pycache__":
+            return True
+        if filename.endswith(".pyc"):
+            return True
+        if filename.endswith(".ipynb"):
+            return True
+        if filename.startswith("test_") and filename.endswith(".py"):
+            return True
+        if filename.endswith("_test.py"):
+            return True
+        if filename.endswith(".code-workspace"):
+            return True
+        return False
 
-    # Remove existing CASSIA folder in destination if it exists
-    if dest_cassia.exists():
-        print("Removing old CASSIA folder...")
-        shutil.rmtree(dest_cassia)
+    # Track changes
+    unchanged_files = []
+    changed_files = []
+    new_files = []
+    removed_files = []
 
-    # Copy the entire CASSIA folder
-    print("Copying CASSIA package...")
-    shutil.copytree(source_dir, dest_cassia, ignore=ignore_patterns)
+    # Get all source files (excluding ignored patterns)
+    def get_all_files(base_dir):
+        """Get all files relative to base_dir, excluding ignored patterns."""
+        files = []
+        for root, dirs, filenames in os.walk(base_dir):
+            # Filter out ignored directories
+            dirs[:] = [d for d in dirs if not should_ignore(d)]
+            for f in filenames:
+                if not should_ignore(f):
+                    full_path = Path(root) / f
+                    rel_path = full_path.relative_to(base_dir)
+                    files.append(rel_path)
+        return set(files)
 
-    # Count copied files
-    file_count = sum(1 for _ in dest_cassia.rglob("*.py"))
-    folder_count = sum(1 for p in dest_cassia.rglob("*") if p.is_dir())
+    source_files = get_all_files(source_dir)
+    dest_files = get_all_files(dest_cassia) if dest_cassia.exists() else set()
 
+    # Find new and removed files
+    new_file_paths = source_files - dest_files
+    removed_file_paths = dest_files - source_files
+    common_files = source_files & dest_files
+
+    # Compare common files
+    for rel_path in common_files:
+        src_file = source_dir / rel_path
+        dst_file = dest_cassia / rel_path
+        if filecmp.cmp(src_file, dst_file, shallow=False):
+            unchanged_files.append(rel_path)
+        else:
+            changed_files.append(rel_path)
+
+    new_files = list(new_file_paths)
+    removed_files = list(removed_file_paths)
+
+    # Now perform the actual sync
+    print("Syncing files...")
     print()
-    print("Sync Summary:")
+
+    # Copy changed and new files
+    for rel_path in changed_files + new_files:
+        src_file = source_dir / rel_path
+        dst_file = dest_cassia / rel_path
+        dst_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_file, dst_file)
+
+    # Remove deleted files
+    for rel_path in removed_files:
+        dst_file = dest_cassia / rel_path
+        if dst_file.exists():
+            dst_file.unlink()
+
+    # Print results with emojis
+    print("=" * 60)
+    print("SYNC RESULTS")
+    print("=" * 60)
+    print()
+
+    if unchanged_files:
+        print(f"✅ UNCHANGED ({len(unchanged_files)} files):")
+        for f in sorted(unchanged_files):
+            print(f"   ✅ {f}")
+        print()
+
+    if changed_files:
+        print(f"🔄 CHANGED ({len(changed_files)} files):")
+        for f in sorted(changed_files):
+            print(f"   🔄 {f}")
+        print()
+
+    if new_files:
+        print(f"✨ NEW ({len(new_files)} files):")
+        for f in sorted(new_files):
+            print(f"   ✨ {f}")
+        print()
+
+    if removed_files:
+        print(f"🗑️  REMOVED ({len(removed_files)} files):")
+        for f in sorted(removed_files):
+            print(f"   🗑️  {f}")
+        print()
+
+    # Summary
     print("-" * 30)
-    print(f"Python files copied: {file_count}")
-    print(f"Folders created:     {folder_count}")
-    print()
-
-    # List the structure
-    print("Package structure:")
-    for item in sorted(dest_cassia.iterdir()):
-        if item.is_dir():
-            subfiles = list(item.rglob("*.py"))
-            print(f"  {item.name}/ ({len(subfiles)} files)")
-        elif item.suffix == ".py":
-            print(f"  {item.name}")
+    print("Summary:")
+    print(f"  ✅ Unchanged: {len(unchanged_files)}")
+    print(f"  🔄 Changed:   {len(changed_files)}")
+    print(f"  ✨ New:       {len(new_files)}")
+    print(f"  🗑️  Removed:  {len(removed_files)}")
 
     print()
     print("Sync completed successfully!")

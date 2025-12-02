@@ -18,7 +18,9 @@ runCASSIA_batch(
   provider = "openrouter",
   n_genes = 50,
   max_retries = 1,
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  ranking_method = "avg_log2FC",
+  ascending = NULL
 )
 }
 \arguments{
@@ -49,6 +51,10 @@ runCASSIA_batch(
 \item{max_retries}{Maximum number of retries for failed analyses (default: 1)}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{ranking_method}{Method used to rank marker genes: "avg_log2FC" (default), "p_val_adj", "pct_diff", or "Score".}
+
+\item{ascending}{Logical value indicating sort direction. If NULL (default), uses method-specific default.}
 }
 \value{
 None. This function creates output files and prints execution time.

@@ -27,7 +27,8 @@ runCASSIA_pipeline(
   report_style = "per_iteration",
   ranking_method = "avg_log2FC",
   ascending = NULL,
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  output_dir = NULL
 )
 }
 \arguments{
@@ -76,6 +77,8 @@ runCASSIA_pipeline(
 \item{ascending}{Sort direction (NULL uses default for each method) (default: NULL)}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{output_dir}{Directory where the output folder will be created. If NULL, uses current working directory. (default: NULL)}
 }
 \value{
 None. Creates output files and generates reports.

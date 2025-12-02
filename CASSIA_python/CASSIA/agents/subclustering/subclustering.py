@@ -139,10 +139,10 @@ Remember these subclusters are from a {major_cluster_info} big cluster. You must
 """
 
     # Iterate over each row in the DataFrame
-    for index, row in marker.iterrows():
+    for i, (index, row) in enumerate(marker.iterrows(), start=1):
         cluster_name = row.iloc[0]  # Use iloc for positional indexing
         markers = row.iloc[1]       # Use iloc for positional indexing
-        prompt += f"{index + 1}.{markers}\n"
+        prompt += f"{i}.{markers}\n"
 
     return prompt
 

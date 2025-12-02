@@ -1322,7 +1322,7 @@ def standardize_cell_types_single(results):
     return ",".join(standardized_results)
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False, generate_report=False, report_output_path=None):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False, generate_report=True, report_output_path=None):
     """
     Wrapper function for processing cell type analysis using any supported provider.
 

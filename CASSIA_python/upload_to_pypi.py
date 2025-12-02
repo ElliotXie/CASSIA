@@ -88,8 +88,9 @@ def increment_version(version, increment_type='patch', release=False):
     try:
         major, minor, patch = map(int, base_version.split('.'))
 
-        # If releasing, just use the base version (strip .devN)
+        # If releasing, increment patch version and strip .devN
         if release:
+            patch += 1
             return f"{major}.{minor}.{patch}"
 
         if increment_type == 'major':

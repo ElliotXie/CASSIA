@@ -21,7 +21,8 @@ runCASSIA(
 
 \item{temperature}{Numeric value for temperature parameter.}
 
-\item{marker_list}{List of marker genes.}
+\item{marker_list}{List of marker genes. Can be a character vector, comma-separated string, or
+a data frame with a 'gene' column.}
 
 \item{tissue}{Character string specifying the tissue type.}
 

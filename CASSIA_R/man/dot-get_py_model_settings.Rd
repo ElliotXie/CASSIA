@@ -2,14 +2,14 @@
 % Please edit documentation in R/model_settings.R
 \name{.get_py_model_settings}
 \alias{.get_py_model_settings}
-\title{Get Python Model Settings Module}
+\title{Get Python CASSIA Module}
 \usage{
 .get_py_model_settings()
 }
 \value{
-Python model settings module
+Python CASSIA module (all functions available at package level)
 }
 \description{
-Get Python Model Settings Module
+Get Python CASSIA Module
 }
 \keyword{internal}
