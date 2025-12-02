@@ -24,10 +24,26 @@ import base64
 import io
 
 # Scanpy and scientific computing - with fallbacks for MVP
-SCIENTIFIC_LIBS_AVAILABLE = False
+try:
+    import scanpy as sc
+    import anndata as ad
+    from scipy import stats
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    SCIENTIFIC_LIBS_AVAILABLE = True
+except ImportError as e:
+    warnings.warn(f"Scientific computing libraries not available: {e}")
+    SCIENTIFIC_LIBS_AVAILABLE = False
 
 # Optional imports for enhanced functionality
-GSEAPY_AVAILABLE = False
+try:
+    import gseapy as gp
+    GSEAPY_AVAILABLE = True
+except ImportError:
+    GSEAPY_AVAILABLE = False
+    warnings.warn("GSEApy not available - pathway enrichment will use simplified method")
 
 try:
     import requests

@@ -28,13 +28,13 @@ def symphonyCompare(
     celltypes: List[str],
     marker_set: str,
     species: str = "human",
-    model_preset: str = "symphony",
+    model_preset: str = "budget",
     custom_models: Optional[List[str]] = None,
     output_dir: Optional[str] = None,
     output_basename: Optional[str] = None,
     enable_discussion: bool = True,
-    max_discussion_rounds: int = 2,
-    consensus_threshold: float = 0.8,
+    max_discussion_rounds: int = 3,
+    consensus_threshold: float = 2/3,
     generate_report: bool = True,
     api_key: Optional[str] = None,
     verbose: bool = True
@@ -51,17 +51,16 @@ def symphonyCompare(
         celltypes (List[str]): List of 2-4 cell types to compare
         marker_set (str): Comma-separated string of gene markers to analyze
         species (str): Species being analyzed (default: "human")
-        model_preset (str): Preset model configuration. Options:
-            - "symphony": High-performance ensemble (Claude, GPT-4, Gemini Pro)
-            - "quartet": Balanced 4-model ensemble
-            - "budget": Cost-effective models
+        model_preset (str): Preset model configuration (default: "budget"). Options:
+            - "budget": Cost-effective models (DeepSeek, Grok 4 Fast, Kimi K2, Gemini Flash)
+            - "premium": High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
             - "custom": Use custom_models list
         custom_models (List[str]): Custom list of models to use (when model_preset="custom")
         output_dir (str): Directory to save results (default: current directory)
         output_basename (str): Base name for output files (auto-generated if None)
         enable_discussion (bool): Enable automatic discussion rounds when no consensus (default: True)
-        max_discussion_rounds (int): Maximum discussion rounds to perform (default: 2)
-        consensus_threshold (float): Fraction of models that must agree for consensus (default: 0.8)
+        max_discussion_rounds (int): Maximum discussion rounds to perform (default: 3)
+        consensus_threshold (float): Fraction of models that must agree for consensus (default: 2/3)
         generate_report (bool): Generate interactive HTML report (default: True)
         api_key (str): OpenRouter API key (uses environment variable if None)
         verbose (bool): Print progress messages (default: True)
@@ -144,36 +143,49 @@ def symphonyCompare(
     csv_file = os.path.join(output_dir, f"{output_basename}.csv")
     html_file = os.path.join(output_dir, f"{output_basename}_report.html") if generate_report else None
     
-    # Define model presets
-    model_presets = {
-        "symphony": [
-            "anthropic/claude-3.7-sonnet",
-            "openai/o4-mini-high",
-            "google/gemini-2.5-pro-preview"
-        ],
-        "quartet": [
-            "anthropic/claude-3.7-sonnet",
-            "openai/o4-mini-high", 
-            "google/gemini-2.5-pro-preview",
-            "meta-llama/llama-3.3-405b"
+    # Load model presets and personas from JSON config file
+    config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_config.json')
+
+    # Default fallback configuration
+    default_presets = {
+        "premium": [
+            "google/gemini-3-pro-preview",
+            "anthropic/claude-sonnet-4.5",
+            "openai/gpt-5.1",
+            "x-ai/grok-4"
         ],
         "budget": [
-            "google/gemini-2.5-flash",
-            "deepseek/deepseek-chat-v3-0324",
-            "x-ai/grok-3-mini-beta"
+            "deepseek/deepseek-v3.2-speciale",
+            "x-ai/grok-4-fast",
+            "moonshotai/kimi-k2-thinking",
+            "google/gemini-2.5-flash"
         ]
     }
-    
-    # Researcher persona names for each model
-    model_personas = {
-        "google/gemini-2.5-flash": "Dr. Ada Lovelace",
-        "deepseek/deepseek-chat-v3-0324": "Dr. Alan Turing", 
-        "x-ai/grok-3-mini-beta": "Dr. Marie Curie",
-        "anthropic/claude-3.7-sonnet": "Dr. Claude Shannon",
-        "openai/o4-mini-high": "Dr. Albert Einstein",
-        "google/gemini-2.5-pro-preview": "Dr. Emmy Noether",
-        "meta-llama/llama-3.3-405b": "Dr. Rosalind Franklin"
+
+    default_personas = {
+        "google/gemini-3-pro-preview": "Dr. Emmy Noether",
+        "anthropic/claude-sonnet-4.5": "Dr. Claude Shannon",
+        "openai/gpt-5.1": "Dr. Albert Einstein",
+        "x-ai/grok-4": "Dr. Marie Curie",
+        "deepseek/deepseek-v3.2-speciale": "Dr. Alan Turing",
+        "x-ai/grok-4-fast": "Dr. Nikola Tesla",
+        "moonshotai/kimi-k2-thinking": "Dr. Ada Lovelace",
+        "google/gemini-2.5-flash": "Dr. Rosalind Franklin"
     }
+
+    # Try to load from JSON config file
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        model_presets = config.get('presets', default_presets)
+        model_personas = config.get('personas', default_personas)
+        if verbose:
+            print(f"  Loaded model configuration from: {config_file}")
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        model_presets = default_presets
+        model_personas = default_personas
+        if verbose:
+            print(f"  Using default model configuration (config file not found or invalid)")
     
     # Select models based on preset or custom list
     if model_preset == "custom" and custom_models:
@@ -182,8 +194,8 @@ def symphonyCompare(
         model_list = model_presets[model_preset]
     else:
         if verbose:
-            print(f"Warning: Unknown preset '{model_preset}'. Using 'symphony' preset.")
-        model_list = model_presets["symphony"]
+            print(f"Warning: Unknown preset '{model_preset}'. Using 'budget' preset.")
+        model_list = model_presets["budget"]
     
     # Get persona names
     model_to_persona = {m: model_personas.get(m, f"Researcher_{m.split('/')[-1]}") for m in model_list}
@@ -197,6 +209,8 @@ def symphonyCompare(
         print(f"🤖 Models: {', '.join([model_to_persona[m].split()[-1] for m in model_list])}")
         if enable_discussion:
             print(f"💬 Discussion: Enabled (max {max_discussion_rounds} rounds)")
+        if model_preset == "budget":
+            print(f"💡 Tip: For better performance, use model_preset='premium'")
         print(f"{'='*60}\n")
     
     # Construct initial prompt

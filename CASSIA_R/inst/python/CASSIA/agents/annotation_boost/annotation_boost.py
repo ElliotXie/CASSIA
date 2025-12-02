@@ -1192,7 +1192,8 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
 
         return filename
 
-def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration", model: str = "google/gemini-2.5-flash", provider: str = "openrouter") -> str:
+def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
+    validator_involvement: str = "v1", model: str = "google/gemini-2.5-flash", provider: str = "openrouter") -> str:
     """
     Generate a summarized report from the raw conversation history.
 
@@ -1377,7 +1378,8 @@ def runCASSIA_annotationboost(
     temperature: float = 0,
     conversation_history_mode: str = "final",
     search_strategy: str = "breadth",
-    report_style: str = "per_iteration"
+    report_style: str = "per_iteration",
+    validator_involvement: str = "v1"
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
@@ -1595,7 +1597,8 @@ def runCASSIA_annotationboost_additional_task(
             'analysis_text': None
         }
 
-def format_summary_to_html(summary_text: str, output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration") -> str:
+def format_summary_to_html(summary_text: str, output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
+    validator_involvement: str = "v1") -> str:
     """
     Convert the tagged summary into a properly formatted HTML report.
     

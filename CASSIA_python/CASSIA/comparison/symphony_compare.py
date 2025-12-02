@@ -28,7 +28,7 @@ def symphonyCompare(
     celltypes: List[str],
     marker_set: str,
     species: str = "human",
-    model_preset: str = "premium",
+    model_preset: str = "budget",
     custom_models: Optional[List[str]] = None,
     output_dir: Optional[str] = None,
     output_basename: Optional[str] = None,
@@ -51,9 +51,9 @@ def symphonyCompare(
         celltypes (List[str]): List of 2-4 cell types to compare
         marker_set (str): Comma-separated string of gene markers to analyze
         species (str): Species being analyzed (default: "human")
-        model_preset (str): Preset model configuration. Options:
-            - "premium": High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
+        model_preset (str): Preset model configuration (default: "budget"). Options:
             - "budget": Cost-effective models (DeepSeek, Grok 4 Fast, Kimi K2, Gemini Flash)
+            - "premium": High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
             - "custom": Use custom_models list
         custom_models (List[str]): Custom list of models to use (when model_preset="custom")
         output_dir (str): Directory to save results (default: current directory)
@@ -124,7 +124,14 @@ def symphonyCompare(
     if api_key is None:
         api_key = os.environ.get('OPENROUTER_API_KEY')
     if not api_key:
-        raise ValueError("OPENROUTER_API_KEY not found. Set it as an environment variable or pass it as api_key parameter.")
+        raise ValueError(
+            "OPENROUTER_API_KEY not found.\n"
+            "Symphony Compare uses models from multiple providers (OpenAI, Anthropic, Google, etc.),\n"
+            "so an OpenRouter API key is required to access all models through a unified endpoint.\n"
+            "Get your API key at: https://openrouter.ai/keys\n"
+            "Then set it as an environment variable: export OPENROUTER_API_KEY='your-key'\n"
+            "Or pass it directly: symphonyCompare(..., api_key='your-key')"
+        )
     
     # Input validation
     if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
@@ -194,8 +201,8 @@ def symphonyCompare(
         model_list = model_presets[model_preset]
     else:
         if verbose:
-            print(f"Warning: Unknown preset '{model_preset}'. Using 'premium' preset.")
-        model_list = model_presets["premium"]
+            print(f"Warning: Unknown preset '{model_preset}'. Using 'budget' preset.")
+        model_list = model_presets["budget"]
     
     # Get persona names
     model_to_persona = {m: model_personas.get(m, f"Researcher_{m.split('/')[-1]}") for m in model_list}
@@ -209,6 +216,8 @@ def symphonyCompare(
         print(f"🤖 Models: {', '.join([model_to_persona[m].split()[-1] for m in model_list])}")
         if enable_discussion:
             print(f"💬 Discussion: Enabled (max {max_discussion_rounds} rounds)")
+        if model_preset == "budget":
+            print(f"💡 Tip: For better performance, use model_preset='premium'")
         print(f"{'='*60}\n")
     
     # Construct initial prompt

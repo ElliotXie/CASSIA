@@ -41,7 +41,7 @@ from result_manager import (
 import CASSIA
 
 
-def run_uncertainty_quantification_test():
+def run_uncertainty_quantification_test(results_dir):
     """Test uncertainty quantification functionality using pip-installed CASSIA."""
     print_test_header("08 - Uncertainty Quantification (PIP INSTALL MODE)")
 
@@ -62,9 +62,8 @@ def run_uncertainty_quantification_test():
     llm_config = config['llm']
     data_config = config['data']
 
-    # Create results directory
-    results_dir = create_results_dir("08_uncertainty_quantification")
-    print(f"Results will be saved to: {results_dir}")
+    # Results directory passed in from main()
+    print(f"Results will be saved to: {results_dir['base']}")
 
     # Test cluster
     test_cluster = "plasma cell"
@@ -149,9 +148,7 @@ def run_uncertainty_quantification_test():
         print(f"  N iterations: 2 (reduced for testing)")
 
         # Set output path for batch results
-        outputs_dir = os.path.join(results_dir, "outputs") if isinstance(results_dir, str) else results_dir.get('outputs', results_dir)
-        os.makedirs(outputs_dir, exist_ok=True)
-        batch_output_name = os.path.join(outputs_dir, "batch_results")
+        batch_output_name = str(results_dir['outputs'] / "batch_results")
 
         # Run batch n times
         CASSIA.runCASSIA_batch_n_times(
@@ -251,9 +248,9 @@ def run_uncertainty_quantification_test():
             'clusters': batch_clusters_tested
         }
     }
-    save_test_metadata(results_dir, metadata)
+    save_test_metadata(results_dir['base'], metadata)
 
-    save_test_results(results_dir, {
+    save_test_results(results_dir['base'], {
         "similarity_score_test": {
             "test_cluster": test_cluster,
             "markers_used": markers[:10] if len(markers) > 10 else markers,
@@ -274,10 +271,10 @@ def run_uncertainty_quantification_test():
 def main():
     """Main entry point with logging."""
     results_dir = create_results_dir("08_uncertainty_quantification")
-    logging_context = setup_logging(results_dir)
+    logging_context = setup_logging(results_dir['logs'])
 
     try:
-        success = run_uncertainty_quantification_test()
+        success = run_uncertainty_quantification_test(results_dir)
     finally:
         cleanup_logging(logging_context)
 

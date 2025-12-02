@@ -28,7 +28,7 @@ First, let's install and load the required packages:
  library(devtools)
  devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
-
+unlink("C:/Users/ellio/AppData/Local/R/win-library/4.4/00LOCK-CASSIA", recursive = TRUE)
 # Load libraries
 library(reticulate)
 library(CASSIA)

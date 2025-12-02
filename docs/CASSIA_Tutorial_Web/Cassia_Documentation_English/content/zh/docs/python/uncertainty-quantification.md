@@ -8,7 +8,67 @@ CASSIA 中的不确定性量化有助于通过多次分析迭代和相似性评�
 - 量化注释置信度
 - 了解预测的可变性
 
-### 多重迭代分析
+### 单聚类不确定性分析
+
+对于分析单个聚类的不确定性，使用 `runCASSIA_n_times_similarity_score()`：
+
+```python
+from CASSIA import runCASSIA_n_times_similarity_score
+
+# 对单个聚类运行多次迭代并计算相似性评分
+result = runCASSIA_n_times_similarity_score(
+    tissue="large intestine",
+    species="human",
+    marker_list=["CD38", "CD138", "JCHAIN", "MZB1", "SDC1"],
+    model="google/gemini-2.5-flash",
+    provider="openrouter",
+    n=5,  # 迭代次数
+    temperature=0.3,
+    max_workers=3,
+    main_weight=0.5,
+    sub_weight=0.5,
+    validator_involvement="v1"
+)
+
+# 访问结果
+print(f"主要细胞类型: {result['general_celltype_llm']}")
+print(f"亚细胞类型: {result['sub_celltype_llm']}")
+print(f"相似性评分: {result['similarity_score']}")
+print(f"共识类型: {result['consensus_types']}")
+
+# 检查混合细胞类型
+if result.get('Possible_mixed_celltypes_llm'):
+    print(f"可能的混合类型: {result['Possible_mixed_celltypes_llm']}")
+```
+
+#### 参数详情（单聚类）
+
+- **`tissue`**: 用于上下文的组织类型。
+- **`species`**: 用于上下文的物种。
+- **`marker_list`**: 聚类的标记基因列表。
+- **`model`**: 要使用的 LLM 模型。
+- **`provider`**: API 提供商（"openrouter"、"openai"、"anthropic"）。
+- **`n`**: 分析迭代次数（默认：5）。
+- **`temperature`**: LLM 温度（较低 = 更一致）。
+- **`max_workers`**: 并行处理工作者数。
+- **`main_weight`**: 相似性中主要细胞类型的权重 (0-1)。
+- **`sub_weight`**: 相似性中亚型的权重 (0-1)。
+- **`validator_involvement`**: 验证器模式（"v0" 严格，"v1" 中等）。
+- **`additional_info`**: 可选的额外上下文字符串。
+
+#### 返回值（单聚类）
+
+函数返回包含以下内容的字典：
+- **`general_celltype_llm`**: 共识主要细胞类型。
+- **`sub_celltype_llm`**: 共识亚细胞类型。
+- **`similarity_score`**: 跨迭代的总体相似性 (0-1)。
+- **`consensus_types`**: 出现频率最高的细胞类型。
+- **`Possible_mixed_celltypes_llm`**: 检测到的混合细胞类型群体。
+- **`original_results`**: 每次迭代的原始结果。
+
+### 批量迭代分析
+
+对于跨多个聚类的批处理，使用 `runCASSIA_batch_n_times`：
 
 ```python
 # 运行多次迭代
