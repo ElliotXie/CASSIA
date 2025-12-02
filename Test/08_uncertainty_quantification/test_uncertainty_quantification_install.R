@@ -8,6 +8,7 @@
 #
 # Functions tested:
 # - runCASSIA_n_times_similarity_score(): Run n single analyses with similarity score
+# - runCASSIA_batch_n_times(): Run batch analyses n times for multiple clusters
 
 # Get script directory (works with Rscript and source())
 get_script_dir <- function() {
@@ -110,41 +111,159 @@ run_uncertainty_quantification_install_test <- function() {
         status <- "passed"
       } else {
         status <- "failed"
-        errors <- list("Missing expected result fields")
+        errors <- list("Missing expected result fields for similarity score test")
       }
     } else {
       status <- "failed"
-      errors <- list("Unexpected result format")
+      errors <- list("Unexpected result format for similarity score test")
     }
 
   }, error = function(e) {
-    errors <<- list(e$message)
+    errors <<- list(paste("Similarity score test error:", e$message))
     status <<- "error"
-    log_msg("\nError:", e$message)
+    log_msg("\nError in similarity score test:", e$message)
+  })
+
+  # =========================================================================
+  # Test 2: runCASSIA_batch_n_times - Multiple clusters, multiple iterations
+  # =========================================================================
+  batch_status <- "error"
+  batch_results <- list()
+  batch_clusters_tested <- list()
+
+  tryCatch({
+    log_msg("\n--- Test: runCASSIA_batch_n_times ---")
+
+    # Get full marker dataframe and limit to 2 clusters for testing
+    full_markers <- get_full_marker_dataframe()
+    test_markers <- head(full_markers, 2)  # First 2 clusters: monocyte, plasma cell
+    batch_clusters_tested <- test_markers$Broad.cell.type
+
+    log_msg("  Clusters:", paste(batch_clusters_tested, collapse = ", "))
+    log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
+    log_msg("  Provider:", llm_config$provider %||% "openrouter")
+    log_msg("  N iterations: 2 (reduced for testing)")
+
+    # Set output path for batch results
+    batch_output_name <- file.path(results_dirs$outputs, "batch_results")
+
+    # Run batch n times
+    CASSIA::runCASSIA_batch_n_times(
+      n = 2,  # 2 iterations for testing
+      marker = test_markers,
+      output_name = batch_output_name,
+      model = llm_config$model %||% "google/gemini-2.5-flash",
+      temperature = llm_config$temperature %||% 0.3,
+      tissue = data_config$tissue %||% "large intestine",
+      species = data_config$species %||% "human",
+      additional_info = NULL,
+      celltype_column = "Broad.cell.type",
+      gene_column_name = "Top.Markers",
+      max_workers = 3,
+      batch_max_workers = 2,
+      provider = llm_config$provider %||% "openrouter",
+      max_retries = 1,
+      validator_involvement = config$validator$default %||% "v1"
+    )
+
+    # Check that output files were created
+    expected_files <- c(
+      paste0(batch_output_name, "_1_full.csv"),
+      paste0(batch_output_name, "_1_summary.csv"),
+      paste0(batch_output_name, "_2_full.csv"),
+      paste0(batch_output_name, "_2_summary.csv")
+    )
+
+    files_found <- c()
+    files_missing <- c()
+    for (f in expected_files) {
+      if (file.exists(f)) {
+        files_found <- c(files_found, basename(f))
+      } else {
+        files_missing <- c(files_missing, basename(f))
+      }
+    }
+
+    log_msg("\nBatch Results:")
+    log_msg("  Files created:", length(files_found))
+    for (f in files_found) {
+      log_msg("    -", f)
+    }
+
+    if (length(files_missing) > 0) {
+      log_msg("  Files missing:", length(files_missing))
+      for (f in files_missing) {
+        log_msg("    -", f)
+      }
+    }
+
+    batch_results <- list(
+      clusters_tested = as.list(batch_clusters_tested),
+      n_iterations = 2,
+      files_created = as.list(files_found),
+      files_missing = as.list(files_missing)
+    )
+
+    # Validate batch results - at least some files should be created
+    if (length(files_found) >= 2) {  # At least 2 files (one iteration with full + summary)
+      batch_status <- "passed"
+      log_msg("\n[OK] Batch test PASSED")
+    } else {
+      batch_status <- "failed"
+      errors <- c(errors, paste("Batch test: Expected at least 2 output files, found", length(files_found)))
+      log_msg("\n[FAIL] Batch test FAILED - insufficient output files")
+    }
+
+  }, error = function(e) {
+    errors <<- c(errors, paste("Batch test error:", e$message))
+    batch_status <<- "error"
+    log_msg("\nError in batch test:", e$message)
   })
 
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+
+  # Combine statuses - both tests must pass for overall success
+  if (status == "passed" && batch_status == "passed") {
+    overall_status <- "passed"
+  } else if (status == "error" || batch_status == "error") {
+    overall_status <- "error"
+  } else {
+    overall_status <- "failed"
+  }
 
   # Save metadata and results
   metadata <- create_test_metadata(
     test_name = "uncertainty_quantification_install",
     config = config,
     duration_seconds = duration,
-    status = status,
-    clusters_tested = list(test_cluster),
+    status = overall_status,
+    clusters_tested = c(list(test_cluster), as.list(batch_clusters_tested)),
     errors = errors
+  )
+  metadata$test_details <- list(
+    similarity_score_test = list(
+      status = status,
+      cluster = test_cluster
+    ),
+    batch_n_times_test = list(
+      status = batch_status,
+      clusters = as.list(batch_clusters_tested)
+    )
   )
   save_test_metadata(results_dirs$outputs, metadata)
 
   save_test_results(results_dirs$outputs, list(
-    test_cluster = test_cluster,
-    n_iterations = 3,
-    results = uq_results,
+    similarity_score_test = list(
+      test_cluster = test_cluster,
+      n_iterations = 3,
+      results = uq_results
+    ),
+    batch_n_times_test = batch_results,
     mode = "install"
   ))
 
   # Print final result
-  success <- status == "passed"
+  success <- overall_status == "passed"
   print_test_result(success, paste("Duration:", round(duration, 2), "s"))
 
 

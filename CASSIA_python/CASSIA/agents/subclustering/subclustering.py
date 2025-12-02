@@ -384,9 +384,9 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
         from CASSIA.reports.generate_reports import process_evaluation_csv
     except ImportError:
         try:
-            from .generate_reports import process_evaluation_csv
+            from ...reports.generate_reports import process_evaluation_csv
         except ImportError:
-            from generate_reports import process_evaluation_csv
+            from reports.generate_reports import process_evaluation_csv
     import os
     csv_file = output_name if output_name.lower().endswith('.csv') else output_name + '.csv'
     if os.path.exists(csv_file):
@@ -546,9 +546,9 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         from CASSIA.reports.generate_reports import process_evaluation_csv, create_index_html
     except ImportError:
         try:
-            from .generate_reports import process_evaluation_csv, create_index_html
+            from ...reports.generate_reports import process_evaluation_csv, create_index_html
         except ImportError:
-            from generate_reports import process_evaluation_csv, create_index_html
+            from reports.generate_reports import process_evaluation_csv, create_index_html
     import os
 
     # Generate HTML report for each CSV
