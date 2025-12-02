@@ -16,6 +16,7 @@
 #' @return Invisibly returns TRUE if successful
 #'
 #' @importFrom reticulate import source_python py_set_seed use_python py_last_error py_has_attr
+#' @importFrom utils write.csv
 #' @export
 runCASSIA_merge_annotations <- function(csv_path,
                                         output_path = NULL,

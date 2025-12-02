@@ -77,6 +77,8 @@ run_uncertainty_quantification_test <- function() {
     log_msg("  Provider:", llm_config$provider %||% "openrouter")
     log_msg("  N iterations: 3 (reduced for testing)")
 
+    single_report_path <- file.path(results$outputs, "uq_single_report.html")
+
     result <- CASSIA::runCASSIA_n_times_similarity_score(
       tissue = data_config$tissue %||% "large intestine",
       species = data_config$species %||% "human",
@@ -87,8 +89,15 @@ run_uncertainty_quantification_test <- function() {
       max_workers = llm_config$max_workers %||% 3,
       n = 3,  # Reduced for faster testing
       provider = llm_config$provider %||% "openrouter",
-      validator_involvement = config$validator$default %||% "v1"
+      validator_involvement = config$validator$default %||% "v1",
+      generate_report = TRUE,
+      report_output_path = single_report_path
     )
+
+    # Check if report was generated
+    if (file.exists(single_report_path)) {
+      log_msg("  HTML report created:", basename(single_report_path))
+    }
 
     # Check result
     if (is.list(result)) {
@@ -219,12 +228,66 @@ run_uncertainty_quantification_test <- function() {
     log_msg("\nError in batch test:", e$message)
   })
 
+  # =========================================================================
+  # Test 3: runCASSIA_similarity_score_batch - Analyze batch results
+  # =========================================================================
+  similarity_batch_status <- "error"
+
+  tryCatch({
+    log_msg("\n--- Test: runCASSIA_similarity_score_batch ---")
+    log_msg("  Analyzing batch results from previous test")
+
+    # Only run if batch test passed and files exist
+    if (batch_status == "passed" && length(files_found) >= 2) {
+      similarity_output_name <- file.path(results$outputs, "similarity_score_results")
+      similarity_report_path <- file.path(results$outputs, "uq_batch_report.html")
+
+      CASSIA::runCASSIA_similarity_score_batch(
+        marker = test_markers,
+        file_pattern = paste0(batch_output_name, "_*_full.csv"),
+        output_name = similarity_output_name,
+        celltype_column = "Broad.cell.type",
+        max_workers = 3,
+        model = llm_config$model %||% "google/gemini-2.5-flash",
+        provider = llm_config$provider %||% "openrouter",
+        generate_report = TRUE,
+        report_output_path = similarity_report_path
+      )
+
+      # Check if similarity score CSV was created
+      if (file.exists(paste0(similarity_output_name, ".csv"))) {
+        log_msg("  Similarity score CSV created:", basename(paste0(similarity_output_name, ".csv")))
+        similarity_batch_status <- "passed"
+      } else {
+        similarity_batch_status <- "failed"
+        errors <- c(errors, "Similarity score batch: CSV file not created")
+      }
+
+      # Check if HTML report was created
+      if (file.exists(similarity_report_path)) {
+        log_msg("  HTML report created:", basename(similarity_report_path))
+      } else {
+        log_msg("  Warning: HTML report not created")
+      }
+
+      log_msg("\n[OK] Similarity score batch test PASSED")
+    } else {
+      log_msg("  Skipping - batch test did not pass or no files found")
+      similarity_batch_status <- "skipped"
+    }
+
+  }, error = function(e) {
+    errors <<- c(errors, paste("Similarity score batch test error:", e$message))
+    similarity_batch_status <<- "error"
+    log_msg("\nError in similarity score batch test:", e$message)
+  })
+
   duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
-  # Combine statuses - both tests must pass for overall success
-  if (status == "passed" && batch_status == "passed") {
+  # Combine statuses - all tests must pass for overall success
+  if (status == "passed" && batch_status == "passed" && (similarity_batch_status == "passed" || similarity_batch_status == "skipped")) {
     overall_status <- "passed"
-  } else if (status == "error" || batch_status == "error") {
+  } else if (status == "error" || batch_status == "error" || similarity_batch_status == "error") {
     overall_status <- "error"
   } else {
     overall_status <- "failed"
@@ -247,6 +310,10 @@ run_uncertainty_quantification_test <- function() {
     batch_n_times_test = list(
       status = batch_status,
       clusters = as.list(batch_clusters_tested)
+    ),
+    similarity_score_batch_test = list(
+      status = similarity_batch_status,
+      clusters = as.list(batch_clusters_tested)
     )
   )
   save_test_metadata(results$outputs, metadata)
@@ -257,7 +324,10 @@ run_uncertainty_quantification_test <- function() {
       n_iterations = 3,
       results = uq_results
     ),
-    batch_n_times_test = batch_results
+    batch_n_times_test = batch_results,
+    similarity_score_batch_test = list(
+      status = similarity_batch_status
+    )
   ))
 
   # Print final result

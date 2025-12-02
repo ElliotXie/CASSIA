@@ -13,7 +13,9 @@ runCASSIA_similarity_score_batch(
   model = "google/gemini-2.5-flash-preview",
   provider = "openrouter",
   main_weight = 0.5,
-  sub_weight = 0.5
+  sub_weight = 0.5,
+  generate_report = TRUE,
+  report_output_path = NULL
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ runCASSIA_similarity_score_batch(
 \item{main_weight}{Weight for the main cell type.}
 
 \item{sub_weight}{Weight for the sub cell type.}
+
+\item{generate_report}{Logical. Whether to generate an HTML report (default: TRUE)}
+
+\item{report_output_path}{Character string. Path to save the HTML report (default: 'uq_batch_report.html')}
 }
 \value{
 None. This function processes and saves results to a CSV file and prints execution time.

@@ -1,7 +1,9 @@
 # Add any additional utility functions here
+
 #' Check Python Environment
 #'
 #' @return TRUE if the Python environment is set up correctly, FALSE otherwise.
+#' @importFrom stats setNames
 #' @export
 check_python_env <- function() {
   tryCatch({
@@ -391,14 +393,14 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
   new_metadata <- data.frame(row.names = colnames(seurat_obj))
   
   # For each annotation type, map cluster IDs to annotations (vectorized)
-  new_metadata <- lapply(names(lookup_tables), function(anno_type) {
+  metadata_list <- lapply(names(lookup_tables), function(anno_type) {
     lookup <- lookup_tables[[anno_type]]
     annotations <- lookup[seurat_clusters_mapped]
-    
+
     meta_col_name <- paste0(prefix, anno_type)
     result <- data.frame(col = annotations, stringsAsFactors = FALSE)
     names(result) <- meta_col_name
-    
+
     # Handle replacement of existing annotations
     if (replace_existing && anno_type == "general_celltype") {
       if ("cell_type" %in% colnames(seurat_obj@meta.data)) {
@@ -406,9 +408,10 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
         seurat_obj$cell_type <- annotations
       }
     }
-    
+
     return(result)
-  }) %>% do.call(cbind, .)
+  })
+  new_metadata <- do.call(cbind, metadata_list)
   rownames(new_metadata) <- colnames(seurat_obj)
   
   # For sub cell types, add all the split versions (only for columns_to_include == 2)

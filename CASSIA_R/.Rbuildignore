@@ -7,3 +7,4 @@
 ^omnipathr-log$
 ^\.DS_Store$
 ^\.Rhistory$
+inst/python/CASSIA/\.env$

@@ -1,12 +1,20 @@
 ## R CMD check results
 
-0 errors | 0 warnings | X notes
-
-(Will be updated after running R CMD check)
+0 errors | 0 warnings | 2 notes
 
 ## First submission
 
 This is the first submission of CASSIA to CRAN.
+
+## Notes explanation
+
+### Package size (NOTE)
+
+The installed package size is approximately 17 MB. This is because CASSIA bundles a complete Python module in `inst/python/` that provides the LLM-based cell type annotation engine. This Python code is essential for the package's core functionality and is loaded via the reticulate package. The size is necessary to provide a self-contained annotation system that works across platforms.
+
+### Non-standard file at top level (NOTE)
+
+The `cran-comments.md` file is intentionally included for CRAN reviewer communication.
 
 ## Package notes
 
@@ -25,4 +33,3 @@ The package requires LLM API keys (OpenAI, Anthropic, or OpenRouter) for core fu
 ## Test environments
 
 * Local: Windows 11, R 4.4.1
-* (Additional platforms will be listed after rhub testing if performed)

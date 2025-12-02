@@ -1169,7 +1169,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0, generate_report=True, report_output_path=None):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1184,6 +1184,8 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     main_weight (float): Weight for the main cell type in similarity calculation.
     sub_weight (float): Weight for the sub cell type in similarity calculation.
     temperature (float): Temperature for the LLM calls.
+    generate_report (bool): Whether to generate an HTML report (default: True).
+    report_output_path (str): Path to save the HTML report (default: 'uq_batch_report.html').
     """
 
     # Organize batch results
@@ -1198,12 +1200,29 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
 
     # Create and save results dataframe
     create_and_save_results_dataframe(
-        processed_results, 
-        organized_results, 
+        processed_results,
+        organized_results,
         output_name=output_name
     )
 
     print(f"Similarity analysis completed: {output_name}")
+
+    # Generate HTML report if requested
+    if generate_report:
+        try:
+            from CASSIA.reports.generate_report_uncertainty import generate_uq_batch_html_report
+            report_path = report_output_path or 'uq_batch_report.html'
+            generate_uq_batch_html_report(
+                processed_results=processed_results,
+                organized_results=organized_results,
+                output_path=report_path,
+                model=model,
+                provider=provider
+            )
+        except ImportError as e:
+            print(f"Warning: Could not generate report - {e}")
+        except Exception as e:
+            print(f"Warning: Report generation failed - {e}")
 
 
 

@@ -15,7 +15,9 @@ runCASSIA_n_times_similarity_score(
   n,
   provider = "openrouter",
   validator_involvement = "v1",
-  use_reference = FALSE
+  use_reference = FALSE,
+  generate_report = TRUE,
+  report_output_path = NULL
 )
 }
 \arguments{
@@ -40,6 +42,10 @@ runCASSIA_n_times_similarity_score(
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 
 \item{use_reference}{Logical. Whether to use reference-based annotation for complex cases (default: FALSE)}
+
+\item{generate_report}{Logical. Whether to generate an HTML report (default: TRUE)}
+
+\item{report_output_path}{Character string. Path to save the HTML report (default: 'uq_report.html')}
 }
 \value{
 A list containing processed results including variance analysis.

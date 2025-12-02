@@ -363,7 +363,7 @@ py_cassia <- NULL
       }
 
       # Environment doesn't exist, create it using the new setup function
-      message("CASSIA Python environment not found. Setting up automatically...")
+      packageStartupMessage("CASSIA Python environment not found. Setting up automatically...")
       setup_cassia_env(conda_env = env_name)
     } else {
       # Environment exists, activate it using the appropriate method
@@ -387,11 +387,11 @@ py_cassia <- NULL
     py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
     # Success!
-    message("CASSIA loaded successfully! Happy annotating!")
+    packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
 
   }, error = function(e) {
     # If setup fails, try to run setup_cassia_env() automatically
-    message("Initial setup failed, attempting automatic environment setup...")
+    packageStartupMessage("Initial setup failed, attempting automatic environment setup...")
     tryCatch({
       setup_cassia_env(conda_env = env_name)
 
@@ -399,7 +399,7 @@ py_cassia <- NULL
       py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
       # Success after retry!
-      message("CASSIA loaded successfully! Happy annotating!")
+      packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
 
     }, error = function(e2) {
       # Determine the most likely cause of failure
@@ -832,10 +832,12 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
+#' @param generate_report Logical. Whether to generate an HTML report (default: TRUE)
+#' @param report_output_path Character string. Path to save the HTML report (default: 'uq_report.html')
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
-runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
+runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, generate_report = TRUE, report_output_path = NULL) {
   tryCatch({
     # Call the Python function with the new parameter structure
     processed_results <- py_cassia$runCASSIA_n_times_similarity_score(
@@ -849,7 +851,9 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
       n = as.integer(n),
       provider = provider,
       validator_involvement = validator_involvement,
-      use_reference = use_reference
+      use_reference = use_reference,
+      generate_report = generate_report,
+      report_output_path = report_output_path
     )
     
     # Convert the processed results back to R
@@ -1027,11 +1031,13 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param main_weight Weight for the main cell type.
 #' @param sub_weight Weight for the sub cell type.
+#' @param generate_report Logical. Whether to generate an HTML report (default: TRUE)
+#' @param report_output_path Character string. Path to save the HTML report (default: 'uq_batch_report.html')
 #'
 #' @return None. This function processes and saves results to a CSV file and prints execution time.
 #' @export
-runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name, 
-                                               celltype_column = NULL, max_workers = 10, model = "google/gemini-2.5-flash-preview", provider = "openrouter", main_weight=0.5, sub_weight=0.5) {
+runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
+                                               celltype_column = NULL, max_workers = 10, model = "google/gemini-2.5-flash-preview", provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
 
 
   if (is.data.frame(marker)) {
@@ -1051,13 +1057,24 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 
   execution_time <- system.time({
     tryCatch({
-      py_cassia$runCASSIA_similarity_score_batch(marker, file_pattern, output_name, 
-                                              celltype_column, max_workers, model, provider, main_weight, sub_weight)
+      py_cassia$runCASSIA_similarity_score_batch(
+        marker = marker,
+        file_pattern = file_pattern,
+        output_name = output_name,
+        celltype_column = celltype_column,
+        max_workers = as.integer(max_workers),
+        model = model,
+        provider = provider,
+        main_weight = main_weight,
+        sub_weight = sub_weight,
+        generate_report = generate_report,
+        report_output_path = report_output_path
+      )
     }, error = function(e) {
       stop(paste("Error in runCASSIA_similarity_score_batch:", e$message))
     })
   })
-  
+
   print(paste("Execution time for runCASSIA_batch_get_similarity_score:"))
   print(execution_time)
 }
