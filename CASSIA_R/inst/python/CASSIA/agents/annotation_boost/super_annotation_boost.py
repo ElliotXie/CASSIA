@@ -34,7 +34,6 @@ try:
     import seaborn as sns
     SCIENTIFIC_LIBS_AVAILABLE = True
 except ImportError as e:
-    warnings.warn(f"Scientific computing libraries not available: {e}")
     SCIENTIFIC_LIBS_AVAILABLE = False
 
 # Optional imports for enhanced functionality
@@ -43,14 +42,12 @@ try:
     GSEAPY_AVAILABLE = True
 except ImportError:
     GSEAPY_AVAILABLE = False
-    warnings.warn("GSEApy not available - pathway enrichment will use simplified method")
 
 try:
     import requests
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
-    warnings.warn("Requests not available - ontology search will use simplified method")
 
 if not SCIENTIFIC_LIBS_AVAILABLE:
     # Create minimal fallback classes for MVP testing

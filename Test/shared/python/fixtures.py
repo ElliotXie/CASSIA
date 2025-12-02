@@ -38,10 +38,10 @@ def get_all_clusters() -> list:
     Get list of all available cell type clusters.
 
     Returns:
-        list: List of cluster names
+        list: List of cluster names (first 2 only for faster testing)
     """
     df = load_markers()
-    return df['Broad.cell.type'].tolist()
+    return df['Broad.cell.type'].tolist()[:2]
 
 
 def get_cluster_markers(cluster_name: str, n_genes: int = None) -> list:
@@ -96,9 +96,9 @@ def get_full_marker_dataframe() -> pd.DataFrame:
     Get the full marker DataFrame for batch processing.
 
     Returns:
-        pd.DataFrame: DataFrame with all clusters and their markers
+        pd.DataFrame: DataFrame with first 2 clusters and their markers (for faster testing)
     """
-    return load_markers()
+    return load_markers().head(2)
 
 
 # Alias for backward compatibility

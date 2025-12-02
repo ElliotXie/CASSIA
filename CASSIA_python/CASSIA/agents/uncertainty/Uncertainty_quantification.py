@@ -1322,10 +1322,10 @@ def standardize_cell_types_single(results):
     return ",".join(standardized_results)
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False, generate_report=False, report_output_path=None):
     """
     Wrapper function for processing cell type analysis using any supported provider.
-    
+
     Args:
         tissue (str): Tissue type
         species (str): Species type
@@ -1338,7 +1338,11 @@ def runCASSIA_n_times_similarity_score(tissue, species, additional_info, tempera
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
         main_weight (float): Weight for main cell type in similarity calculation
         sub_weight (float): Weight for sub cell type in similarity calculation
-    
+        validator_involvement (str): Validator involvement level
+        use_reference (bool): Whether to use reference information
+        generate_report (bool): Whether to generate an HTML report (default: False)
+        report_output_path (str): Path to save the HTML report (default: 'uq_report.html')
+
     Returns:
         dict: Analysis results including consensus types, cell types, and scores
     """
@@ -1384,8 +1388,8 @@ Output in JSON format:
     # Calculate similarity score
     parsed_results = parse_results_to_dict_single(results)
     consensus_score, consensus_1, consensus_2 = consensus_similarity_flexible_single(parsed_results,main_weight=main_weight,sub_weight=sub_weight)
-    
-    return {
+
+    final_results = {
         'unified_results': standardized_results,
         'consensus_types': (consensus_1, consensus_2),
         'general_celltype_llm': general_celltype,
@@ -1396,4 +1400,25 @@ Output in JSON format:
         'similarity_score': consensus_score,
         'original_results': results
     }
+
+    # Generate HTML report if requested
+    if generate_report:
+        try:
+            from CASSIA.reports.generate_report_uncertainty import generate_uq_html_report
+            report_path = report_output_path or 'uq_report.html'
+            generate_uq_html_report(
+                results=final_results,
+                output_path=report_path,
+                tissue=tissue,
+                species=species,
+                model=model,
+                n_iterations=n,
+                marker_list=marker_list
+            )
+        except ImportError as e:
+            print(f"Warning: Could not generate report - {e}")
+        except Exception as e:
+            print(f"Warning: Report generation failed - {e}")
+
+    return final_results
 

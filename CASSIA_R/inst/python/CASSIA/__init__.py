@@ -126,6 +126,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from .reports.generate_report_uncertainty import generate_uq_html_report
+except ImportError:
+    pass
+
 # -----------------------------------------------------------------------------
 # PIPELINE
 # -----------------------------------------------------------------------------

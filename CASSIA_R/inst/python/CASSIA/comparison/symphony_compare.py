@@ -124,7 +124,14 @@ def symphonyCompare(
     if api_key is None:
         api_key = os.environ.get('OPENROUTER_API_KEY')
     if not api_key:
-        raise ValueError("OPENROUTER_API_KEY not found. Set it as an environment variable or pass it as api_key parameter.")
+        raise ValueError(
+            "OPENROUTER_API_KEY not found.\n"
+            "Symphony Compare uses models from multiple providers (OpenAI, Anthropic, Google, etc.),\n"
+            "so an OpenRouter API key is required to access all models through a unified endpoint.\n"
+            "Get your API key at: https://openrouter.ai/keys\n"
+            "Then set it as an environment variable: export OPENROUTER_API_KEY='your-key'\n"
+            "Or pass it directly: symphonyCompare(..., api_key='your-key')"
+        )
     
     # Input validation
     if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
@@ -155,7 +162,7 @@ def symphonyCompare(
             "x-ai/grok-4"
         ],
         "budget": [
-            "deepseek/deepseek-v3.2-speciale",
+            "deepseek/deepseek-v3.2",
             "x-ai/grok-4-fast",
             "moonshotai/kimi-k2-thinking",
             "google/gemini-2.5-flash"
@@ -167,7 +174,7 @@ def symphonyCompare(
         "anthropic/claude-sonnet-4.5": "Dr. Claude Shannon",
         "openai/gpt-5.1": "Dr. Albert Einstein",
         "x-ai/grok-4": "Dr. Marie Curie",
-        "deepseek/deepseek-v3.2-speciale": "Dr. Alan Turing",
+        "deepseek/deepseek-v3.2": "Dr. Alan Turing",
         "x-ai/grok-4-fast": "Dr. Nikola Tesla",
         "moonshotai/kimi-k2-thinking": "Dr. Ada Lovelace",
         "google/gemini-2.5-flash": "Dr. Rosalind Franklin"

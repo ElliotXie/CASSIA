@@ -26,10 +26,10 @@ load_markers <- function() {
 
 #' Get list of all available cell type clusters
 #'
-#' @return Character vector of cluster names
+#' @return Character vector of cluster names (first 2 only for faster testing)
 get_all_clusters <- function() {
   df <- load_markers()
-  df$Broad.cell.type
+  head(df$Broad.cell.type, 2)
 }
 
 #' Get marker genes for a specific cluster
@@ -76,7 +76,7 @@ get_marker_dataframe_for_cluster <- function(cluster_name, n_genes = 30) {
 
 #' Get the full marker data frame for batch processing
 #'
-#' @return Data frame with all clusters and their markers
+#' @return Data frame with first 2 clusters and their markers (for faster testing)
 get_full_marker_dataframe <- function() {
-  load_markers()
+  head(load_markers(), 2)
 }

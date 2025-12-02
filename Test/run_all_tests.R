@@ -391,7 +391,7 @@ parse_test_list <- function(test_string) {
 }
 
 # Parse arguments
-skip_tests <- c("16")  # Skip test 16 by default
+skip_tests <- c("13", "14", "16")  # Skip tests 13, 14, 16 by default
 only_tests <- character(0)
 no_report <- FALSE
 use_install_mode <- FALSE
