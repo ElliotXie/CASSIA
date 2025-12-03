@@ -1296,6 +1296,9 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         str: Path to the saved HTML report
     """
     try:
+        # Extract gene statistics from conversation history for tooltips
+        gene_stats = extract_gene_stats_from_conversation(conversation_history)
+
         # Extract content from conversation history, alternating between assistant and user
         full_conversation = ""
         for msg in conversation_history:
@@ -1439,7 +1442,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         )
         
         # Convert to HTML and save
-        html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style)
+        html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style, gene_stats=gene_stats)
         print(f"Summary report saved to {html_path}")
         
         # Return the HTML file path
