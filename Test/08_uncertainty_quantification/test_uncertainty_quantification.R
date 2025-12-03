@@ -75,7 +75,7 @@ run_uncertainty_quantification_test <- function() {
     log_msg("  Cluster:", test_cluster)
     log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
     log_msg("  Provider:", llm_config$provider %||% "openrouter")
-    log_msg("  N iterations: 3 (reduced for testing)")
+    log_msg("  N iterations: 5")
 
     single_report_path <- file.path(results$outputs, "uq_single_report.html")
 
@@ -87,7 +87,7 @@ run_uncertainty_quantification_test <- function() {
       marker_list = markers,
       model = llm_config$model %||% "google/gemini-2.5-flash",
       max_workers = llm_config$max_workers %||% 3,
-      n = 3,  # Reduced for faster testing
+      n = 5,
       provider = llm_config$provider %||% "openrouter",
       validator_involvement = config$validator$default %||% "v1",
       generate_report = TRUE,
@@ -150,14 +150,14 @@ run_uncertainty_quantification_test <- function() {
     log_msg("  Clusters:", paste(batch_clusters_tested, collapse = ", "))
     log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
     log_msg("  Provider:", llm_config$provider %||% "openrouter")
-    log_msg("  N iterations: 2 (reduced for testing)")
+    log_msg("  N iterations: 5")
 
     # Set output path for batch results
     batch_output_name <- file.path(results$outputs, "batch_results")
 
     # Run batch n times
     CASSIA::runCASSIA_batch_n_times(
-      n = 2,  # 2 iterations for testing
+      n = 5,
       marker = test_markers,
       output_name = batch_output_name,
       model = llm_config$model %||% "google/gemini-2.5-flash",
@@ -179,7 +179,13 @@ run_uncertainty_quantification_test <- function() {
       paste0(batch_output_name, "_1_full.csv"),
       paste0(batch_output_name, "_1_summary.csv"),
       paste0(batch_output_name, "_2_full.csv"),
-      paste0(batch_output_name, "_2_summary.csv")
+      paste0(batch_output_name, "_2_summary.csv"),
+      paste0(batch_output_name, "_3_full.csv"),
+      paste0(batch_output_name, "_3_summary.csv"),
+      paste0(batch_output_name, "_4_full.csv"),
+      paste0(batch_output_name, "_4_summary.csv"),
+      paste0(batch_output_name, "_5_full.csv"),
+      paste0(batch_output_name, "_5_summary.csv")
     )
 
     files_found <- c()
@@ -207,7 +213,7 @@ run_uncertainty_quantification_test <- function() {
 
     batch_results <- list(
       clusters_tested = as.list(batch_clusters_tested),
-      n_iterations = 2,
+      n_iterations = 5,
       files_created = as.list(files_found),
       files_missing = as.list(files_missing)
     )
@@ -321,7 +327,7 @@ run_uncertainty_quantification_test <- function() {
   save_test_results(results$outputs, list(
     similarity_score_test = list(
       test_cluster = test_cluster,
-      n_iterations = 3,
+      n_iterations = 5,
       results = uq_results
     ),
     batch_n_times_test = batch_results,

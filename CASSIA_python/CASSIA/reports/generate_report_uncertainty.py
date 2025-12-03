@@ -304,6 +304,7 @@ def generate_uq_html_report(
     sub_celltype = results.get('sub_celltype_llm', 'Unknown')
     mixed_types = results.get('Possible_mixed_celltypes_llm', [])
     original_results = results.get('original_results', [])
+    llm_reasoning = results.get('llm_response', '')  # LLM's reasoning for the consensus score
 
     # Handle consensus types
     if isinstance(consensus_types, tuple) and len(consensus_types) >= 2:
@@ -342,6 +343,14 @@ def generate_uq_html_report(
             markers_preview += f' ... (+{len(marker_list) - 10} more)'
     else:
         markers_preview = 'Not specified'
+
+    # Format LLM reasoning - clean up and make HTML-safe
+    if llm_reasoning:
+        # Escape HTML and preserve line breaks
+        import html as html_module
+        llm_reasoning_html = html_module.escape(str(llm_reasoning)).replace('\n', '<br>')
+    else:
+        llm_reasoning_html = '<span style="color: #999;">No reasoning available</span>'
 
     # Build HTML
     html = f'''<!DOCTYPE html>
@@ -619,9 +628,9 @@ def generate_uq_html_report(
                 <div class="score-card">
                     <div class="score-badge {score_class}">
                         <span class="score-value">{score_pct}%</span>
-                        <span class="score-label">Similarity</span>
+                        <span class="score-label">LLM Consensus</span>
                     </div>
-                    <div class="score-interpretation">{score_interpretation}</div>
+                    <div class="score-interpretation"><strong>LLM Consensus Score:</strong> {score_interpretation}</div>
                 </div>
 
                 <div class="consensus-card">
@@ -639,6 +648,13 @@ def generate_uq_html_report(
                         <div class="consensus-value">{mixed_types_html}</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">🤖 LLM Consensus Reasoning</h3>
+            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; border-left: 4px solid #667eea; font-size: 14px; line-height: 1.7; color: #374151; max-height: 400px; overflow-y: auto;">
+                {llm_reasoning_html}
             </div>
         </div>
 
@@ -1064,7 +1080,7 @@ def generate_uq_batch_html_report(
                     <div class="score-badge {avg_score_class}">
                         <span style="font-size: 24px;">{int(avg_score * 100)}%</span>
                     </div>
-                    <div class="summary-label">Average Score</div>
+                    <div class="summary-label">Avg LLM Consensus Score</div>
                 </div>
                 <div class="summary-card">
                     <div class="summary-value" style="color: #22c55e;">{high_confidence}</div>
@@ -1094,7 +1110,7 @@ def generate_uq_batch_html_report(
                         <th>Cluster ID</th>
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
-                        <th style="text-align: center;">Score</th>
+                        <th style="text-align: center;">LLM Consensus Score</th>
                         <th>Mixed Types</th>
                         <th style="text-align: center;">Details</th>
                     </tr>

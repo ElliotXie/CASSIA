@@ -6,6 +6,10 @@
 
 This is the first submission of CASSIA to CRAN.
 
+## Publication
+
+This package accompanies a paper accepted for publication in Nature Communications.
+
 ## Notes explanation
 
 ### Package size (NOTE)
