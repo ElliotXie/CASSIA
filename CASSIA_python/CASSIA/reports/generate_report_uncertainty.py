@@ -313,11 +313,17 @@ def generate_uq_html_report(
     """
     # Extract data from results
     # Use LLM Generated Consensus Score (0-100) instead of similarity_score (0-1)
-    llm_consensus_score = results.get('llm_generated_consensus_score_llm', 0)
-    # Fallback to similarity_score * 100 if llm_generated_consensus_score_llm is not available
-    if llm_consensus_score == 0:
-        similarity_score = results.get('consensus_score_llm', results.get('similarity_score', 0))
+    llm_consensus_score = results.get('llm_generated_consensus_score_llm')
+    # Handle None or missing values
+    if llm_consensus_score is None or llm_consensus_score == 0:
+        similarity_score = results.get('consensus_score_llm') or results.get('similarity_score') or 0
+        # Ensure similarity_score is a number
+        if similarity_score is None:
+            similarity_score = 0
         llm_consensus_score = similarity_score * 100 if similarity_score <= 1 else similarity_score
+    # Ensure llm_consensus_score is a number
+    if llm_consensus_score is None:
+        llm_consensus_score = 0
     consensus_types = results.get('consensus_types', ('Unknown', 'Unknown'))
     general_celltype = results.get('general_celltype_llm', 'Unknown')
     sub_celltype = results.get('sub_celltype_llm', 'Unknown')
