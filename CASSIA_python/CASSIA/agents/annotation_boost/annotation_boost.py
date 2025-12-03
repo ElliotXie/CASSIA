@@ -671,6 +671,93 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
 
     return marker_string
 
+def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    """
+    Extract gene statistics from conversation history messages.
+
+    The conversation history contains gene expression data in tabular format from USER messages.
+    This function parses those tables and creates a lookup dictionary for tooltip display.
+
+    Args:
+        conversation_history: List of conversation messages with role and content
+
+    Returns:
+        Dict mapping gene names (uppercase) to their statistics:
+        {
+            'CD3D': {'avg_log2FC': '2.45', 'pct.1': '0.85', 'pct.2': '0.12', 'p_val_adj': '1.2e-50'},
+            ...
+        }
+    """
+    gene_stats = {}
+
+    # Pattern to match gene statistics table rows
+    # Format: gene_name    number    number    number    number (scientific notation)
+    # Examples:
+    #   IGHA2       7.38  0.89  0.10  0.00e+00
+    #   CD3D       -2.45  0.85  0.12  1.20e-50
+    gene_row_pattern = re.compile(
+        r'^\s*([A-Z][A-Z0-9\-\.]+)\s+(-?\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*[eE][-+]?\d+|\d+\.?\d*)\s*$',
+        re.MULTILINE
+    )
+
+    for msg in conversation_history:
+        content = msg.get('content', '')
+        if isinstance(content, list):
+            content = str(content)
+
+        # Only look at USER messages which contain the gene expression data
+        if msg.get('role', '').upper() == 'USER':
+            matches = gene_row_pattern.findall(content)
+            for match in matches:
+                gene_name, avg_log2fc, pct1, pct2, p_val_adj = match
+                gene_stats[gene_name.upper()] = {
+                    'avg_log2FC': avg_log2fc,
+                    'pct.1': pct1,
+                    'pct.2': pct2,
+                    'p_val_adj': p_val_adj
+                }
+
+    return gene_stats
+
+def create_gene_badge_html(gene: str, gene_stats: Dict[str, Dict[str, str]] = None) -> str:
+    """
+    Create HTML for a gene badge with optional tooltip showing statistics.
+
+    Args:
+        gene: Gene name to display
+        gene_stats: Dictionary of gene statistics (from extract_gene_stats_from_conversation)
+
+    Returns:
+        HTML string for the gene badge with tooltip if stats available
+    """
+    gene_upper = gene.upper().strip()
+
+    if gene_stats and gene_upper in gene_stats:
+        stats = gene_stats[gene_upper]
+        avg_log2fc = stats.get('avg_log2FC', 'N/A')
+        pct1 = stats.get('pct.1', 'N/A')
+        pct2 = stats.get('pct.2', 'N/A')
+        p_val_adj = stats.get('p_val_adj', 'N/A')
+
+        # Determine if log2FC is positive or negative for coloring
+        try:
+            fc_value = float(avg_log2fc)
+            fc_class = 'positive' if fc_value >= 0 else 'negative'
+        except (ValueError, TypeError):
+            fc_class = ''
+
+        tooltip_html = f'''<span class="tooltip">
+            <div class="stat-row"><span class="stat-label">avg_log2FC:</span><span class="stat-value {fc_class}">{avg_log2fc}</span></div>
+            <div class="stat-row"><span class="stat-label">pct.1:</span><span class="stat-value">{pct1}</span></div>
+            <div class="stat-row"><span class="stat-label">pct.2:</span><span class="stat-value">{pct2}</span></div>
+            <div class="stat-row"><span class="stat-label">p_val_adj:</span><span class="stat-value">{p_val_adj}</span></div>
+        </span>'''
+
+        return f'<span class="gene-badge has-stats">{gene}{tooltip_html}</span>'
+    else:
+        # No stats available - add class for styling and native title tooltip
+        return f'<span class="gene-badge no-stats" title="No statistics available">{gene}</span>'
+
 def extract_genes_from_conversation(conversation: str) -> List[str]:
     """
     Extract gene lists from conversation using the check_genes tag.
