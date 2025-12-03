@@ -194,7 +194,7 @@ results = CASSIA.runCASSIA_pipeline(
 | `gtex_breast_annotation_scored.csv` | 评分后的注释结果 |
 | `gtex_breast_annotation_report.html` | 交互式 HTML 报告 |
 
-![CASSIA 注释报告](/images/gtex-breast-annotation-report.png)
+![CASSIA 注释报告](/images/gtex-breast-annotation-report.webp)
 
 ### 5.3 加载结果
 
@@ -239,9 +239,9 @@ print(adata.obs[['leiden_res_0.4', 'CASSIA_annotation']].head())
 sc.pl.umap(adata, color=['Broad_cell_type', 'CASSIA_annotation'], legend_loc='on data')
 ```
 
-![图 1: 黄金标准聚类](/images/Figure1_GoldStandard.png)
+![图 1: 黄金标准聚类](/images/Figure1_GoldStandard.webp)
 
-![图 2: 注释结果](/images/Figure2_CASSIA.png)
+![图 2: 注释结果](/images/Figure2_CASSIA.webp)
 
 CASSIA 会自动将注释总结为不同的粒度级别，您可以在输出 CSV 中找到这些级别。
 

@@ -88,12 +88,14 @@ runCASSIA_subclusters(
 
 **参数详情：**
 - **`marker`**：子聚类的标记基因（数据框或文件路径）。
-- **`major_cluster_info`**：父簇的描述或上下文（例如，“CD8+ T 细胞”）。
+- **`major_cluster_info`**：父簇的描述或上下文（例如，"CD8+ T 细胞"）。
 - **`output_name`**：输出 CSV 文件的基本名称。
 - **`model`**：使用的 LLM 模型。
 - **`provider`**：API 提供商。
 - **`temperature`**：采样温度（0-1，默认 0）。
 - **`n_genes`**：使用的前 N 个标记基因数量（默认 50）。
+
+> **📊 自动报告生成**：在 CSV 输出的同时会自动生成 HTML 报告，便于可视化子聚类结果。
 
 ```r
 # 对于混合群体
@@ -146,4 +148,5 @@ similarity_scores <- runCASSIA_similarity_score_batch(
 分析生成几个输出文件：
 - `cd8_subcluster_markers.csv`：每个子簇的标记基因
 - `subclustering_results.csv`：基本Cassia分析结果
+- `subclustering_results.html`：包含可视化的 HTML 报告
 - `subclustering_uncertainty.csv`：相似性分数（如果执行了不确定性评估）

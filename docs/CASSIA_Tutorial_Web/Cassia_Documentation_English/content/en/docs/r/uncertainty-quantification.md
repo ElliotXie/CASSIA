@@ -68,6 +68,10 @@ runCASSIA_similarity_score_batch(
 - **`provider`**: API provider.
 - **`main_weight`**: Importance of main cell type match (0-1).
 - **`sub_weight`**: Importance of subtype match (0-1). (Weights should sum to 1.0).
+- **`generate_report`**: Whether to generate an HTML report (default: TRUE).
+- **`report_output_path`**: Path for the HTML report (default: 'uq_batch_report.html').
+
+> **📊 Automatic Report Generation**: By default, an HTML report is automatically generated with visualizations of the uncertainty analysis results.
 
 ### Output Interpretation & Troubleshooting
 

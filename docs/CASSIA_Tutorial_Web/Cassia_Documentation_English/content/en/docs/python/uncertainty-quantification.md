@@ -55,6 +55,10 @@ if result.get('Possible_mixed_celltypes_llm'):
 - **`sub_weight`**: Weight for subtype in similarity (0-1).
 - **`validator_involvement`**: Validator mode ("v0" strict, "v1" moderate).
 - **`additional_info`**: Optional additional context string.
+- **`generate_report`**: Whether to generate an HTML report (default: True).
+- **`report_output_path`**: Path for the HTML report (default: 'uq_report.html').
+
+> **📊 Automatic Report Generation**: By default, an HTML report is automatically generated with visualizations of the uncertainty analysis results.
 
 #### Return Values (Single Cluster)
 
@@ -126,6 +130,10 @@ similarity_scores = CASSIA.runCASSIA_similarity_score_batch(
 - **`provider`**: API provider.
 - **`main_weight`**: Importance of main cell type match (0-1).
 - **`sub_weight`**: Importance of subtype match (0-1). (Weights should sum to 1.0).
+- **`generate_report`**: Whether to generate an HTML report (default: True).
+- **`report_output_path`**: Path for the HTML report (default: 'uq_batch_report.html').
+
+> **📊 Automatic Report Generation**: By default, an HTML report is automatically generated with visualizations of the uncertainty analysis results.
 
 ### Output Interpretation & Troubleshooting
 

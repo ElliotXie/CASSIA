@@ -28,12 +28,14 @@ CASSIA.runCASSIA_subclusters(
 #### 参数详情
 
 - **`marker`**: 亚群的标记基因（数据帧或文件路径）。
-- **`major_cluster_info`**: 父聚类或背景的描述（例如，“CD8+ T 细胞”或“与其他细胞类型混合的 cd8 t 细胞”）。
+- **`major_cluster_info`**: 父聚类或背景的描述（例如，"CD8+ T 细胞"或"与其他细胞类型混合的 cd8 t 细胞"）。
 - **`output_name`**: 输出 CSV 文件的基本名称。
 - **`model`**: 要使用的 LLM 模型。
 - **`provider`**: API 提供商。
 - **`temperature`**: 采样温度 (0-1)。
 - **`n_genes`**: 要使用的顶部标记基因数。
+
+> **📊 自动报告生成**：在 CSV 输出的同时会自动生成 HTML 报告，便于可视化亚群聚类结果。
 
 ### 不确定性评估
 
@@ -68,5 +70,6 @@ CASSIA.runCASSIA_similarity_score_batch(
 
 ### 输出文件
 - `{output_name}.csv`: 基本 Cassia 分析结果。
+- `{output_name}.html`: 包含可视化的 HTML 报告。
 - `{output_name}_uncertainty.csv`: 相似性评分（如果进行了不确定性评估）。
 

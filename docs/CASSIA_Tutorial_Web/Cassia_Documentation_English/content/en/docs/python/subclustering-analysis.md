@@ -35,6 +35,8 @@ CASSIA.runCASSIA_subclusters(
 - **`temperature`**: Sampling temperature (0-1).
 - **`n_genes`**: Number of top marker genes to use.
 
+> **📊 Automatic Report Generation**: An HTML report is automatically generated alongside the CSV output for easy visualization of subclustering results.
+
 ### Uncertainty Assessment
 
 For more confident results, calculate consistency scores (CS):
@@ -68,4 +70,5 @@ CASSIA.runCASSIA_similarity_score_batch(
 
 ### Output Files
 - `{output_name}.csv`: Basic Cassia analysis results.
+- `{output_name}.html`: HTML report with visualizations.
 - `{output_name}_uncertainty.csv`: Similarity scores (if uncertainty assessment is performed).

@@ -16,7 +16,7 @@ Run multiple annotation iterations to increase the accuracy and assess the stabi
 
 Assuming 80 percent of accuracy, by repeating the annotation 5 times, the accuracy will increase to around 95 percent.
 
-![CS Score](/images/csscore.png)
+![CS Score](/images/csscore.webp)
 
 
 ```r
@@ -82,7 +82,7 @@ runCASSIA_annotationboost(
 ```
 A detailed report will be generated. The report provides in-depth analysis of the monocyte cluster. Part of the result is shown here:
 
-![Annotation boost report](/images/annotationboost.png)
+![Annotation boost report](/images/annotationboost.webp)
 
 # 3. Symphony Compare (Advanced)
 

@@ -104,7 +104,7 @@ results <- runCASSIA_pipeline(
 
 gtex_breast_annotation_scored.csv 文件：
 
-![CASSIA注释报告](/images/gtex-breast-annotation-report.png)
+![CASSIA注释报告](/images/gtex-breast-annotation-report.webp)
 
 
 
@@ -135,9 +135,9 @@ DimPlot(seurat_breast,group.by = "CASSIA_merged_grouping_3", label = TRUE, repel
 
 
 
-![图1：金标准聚类|width=50%,height=50%](/images/Figure1_GoldStandard.png)
+![图1：金标准聚类|width=50%,height=50%](/images/Figure1_GoldStandard.webp)
 
-![图2：注释结果](/images/Figure2_CASSIA.png)
+![图2：注释结果](/images/Figure2_CASSIA.webp)
 
 
 

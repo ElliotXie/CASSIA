@@ -8,8 +8,9 @@ Run this script once to generate the test data:
     python generate_scanpy_markers.py
 
 Output files saved to ./data/:
-    - scanpy_rank_genes_groups.pkl  (the rank_genes_groups dictionary)
+    - scanpy_rank_genes_groups.pkl  (the rank_genes_groups dictionary - structured array format)
     - scanpy_cluster_info.pkl       (cluster column name and cell counts)
+    - scanpy_rank_genes_df.csv      (flat DataFrame from sc.get.rank_genes_groups_df)
 """
 
 import pickle
@@ -114,6 +115,18 @@ def generate_and_save_scanpy_markers():
         pickle.dump(cluster_info, f)
     print(f"Saved cluster info to: {cluster_info_path}")
 
+    # Also save the flat DataFrame format from sc.get.rank_genes_groups_df()
+    # This is the modern scanpy API that returns a flat DataFrame
+    print("\nGenerating flat DataFrame format (sc.get.rank_genes_groups_df)...")
+    scanpy_df = sc.get.rank_genes_groups_df(adata, group=None)
+    scanpy_df_path = data_dir / "scanpy_rank_genes_df.csv"
+    scanpy_df.to_csv(scanpy_df_path, index=False)
+    print(f"Saved flat DataFrame to: {scanpy_df_path}")
+    print(f"  Shape: {scanpy_df.shape}")
+    print(f"  Columns: {scanpy_df.columns.tolist()}")
+    print(f"  Sample rows:")
+    print(scanpy_df.head(3).to_string(index=False))
+
     # Print summary
     print("\n" + "=" * 60)
     print("Summary of saved data:")
@@ -142,8 +155,12 @@ def generate_and_save_scanpy_markers():
     print("\n" + "=" * 60)
     print("Data generation complete!")
     print("=" * 60)
+    print("\nGenerated files:")
+    print(f"  1. {rank_genes_path.name} - Structured array format (legacy)")
+    print(f"  2. {cluster_info_path.name} - Cluster metadata")
+    print(f"  3. {scanpy_df_path.name} - Flat DataFrame format (modern)")
 
-    return rank_genes_dict, cluster_info
+    return rank_genes_dict, cluster_info, scanpy_df
 
 
 if __name__ == "__main__":

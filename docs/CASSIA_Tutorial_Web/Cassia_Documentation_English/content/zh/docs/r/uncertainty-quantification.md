@@ -68,6 +68,10 @@ runCASSIA_similarity_score_batch(
 - **`provider`**：API 提供商。
 - **`main_weight`**：主细胞类型匹配的重要性（0-1）。
 - **`sub_weight`**：亚类型匹配的重要性（0-1）。（权重总和应为 1.0）。
+- **`generate_report`**：是否生成 HTML 报告（默认：TRUE）。
+- **`report_output_path`**：HTML 报告的路径（默认：'uq_batch_report.html'）。
+
+> **📊 自动报告生成**：默认情况下，会自动生成包含不确定性分析结果可视化的 HTML 报告。
 
 ### 输出解释与故障排除
 

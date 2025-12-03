@@ -55,6 +55,10 @@ if result.get('Possible_mixed_celltypes_llm'):
 - **`sub_weight`**: 相似性中亚型的权重 (0-1)。
 - **`validator_involvement`**: 验证器模式（"v0" 严格，"v1" 中等）。
 - **`additional_info`**: 可选的额外上下文字符串。
+- **`generate_report`**: 是否生成 HTML 报告（默认：True）。
+- **`report_output_path`**: HTML 报告的路径（默认：'uq_report.html'）。
+
+> **📊 自动报告生成**：默认情况下，会自动生成包含不确定性分析结果可视化的 HTML 报告。
 
 #### 返回值（单聚类）
 
@@ -126,6 +130,10 @@ similarity_scores = CASSIA.runCASSIA_similarity_score_batch(
 - **`provider`**: API 提供商。
 - **`main_weight`**: 主要细胞类型匹配的重要性 (0-1)。
 - **`sub_weight`**: 亚型匹配的重要性 (0-1)。（权重总和应为 1.0）。
+- **`generate_report`**: 是否生成 HTML 报告（默认：True）。
+- **`report_output_path`**: HTML 报告的路径（默认：'uq_batch_report.html'）。
+
+> **📊 自动报告生成**：默认情况下，会自动生成包含不确定性分析结果可视化的 HTML 报告。
 
 ### 输出解读与故障排除
 

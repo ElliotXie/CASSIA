@@ -177,7 +177,7 @@ quality_scores <- runCASSIA_score_batch(
 
 生成的HTML报告页面如下所示，您可以点击按钮导航到相应的细胞簇。
 
-![CASSIA评分报告](/images/report_score.png)
+![CASSIA评分报告](/images/report_score.webp)
 
 
 ## 4. 解读结果

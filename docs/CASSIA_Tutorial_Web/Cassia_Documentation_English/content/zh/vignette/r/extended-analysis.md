@@ -16,7 +16,7 @@ title: "使用可选代理进行扩展分析"
 
 假设单次准确率为80%，通过重复注释5次，准确率将提高到约95%。
 
-![CS评分](/images/csscore.png)
+![CS评分](/images/csscore.webp)
 
 
 ```r
@@ -78,7 +78,7 @@ runCASSIA_annotationboost(
 ```
 将生成详细的报告。该报告提供对单核细胞簇的深入分析。部分结果如下所示：
 
-![注释增强报告](/images/annotationboost.png)
+![注释增强报告](/images/annotationboost.webp)
 
 # 3. 比较细胞类型
 

@@ -105,7 +105,7 @@ The output file is saved in a folder named after the tissue and species. Inside 
 
 The gtex_breast_annotation_scored.csv file:
 
-![CASSIA annotation report](/images/gtex-breast-annotation-report.png)
+![CASSIA annotation report](/images/gtex-breast-annotation-report.webp)
 
 
 
@@ -136,9 +136,9 @@ DimPlot(seurat_breast,group.by = "CASSIA_merged_grouping_3", label = TRUE, repel
 
 
 
-![Figure 1: Gold Standard Clustering|width=50%,height=50%](/images/Figure1_GoldStandard.png)
+![Figure 1: Gold Standard Clustering|width=50%,height=50%](/images/Figure1_GoldStandard.webp)
 
-![Figure 2: Annotation Results](/images/Figure2_CASSIA.png)
+![Figure 2: Annotation Results](/images/Figure2_CASSIA.webp)
 
 
 

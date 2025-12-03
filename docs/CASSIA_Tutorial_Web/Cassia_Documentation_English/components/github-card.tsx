@@ -9,7 +9,7 @@ export function GitHubCard() {
     <Card className="overflow-hidden">
       <CardHeader className="bg-slate-50 dark:bg-slate-800 pb-2">
         <div className="flex items-center gap-2">
-          <Image src="/images/cassia-logo.png" alt="CASSIA Logo" width={24} height={24} className="rounded-full" />
+          <Image src="/images/cassia-logo.webp" alt="CASSIA Logo" width={24} height={24} className="rounded-full" />
           <CardTitle className="text-sm font-medium">ElliotXie/CASSIA</CardTitle>
         </div>
         <CardDescription className="text-xs">A multiagent LLM based single cell Annotation framework</CardDescription>

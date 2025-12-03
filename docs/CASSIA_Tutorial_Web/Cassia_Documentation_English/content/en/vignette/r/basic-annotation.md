@@ -178,7 +178,7 @@ quality_scores <- runCASSIA_score_batch(
 ```
 The result routing html page is shown below, you can click the button to navigate to the corresponding cluster.
 
-![CASSIA Score Report](/images/report_score.png)
+![CASSIA Score Report](/images/report_score.webp)
 
 
 ## 4. Interpreting Results

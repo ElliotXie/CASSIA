@@ -194,7 +194,7 @@ The pipeline creates a folder with the following files:
 | `gtex_breast_annotation_scored.csv` | Scored annotation results |
 | `gtex_breast_annotation_report.html` | Interactive HTML report |
 
-![CASSIA annotation report](/images/gtex-breast-annotation-report.png)
+![CASSIA annotation report](/images/gtex-breast-annotation-report.webp)
 
 ### 5.3 Load Results
 
@@ -239,9 +239,9 @@ Compare CASSIA annotations with gold standard labels:
 sc.pl.umap(adata, color=['Broad_cell_type', 'CASSIA_annotation'], legend_loc='on data')
 ```
 
-![Figure 1: Gold Standard Clustering](/images/Figure1_GoldStandard.png)
+![Figure 1: Gold Standard Clustering](/images/Figure1_GoldStandard.webp)
 
-![Figure 2: Annotation Results](/images/Figure2_CASSIA.png)
+![Figure 2: Annotation Results](/images/Figure2_CASSIA.webp)
 
 CASSIA automatically summarizes annotations into different levels of granularity, which you can find in the output CSVs.
 

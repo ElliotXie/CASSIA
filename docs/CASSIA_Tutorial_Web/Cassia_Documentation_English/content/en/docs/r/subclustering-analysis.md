@@ -95,6 +95,8 @@ runCASSIA_subclusters(
 - **`temperature`**: Sampling temperature (0-1, default 0).
 - **`n_genes`**: Number of top marker genes to use (default 50).
 
+> **📊 Automatic Report Generation**: An HTML report is automatically generated alongside the CSV output for easy visualization of subclustering results.
+
 ```r
 # For mixed populations
 runCASSIA_subclusters(
@@ -146,4 +148,5 @@ similarity_scores <- runCASSIA_similarity_score_batch(
 The analysis generates several output files:
 - `cd8_subcluster_markers.csv`: Marker genes for each subcluster
 - `subclustering_results.csv`: Basic Cassia analysis results
+- `subclustering_results.html`: HTML report with visualizations
 - `subclustering_uncertainty.csv`: Similarity scores (if uncertainty assessment is performed)
