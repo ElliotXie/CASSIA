@@ -14,7 +14,7 @@ import yaml
 
 def get_references_dir() -> Path:
     """Get the path to the references directory."""
-    return Path(__file__).parent / "references"
+    return Path(__file__).parent / "references_brain"
 
 
 def get_reference_index_path() -> Path:

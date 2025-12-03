@@ -250,6 +250,16 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
             if len(files_found) >= 2:  # At least 2 files (one iteration with full + summary)
                 batch_status = "passed"
                 print(f"\n[OK] Batch test PASSED")
+
+                # Copy generated files to data folder for future use
+                import shutil
+                data_folder.mkdir(exist_ok=True)
+                for i in range(1, 6):
+                    src_file = f"{batch_output_name}_{i}_full.csv"
+                    if os.path.exists(src_file):
+                        dst_file = data_folder / f"batch_results_{i}_full.csv"
+                        shutil.copy2(src_file, dst_file)
+                        print(f"  Copied to data folder: batch_results_{i}_full.csv")
             else:
                 batch_status = "failed"
                 errors.append(f"Batch test: Expected at least 2 output files, found {len(files_found)}")

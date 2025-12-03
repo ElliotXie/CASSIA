@@ -3,7 +3,7 @@ title: Introduction to Optional Agents
 ---
 
 
-Thank you for reading this far! The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents.
+The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents.
 
   
 
@@ -19,21 +19,15 @@ This agent has appeared in the previous workflow, but you can also choose to app
 
   
 
-## ⚖️ Comparecelltype Agent
+## ⚖️ SymphonyCompare Agent
 
-We know that the basic CASSIA workflow outputs three possible final annotations, ranked from most to least likely. Sometimes, we encounter ambiguous annotations. In such cases, the Comparecelltype Agent can help identify the most probable annotation. This agent is actually a combination of several agents, each scoring the possible annotation results. The final annotation is chosen based on these scores.
+We know that the basic CASSIA workflow outputs three possible final annotations, ranked from most to least likely. Sometimes, we encounter ambiguous annotations. In such cases, the SymphonyCompare Agent can help identify the most probable annotation. This agent is actually a combination of several agents, each scoring the possible annotation results. The final annotation is chosen based on these scores.
 
   
 
 ## 🔬 Subclustering Agent
 
 A single round of clustering is often not enough. Sometimes, we are particularly interested in certain clusters that need to be extracted for further analysis. The Subclustering Agent can compare multiple clusters simultaneously, providing more accurate and detailed annotations.
-
-  
-
-## ✨ Annotation Boost Agent +
-
-This agent is an upgraded version of the Annotation Boost Agent, capable of performing personalized analyses for specific clusters. It is still under continuous development, so please stay tuned...
 
   
 

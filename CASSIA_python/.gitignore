@@ -5,4 +5,7 @@ upload_to_testpypi.py
 # API keys configuration file
 CASSIA/set_api_keys.py
 set_api_keys.py
-.env 
+.env
+
+# Agent documentation (local only)
+CASSIA/reference_agent/agent_breakdown.md

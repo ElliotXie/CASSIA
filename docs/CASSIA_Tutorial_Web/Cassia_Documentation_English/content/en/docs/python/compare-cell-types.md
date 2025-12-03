@@ -18,7 +18,7 @@ results = CASSIA.symphonyCompare(
     celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
     marker_set = marker,
     species = "human",
-    model_preset = "symphony",  # Options: "symphony", "quartet", "budget"
+    model_preset = "premium",  # Options: "premium", "budget"
     output_basename = "plasma_cell_comparison",
     enable_discussion = True
 )
@@ -33,9 +33,8 @@ print(f"Consensus: {results['consensus']} (confidence: {results['confidence']:.1
 - **`marker_set`**: A string of comma-separated marker genes.
 - **`species`**: The species of the sample (default: "human").
 - **`model_preset`**: Configuration of models to use.
-    - `"symphony"` (Default): High-performance ensemble (Claude, GPT-4o, Gemini Pro).
-    - `"quartet"`: Balanced 4-model ensemble.
-    - `"budget"`: Cost-effective models (Gemini Flash, Deepseek, etc.).
+    - `"premium"` (Default): High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4).
+    - `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash).
 - **`output_basename`**: Base name for output files.
 - **`enable_discussion`**: Whether to enable multi-round debate between models (default: `True`).
 - **`max_discussion_rounds`**: Maximum number of discussion rounds (default: 2).

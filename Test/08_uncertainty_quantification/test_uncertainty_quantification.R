@@ -230,6 +230,19 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
       if (length(files_found) >= 2) {
         batch_status <- "passed"
         log_msg("\n[OK] Batch test PASSED")
+
+        # Copy generated files to data folder for future use
+        if (!dir.exists(data_folder)) {
+          dir.create(data_folder, recursive = TRUE)
+        }
+        for (i in 1:5) {
+          src_file <- paste0(batch_output_name, "_", i, "_full.csv")
+          if (file.exists(src_file)) {
+            dst_file <- file.path(data_folder, paste0("batch_results_", i, "_full.csv"))
+            file.copy(src_file, dst_file, overwrite = TRUE)
+            log_msg("  Copied to data folder:", paste0("batch_results_", i, "_full.csv"))
+          }
+        }
       } else {
         batch_status <- "failed"
         errors <- c(errors, paste("Batch test: Expected at least 2 output files, found", length(files_found)))

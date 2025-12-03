@@ -1,5 +1,5 @@
 ---
-title: Symphony Compare (高级)
+title: Symphony Compare (可选)
 ---
 
 
@@ -29,7 +29,7 @@ symphonyCompare(
     celltypes,          # 要比较的2-4种细胞类型的向量
     marker_set,         # 标记基因的向量或字符串
     species = "human",  # 物种
-    model_preset = "symphony", # 预设模型配置
+    model_preset = "premium", # 预设模型配置
     enable_discussion = TRUE,  # 启用自动讨论轮次
     max_discussion_rounds = 2, # 最大讨论轮次
     consensus_threshold = 0.8, # 共识阈值 (0-1)
@@ -45,10 +45,8 @@ symphonyCompare(
 - **`marker_set`** (字符向量或字符串): 标记基因的列表或字符串。
 - **`species`** (字符串): 样本的物种（默认："human"）。
 - **`model_preset`** (字符串): 要使用的预配置模型集合。
-  - `"symphony"`: 高性能集合 (Claude, GPT-4, Gemini Pro)
-  - `"quartet"`: 平衡的 4 模型集合
-  - `"budget"`: 具成本效益的模型
-  - `"custom"`: 使用 custom_models 列表
+  - `"premium"`: 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
+  - `"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash)
 - **`enable_discussion`** (逻辑值): 如果为 `TRUE`，若未达成初始共识，模型将“讨论”并重新考虑其投票。
 - **`max_discussion_rounds`** (整数): 允许的最大讨论轮数（默认：2）。
 - **`consensus_threshold`** (数值): 声明共识所需的置信度阈值（0-1，默认：0.8）。

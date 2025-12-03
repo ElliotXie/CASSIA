@@ -18,7 +18,7 @@ results = CASSIA.symphonyCompare(
     celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
     marker_set = marker,
     species = "human",
-    model_preset = "symphony",  # 选项: "symphony", "quartet", "budget"
+    model_preset = "premium",  # 选项: "premium", "budget"
     output_basename = "plasma_cell_comparison",
     enable_discussion = True
 )
@@ -33,9 +33,8 @@ print(f"Consensus: {results['consensus']} (confidence: {results['confidence']:.1
 - **`marker_set`**: 逗号分隔的标记基因字符串。
 - **`species`**: 样本的物种（默认：“人类”）。
 - **`model_preset`**: 要使用的模型配置。
-    - `"symphony"` (默认): 高性能组合 (Claude, GPT-4o, Gemini Pro)。
-    - `"quartet"`: 平衡的 4 模型组合。
-    - `"budget"`: 具有成本效益的模型 (Gemini Flash, Deepseek 等)。
+    - `"premium"` (默认): 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)。
+    - `"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash)。
 - **`output_basename`**: 输出文件的基本名称。
 - **`enable_discussion`**: 是否启用模型之间的多轮辩论（默认：`True`）。
 - **`max_discussion_rounds`**: 最大讨论轮数（默认：2）。

@@ -26,29 +26,6 @@ runCASSIA_score_batch(
 - **`model`** (字符串): 用于质量评分的 LLM。强烈推荐使用 `openai/gpt-5.1` 或 `anthropic/claude-4.5-sonnet` 以获得最佳准确性。
 - **`provider`** (字符串): 模型的 API 提供商（例如 "openrouter"）。
 
-### API提供商考虑因素
-
-#### OpenRouter
-- **优势**：
-  - 更高的速率限制
-  - 容易切换模型
-- **设置**：
-  ```R
-  provider <- "openrouter"
-  model <- "anthropic/claude-3.5-sonnet"
-  ```
-
-#### Anthropic直接使用
-- **考虑因素**：
-  - 新用户有使用限制
-  - 可能需要减少`max_workers`
-  - 更适合小型数据集
-- **设置**：
-  ```R
-  provider <- "anthropic"
-  model <- "claude-3-5-sonnet-20241022"
-  ```
-
 ### 输出格式
 评分输出文件包含：
 - 原始注释数据

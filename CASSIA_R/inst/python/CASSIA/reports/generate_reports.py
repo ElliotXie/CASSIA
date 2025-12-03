@@ -245,7 +245,7 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
     if model_name is None:
         model_name = os.path.basename(csv_path).replace('.csv', '')
 
-    # Build table rows with collapsible markers
+    # Build table rows with popup markers
     rows = []
     for idx, row in df.iterrows():
         cluster = row.get('Result ID', '')
@@ -253,7 +253,9 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
         sub_type = row.get('sub_cell_type', '')
         key_markers = row.get('key_markers', '')
         reason = row.get('reason', '')
-        marker_id = f"marker_{idx+1}"
+        # Escape quotes for JavaScript
+        escaped_markers = str(key_markers).replace('\\', '\\\\').replace("'", "\\'").replace('"', '&quot;').replace('\n', '<br>')
+        escaped_cluster = str(cluster).replace("'", "\\'")
         rows.append(f'''
         <tr>
             <td class="cluster-col">{cluster}</td>
@@ -262,8 +264,7 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
                 <div class="sub-type">{sub_type}</div>
             </td>
             <td class="marker-col">
-                <button class="marker-toggle" onclick="toggleMarkers('{marker_id}')">Show Markers</button>
-                <div id="{marker_id}" class="marker-content" style="display:none;">{key_markers}</div>
+                <button class="marker-toggle" onclick="showMarkerPopup('{escaped_cluster}', '{escaped_markers}')">Show Markers</button>
             </td>
             <td class="reasoning-col"><div class="reasoning-box">{reason}</div></td>
         </tr>
@@ -289,21 +290,42 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
             .main-type {{ font-weight: bold; color: #222; font-size: 16px; }}
             .sub-type {{ color: #888; font-size: 14px; margin-top: 2px; }}
             .marker-col {{ width: 20%; font-size: 13px; color: #888; }}
-            .marker-toggle {{ background: #e3f2fd; color: #1976d2; border: none; border-radius: 5px; padding: 3px 10px; font-size: 13px; cursor: pointer; margin-bottom: 4px; }}
+            .marker-toggle {{ background: #e3f2fd; color: #1976d2; border: none; border-radius: 5px; padding: 3px 10px; font-size: 13px; cursor: pointer; }}
             .marker-toggle:hover {{ background: #bbdefb; }}
-            .marker-content {{ margin-top: 4px; font-size: 13px; color: #555; background: #f8fafc; border-radius: 5px; padding: 6px 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }}
             .reasoning-col {{ width: 55%; }}
+            /* Modal popup styles */
+            .modal-overlay {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }}
+            .modal-overlay.active {{ display: flex; }}
+            .modal-content {{ background: #fff; border-radius: 12px; padding: 24px; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); position: relative; }}
+            .modal-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; }}
+            .modal-title {{ font-size: 18px; font-weight: 600; color: #1976d2; margin: 0; }}
+            .modal-close {{ background: #f44336; color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }}
+            .modal-close:hover {{ background: #d32f2f; }}
+            .modal-body {{ font-size: 14px; color: #444; line-height: 1.6; }}
             .reasoning-box {{ background: #fffde7; border-left: 5px solid #ffe082; border-radius: 7px; padding: 12px 16px; font-size: 15px; color: #444; box-shadow: 0 1px 4px rgba(255,193,7,0.07); }}
         </style>
         <script>
-        function toggleMarkers(id) {{
-            var el = document.getElementById(id);
-            if (el.style.display === 'none') {{
-                el.style.display = 'block';
-            }} else {{
-                el.style.display = 'none';
-            }}
+        function showMarkerPopup(cluster, markers) {{
+            document.getElementById('modal-cluster').textContent = 'Cluster ' + cluster + ' - Key Markers';
+            document.getElementById('modal-markers').innerHTML = markers;
+            document.getElementById('marker-modal').classList.add('active');
         }}
+        function closeMarkerPopup() {{
+            document.getElementById('marker-modal').classList.remove('active');
+        }}
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {{
+            var modal = document.getElementById('marker-modal');
+            if (e.target === modal) {{
+                closeMarkerPopup();
+            }}
+        }});
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {{
+            if (e.key === 'Escape') {{
+                closeMarkerPopup();
+            }}
+        }});
         </script>
     </head>
     <body>
@@ -320,6 +342,16 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
                 {''.join(rows)}
             </table>
         </div>
+        <!-- Modal Popup -->
+        <div id="marker-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-cluster" class="modal-title">Key Markers</h3>
+                    <button class="modal-close" onclick="closeMarkerPopup()">&times;</button>
+                </div>
+                <div id="modal-markers" class="modal-body"></div>
+            </div>
+        </div>
     </body>
     </html>
     '''
@@ -327,12 +359,13 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
         f.write(html)
     print(f"Subclustering HTML report saved to {html_report_path}")
 
-def process_evaluation_csv(csv_path: str, overwrite: bool = False) -> None:
+def process_evaluation_csv(csv_path: str, overwrite: bool = False, model_name: str = None) -> None:
     try:
         if not os.path.exists(csv_path):
             print(f"File not found: {csv_path}")
             return
-        model_name = extract_model_name(csv_path)
+        if model_name is None:
+            model_name = extract_model_name(csv_path)
         html_path = csv_path.replace('.csv', '.html')
         if os.path.exists(html_path) and not overwrite:
             print(f"HTML report already exists for {model_name}. Skipping. Use --overwrite to regenerate.")

@@ -26,29 +26,6 @@ runCASSIA_score_batch(
 - **`model`** (character string): The LLM used for quality scoring. `openai/gpt-5.1` or `anthropic/claude-4.5-sonnet` is highly recommended for best accuracy.
 - **`provider`** (character string): The API provider for the model (e.g., "openrouter").
 
-### API Provider Considerations
-
-#### OpenRouter
-- **Advantages**:
-  - Higher rate limits
-  - Easy to switch models
-- **Setup**:
-  ```R
-  provider <- "openrouter"
-  model <- "google/gemini-2.5-flash-preview"
-  ```
-
-#### Anthropic Direct
-- **Considerations**:
-  - New users have usage limits
-  - May need to reduce `max_workers`
-  - Better for smaller datasets
-- **Setup**:
-  ```R
-  provider <- "anthropic"
-  model <- "claude-3-5-sonnet-20241022"
-  ```
-
 ### Output Format
 The scored output file contains:
 - Original annotation data

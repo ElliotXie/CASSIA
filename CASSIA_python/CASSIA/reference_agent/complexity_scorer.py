@@ -25,7 +25,7 @@ except ImportError:
 
 def _load_router_content() -> str:
     """Load the router markdown file content."""
-    router_path = Path(__file__).parent / "references" / "_router.md"
+    router_path = Path(__file__).parent / "references_brain" / "_router.md"
     if router_path.exists():
         with open(router_path, 'r', encoding='utf-8') as f:
             return f.read()

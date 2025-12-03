@@ -1,5 +1,5 @@
 ---
-title: Symphony Compare (Advanced)
+title: Symphony Compare (Optional)
 ---
 
 
@@ -29,7 +29,7 @@ symphonyCompare(
     celltypes,          # Vector of 2-4 cell types to compare
     marker_set,         # Vector or string of marker genes
     species = "human",  # Species
-    model_preset = "symphony", # Preset model configuration
+    model_preset = "premium", # Preset model configuration
     enable_discussion = TRUE,  # Enable automatic discussion rounds
     max_discussion_rounds = 2, # Maximum discussion rounds
     consensus_threshold = 0.8, # Threshold for consensus (0-1)
@@ -45,10 +45,8 @@ symphonyCompare(
 - **`marker_set`** (character vector or string): A list or string of marker genes.
 - **`species`** (character string): The species of the sample (default: "human").
 - **`model_preset`** (character string): Pre-configured model ensemble to use.
-  - `"symphony"`: High-performance ensemble (Claude, GPT-4, Gemini Pro)
-  - `"quartet"`: Balanced 4-model ensemble
-  - `"budget"`: Cost-effective models
-  - `"custom"`: Use custom_models list
+  - `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
+  - `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash)
 - **`enable_discussion`** (logical): If `TRUE`, models will "discuss" and reconsider their votes if initial consensus is not reached.
 - **`max_discussion_rounds`** (integer): Maximum number of discussion rounds allowed (default: 2).
 - **`consensus_threshold`** (numeric): The confidence threshold required to declare consensus (0-1, default: 0.8).

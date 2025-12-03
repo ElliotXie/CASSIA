@@ -390,7 +390,7 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
     import os
     csv_file = output_name if output_name.lower().endswith('.csv') else output_name + '.csv'
     if os.path.exists(csv_file):
-        process_evaluation_csv(csv_file, overwrite=True)
+        process_evaluation_csv(csv_file, overwrite=True, model_name=model)
     
     return None
 
