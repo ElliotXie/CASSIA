@@ -82,6 +82,8 @@ def sync_python_files():
         """Check if a file/folder should be ignored."""
         if filename == "__pycache__":
             return True
+        if filename == "ready_to_delete":
+            return True
         if filename.endswith(".pyc"):
             return True
         if filename.endswith(".ipynb"):

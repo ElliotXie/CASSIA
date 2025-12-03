@@ -485,6 +485,61 @@ def consensus_similarity_flexible(results, main_weight=0.7, sub_weight=0.3):
     return similarity_score, consensus_general, consensus_sub
 
 
+def consensus_similarity_from_tuples(parsed_results, main_weight=0.7, sub_weight=0.3):
+    """
+    Calculate consensus similarity from parsed results with simple tuple format.
+
+    Args:
+        parsed_results: dict where values are tuples (main_type, sub_type)
+                       e.g., {"result1": ("Plasma Cell", "IgA-producing"), ...}
+        main_weight: weight for main cell type agreement
+        sub_weight: weight for sub cell type agreement
+
+    Returns:
+        tuple: (similarity_score, consensus_general, consensus_sub)
+    """
+    from collections import Counter
+
+    if not parsed_results:
+        return 0.0, "Unknown", "Unknown"
+
+    # Extract cell types from the tuple structure
+    general_types = []
+    sub_types = []
+
+    for key, value in parsed_results.items():
+        if isinstance(value, tuple) and len(value) >= 2:
+            main_type = str(value[0]).strip() if value[0] else "Unknown"
+            sub_type = str(value[1]).strip() if value[1] else "Unknown"
+            general_types.append(main_type)
+            sub_types.append(sub_type)
+
+    if not general_types or not sub_types:
+        return 0.0, "Unknown", "Unknown"
+
+    # Get consensus (most common) types
+    general_counter = Counter(general_types)
+    sub_counter = Counter(sub_types)
+
+    consensus_general = general_counter.most_common(1)[0][0]
+    consensus_sub = sub_counter.most_common(1)[0][0]
+
+    # Calculate similarity score based on agreement with consensus
+    total_score = 0
+    for key, value in parsed_results.items():
+        if isinstance(value, tuple) and len(value) >= 2:
+            result_general = str(value[0]).strip() if value[0] else ""
+            result_sub = str(value[1]).strip() if value[1] else ""
+
+            if result_general == consensus_general:
+                total_score += main_weight
+
+            if result_sub == consensus_sub:
+                total_score += sub_weight
+
+    similarity_score = total_score / (len(parsed_results) * (main_weight + sub_weight))
+
+    return similarity_score, consensus_general, consensus_sub
 
 
 
@@ -954,9 +1009,9 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     # Calculate similarity score
     try:
         parsed_results_llm = parse_results_to_dict(results_unification_llm)
-        consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_flexible(
-            parsed_results_llm, 
-            main_weight=main_weight, 
+        consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_from_tuples(
+            parsed_results_llm,
+            main_weight=main_weight,
             sub_weight=sub_weight
         )
     except Exception as e:
@@ -996,9 +1051,9 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
             
             # Calculate ontology-based similarity score
             parsed_results_oncology = parse_results_to_dict(result_unified_oncology)
-            consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_flexible(
-                parsed_results_oncology, 
-                main_weight=main_weight, 
+            consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_from_tuples(
+                parsed_results_oncology,
+                main_weight=main_weight,
                 sub_weight=sub_weight
             )
             
@@ -1246,19 +1301,21 @@ def parse_results_to_dict_single(results):
 def extract_celltypes_from_llm_single(llm_response, provider="openai"):
     """
     Wrapper around the unified extract_celltypes_from_llm function for single analysis.
-    
+
     Args:
         llm_response: The text response from the LLM
         provider: The provider that generated the response ("openai", "anthropic", "openrouter", or a custom URL)
-        
+
     Returns:
-        general_celltype, sub_celltype, mixed_celltypes
+        general_celltype, sub_celltype, mixed_celltypes, llm_consensus_score
     """
-    return extract_celltypes_from_llm(
+    # Use single_analysis=False to get all 4 return values including consensus_score
+    general_celltype, sub_celltype, mixed_celltypes, consensus_score = extract_celltypes_from_llm(
         llm_response=llm_response,
         provider=provider,
-        single_analysis=True
+        single_analysis=False
     )
+    return general_celltype, sub_celltype, mixed_celltypes, consensus_score
 
 def consensus_similarity_flexible_single(results, main_weight=0.7, sub_weight=0.3):
     general_types = [result[0] for result in results.values()]
@@ -1399,11 +1456,11 @@ Output in JSON format:
         temperature=0.3
     )
     
-    # Extract consensus celltypes using the unified function
-    general_celltype, sub_celltype, mixed_types = extract_celltypes_from_llm_single(
+    # Extract consensus celltypes using the unified function (now returns 4 values including llm_consensus_score)
+    general_celltype, sub_celltype, mixed_types, llm_consensus_score = extract_celltypes_from_llm_single(
         result_consensus, provider=provider
     )
-    
+
     # Calculate similarity score
     parsed_results = parse_results_to_dict_single(results)
     consensus_score, consensus_1, consensus_2 = consensus_similarity_flexible_single(parsed_results,main_weight=main_weight,sub_weight=sub_weight)
@@ -1415,7 +1472,8 @@ Output in JSON format:
         'sub_celltype_llm': sub_celltype,
         'Possible_mixed_celltypes_llm': mixed_types,
         'llm_response': result_consensus,
-        'consensus_score_llm': None,  # Using None instead of consensus_score_llm which isn't returned by extract_celltypes_from_llm_single
+        'consensus_score_llm': consensus_score,  # Similarity score (0-1)
+        'llm_generated_consensus_score_llm': llm_consensus_score,  # LLM consensus score (0-100)
         'similarity_score': consensus_score,
         'original_results': results
     }

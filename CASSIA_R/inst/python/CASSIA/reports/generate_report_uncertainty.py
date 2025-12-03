@@ -312,14 +312,26 @@ def generate_uq_html_report(
         Path to the generated HTML report
     """
     # Extract data from results
-    similarity_score = results.get('similarity_score', 0)
+    # Use LLM Generated Consensus Score (0-100) instead of similarity_score (0-1)
+    llm_consensus_score = results.get('llm_generated_consensus_score_llm')
+    # Handle None or missing values
+    if llm_consensus_score is None or llm_consensus_score == 0:
+        similarity_score = results.get('consensus_score_llm') or results.get('similarity_score') or 0
+        # Ensure similarity_score is a number
+        if similarity_score is None:
+            similarity_score = 0
+        llm_consensus_score = similarity_score * 100 if similarity_score <= 1 else similarity_score
+    # Ensure llm_consensus_score is a number
+    if llm_consensus_score is None:
+        llm_consensus_score = 0
     consensus_types = results.get('consensus_types', ('Unknown', 'Unknown'))
     general_celltype = results.get('general_celltype_llm', 'Unknown')
     sub_celltype = results.get('sub_celltype_llm', 'Unknown')
     mixed_types = results.get('Possible_mixed_celltypes_llm', [])
     original_results = results.get('original_results', [])
     llm_reasoning = results.get('llm_response', '')  # LLM's reasoning for the consensus score
-    unified_results = results.get('unified_results_llm', '')  # Unified results LLM string
+    # Try unified_results_llm first (batch), then unified_results (single)
+    unified_results = results.get('unified_results_llm', '') or results.get('unified_results', '')
 
     # Handle consensus types
     if isinstance(consensus_types, tuple) and len(consensus_types) >= 2:
@@ -329,9 +341,9 @@ def generate_uq_html_report(
         consensus_main = general_celltype or 'Unknown'
         consensus_sub = sub_celltype or 'Unknown'
 
-    # Get score styling
-    score_class, score_color, score_interpretation = _get_score_class(similarity_score)
-    score_pct = int(similarity_score * 100)
+    # Get score styling - llm_consensus_score is 0-100, divide by 100 for _get_score_class
+    score_class, score_color, score_interpretation = _get_score_class(llm_consensus_score / 100)
+    score_pct = int(llm_consensus_score)  # Already 0-100
 
     # Calculate summary stats
     stats = _calculate_summary_stats(original_results, consensus_main, consensus_sub)
@@ -693,7 +705,7 @@ def generate_uq_html_report(
         </div>
 
         <div class="section">
-            <h3 class="section-title">🔄 Per-Round Results (Unified)</h3>
+            <h3 class="section-title">🔄 Per-Round Results (Unified LLM)</h3>
             <table>
                 <thead>
                     <tr>
@@ -706,38 +718,6 @@ def generate_uq_html_report(
                     {unified_rounds_table}
                 </tbody>
             </table>
-        </div>
-
-        <div class="section">
-            <h3 class="section-title">📈 Agreement Summary</h3>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-value">{stats['unique_main_types']}</div>
-                    <div class="summary-label">Unique Main Types</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['unique_sub_types']}</div>
-                    <div class="summary-label">Unique Sub Types</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['full_agreements']}/{stats['n_rounds']}</div>
-                    <div class="summary-label">Full Agreements</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['main_agreement_pct']:.0f}%</div>
-                    <div class="summary-label">Main Type Agreement</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {stats['main_agreement_pct']}%; background: #22c55e;"></div>
-                    </div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['sub_agreement_pct']:.0f}%</div>
-                    <div class="summary-label">Sub Type Agreement</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {stats['sub_agreement_pct']}%; background: #3b82f6;"></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="section">

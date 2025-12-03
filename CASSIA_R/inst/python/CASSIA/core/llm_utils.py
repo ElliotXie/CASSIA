@@ -245,8 +245,10 @@ def call_llm(
         if system_prompt:
             message_params["system"] = system_prompt
 
-        # Add any additional parameters
-        message_params.update(additional_params)
+        # Add any additional parameters (skip model to prevent override)
+        for key, value in additional_params.items():
+            if key != "model":
+                message_params[key] = value
 
         # Call the API
         try:
@@ -277,11 +279,11 @@ def call_llm(
         }
 
         data = {
+            **additional_params,
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            **additional_params
         }
 
         try:
