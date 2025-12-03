@@ -10,6 +10,10 @@ This is the first submission of CASSIA to CRAN.
 
 This package accompanies a paper accepted for publication in Nature Communications.
 
+## Documentation
+
+Full tutorials and documentation available at https://docs.cassia.bio
+
 ## Notes explanation
 
 ### Package size (NOTE)

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { FileText, Book, Search } from "lucide-react"
+import { FileText, Book, Search, Loader2 } from "lucide-react"
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,13 +13,27 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { useSearch } from "@/contexts/search-context"
-import { searchData, type SearchItem } from "@/lib/search-data"
+import type { SearchItem } from "@/lib/search-data"
 
 export function SearchDialog() {
   const { isOpen, setIsOpen } = useSearch()
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations("search")
+
+  // Lazy load search data only when dialog opens
+  const [searchData, setSearchData] = React.useState<SearchItem[]>([])
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    if (isOpen && searchData.length === 0 && !isLoading) {
+      setIsLoading(true)
+      import("@/lib/search-data").then((module) => {
+        setSearchData(module.searchData)
+        setIsLoading(false)
+      })
+    }
+  }, [isOpen, searchData.length, isLoading])
 
   const runCommand = React.useCallback((command: () => void) => {
     setIsOpen(false)
@@ -36,6 +50,12 @@ export function SearchDialog() {
     <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
       <CommandInput placeholder={t("placeholder")} />
       <CommandList>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <>
         <CommandEmpty>{t("noResults")}</CommandEmpty>
         <CommandGroup heading={t("docs")}>
           {docsItems.map((item) => (
@@ -75,6 +95,8 @@ export function SearchDialog() {
             </CommandItem>
           ))}
         </CommandGroup>
+          </>
+        )}
       </CommandList>
     </CommandDialog>
   )

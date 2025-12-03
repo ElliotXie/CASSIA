@@ -1688,16 +1688,17 @@ def runCASSIA_annotationboost_additional_task(
         }
 
 def format_summary_to_html(summary_text: str, output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
-    validator_involvement: str = "v1") -> str:
+    validator_involvement: str = "v1", gene_stats: Dict[str, Dict[str, str]] = None) -> str:
     """
     Convert the tagged summary into a properly formatted HTML report.
-    
+
     Args:
         summary_text: Text with tags like <OVERVIEW>, <ITERATION_1>, etc. or gene-focused tags
         output_filename: Path to save the HTML report
         search_strategy: Search strategy used ("breadth" or "depth")
         report_style: Style of report ("per_iteration" or "total_summary")
-        
+        gene_stats: Dictionary of gene statistics for tooltip display
+
     Returns:
         str: Path to the saved HTML report
     """
@@ -1961,6 +1962,85 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     border-radius: 1rem;
                     font-size: 0.9rem;
                     font-weight: 500;
+                    position: relative;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }}
+
+                .gene-badge:hover {{
+                    background-color: #3730a3;
+                }}
+
+                .gene-badge .tooltip {{
+                    visibility: hidden;
+                    opacity: 0;
+                    position: absolute;
+                    bottom: 125%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #1f2937;
+                    color: #f3f4f6;
+                    padding: 0.75rem 1rem;
+                    border-radius: 0.5rem;
+                    font-size: 0.8rem;
+                    font-weight: 400;
+                    white-space: nowrap;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                    transition: visibility 0s, opacity 0.2s;
+                }}
+
+                .gene-badge .tooltip::after {{
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -6px;
+                    border-width: 6px;
+                    border-style: solid;
+                    border-color: #1f2937 transparent transparent transparent;
+                }}
+
+                .gene-badge:hover .tooltip {{
+                    visibility: visible;
+                    opacity: 1;
+                }}
+
+                .gene-badge .tooltip .stat-row {{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    margin-bottom: 0.25rem;
+                }}
+
+                .gene-badge .tooltip .stat-row:last-child {{
+                    margin-bottom: 0;
+                }}
+
+                .gene-badge .tooltip .stat-label {{
+                    color: #9ca3af;
+                    font-size: 0.75rem;
+                }}
+
+                .gene-badge .tooltip .stat-value {{
+                    font-weight: 600;
+                    font-family: ui-monospace, monospace;
+                }}
+
+                .gene-badge .tooltip .stat-value.positive {{
+                    color: #34d399;
+                }}
+
+                .gene-badge .tooltip .stat-value.negative {{
+                    color: #f87171;
+                }}
+
+                .gene-badge.no-stats {{
+                    opacity: 0.7;
+                }}
+
+                .gene-badge.has-stats {{
+                    cursor: help;
                 }}
                 
                 .sub-section {{
@@ -2103,12 +2183,12 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         if report_style.lower() == "total_summary":
             # Add gene groups for total summary style
             for i, group in enumerate(gene_groups, 1):
-                # Format genes as badges
+                # Format genes as badges with tooltip stats
                 genes = group['genes']
                 gene_badges = ""
                 if genes and genes != "No genes listed":
                     gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
-                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                    gene_badges = '<div class="gene-list">' + ''.join([create_gene_badge_html(gene, gene_stats) for gene in gene_list]) + '</div>'
                 
                 html += f"""
                     <section id="gene-analysis-{i}">
@@ -2130,12 +2210,12 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         else:
             # Add iterations for per-iteration style
             for iteration in iterations:
-                # Format genes checked as badges
+                # Format genes checked as badges with tooltip stats
                 genes = iteration['genes_checked']
                 gene_badges = ""
                 if genes and genes != "No information available":
                     gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
-                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                    gene_badges = '<div class="gene-list">' + ''.join([create_gene_badge_html(gene, gene_stats) for gene in gene_list]) + '</div>'
                 
                 html += f"""
                     <section id="iteration-{iteration['number']}">

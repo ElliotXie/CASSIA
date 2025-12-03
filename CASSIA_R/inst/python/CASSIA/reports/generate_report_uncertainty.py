@@ -169,41 +169,11 @@ def _generate_pie_chart(type_counts: Counter, title: str) -> str:
         return ''
 
 
-def _extract_reasoning_from_conversation(conversation_history) -> str:
-    """
-    Extract reasoning text from conversation history.
-
-    Args:
-        conversation_history: Can be list of tuples, string, or other format
-
-    Returns:
-        Reasoning text string
-    """
-    if not conversation_history:
-        return "No reasoning available"
-
-    # Handle list of tuples format
-    if isinstance(conversation_history, list):
-        parts = []
-        for item in conversation_history:
-            if isinstance(item, tuple) and len(item) >= 2:
-                agent_name, message = item[0], item[1]
-                if message and str(message).strip():
-                    parts.append(f"<b>{agent_name}:</b> {str(message)[:500]}...")
-        return "<br>".join(parts) if parts else "No reasoning available"
-
-    # Handle string format
-    if isinstance(conversation_history, str):
-        return conversation_history[:1000] + "..." if len(conversation_history) > 1000 else conversation_history
-
-    return str(conversation_history)[:500]
-
-
 def _build_rounds_table(original_results: List,
                         consensus_main: str,
                         consensus_sub: str) -> str:
     """
-    Build HTML table for per-round results with collapsible reasoning.
+    Build HTML table for per-round results.
 
     Args:
         original_results: List of results per round
@@ -221,16 +191,12 @@ def _build_rounds_table(original_results: List,
             if len(item) >= 2:
                 main_type = str(item[0]) if item[0] else 'Unknown'
                 sub_type = str(item[1]) if item[1] else 'Unknown'
-                # Check for conversation history in third element
-                conversation = item[2] if len(item) > 2 else None
             else:
                 main_type = str(item[0]) if item else 'Unknown'
                 sub_type = 'Unknown'
-                conversation = None
         else:
             main_type = str(item) if item else 'Unknown'
             sub_type = 'Unknown'
-            conversation = None
 
         # Check agreement
         agreement = _check_agreement(main_type, sub_type, consensus_main, consensus_sub)
@@ -246,27 +212,12 @@ def _build_rounds_table(original_results: List,
             row_class = 'class="row-disagree"'
             icon = '<span style="color: #ef4444; font-size: 18px;">✗</span>'
 
-        # Extract reasoning
-        reasoning = _extract_reasoning_from_conversation(conversation)
-        detail_id = f"detail_{i}"
-
         rows.append(f'''
         <tr {row_class}>
             <td style="text-align: center; font-weight: bold;">{i}</td>
             <td>{main_type}</td>
             <td>{sub_type}</td>
             <td style="text-align: center;">{icon}</td>
-            <td style="text-align: center;">
-                <button class="toggle-btn" onclick="toggleDetail('{detail_id}')">Show Details</button>
-            </td>
-        </tr>
-        <tr id="{detail_id}" class="detail-row" style="display: none;">
-            <td colspan="5">
-                <div class="reasoning-box">
-                    <strong>Reasoning:</strong><br>
-                    {reasoning}
-                </div>
-            </td>
         </tr>
         ''')
 
@@ -527,33 +478,6 @@ def generate_uq_html_report(
             background-color: #fef2f2 !important;
             border-left: 4px solid #ef4444;
         }}
-        .toggle-btn {{
-            background: #e0e7ff;
-            color: #4338ca;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }}
-        .toggle-btn:hover {{
-            background: #c7d2fe;
-        }}
-        .detail-row {{
-            background: #f8fafc;
-        }}
-        .reasoning-box {{
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            font-size: 13px;
-            line-height: 1.6;
-            max-height: 300px;
-            overflow-y: auto;
-        }}
         .summary-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -594,19 +518,6 @@ def generate_uq_html_report(
             font-size: 12px;
         }}
     </style>
-    <script>
-        function toggleDetail(id) {{
-            var row = document.getElementById(id);
-            var btn = row.previousElementSibling.querySelector('.toggle-btn');
-            if (row.style.display === 'none') {{
-                row.style.display = 'table-row';
-                btn.textContent = 'Hide Details';
-            }} else {{
-                row.style.display = 'none';
-                btn.textContent = 'Show Details';
-            }}
-        }}
-    </script>
 </head>
 <body>
     <div class="container">
@@ -672,7 +583,6 @@ def generate_uq_html_report(
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
                         <th style="width: 80px; text-align: center;">Match</th>
-                        <th style="width: 100px; text-align: center;">Details</th>
                     </tr>
                 </thead>
                 <tbody>

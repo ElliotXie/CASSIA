@@ -671,6 +671,93 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
 
     return marker_string
 
+def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    """
+    Extract gene statistics from conversation history messages.
+
+    The conversation history contains gene expression data in tabular format from USER messages.
+    This function parses those tables and creates a lookup dictionary for tooltip display.
+
+    Args:
+        conversation_history: List of conversation messages with role and content
+
+    Returns:
+        Dict mapping gene names (uppercase) to their statistics:
+        {
+            'CD3D': {'avg_log2FC': '2.45', 'pct.1': '0.85', 'pct.2': '0.12', 'p_val_adj': '1.2e-50'},
+            ...
+        }
+    """
+    gene_stats = {}
+
+    # Pattern to match gene statistics table rows
+    # Format: gene_name    number    number    number    number (scientific notation)
+    # Examples:
+    #   IGHA2       7.38  0.89  0.10  0.00e+00
+    #   CD3D       -2.45  0.85  0.12  1.20e-50
+    gene_row_pattern = re.compile(
+        r'^\s*([A-Z][A-Z0-9\-\.]+)\s+(-?\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*[eE][-+]?\d+|\d+\.?\d*)\s*$',
+        re.MULTILINE
+    )
+
+    for msg in conversation_history:
+        content = msg.get('content', '')
+        if isinstance(content, list):
+            content = str(content)
+
+        # Only look at USER messages which contain the gene expression data
+        if msg.get('role', '').upper() == 'USER':
+            matches = gene_row_pattern.findall(content)
+            for match in matches:
+                gene_name, avg_log2fc, pct1, pct2, p_val_adj = match
+                gene_stats[gene_name.upper()] = {
+                    'avg_log2FC': avg_log2fc,
+                    'pct.1': pct1,
+                    'pct.2': pct2,
+                    'p_val_adj': p_val_adj
+                }
+
+    return gene_stats
+
+def create_gene_badge_html(gene: str, gene_stats: Dict[str, Dict[str, str]] = None) -> str:
+    """
+    Create HTML for a gene badge with optional tooltip showing statistics.
+
+    Args:
+        gene: Gene name to display
+        gene_stats: Dictionary of gene statistics (from extract_gene_stats_from_conversation)
+
+    Returns:
+        HTML string for the gene badge with tooltip if stats available
+    """
+    gene_upper = gene.upper().strip()
+
+    if gene_stats and gene_upper in gene_stats:
+        stats = gene_stats[gene_upper]
+        avg_log2fc = stats.get('avg_log2FC', 'N/A')
+        pct1 = stats.get('pct.1', 'N/A')
+        pct2 = stats.get('pct.2', 'N/A')
+        p_val_adj = stats.get('p_val_adj', 'N/A')
+
+        # Determine if log2FC is positive or negative for coloring
+        try:
+            fc_value = float(avg_log2fc)
+            fc_class = 'positive' if fc_value >= 0 else 'negative'
+        except (ValueError, TypeError):
+            fc_class = ''
+
+        tooltip_html = f'''<span class="tooltip">
+            <div class="stat-row"><span class="stat-label">avg_log2FC:</span><span class="stat-value {fc_class}">{avg_log2fc}</span></div>
+            <div class="stat-row"><span class="stat-label">pct.1:</span><span class="stat-value">{pct1}</span></div>
+            <div class="stat-row"><span class="stat-label">pct.2:</span><span class="stat-value">{pct2}</span></div>
+            <div class="stat-row"><span class="stat-label">p_val_adj:</span><span class="stat-value">{p_val_adj}</span></div>
+        </span>'''
+
+        return f'<span class="gene-badge has-stats">{gene}{tooltip_html}</span>'
+    else:
+        # No stats available - add class for styling and native title tooltip
+        return f'<span class="gene-badge no-stats" title="No statistics available">{gene}</span>'
+
 def extract_genes_from_conversation(conversation: str) -> List[str]:
     """
     Extract gene lists from conversation using the check_genes tag.
@@ -1209,6 +1296,9 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         str: Path to the saved HTML report
     """
     try:
+        # Extract gene statistics from conversation history for tooltips
+        gene_stats = extract_gene_stats_from_conversation(conversation_history)
+
         # Extract content from conversation history, alternating between assistant and user
         full_conversation = ""
         for msg in conversation_history:
@@ -1352,7 +1442,7 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         )
         
         # Convert to HTML and save
-        html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style)
+        html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style, gene_stats=gene_stats)
         print(f"Summary report saved to {html_path}")
         
         # Return the HTML file path
@@ -1598,16 +1688,17 @@ def runCASSIA_annotationboost_additional_task(
         }
 
 def format_summary_to_html(summary_text: str, output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
-    validator_involvement: str = "v1") -> str:
+    validator_involvement: str = "v1", gene_stats: Dict[str, Dict[str, str]] = None) -> str:
     """
     Convert the tagged summary into a properly formatted HTML report.
-    
+
     Args:
         summary_text: Text with tags like <OVERVIEW>, <ITERATION_1>, etc. or gene-focused tags
         output_filename: Path to save the HTML report
         search_strategy: Search strategy used ("breadth" or "depth")
         report_style: Style of report ("per_iteration" or "total_summary")
-        
+        gene_stats: Dictionary of gene statistics for tooltip display
+
     Returns:
         str: Path to the saved HTML report
     """
@@ -1871,6 +1962,85 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
                     border-radius: 1rem;
                     font-size: 0.9rem;
                     font-weight: 500;
+                    position: relative;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }}
+
+                .gene-badge:hover {{
+                    background-color: #3730a3;
+                }}
+
+                .gene-badge .tooltip {{
+                    visibility: hidden;
+                    opacity: 0;
+                    position: absolute;
+                    bottom: 125%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #1f2937;
+                    color: #f3f4f6;
+                    padding: 0.75rem 1rem;
+                    border-radius: 0.5rem;
+                    font-size: 0.8rem;
+                    font-weight: 400;
+                    white-space: nowrap;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                    transition: visibility 0s, opacity 0.2s;
+                }}
+
+                .gene-badge .tooltip::after {{
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -6px;
+                    border-width: 6px;
+                    border-style: solid;
+                    border-color: #1f2937 transparent transparent transparent;
+                }}
+
+                .gene-badge:hover .tooltip {{
+                    visibility: visible;
+                    opacity: 1;
+                }}
+
+                .gene-badge .tooltip .stat-row {{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    margin-bottom: 0.25rem;
+                }}
+
+                .gene-badge .tooltip .stat-row:last-child {{
+                    margin-bottom: 0;
+                }}
+
+                .gene-badge .tooltip .stat-label {{
+                    color: #9ca3af;
+                    font-size: 0.75rem;
+                }}
+
+                .gene-badge .tooltip .stat-value {{
+                    font-weight: 600;
+                    font-family: ui-monospace, monospace;
+                }}
+
+                .gene-badge .tooltip .stat-value.positive {{
+                    color: #34d399;
+                }}
+
+                .gene-badge .tooltip .stat-value.negative {{
+                    color: #f87171;
+                }}
+
+                .gene-badge.no-stats {{
+                    opacity: 0.7;
+                }}
+
+                .gene-badge.has-stats {{
+                    cursor: help;
                 }}
                 
                 .sub-section {{
@@ -2013,12 +2183,12 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         if report_style.lower() == "total_summary":
             # Add gene groups for total summary style
             for i, group in enumerate(gene_groups, 1):
-                # Format genes as badges
+                # Format genes as badges with tooltip stats
                 genes = group['genes']
                 gene_badges = ""
                 if genes and genes != "No genes listed":
                     gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
-                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                    gene_badges = '<div class="gene-list">' + ''.join([create_gene_badge_html(gene, gene_stats) for gene in gene_list]) + '</div>'
                 
                 html += f"""
                     <section id="gene-analysis-{i}">
@@ -2040,12 +2210,12 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         else:
             # Add iterations for per-iteration style
             for iteration in iterations:
-                # Format genes checked as badges
+                # Format genes checked as badges with tooltip stats
                 genes = iteration['genes_checked']
                 gene_badges = ""
                 if genes and genes != "No information available":
                     gene_list = [g.strip() for g in re.split(r'[,\s]+', genes) if g.strip()]
-                    gene_badges = '<div class="gene-list">' + ''.join([f'<span class="gene-badge">{gene}</span>' for gene in gene_list]) + '</div>'
+                    gene_badges = '<div class="gene-list">' + ''.join([create_gene_badge_html(gene, gene_stats) for gene in gene_list]) + '</div>'
                 
                 html += f"""
                     <section id="iteration-{iteration['number']}">
