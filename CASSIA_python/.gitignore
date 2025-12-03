@@ -8,4 +8,4 @@ set_api_keys.py
 .env
 
 # Agent documentation (local only)
-CASSIA/reference_agent/agent_breakdown.md
+CASSIA/agents/reference_agent/agent_breakdown.md

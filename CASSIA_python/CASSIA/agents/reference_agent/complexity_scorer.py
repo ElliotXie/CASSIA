@@ -12,23 +12,20 @@ from typing import Dict, List, Optional
 
 # Handle both package and direct imports
 try:
-    from CASSIA.core.llm_utils import call_llm
+    from ..llm_utils import call_llm
 except ImportError:
     try:
-        from ..llm_utils import call_llm
+        from CASSIA.llm_utils import call_llm
     except ImportError:
-        try:
-            from CASSIA.llm_utils import call_llm
-        except ImportError:
-            # Fallback for direct script execution
-            import sys
-            sys.path.insert(0, str(Path(__file__).parent.parent))
-            from llm_utils import call_llm
+        # Fallback for direct script execution
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from llm_utils import call_llm
 
 
 def _load_router_content() -> str:
     """Load the router markdown file content."""
-    router_path = Path(__file__).parent / "references" / "_router.md"
+    router_path = Path(__file__).parent / "references_brain" / "_router.md"
     if router_path.exists():
         with open(router_path, 'r', encoding='utf-8') as f:
             return f.read()

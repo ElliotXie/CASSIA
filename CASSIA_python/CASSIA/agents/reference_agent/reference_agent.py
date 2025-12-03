@@ -83,8 +83,7 @@ class ReferenceAgent:
         species: Optional[str] = None,
         depth: str = 'auto',
         max_content_length: Optional[int] = 8000,
-        skip_llm: bool = False,
-        threshold: float = 40
+        skip_llm: bool = False
     ) -> Dict:
         """
         Main entry point: Get reference content for a marker set.

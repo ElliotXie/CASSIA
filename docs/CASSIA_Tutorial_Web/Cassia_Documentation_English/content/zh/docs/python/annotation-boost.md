@@ -17,7 +17,8 @@ title: 注释增强（可选）
    - 特定聚类标识符
 
 2. **模型配置**：
-   - 推荐：通过 OpenRouter 使用 `anthropic/claude-sonnet-4.5`
+   - 使用至少比 `gemini-2.5-flash` 更先进的模型
+   - 推荐：通过 OpenRouter 或 Anthropic 使用 `anthropic/claude-sonnet-4.5`
 
 ### 运行注释增强
 

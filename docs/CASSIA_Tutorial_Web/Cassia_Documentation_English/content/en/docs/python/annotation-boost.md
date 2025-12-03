@@ -17,7 +17,8 @@ Annotation Boost is an advanced validation tool that enhances annotation confide
    - Specific cluster identifier
 
 2. **Model Configuration**:
-   - Recommended: `anthropic/claude-sonnet-4.5` via OpenRouter
+   - Use a model at least more advanced than `gemini-2.5-flash`
+   - Recommended: `anthropic/claude-sonnet-4.5` via OpenRouter or Anthropic
 
 ### Running Annotation Boost
 

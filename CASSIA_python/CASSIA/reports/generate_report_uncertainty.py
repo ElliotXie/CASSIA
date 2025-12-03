@@ -43,6 +43,29 @@ def _parse_unified_results(unified_str: str) -> Counter:
     return Counter(matches)
 
 
+def _parse_unified_results_to_table(unified_str: str) -> List[Tuple[str, str, str]]:
+    """
+    Parse unified results string into table data.
+
+    Args:
+        unified_str: String like "result1:(Plasma Cell, IgA-producing),result2:..."
+
+    Returns:
+        List of tuples: (iteration_num, main_type, sub_type)
+    """
+    if not unified_str:
+        return []
+
+    results = []
+    # Pattern: result1:(MainType, SubType) or result1:('MainType', 'SubType')
+    pattern = r"result(\d+):\(?['\"]?([^,'\")]+)['\"]?,\s*['\"]?([^)'\")]+)"
+    matches = re.findall(pattern, unified_str)
+    for match in matches:
+        iter_num, main_type, sub_type = match
+        results.append((iter_num, main_type.strip(), sub_type.strip()))
+    return results
+
+
 def _get_score_class(score: float) -> Tuple[str, str, str]:
     """
     Get CSS class and interpretation for a similarity score.
@@ -693,12 +716,13 @@ def generate_uq_batch_html_report(
 
     for cluster_id, result in processed_results.items():
         if isinstance(result, dict) and 'error' not in result:
-            score = result.get('consensus_score_llm', 0)
+            # Use llm_generated_consensus_score_llm (already 0-100 percentage)
+            score = result.get('llm_generated_consensus_score_llm', 0)
             if isinstance(score, (int, float)):
                 scores.append(score)
 
     avg_score = sum(scores) / len(scores) if scores else 0
-    avg_score_class, _, avg_interpretation = _get_score_class(avg_score)
+    avg_score_class, _, avg_interpretation = _get_score_class(avg_score / 100)  # Divide by 100 for class
 
     # Build cluster rows
     cluster_rows = []
@@ -706,15 +730,16 @@ def generate_uq_batch_html_report(
         if isinstance(result, dict) and 'error' not in result:
             main_type = result.get('general_celltype_llm', 'Unknown')
             sub_type = result.get('sub_celltype_llm', 'Unknown')
-            score = result.get('consensus_score_llm', 0)
+            # Use llm_generated_consensus_score_llm (already 0-100 percentage)
+            score = result.get('llm_generated_consensus_score_llm', 0)
             unified_llm = result.get('unified_results_llm', 'N/A')
             unified_oncology = result.get('unified_results_oncology', 'N/A')
 
-            # Get score styling
-            score_class, score_color, _ = _get_score_class(score)
-            score_pct = int(score * 100)
+            # Get score styling (divide by 100 for class since it expects 0-1)
+            score_class, score_color, _ = _get_score_class(score / 100 if score else 0)
+            score_pct = int(score)  # Already 0-100, no multiplication needed
 
-            # Build iteration details
+            # Build iteration details (original results)
             original = organized_results.get(cluster_id, [])
             iteration_rows = []
             for i, item in enumerate(original, 1):
@@ -727,6 +752,23 @@ def generate_uq_batch_html_report(
                 iteration_rows.append(f'<tr><td>{i}</td><td>{iter_main}</td><td>{iter_sub}</td></tr>')
 
             iterations_table = '\n'.join(iteration_rows) if iteration_rows else '<tr><td colspan="3">No iteration data</td></tr>'
+
+            # Parse unified results into table format
+            unified_llm_data = _parse_unified_results_to_table(unified_llm)
+            unified_oncology_data = _parse_unified_results_to_table(unified_oncology)
+
+            # Build LLM unified table rows
+            unified_llm_rows = []
+            for iter_num, main, sub in unified_llm_data:
+                unified_llm_rows.append(f'<tr><td>{iter_num}</td><td>{main}</td><td>{sub}</td></tr>')
+            unified_llm_table = '\n'.join(unified_llm_rows) if unified_llm_rows else '<tr><td colspan="3">No data</td></tr>'
+
+            # Build Oncology unified table rows
+            unified_oncology_rows = []
+            for iter_num, main, sub in unified_oncology_data:
+                unified_oncology_rows.append(f'<tr><td>{iter_num}</td><td>{main}</td><td>{sub}</td></tr>')
+            unified_oncology_table = '\n'.join(unified_oncology_rows) if unified_oncology_rows else '<tr><td colspan="3">No data</td></tr>'
+
             detail_id = f"cluster_detail_{cluster_id.replace(' ', '_').replace('.', '_')}"
 
             cluster_rows.append(f'''
@@ -737,19 +779,31 @@ def generate_uq_batch_html_report(
                 <td style="text-align: center;">
                     <span class="score-pill {score_class}" style="background: {score_color};">{score_pct}%</span>
                 </td>
-                <td style="max-width: 300px; word-wrap: break-word; font-size: 12px;">{unified_llm}</td>
-                <td style="max-width: 300px; word-wrap: break-word; font-size: 12px;">{unified_oncology}</td>
                 <td style="text-align: center;">
                     <button class="toggle-btn" onclick="toggleClusterDetail('{detail_id}')">Show</button>
                 </td>
             </tr>
             <tr id="{detail_id}" class="detail-row" style="display: none;">
-                <td colspan="7">
+                <td colspan="5">
                     <div class="iteration-box">
-                        <strong>Per-Iteration Results:</strong>
+                        <strong>Per-Iteration Results (Original):</strong>
                         <table class="iteration-table">
                             <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
                             <tbody>{iterations_table}</tbody>
+                        </table>
+                    </div>
+                    <div class="iteration-box" style="margin-top: 15px;">
+                        <strong>Unified Per-Iteration Results (LLM):</strong>
+                        <table class="iteration-table">
+                            <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
+                            <tbody>{unified_llm_table}</tbody>
+                        </table>
+                    </div>
+                    <div class="iteration-box" style="margin-top: 15px;">
+                        <strong>Unified Per-Iteration Results (Oncology):</strong>
+                        <table class="iteration-table">
+                            <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
+                            <tbody>{unified_oncology_table}</tbody>
                         </table>
                     </div>
                 </td>
@@ -761,7 +815,7 @@ def generate_uq_batch_html_report(
             cluster_rows.append(f'''
             <tr class="cluster-row row-error">
                 <td style="font-weight: 600;">{cluster_id}</td>
-                <td colspan="5" style="color: #ef4444;">{error_msg}</td>
+                <td colspan="3" style="color: #ef4444;">{error_msg}</td>
                 <td></td>
             </tr>
             ''')
@@ -1001,7 +1055,7 @@ def generate_uq_batch_html_report(
                 </div>
                 <div class="summary-card">
                     <div class="score-badge {avg_score_class}">
-                        <span style="font-size: 24px;">{int(avg_score * 100)}%</span>
+                        <span style="font-size: 24px;">{int(avg_score)}%</span>
                     </div>
                     <div class="summary-label">Avg LLM Consensus Score</div>
                 </div>
@@ -1017,8 +1071,6 @@ def generate_uq_batch_html_report(
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
                         <th style="text-align: center;">LLM Consensus Score</th>
-                        <th>Unified Results LLM</th>
-                        <th>Unified Results Oncology</th>
                         <th style="text-align: center;">Details</th>
                     </tr>
                 </thead>
