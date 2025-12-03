@@ -12,7 +12,7 @@ CASSIA.runCASSIA_pipeline(
     output_file_name = "FastAnalysisResults",
     tissue = "large intestine",
     species = "human",
-    marker_path = unprocessed_markers,
+    marker = unprocessed_markers,
     max_workers = 6,  # 与数据集中的聚类数匹配
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
@@ -31,7 +31,7 @@ CASSIA.runCASSIA_pipeline(
 - **`output_file_name`**: 输出文件夹和文件的基本名称。
 - **`tissue`**: 样本的组织类型（例如，“脑”）。
 - **`species`**: 样本的物种（例如，“人类”）。
-- **`marker_path`**: 标记基因数据（数据帧或 CSV 路径）。
+- **`marker`**: 标记基因数据（DataFrame 或 CSV 路径）。
 - **`max_workers`**: 使用的并行进程数。
 - **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
 - **`annotation_provider`**: 注释模型的提供商。

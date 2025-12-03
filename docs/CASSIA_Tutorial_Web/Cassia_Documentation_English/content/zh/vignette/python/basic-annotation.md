@@ -25,11 +25,13 @@ import CASSIA
 
 ### 设置 API 密钥
 
+**您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。
+
 ```python
-# 设置 API 密钥
-CASSIA.set_api_key("your-openai-key", provider="openai")
-CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
-CASSIA.set_api_key("your-openrouter-key", provider="openrouter")
+# 设置 API 密钥（选择一个提供商）
+CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # 推荐
+# CASSIA.set_api_key("your-openai-key", provider="openai")
+# CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
 ```
 
 ### 加载数据
@@ -54,7 +56,7 @@ CASSIA.runCASSIA_pipeline(
     output_file_name = "FastAnalysisResults",
     tissue = "large intestine",
     species = "human",
-    marker_path = unprocessed_markers,
+    marker = unprocessed_markers,
     max_workers = 6,  # 与数据集中的聚类数匹配
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",

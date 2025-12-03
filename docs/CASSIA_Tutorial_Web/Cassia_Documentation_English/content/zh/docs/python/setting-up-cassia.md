@@ -20,11 +20,13 @@ import CASSIA
 
 **注意：您必须设置至少一个 API 密钥才能使用 CASSIA。**
 
+**您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。
+
 ```python
-# 设置 API 密钥
-CASSIA.set_api_key("your-openai-key", provider="openai")
-CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
-CASSIA.set_api_key("your-openrouter-key", provider="openrouter")
+# 设置 API 密钥（选择一个提供商）
+CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # 推荐
+# CASSIA.set_api_key("your-openai-key", provider="openai")
+# CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
 ```
 
 - 将 `"your-key"` 替换为您的实际 API 密钥。

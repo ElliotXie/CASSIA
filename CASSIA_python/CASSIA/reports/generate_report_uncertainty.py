@@ -281,7 +281,6 @@ def _build_rounds_table(original_results: List,
             <td style="text-align: center; font-weight: bold;">{i}</td>
             <td>{main_type}</td>
             <td>{sub_type}</td>
-            <td style="text-align: center;">{icon}</td>
         </tr>
         ''')
 
@@ -371,8 +370,21 @@ def generate_uq_html_report(
     else:
         pie_chart_html = '<p style="color: #666; font-style: italic;">Pie charts unavailable (matplotlib not installed)</p>'
 
-    # Build rounds table
+    # Build rounds table (original results)
     rounds_table = _build_rounds_table(original_results, consensus_main, consensus_sub)
+
+    # Build unified results table
+    unified_results_data = _parse_unified_results_to_table(unified_results)
+    unified_rows = []
+    for iter_num, main_type, sub_type in unified_results_data:
+        unified_rows.append(f'''
+        <tr>
+            <td style="text-align: center; font-weight: bold;">{iter_num}</td>
+            <td>{main_type}</td>
+            <td>{sub_type}</td>
+        </tr>
+        ''')
+    unified_rounds_table = '\n'.join(unified_rows) if unified_rows else '<tr><td colspan="3">No unified results data</td></tr>'
 
     # Format mixed types
     mixed_types_html = ', '.join(mixed_types) if mixed_types else '<span style="color: #666;">None detected</span>'
@@ -660,23 +672,38 @@ def generate_uq_html_report(
         </div>
 
         <div class="section">
-            <h3 class="section-title">📊 Cell Type Distribution</h3>
+            <h3 class="section-title">📊 Cell Type Distribution (from Unified Results)</h3>
             {pie_chart_html}
         </div>
 
         <div class="section">
-            <h3 class="section-title">🔄 Per-Round Results</h3>
+            <h3 class="section-title">🔄 Per-Round Results (Original)</h3>
             <table>
                 <thead>
                     <tr>
                         <th style="width: 60px;">Round</th>
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
-                        <th style="width: 80px; text-align: center;">Match</th>
                     </tr>
                 </thead>
                 <tbody>
                     {rounds_table}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">🔄 Per-Round Results (Unified)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Round</th>
+                        <th>Main Cell Type</th>
+                        <th>Sub Cell Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {unified_rounds_table}
                 </tbody>
             </table>
         </div>

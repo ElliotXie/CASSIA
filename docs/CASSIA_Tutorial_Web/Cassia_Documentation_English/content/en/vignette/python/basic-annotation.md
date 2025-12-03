@@ -25,11 +25,13 @@ import CASSIA
 
 ### Set API keys
 
+**You only need to choose one provider.** OpenRouter is recommended as it provides access to multiple models.
+
 ```python
-# Set API keys
-CASSIA.set_api_key("your-openai-key", provider="openai")
-CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
-CASSIA.set_api_key("your-openrouter-key", provider="openrouter")
+# Set API key (choose one provider)
+CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # Recommended
+# CASSIA.set_api_key("your-openai-key", provider="openai")
+# CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
 ```
 
 ### Load Data
@@ -54,7 +56,7 @@ CASSIA.runCASSIA_pipeline(
     output_file_name = "FastAnalysisResults",
     tissue = "large intestine",
     species = "human",
-    marker_path = unprocessed_markers,
+    marker = unprocessed_markers,
     max_workers = 6,  # Matches the number of clusters in dataset
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",

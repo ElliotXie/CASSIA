@@ -20,11 +20,13 @@ To use LLMs like OpenAI's GPT-4, Anthropic's Claude, or models via OpenRouter, y
 
 **Note: You must set at least one API key to use CASSIA.**
 
+**You only need to choose one provider.** OpenRouter is recommended as it provides access to multiple models.
+
 ```python
-# Set API keys
-CASSIA.set_api_key("your-openai-key", provider="openai")
-CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
-CASSIA.set_api_key("your-openrouter-key", provider="openrouter")
+# Set API key (choose one provider)
+CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # Recommended
+# CASSIA.set_api_key("your-openai-key", provider="openai")
+# CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
 ```
 
 - Replace `"your-key"` with your actual API key.

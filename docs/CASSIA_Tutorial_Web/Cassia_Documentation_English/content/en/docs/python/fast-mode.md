@@ -12,7 +12,7 @@ CASSIA.runCASSIA_pipeline(
     output_file_name = "FastAnalysisResults",
     tissue = "large intestine",
     species = "human",
-    marker_path = unprocessed_markers,
+    marker = unprocessed_markers,
     max_workers = 6,  # Matches the number of clusters in dataset
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
@@ -31,7 +31,7 @@ CASSIA.runCASSIA_pipeline(
 - **`output_file_name`**: Base name for the output folder and files.
 - **`tissue`**: The tissue type of the sample (e.g., "brain").
 - **`species`**: The species of the sample (e.g., "human").
-- **`marker_path`**: Marker gene data (data frame or path to CSV).
+- **`marker`**: Marker gene data (DataFrame or path to CSV).
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
 - **`annotation_provider`**: Provider for the annotation model.

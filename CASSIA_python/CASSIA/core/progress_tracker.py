@@ -11,6 +11,32 @@ import threading
 import atexit
 
 
+def _is_notebook():
+    """Detect if running in a Jupyter notebook or Google Colab environment."""
+    try:
+        from IPython import get_ipython
+        shell = get_ipython()
+        if shell is None:
+            return False
+        shell_name = shell.__class__.__name__
+        if shell_name == 'ZMQInteractiveShell':
+            return True  # Jupyter notebook or qtconsole
+        elif shell_name == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        elif 'google.colab' in str(shell):
+            return True  # Google Colab
+        else:
+            # Check for Colab specifically
+            try:
+                import google.colab
+                return True
+            except ImportError:
+                pass
+            return False
+    except (NameError, ImportError):
+        return False
+
+
 class BatchProgressTracker:
     """Thread-safe progress tracker for batch processing with visual progress bar."""
 
@@ -28,14 +54,21 @@ class BatchProgressTracker:
         self._spinner_idx = 0
         self._running = True
         self._refresh_rate = refresh_rate
+        self._is_notebook = _is_notebook()
+
+        # For notebook environments, use slower refresh to reduce flicker
+        if self._is_notebook:
+            self._refresh_rate = max(refresh_rate, 0.5)  # At least 0.5s in notebooks
+            self._last_render_time = 0
 
         # Start background thread for continuous spinner animation
         self._animation_thread = threading.Thread(target=self._animate, daemon=True)
         self._animation_thread.start()
 
-        # Hide cursor during animation to prevent flashing
-        sys.stdout.write('\033[?25l')
-        sys.stdout.flush()
+        # Hide cursor during animation to prevent flashing (only in terminal)
+        if not self._is_notebook:
+            sys.stdout.write('\033[?25l')
+            sys.stdout.flush()
 
         # Register cleanup to ensure cursor is restored on unexpected exit
         atexit.register(self._restore_cursor)
@@ -50,8 +83,9 @@ class BatchProgressTracker:
 
     def _restore_cursor(self):
         """Restore cursor visibility. Called on exit or finish."""
-        sys.stdout.write('\033[?25h')
-        sys.stdout.flush()
+        if not self._is_notebook:
+            sys.stdout.write('\033[?25h')
+            sys.stdout.flush()
 
     def start_task(self, name):
         """Mark a task as started/in-progress."""
@@ -98,15 +132,35 @@ class BatchProgressTracker:
             f"Active: {active_str if active_str else 'None'}"
         ]
 
-        # Move cursor up to overwrite previous output
-        if self._lines_printed > 0:
-            sys.stdout.write(f'\033[{self._lines_printed}A')
+        if self._is_notebook:
+            # In notebook environments, use clear_output to update in place
+            # Throttle updates to reduce flicker
+            current_time = time.time()
+            if current_time - self._last_render_time < 0.3 and self.completed < self.total:
+                return  # Skip this render to reduce flicker
+            self._last_render_time = current_time
 
-        # Print each line, clearing to end of line
-        for line in lines:
-            sys.stdout.write(f'\033[K{line}\n')
+            try:
+                from IPython.display import clear_output
+                clear_output(wait=True)
+            except ImportError:
+                pass
 
-        sys.stdout.flush()
+            # Print lines normally (no ANSI codes)
+            for line in lines:
+                print(line)
+        else:
+            # Terminal mode: use ANSI escape codes
+            # Move cursor up to overwrite previous output
+            if self._lines_printed > 0:
+                sys.stdout.write(f'\033[{self._lines_printed}A')
+
+            # Print each line, clearing to end of line
+            for line in lines:
+                sys.stdout.write(f'\033[K{line}\n')
+
+            sys.stdout.flush()
+
         self._lines_printed = len(lines)
 
     def finish(self):
@@ -116,11 +170,17 @@ class BatchProgressTracker:
         self._animation_thread.join(timeout=0.5)
 
         with self.lock:
+            # Force final render regardless of throttling
+            if self._is_notebook:
+                self._last_render_time = 0  # Reset throttle for final render
             # Final render to show 100% with checkmark
             self._render()
-            # Add blank line after completion
-            sys.stdout.write('\033[K\n')
-            sys.stdout.flush()
+            # Add blank line after completion (only in terminal)
+            if not self._is_notebook:
+                sys.stdout.write('\033[K\n')
+                sys.stdout.flush()
+            else:
+                print()  # Simple newline in notebooks
 
         # Restore cursor visibility
         self._restore_cursor()
