@@ -24,13 +24,24 @@ interface Heading {
 export function Outline() {
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeId, setActiveId] = useState<string>("")
+  const [isLargeScreen, setIsLargeScreen] = useState(false)
   const { setTheme } = useTheme()
   const t = useTranslations("outline")
   const tTheme = useTranslations("theme")
   const githubRepoUrl = "https://github.com/ElliotXie/CASSIA"
   const biorxivUrl = "https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2"
 
+  // Check if we're on a large screen (lg breakpoint = 1024px)
   useEffect(() => {
+    const checkScreenSize = () => setIsLargeScreen(window.innerWidth >= 1024)
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
+  // Only run observers on large screens where outline is visible
+  useEffect(() => {
+    if (!isLargeScreen) return
     // Function to collect headings
     const collectHeadings = () => {
       const headingElements = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
@@ -90,7 +101,7 @@ export function Outline() {
       observer.disconnect()
       mutationObserver.disconnect()
     }
-  }, [])
+  }, [isLargeScreen])
 
   if (headings.length === 0) {
     return null

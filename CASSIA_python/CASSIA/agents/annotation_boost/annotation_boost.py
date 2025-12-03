@@ -1537,7 +1537,7 @@ def runCASSIA_annotationboost(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model, provider)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")
@@ -1654,7 +1654,7 @@ def runCASSIA_annotationboost_additional_task(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model, provider)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")

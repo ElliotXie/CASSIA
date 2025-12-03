@@ -327,12 +327,13 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
         f.write(html)
     print(f"Subclustering HTML report saved to {html_report_path}")
 
-def process_evaluation_csv(csv_path: str, overwrite: bool = False) -> None:
+def process_evaluation_csv(csv_path: str, overwrite: bool = False, model_name: str = None) -> None:
     try:
         if not os.path.exists(csv_path):
             print(f"File not found: {csv_path}")
             return
-        model_name = extract_model_name(csv_path)
+        if model_name is None:
+            model_name = extract_model_name(csv_path)
         html_path = csv_path.replace('.csv', '.html')
         if os.path.exists(html_path) and not overwrite:
             print(f"HTML report already exists for {model_name}. Skipping. Use --overwrite to regenerate.")

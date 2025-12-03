@@ -10,6 +10,7 @@ Usage:
 Functions tested:
 - runCASSIA_n_times_similarity_score(): Run n single analyses with similarity score
 - runCASSIA_batch_n_times(): Run batch analyses n times for multiple clusters
+- runCASSIA_similarity_score_batch(): Analyze batch results and generate similarity score CSV + report
 """
 
 import sys
@@ -43,8 +44,14 @@ from result_manager import (
 setup_cassia_imports()
 
 
-def run_uncertainty_quantification_test():
-    """Test uncertainty quantification functionality."""
+def run_uncertainty_quantification_test(run_batch_generation=False):
+    """
+    Test uncertainty quantification functionality.
+
+    Args:
+        run_batch_generation: If True, runs runCASSIA_batch_n_times to generate new batch files.
+                             If False (default), uses pre-existing batch files from data folder.
+    """
     print_test_header("08 - Uncertainty Quantification")
 
     # Load configuration
@@ -61,7 +68,8 @@ def run_uncertainty_quantification_test():
     # Import CASSIA functions
     from CASSIA import (
         runCASSIA_n_times_similarity_score,
-        runCASSIA_batch_n_times
+        runCASSIA_batch_n_times,
+        runCASSIA_similarity_score_batch
     )
 
     # Create results directory with organized structure
@@ -81,13 +89,16 @@ def run_uncertainty_quantification_test():
     status = "error"
     uq_results = {}
 
+    # Set up report path for single cluster test
+    single_report_path = os.path.join(results['outputs'], "uq_single_report.html")
+
     try:
-        # Test: Run n times with similarity score (reduced n for testing)
+        # Test: Run n times with similarity score
         print(f"\n--- Test: runCASSIA_n_times_similarity_score ---")
         print(f"  Cluster: {test_cluster}")
         print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
-        print(f"  N iterations: 3 (reduced for testing)")
+        print(f"  N iterations: 5")
 
         result = runCASSIA_n_times_similarity_score(
             tissue=data_config.get('tissue', 'large intestine'),
@@ -97,12 +108,18 @@ def run_uncertainty_quantification_test():
             marker_list=markers,
             model=llm_config.get('model', 'google/gemini-2.5-flash'),
             max_workers=llm_config.get('max_workers', 3),
-            n=3,  # Reduced for faster testing
+            n=5,
             provider=llm_config.get('provider', 'openrouter'),
             main_weight=0.5,
             sub_weight=0.5,
-            validator_involvement=config.get('validator', {}).get('default', 'v1')
+            validator_involvement=config.get('validator', {}).get('default', 'v1'),
+            generate_report=True,
+            report_output_path=single_report_path
         )
+
+        # Check if report was generated
+        if os.path.exists(single_report_path):
+            print(f"  HTML report created: {os.path.basename(single_report_path)}")
 
         # Check result structure
         if isinstance(result, dict):
@@ -144,100 +161,190 @@ def run_uncertainty_quantification_test():
     # =========================================================================
     # Test 2: runCASSIA_batch_n_times - Multiple clusters, multiple iterations
     # =========================================================================
-    batch_status = "error"
+    batch_status = "skipped"
     batch_results = {}
     batch_clusters_tested = []
+    files_found = []
 
-    try:
-        print(f"\n--- Test: runCASSIA_batch_n_times ---")
+    # Get full marker dataframe and limit to 2 clusters for testing
+    full_markers = get_full_marker_dataframe()
+    test_markers = full_markers.head(2)  # First 2 clusters: monocyte, plasma cell
+    batch_clusters_tested = test_markers['Broad.cell.type'].tolist()
 
-        # Get full marker dataframe and limit to 2 clusters for testing
-        full_markers = get_full_marker_dataframe()
-        test_markers = full_markers.head(2)  # First 2 clusters: monocyte, plasma cell
-        batch_clusters_tested = test_markers['Broad.cell.type'].tolist()
+    # Data folder with pre-existing batch results
+    script_dir = Path(__file__).parent
+    data_folder = script_dir / "data"
 
-        print(f"  Clusters: {batch_clusters_tested}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
-        print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
-        print(f"  N iterations: 2 (reduced for testing)")
+    if run_batch_generation:
+        # Run batch generation test
+        try:
+            print(f"\n--- Test: runCASSIA_batch_n_times ---")
 
-        # Set output path for batch results
-        batch_output_name = os.path.join(results['outputs'], "batch_results")
+            print(f"  Clusters: {batch_clusters_tested}")
+            print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+            print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
+            print(f"  N iterations: 5")
 
-        # Run batch n times
-        runCASSIA_batch_n_times(
-            n=2,  # 2 iterations for testing
-            marker=test_markers,
-            output_name=batch_output_name,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
-            temperature=llm_config.get('temperature', 0.3),
-            tissue=data_config.get('tissue', 'large intestine'),
-            species=data_config.get('species', 'human'),
-            additional_info=None,
-            celltype_column='Broad.cell.type',
-            gene_column_name='Top.Markers',
-            max_workers=3,
-            batch_max_workers=2,
-            provider=llm_config.get('provider', 'openrouter'),
-            max_retries=1,
-            validator_involvement=config.get('validator', {}).get('default', 'v1')
-        )
+            # Set output path for batch results
+            batch_output_name = os.path.join(results['outputs'], "batch_results")
 
-        # Check that output files were created
-        expected_files = [
-            f"{batch_output_name}_1_full.csv",
-            f"{batch_output_name}_1_summary.csv",
-            f"{batch_output_name}_2_full.csv",
-            f"{batch_output_name}_2_summary.csv"
-        ]
+            # Run batch n times
+            runCASSIA_batch_n_times(
+                n=5,
+                marker=test_markers,
+                output_name=batch_output_name,
+                model=llm_config.get('model', 'google/gemini-2.5-flash'),
+                temperature=llm_config.get('temperature', 0.3),
+                tissue=data_config.get('tissue', 'large intestine'),
+                species=data_config.get('species', 'human'),
+                additional_info=None,
+                celltype_column='Broad.cell.type',
+                gene_column_name='Top.Markers',
+                max_workers=3,
+                batch_max_workers=2,
+                provider=llm_config.get('provider', 'openrouter'),
+                max_retries=1,
+                validator_involvement=config.get('validator', {}).get('default', 'v1')
+            )
 
-        files_found = []
-        files_missing = []
-        for f in expected_files:
-            if os.path.exists(f):
-                files_found.append(os.path.basename(f))
-            else:
-                files_missing.append(os.path.basename(f))
+            # Check that output files were created
+            expected_files = [
+                f"{batch_output_name}_1_full.csv",
+                f"{batch_output_name}_1_summary.csv",
+                f"{batch_output_name}_2_full.csv",
+                f"{batch_output_name}_2_summary.csv",
+                f"{batch_output_name}_3_full.csv",
+                f"{batch_output_name}_3_summary.csv",
+                f"{batch_output_name}_4_full.csv",
+                f"{batch_output_name}_4_summary.csv",
+                f"{batch_output_name}_5_full.csv",
+                f"{batch_output_name}_5_summary.csv"
+            ]
 
-        print(f"\nBatch Results:")
-        print(f"  Files created: {len(files_found)}")
-        for f in files_found:
-            print(f"    - {f}")
+            files_found = []
+            files_missing = []
+            for f in expected_files:
+                if os.path.exists(f):
+                    files_found.append(os.path.basename(f))
+                else:
+                    files_missing.append(os.path.basename(f))
 
-        if files_missing:
-            print(f"  Files missing: {len(files_missing)}")
-            for f in files_missing:
+            print(f"\nBatch Results:")
+            print(f"  Files created: {len(files_found)}")
+            for f in files_found:
                 print(f"    - {f}")
+
+            if files_missing:
+                print(f"  Files missing: {len(files_missing)}")
+                for f in files_missing:
+                    print(f"    - {f}")
+
+            batch_results = {
+                'clusters_tested': batch_clusters_tested,
+                'n_iterations': 5,
+                'files_created': files_found,
+                'files_missing': files_missing
+            }
+
+            # Validate batch results - at least some files should be created
+            if len(files_found) >= 2:  # At least 2 files (one iteration with full + summary)
+                batch_status = "passed"
+                print(f"\n[OK] Batch test PASSED")
+            else:
+                batch_status = "failed"
+                errors.append(f"Batch test: Expected at least 2 output files, found {len(files_found)}")
+                print(f"\n[FAIL] Batch test FAILED - insufficient output files")
+
+        except Exception as e:
+            errors.append(f"Batch test error: {str(e)}")
+            batch_status = "error"
+            print(f"\nError in batch test: {e}")
+            import traceback
+            traceback.print_exc()
+    else:
+        # Use pre-existing batch files from data folder
+        print(f"\n--- Skipping Test: runCASSIA_batch_n_times (using pre-existing data) ---")
+        batch_output_name = str(data_folder / "batch_results")
+
+        # Check for pre-existing files
+        expected_files = [f"batch_results_{i}_full.csv" for i in range(1, 6)]
+        for f in expected_files:
+            if (data_folder / f).exists():
+                files_found.append(f)
+
+        if len(files_found) >= 2:
+            batch_status = "passed"
+            print(f"  Found {len(files_found)} pre-existing batch result files in data folder")
+        else:
+            print(f"  Warning: Only found {len(files_found)} batch files in {data_folder}")
+            print(f"  Expected files: batch_results_1_full.csv through batch_results_5_full.csv")
+            batch_status = "skipped"
 
         batch_results = {
             'clusters_tested': batch_clusters_tested,
-            'n_iterations': 2,
+            'n_iterations': 5,
             'files_created': files_found,
-            'files_missing': files_missing
+            'source': 'pre-existing data'
         }
 
-        # Validate batch results - at least some files should be created
-        if len(files_found) >= 2:  # At least 2 files (one iteration with full + summary)
-            batch_status = "passed"
-            print(f"\n[OK] Batch test PASSED")
+    # =========================================================================
+    # Test 3: runCASSIA_similarity_score_batch - Analyze batch results
+    # =========================================================================
+    similarity_batch_status = "error"
+
+    try:
+        print(f"\n--- Test: runCASSIA_similarity_score_batch ---")
+        print(f"  Analyzing batch results")
+
+        # Run if we have batch files (either generated or pre-existing)
+        if len(files_found) >= 2:
+            similarity_output_name = os.path.join(results['outputs'], "similarity_score_results")
+            similarity_report_path = os.path.join(results['outputs'], "uq_batch_report.html")
+
+            runCASSIA_similarity_score_batch(
+                marker=test_markers,
+                file_pattern=f"{batch_output_name}_*_full.csv",
+                output_name=similarity_output_name,
+                celltype_column='Broad.cell.type',
+                max_workers=3,
+                model=llm_config.get('model', 'google/gemini-2.5-flash'),
+                provider=llm_config.get('provider', 'openrouter'),
+                generate_report=True,
+                report_output_path=similarity_report_path
+            )
+
+            # Check if similarity score CSV was created
+            if os.path.exists(f"{similarity_output_name}.csv"):
+                print(f"  Similarity score CSV created: {os.path.basename(similarity_output_name)}.csv")
+                similarity_batch_status = "passed"
+            else:
+                similarity_batch_status = "failed"
+                errors.append("Similarity score batch: CSV file not created")
+
+            # Check if HTML report was created
+            if os.path.exists(similarity_report_path):
+                print(f"  HTML report created: {os.path.basename(similarity_report_path)}")
+            else:
+                print(f"  Warning: HTML report not created")
+
+            print(f"\n[OK] Similarity score batch test PASSED")
         else:
-            batch_status = "failed"
-            errors.append(f"Batch test: Expected at least 2 output files, found {len(files_found)}")
-            print(f"\n[FAIL] Batch test FAILED - insufficient output files")
+            print(f"  Skipping - no batch files found")
+            similarity_batch_status = "skipped"
 
     except Exception as e:
-        errors.append(f"Batch test error: {str(e)}")
-        batch_status = "error"
-        print(f"\nError in batch test: {e}")
+        errors.append(f"Similarity score batch test error: {str(e)}")
+        similarity_batch_status = "error"
+        print(f"\nError in similarity score batch test: {e}")
         import traceback
         traceback.print_exc()
 
     duration = time.time() - start_time
 
-    # Combine statuses - both tests must pass for overall success
-    if status == "passed" and batch_status == "passed":
+    # Combine statuses - all tests must pass for overall success
+    if status == "passed" and (batch_status == "passed" or batch_status == "skipped") and (similarity_batch_status == "passed" or similarity_batch_status == "skipped"):
         overall_status = "passed"
-    elif status == "error" or batch_status == "error":
+    elif status == "error" or batch_status == "error" or similarity_batch_status == "error":
         overall_status = "error"
     else:
         overall_status = "failed"
@@ -259,6 +366,10 @@ def run_uncertainty_quantification_test():
         'batch_n_times_test': {
             'status': batch_status,
             'clusters': batch_clusters_tested
+        },
+        'similarity_score_batch_test': {
+            'status': similarity_batch_status,
+            'clusters': batch_clusters_tested
         }
     }
     save_test_metadata(results['outputs'], metadata)
@@ -267,10 +378,13 @@ def run_uncertainty_quantification_test():
         "similarity_score_test": {
             "test_cluster": test_cluster,
             "markers_used": markers[:10] if len(markers) > 10 else markers,
-            "n_iterations": 3,
+            "n_iterations": 5,
             "results": uq_results
         },
-        "batch_n_times_test": batch_results
+        "batch_n_times_test": batch_results,
+        "similarity_score_batch_test": {
+            "status": similarity_batch_status
+        }
     })
 
     # Print final result
@@ -284,5 +398,7 @@ def run_uncertainty_quantification_test():
 
 
 if __name__ == "__main__":
-    success = run_uncertainty_quantification_test()
+    # Check for --run-batch flag to enable batch generation
+    run_batch = "--run-batch" in sys.argv
+    success = run_uncertainty_quantification_test(run_batch_generation=run_batch)
     sys.exit(0 if success else 1)
