@@ -41,11 +41,9 @@ runCASSIA_score_batch(
 
 # 报告生成
 
-从您的分析生成详细报告。此步骤通常在质量评分之后进行。
+默认情况下，`runCASSIA_score_batch` 会自动在 `{output_file}_report.html` 生成 HTML 报告。报告包括 CASSIA 的所有输出，包括结构化输出、对话历史和质量分数。
 
-评分报告包括CASSIA的所有输出，包括结构化输出、对话历史和质量分数。
-
-### 从评分结果生成批量报告
+如果您需要从现有的评分 CSV 重新生成报告，或想自定义输出路径，请使用：
 
 ```R
 runCASSIA_generate_score_report(
@@ -59,4 +57,4 @@ runCASSIA_generate_score_report(
 - **`csv_path`** (字符串): 评分结果 CSV 文件的路径（例如 "my_annotation_scored.csv"）。
 - **`output_name`** (字符串): 生成的报告文件的基本名称。
 
-_从`scored_results.csv`生成单独的报告和索引页面。_
+_此函数仅在需要从现有数据重新生成报告或自定义输出路径时使用。_

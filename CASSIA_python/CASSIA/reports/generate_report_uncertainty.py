@@ -312,14 +312,20 @@ def generate_uq_html_report(
         Path to the generated HTML report
     """
     # Extract data from results
-    similarity_score = results.get('similarity_score', 0)
+    # Use LLM Generated Consensus Score (0-100) instead of similarity_score (0-1)
+    llm_consensus_score = results.get('llm_generated_consensus_score_llm', 0)
+    # Fallback to similarity_score * 100 if llm_generated_consensus_score_llm is not available
+    if llm_consensus_score == 0:
+        similarity_score = results.get('consensus_score_llm', results.get('similarity_score', 0))
+        llm_consensus_score = similarity_score * 100 if similarity_score <= 1 else similarity_score
     consensus_types = results.get('consensus_types', ('Unknown', 'Unknown'))
     general_celltype = results.get('general_celltype_llm', 'Unknown')
     sub_celltype = results.get('sub_celltype_llm', 'Unknown')
     mixed_types = results.get('Possible_mixed_celltypes_llm', [])
     original_results = results.get('original_results', [])
     llm_reasoning = results.get('llm_response', '')  # LLM's reasoning for the consensus score
-    unified_results = results.get('unified_results_llm', '')  # Unified results LLM string
+    # Try unified_results_llm first (batch), then unified_results (single)
+    unified_results = results.get('unified_results_llm', '') or results.get('unified_results', '')
 
     # Handle consensus types
     if isinstance(consensus_types, tuple) and len(consensus_types) >= 2:
@@ -329,9 +335,9 @@ def generate_uq_html_report(
         consensus_main = general_celltype or 'Unknown'
         consensus_sub = sub_celltype or 'Unknown'
 
-    # Get score styling
-    score_class, score_color, score_interpretation = _get_score_class(similarity_score)
-    score_pct = int(similarity_score * 100)
+    # Get score styling - llm_consensus_score is 0-100, divide by 100 for _get_score_class
+    score_class, score_color, score_interpretation = _get_score_class(llm_consensus_score / 100)
+    score_pct = int(llm_consensus_score)  # Already 0-100
 
     # Calculate summary stats
     stats = _calculate_summary_stats(original_results, consensus_main, consensus_sub)

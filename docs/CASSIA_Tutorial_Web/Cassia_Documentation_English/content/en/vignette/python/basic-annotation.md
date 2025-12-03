@@ -19,8 +19,6 @@ First, let's install and import the required packages:
 pip install CASSIA
 ```
 
-Then import the package:
-
 ```python
 import CASSIA
 ```

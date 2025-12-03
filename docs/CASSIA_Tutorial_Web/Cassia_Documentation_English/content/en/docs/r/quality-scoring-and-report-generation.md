@@ -41,11 +41,9 @@ The scored output file contains:
 
 # Report Generation
 
-Generate detailed reports from your analysis. This step typically follows after quality scoring.
+By default, `runCASSIA_score_batch` automatically generates an HTML report at `{output_file}_report.html`. The report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
 
-The score report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
-
-### Batch Reports from Scored Results
+If you need to regenerate a report from an existing scored CSV, or want to customize the output path, use:
 
 ```R
 runCASSIA_generate_score_report(
@@ -59,4 +57,4 @@ runCASSIA_generate_score_report(
 - **`csv_path`** (character string): Path to the scored results CSV file (e.g., "my_annotation_scored.csv").
 - **`output_name`** (character string): The base name for the generated report files.
 
-_Generates individual reports and an index page from `scored_results.csv`._
+_This function is only needed when regenerating reports from existing data or customizing output paths._

@@ -54,39 +54,3 @@ CASSIA.runCASSIA_generate_score_report(
 
 _此函数仅在需要从现有数据重新生成报告或自定义输出路径时使用。_
 
-### 替代报告生成函数
-
-CASSIA 还提供独立的报告生成函数，可以从任何批处理结果创建 HTML 报告：
-
-#### 从 CSV 文件生成
-
-```python
-from CASSIA.reports.generate_batch_report import generate_batch_html_report
-
-# 从 CSV 文件生成 HTML 报告
-output_path = generate_batch_html_report(
-    full_csv_path="batch_results_full.csv",
-    output_path="my_report.html",
-    report_title="CASSIA 分析报告"
-)
-```
-
-#### 从数据直接生成
-
-```python
-from CASSIA.reports.generate_batch_report import generate_batch_html_report_from_data
-
-# 直接从数据生成 HTML 报告
-output_path = generate_batch_html_report_from_data(
-    rows=results_list,  # 字典列表
-    output_path="my_report.html",
-    report_title="CASSIA 分析报告"
-)
-```
-
-这些函数创建包含以下功能的独立 HTML 报告：
-- 交互式搜索功能
-- 细胞类型筛选下拉菜单
-- 详细信息的模态弹窗
-- 嵌入式 CSS 和 JavaScript
-

@@ -1051,9 +1051,9 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
             
             # Calculate ontology-based similarity score
             parsed_results_oncology = parse_results_to_dict(result_unified_oncology)
-            consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_flexible(
-                parsed_results_oncology, 
-                main_weight=main_weight, 
+            consensus_score_oncology, consensus_1_oncology, consensus_2_oncology = consensus_similarity_from_tuples(
+                parsed_results_oncology,
+                main_weight=main_weight,
                 sub_weight=sub_weight
             )
             

@@ -56,10 +56,6 @@ export function getVignetteBySlug(slug: string, locale: string = 'en', programmi
     const processedContent = content
       // Replace escaped backticks with actual backticks
       .replace(/\\`\\`\\`/g, "```")
-      // Make sure only content inside triple backticks is treated as code blocks
-      .replace(/```(\s*)(r|R|python|Python)?\s*\n([\s\S]*?)```/g, (match, space, lang, code) => {
-        return `\`\`\`${lang || "r"}\n${code}\`\`\``
-      })
 
     return {
       slug: realSlug,
