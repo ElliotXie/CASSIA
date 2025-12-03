@@ -103,11 +103,5 @@ CASSIA.runCASSIA_score_batch(
     model = "openai/gpt-5.1",
     provider = "openrouter"
 )
-
-# Generate quality report
-CASSIA.runCASSIA_generate_score_report(
-    csv_path = output_name + "_scored.csv",
-    index_name = output_name + "_report.html"
-)
 ```
 

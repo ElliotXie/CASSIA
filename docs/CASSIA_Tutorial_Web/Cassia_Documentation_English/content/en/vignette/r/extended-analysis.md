@@ -197,28 +197,6 @@ similarity_scores <- runCASSIA_similarity_score_batch(
 ```
 
 
-# 5. Additional Tasks
-
-CASSIA can be used to perform specialized analyses on specific clusters, such as inferring the functional state or activation status of a cell population. In this example, we demonstrate this capability using CD8-positive, alpha-beta T cells. While this feature provides valuable insights, please note that the performance of this analytical agent has not been comprehensively benchmarked against gold standards, so interpret results with appropriate caution and validate findings with orthogonal methods when possible.
-
-```r
-
-# Only openrouter is supported as the provider now.
-
-
-runCASSIA_annottaionboost_additional_task(
-    full_result_path = paste0(output_name, "_full.csv"),
-    marker = markers_unprocessed,
-    output_name="T_cell_state",
-    cluster_name = "cd8-positive, alpha-beta t cell",  # Cluster with high mitochondrial content
-    major_cluster_info = "Human Large Intestine",
-    num_iterations = 5,
-    model = "anthropic/claude-4.5-sonnet",
-    provider = "openrouter",
-    additional_task = "infer the state of this T cell cluster"
-)
-```
-
 ---
 
 See the other vignettes for more details on marker file preparation and basic annotation. If you have suggestions for additional agents or improvements, please contribute on [GitHub](https://github.com/ElliotXie/CASSIA). 

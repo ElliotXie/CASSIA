@@ -119,9 +119,10 @@ def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC
     Get top markers from either Seurat or Scanpy differential expression results.
 
     Args:
-        df: Either a pandas DataFrame (Seurat format) or dictionary (Scanpy format)
+        df: Either a pandas DataFrame (Seurat format, or Scanpy flat DataFrame from
+            sc.get.rank_genes_groups_df), or dictionary (Scanpy structured array format)
         n_genes: Number of top genes to return per cluster
-        format_type: Either 'seurat', 'scanpy', or None (auto-detect)
+        format_type: Either 'seurat', 'scanpy', 'scanpy_df', or None (auto-detect)
         ranking_method: Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending: Sort direction (None uses default for each method)
 
@@ -130,12 +131,110 @@ def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC
     """
     # Auto-detect format if not specified
     if format_type is None:
-        if 'names' in df and 'scores' in df:
+        if isinstance(df, pd.DataFrame):
+            # Check for scanpy flat DataFrame format from sc.get.rank_genes_groups_df()
+            # Has columns: group, names, scores, logfoldchanges, pvals, pvals_adj
+            if 'group' in df.columns and 'names' in df.columns and 'logfoldchanges' in df.columns:
+                format_type = 'scanpy_df'
+            # Check for Seurat format (has cluster and gene columns)
+            elif 'cluster' in df.columns and 'gene' in df.columns:
+                format_type = 'seurat'
+            # Fallback: try scanpy structured array format
+            elif 'names' in df and hasattr(df['names'], 'dtype') and hasattr(df['names'].dtype, 'names') and df['names'].dtype.names is not None:
+                format_type = 'scanpy'
+            else:
+                # Default to seurat if it looks like a DataFrame
+                format_type = 'seurat'
+        elif hasattr(df, '__getitem__') and 'names' in df:
+            # Dictionary-like structure (scanpy structured array)
             format_type = 'scanpy'
         else:
             format_type = 'seurat'
 
-    if format_type == 'scanpy':
+    if format_type == 'scanpy_df':
+        # Process Scanpy flat DataFrame format from sc.get.rank_genes_groups_df()
+        # Columns: group, names, scores, logfoldchanges, pvals, pvals_adj
+        print("Detected scanpy DataFrame format (from sc.get.rank_genes_groups_df)")
+
+        # Create a copy to avoid modifying the original
+        df_work = df.copy()
+
+        # Rename columns to match Seurat format
+        column_mapping = {
+            'group': 'cluster',
+            'names': 'gene',
+            'logfoldchanges': 'avg_log2FC',
+            'pvals_adj': 'p_val_adj'
+        }
+        df_work = df_work.rename(columns=column_mapping)
+
+        # Handle inf values in avg_log2FC
+        df_work['avg_log2FC'] = pd.to_numeric(df_work['avg_log2FC'], errors='coerce')
+        max_non_inf = df_work['avg_log2FC'].replace([np.inf, -np.inf], np.nan).max()
+        min_non_inf = df_work['avg_log2FC'].replace([np.inf, -np.inf], np.nan).min()
+        df_work['avg_log2FC'] = df_work['avg_log2FC'].replace([np.inf, -np.inf], [max_non_inf, min_non_inf])
+
+        # Check if PCT columns exist (only if user called sc.tl.rank_genes_groups with pts=True)
+        has_pct = 'pcts' in df.columns or 'pct' in df.columns
+        if has_pct:
+            pct_col = 'pcts' if 'pcts' in df.columns else 'pct'
+            df_work['pct.1'] = df[pct_col]
+            df_work['pct.2'] = 0  # Scanpy doesn't provide pct.2 in the same way
+            # Filter with PCT
+            df_filtered = df_work[
+                (df_work['p_val_adj'] < 0.05) &
+                (df_work['avg_log2FC'] > 0.25) &
+                (df_work['pct.1'] >= 0.1)
+            ].copy()
+        else:
+            # No PCT columns - filter without PCT threshold
+            df_filtered = df_work[
+                (df_work['p_val_adj'] < 0.05) &
+                (df_work['avg_log2FC'] > 0.25)
+            ].copy()
+
+        # Use scores column for ranking if available and ranking_method is avg_log2FC
+        if ranking_method == "avg_log2FC" and 'scores' in df.columns:
+            df_filtered['Score'] = df.loc[df_filtered.index, 'scores']
+
+        # Handle pct_diff ranking method when PCT columns are missing
+        if ranking_method == "pct_diff" and not has_pct:
+            print("Warning: pct_diff ranking requires PCT columns. Falling back to avg_log2FC.")
+            ranking_method = "avg_log2FC"
+
+        # Validate parameters and prepare ranking
+        _validate_ranking_parameters(df_filtered, ranking_method, ascending)
+        df_prepared, sort_column = _prepare_ranking_column(df_filtered, ranking_method)
+        sort_ascending = _get_sort_direction(ranking_method, ascending)
+
+        # Sort within each cluster by specified method and get top n genes
+        top_markers = []
+
+        for cluster in df_prepared['cluster'].unique():
+            cluster_data = df_prepared[df_prepared['cluster'] == cluster]
+            # Sort by specified column and direction, then take top n
+            top_n = (cluster_data
+                    .sort_values(sort_column, ascending=sort_ascending, na_position='last')
+                    .head(n_genes))
+
+            top_markers.append(top_n)
+
+        # Combine all results
+        if top_markers:
+            top_markers = pd.concat(top_markers, ignore_index=True)
+
+            # Create markers column by concatenating genes in order
+            result = (top_markers
+                     .groupby('cluster', observed=True)
+                     .agg({'gene': lambda x: ','.join(x)})
+                     .rename(columns={'gene': 'markers'})
+                     .reset_index())
+
+            return result
+        else:
+            return pd.DataFrame(columns=['cluster', 'markers'])
+
+    elif format_type == 'scanpy':
         # Process Scanpy format
         clusters = df['names'].dtype.names
         top_markers = []

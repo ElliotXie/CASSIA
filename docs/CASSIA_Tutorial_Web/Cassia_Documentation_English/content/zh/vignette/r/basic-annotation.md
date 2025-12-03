@@ -173,12 +173,6 @@ quality_scores <- runCASSIA_score_batch(
   input_file = paste0(output_name, "_full.csv"),
   output_file = paste0(output_name, "_scored.csv")
 )
-
-# 生成注释HTML报告
-runCASSIA_generate_score_report(
-  csv_path = paste0(output_name, "_scored.csv"),
-  output_name = paste0(output_name, "_report.html")
-)
 ```
 
 生成的HTML报告页面如下所示，您可以点击按钮导航到相应的细胞簇。

@@ -175,12 +175,6 @@ quality_scores <- runCASSIA_score_batch(
   input_file = paste0(output_name, "_full.csv"),
   output_file = paste0(output_name, "_scored.csv")
 )
-
-# Generate annotation html report
-runCASSIA_generate_score_report(
-  csv_path = paste0(output_name, "_scored.csv"),
-  output_name = paste0(output_name, "_report.html")
-)
 ```
 The result routing html page is shown below, you can click the button to navigate to the corresponding cluster.
 

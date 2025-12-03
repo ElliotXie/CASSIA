@@ -168,27 +168,6 @@ similarity_scores <- runCASSIA_similarity_score_batch(
 ```
 
 
-# 5. 附加任务
-
-CASSIA可用于对特定细胞簇执行专门分析，例如推断细胞群体的功能状态或激活状态。在此示例中，我们使用CD8阳性αβ T细胞来演示此功能。虽然此功能提供了有价值的见解，但请注意，此分析代理的性能尚未针对金标准进行全面基准测试，因此请谨慎解读结果，并在可能的情况下使用正交方法验证发现。
-
-```r
-
-# 目前仅支持openrouter作为提供商。
-
-
-runCASSIA_annottaionboost_additional_task(
-    full_result_path = paste0(output_name, "_full.csv"),
-    marker = markers_unprocessed,
-    output_name="T_cell_state",
-    cluster_name = "cd8-positive, alpha-beta t cell",  # 高线粒体含量的细胞簇
-    major_cluster_info = "Human Large Intestine",
-    num_iterations = 5,
-    model = "anthropic/claude-3.5-sonnet",
-    additional_task = "infer the state of this T cell cluster"
-)
-```
-
 ---
 
 有关标记基因文件准备和基础注释的更多详情，请参阅其他教程。如果您有关于附加代理或改进的建议，欢迎在[GitHub](https://github.com/ElliotXie/CASSIA)上贡献。
