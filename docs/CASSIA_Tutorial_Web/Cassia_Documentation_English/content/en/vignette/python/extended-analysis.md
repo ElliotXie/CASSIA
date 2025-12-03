@@ -64,8 +64,11 @@ CASSIA.runCASSIA_annotationboost(
 
 This is particularly useful if you have a very specific and detialed annottaion to work with. It can significantly imrpove the granularity and accuracy of the annotation. It automatically extract marker information and genearte a report as additional informatyion for default CASSIA pipeline.
 
+```bash
+pip install cassia-rag
+```
+
 ```python
-!pip install cassia-rag
 from cassia_rag import run_complete_analysis
 import os
 
@@ -97,7 +100,7 @@ results = CASSIA.symphonyCompare(
     celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
     marker_set = marker,
     species = "human",
-    model_preset = "symphony",
+    model_preset = "premium",
     output_basename = "plasma_cell_subtype",
     enable_discussion = True
 )

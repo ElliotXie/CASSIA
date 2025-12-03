@@ -8,9 +8,9 @@ title: "使用 Scanpy 进行聚类和注释"
 
 ### 1.1 所需的包
 
-```python
+```bash
 # 安装所需的包
-!pip install scanpy leidenalg CASSIA
+pip install scanpy leidenalg CASSIA
 ```
 
 ### 1.2 导入包

@@ -4,8 +4,8 @@ title: 安装 CASSIA
 
 首先，使用 pip 安装 CASSIA 包：
 
-```python
-!pip install CASSIA
+```bash
+pip install CASSIA
 ```
 
 ## 导入 CASSIA

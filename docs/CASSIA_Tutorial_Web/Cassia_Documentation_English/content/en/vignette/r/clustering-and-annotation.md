@@ -154,8 +154,6 @@ After completing clustering and annotation:
 
 - Subset the major clusters and repeat the steps
 - Use `runCASSIA_annotationboost()` for clusters with low annotation quality
-- Try `compareCelltypes()` to distinguish between similar cell types
+- Try `symphonyCompare()` to distinguish between similar cell types
 - Explore `runCASSIA_subclusters()` for more detailed analysis of specific populations
 - Implement `runCASSIA_batch_n_times()` for uncertainty quantification
-
-See the "Full Workflow Best Practices" vignette for more comprehensive quality control and analysis techniques.

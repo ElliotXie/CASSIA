@@ -6,8 +6,8 @@ This is particularly useful if you have a very specific and detialed annottaion 
 
 ### Installation
 
-```python
-!pip install cassia-rag
+```bash
+pip install cassia-rag
 ```
 
 ### Usage

@@ -64,8 +64,11 @@ CASSIA.runCASSIA_annotationboost(
 
 这在您需要处理非常具体和详细的注释时特别有用。它可以显着提高注释的粒度和准确性。它自动提取标记信息并生成报告作为默认 CASSIA 流程的附加信息。
 
+```bash
+pip install cassia-rag
+```
+
 ```python
-!pip install cassia-rag
 from cassia_rag import run_complete_analysis
 import os
 
@@ -97,7 +100,7 @@ results = CASSIA.symphonyCompare(
     celltypes = ["Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells", "IgM-secreting Plasma Cells"],
     marker_set = marker,
     species = "human",
-    model_preset = "symphony",
+    model_preset = "premium",
     output_basename = "plasma_cell_subtype",
     enable_discussion = True
 )

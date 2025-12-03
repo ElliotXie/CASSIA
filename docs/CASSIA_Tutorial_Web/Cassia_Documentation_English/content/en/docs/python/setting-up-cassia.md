@@ -4,8 +4,8 @@ title: Setting Up CASSIA
 
 First, install the CASSIA package using pip:
 
-```python
-!pip install CASSIA
+```bash
+pip install CASSIA
 ```
 
 ## Import CASSIA

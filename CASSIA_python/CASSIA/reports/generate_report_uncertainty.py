@@ -43,6 +43,26 @@ def _parse_unified_results(unified_str: str) -> Counter:
     return Counter(matches)
 
 
+def _parse_unified_results_subtypes(unified_str: str) -> Counter:
+    """
+    Parse unified results string and return Counter of sub cell types.
+
+    Args:
+        unified_str: String like "result1:(Plasma Cell, IgA-producing Plasma Cell),result2:..."
+
+    Returns:
+        Counter of sub cell types
+    """
+    if not unified_str:
+        return Counter()
+
+    # Pattern: result1:(MainType, SubType) or result1:('MainType', 'SubType')
+    # Capture the sub type (second element after the comma)
+    pattern = r"result\d+:\(?['\"]?[^,'\")]+['\"]?,\s*['\"]?([^)'\")]+)"
+    matches = re.findall(pattern, unified_str)
+    return Counter([m.strip() for m in matches])
+
+
 def _parse_unified_results_to_table(unified_str: str) -> List[Tuple[str, str, str]]:
     """
     Parse unified results string into table data.
@@ -317,15 +337,39 @@ def generate_uq_html_report(
     # Calculate summary stats
     stats = _calculate_summary_stats(original_results, consensus_main, consensus_sub)
 
-    # Generate pie chart using unified results
-    unified_counts = _parse_unified_results(unified_results)
-    pie_chart_base64 = _generate_pie_chart(unified_counts if unified_counts else stats['main_type_counts'],
-                                           'Unified Results LLM Distribution')
-    pie_chart_html = f'''
-        <div class="chart-container">
-            <img src="data:image/png;base64,{pie_chart_base64}" alt="Unified Results LLM Distribution">
-        </div>
-    ''' if pie_chart_base64 else '<p style="color: #666; font-style: italic;">Pie chart unavailable (matplotlib not installed)</p>'
+    # Generate pie charts using unified results
+    unified_main_counts = _parse_unified_results(unified_results)
+    unified_sub_counts = _parse_unified_results_subtypes(unified_results)
+
+    # Main cell type pie chart
+    pie_chart_main_base64 = _generate_pie_chart(
+        unified_main_counts if unified_main_counts else stats['main_type_counts'],
+        'Main Cell Type Distribution'
+    )
+    # Sub cell type pie chart
+    pie_chart_sub_base64 = _generate_pie_chart(
+        unified_sub_counts if unified_sub_counts else stats['sub_type_counts'],
+        'Sub Cell Type Distribution'
+    )
+
+    # Build pie charts HTML (side by side)
+    if pie_chart_main_base64 or pie_chart_sub_base64:
+        pie_chart_html = '<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">'
+        if pie_chart_main_base64:
+            pie_chart_html += f'''
+            <div class="chart-container">
+                <img src="data:image/png;base64,{pie_chart_main_base64}" alt="Main Cell Type Distribution">
+            </div>
+            '''
+        if pie_chart_sub_base64:
+            pie_chart_html += f'''
+            <div class="chart-container">
+                <img src="data:image/png;base64,{pie_chart_sub_base64}" alt="Sub Cell Type Distribution">
+            </div>
+            '''
+        pie_chart_html += '</div>'
+    else:
+        pie_chart_html = '<p style="color: #666; font-style: italic;">Pie charts unavailable (matplotlib not installed)</p>'
 
     # Build rounds table
     rounds_table = _build_rounds_table(original_results, consensus_main, consensus_sub)

@@ -6,8 +6,8 @@ title: RAG（可选）
 
 ### 安装
 
-```python
-!pip install cassia-rag
+```bash
+pip install cassia-rag
 ```
 
 ### 用法

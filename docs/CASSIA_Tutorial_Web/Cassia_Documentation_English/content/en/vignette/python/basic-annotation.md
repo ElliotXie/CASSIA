@@ -15,8 +15,8 @@ This Python tutorial demonstrates a complete workflow using CASSIA for cell type
 
 First, let's install and import the required packages:
 
-```python
-!pip install CASSIA
+```bash
+pip install CASSIA
 ```
 
 ```python

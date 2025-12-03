@@ -15,8 +15,8 @@ title: 基本注释
 
 首先，让我们安装并导入所需的包：
 
-```python
-!pip install CASSIA
+```bash
+pip install CASSIA
 ```
 
 ```python

@@ -15,8 +15,6 @@ Our vignettes are organized in increasing complexity:
 
 3. **Clustering and Annotation Starting from Raw Seurat Object** - A complete walkthrough of clustering scRNA-seq data and annotating cell types using CASSIA.
 
-4. **Full Workflow Best Practices with Extensive Quality Control** - Advanced analysis pipeline with comprehensive quality control steps to ensure robust results. *Note: This vignette is still under development and will be expanded in future updates.*
-
 ## Getting Started
 
 To get the most out of these vignettes, make sure you have:

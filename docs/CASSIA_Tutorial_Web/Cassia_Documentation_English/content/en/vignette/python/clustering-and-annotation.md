@@ -8,9 +8,9 @@ This vignette demonstrates how to perform clustering on a pre-processed AnnData 
 
 ### 1.1 Required Packages
 
-```python
+```bash
 # Install required packages
-!pip install scanpy leidenalg CASSIA
+pip install scanpy leidenalg CASSIA
 ```
 
 ### 1.2 Import Packages
