@@ -13,7 +13,8 @@ CASSIA.runCASSIA_score_batch(
     output_file = output_name + "_scored.csv",
     max_workers = 6,
     model = "openai/gpt-5.1",
-    provider = "openrouter"
+    provider = "openrouter",
+    generate_report = True  # 默认值，自动生成 HTML 报告
 )
 ```
 
@@ -24,6 +25,7 @@ CASSIA.runCASSIA_score_batch(
 - **`max_workers`**: 并行评分线程数。
 - **`model`**: 用于质量评分的 LLM。建议使用 `claude-4.5-sonnet` 或 `gpt-4o` 等高能力模型以获得准确评分。
 - **`provider`**: 模型的 API 提供商（例如，"openrouter"）。
+- **`generate_report`**: 是否自动生成 HTML 报告（默认：`True`）。报告保存为 `{output_file}_report.html`。
 
 ### 解读评分
 
@@ -33,10 +35,12 @@ CASSIA.runCASSIA_score_batch(
 
 ### 报告生成
 
-从您的分析生成详细报告。此步骤通常在质量评分之后进行。评分报告包括 CASSIA 的所有输出，包括结构化输出、对话历史记录和质量评分。
+默认情况下，`runCASSIA_score_batch` 会自动在 `{output_file}_report.html` 生成 HTML 报告。报告包括 CASSIA 的所有输出，包括结构化输出、对话历史记录和质量评分。
+
+如果您需要从现有的评分 CSV 重新生成报告，或想自定义输出路径，请使用：
 
 ```python
-# 生成质量报告
+# 从现有评分 CSV 重新生成报告（可选）
 CASSIA.runCASSIA_generate_score_report(
     csv_path = output_name + "_scored.csv",
     index_name = output_name + "_report.html"
@@ -48,7 +52,7 @@ CASSIA.runCASSIA_generate_score_report(
 - **`csv_path`**: 评分结果 CSV 文件的路径（例如，"my_annotation_scored.csv"）。
 - **`index_name`**: 生成的报告索引文件的名称（例如，"my_report.html"）。
 
-_从评分结果生成单独的报告和索引页面。_
+_此函数仅在需要从现有数据重新生成报告或自定义输出路径时使用。_
 
 ### 替代报告生成函数
 

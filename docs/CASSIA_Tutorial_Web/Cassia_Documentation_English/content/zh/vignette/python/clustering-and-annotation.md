@@ -9,7 +9,6 @@ title: "使用 Scanpy 进行聚类和注释"
 ### 1.1 所需的包
 
 ```bash
-# 安装所需的包
 pip install scanpy leidenalg CASSIA
 ```
 
@@ -20,24 +19,30 @@ import scanpy as sc
 import pandas as pd
 import CASSIA
 import os
+```
 
-# 设置 API 密钥 (CASSIA 需要)
-# 替换为您实际的密钥
+### 1.3 设置 API 密钥
+
+**您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。
+
+```python
 os.environ["OPENROUTER_API_KEY"] = "your_openrouter_key"
 # os.environ["OPENAI_API_KEY"] = "your_openai_key"
 # os.environ["ANTHROPIC_API_KEY"] = "your_anthropic_key"
 ```
 
-## 2. 探索您的预处理 AnnData 对象
+## 2. 加载数据
 
 在本教程中，我们将使用来自 GTEX 项目的乳腺组织数据集作为示例。该数据集为乳腺组织细胞类型提供了全面的参考。
 
 ```python
 # 加载 GTEX 乳腺数据集 (假设为 .h5ad 格式)
-# 您可以根据您的数据将其调整为 read_csv 或 read_10x
 adata = sc.read("gtex_ref.h5ad")
+```
 
-# 检查元数据
+探索元数据以了解您的数据集：
+
+```python
 print(adata.obs.columns)
 ```
 
@@ -45,125 +50,190 @@ print(adata.obs.columns)
 
 ## 3. 降维和聚类
 
-### 3.1 预处理和聚类
+我们将遵循标准的 Scanpy 工作流程，并逐步解释每个步骤。
 
-我们将遵循标准的 Scanpy 工作流程：归一化、对数变换、特征选择、缩放、PCA、邻居图构建和聚类。
+### 3.1 归一化
+
+首先，对数据进行归一化以消除细胞间测序深度的差异：
 
 ```python
-# 归一化和对数变换
 sc.pp.normalize_total(adata, target_sum=1e4)
 sc.pp.log1p(adata)
+```
 
-# 识别高变基因
+这将每个细胞缩放到 10,000 总计数，并应用对数变换以减少高表达基因的影响。
+
+### 3.2 特征选择
+
+识别用于聚类的高变基因：
+
+```python
 sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
-adata_raw = adata  # 如果需要，保留原始数据用于可视化
-adata = adata[:, adata.var.highly_variable]
+```
 
-# 缩放和 PCA
+仅保留高变基因（保留原始数据用于后续可视化）：
+
+```python
+adata_raw = adata
+adata = adata[:, adata.var.highly_variable]
+```
+
+### 3.3 降维
+
+缩放数据并执行 PCA：
+
+```python
 sc.pp.scale(adata, max_value=10)
 sc.tl.pca(adata, svd_solver='arpack')
+```
 
-# 邻居和 UMAP
+缩放确保每个基因的贡献相等。PCA 将数据降维到捕获最大方差的主成分。
+
+### 3.4 邻居图和 UMAP
+
+构建 k-近邻图并计算 UMAP 用于可视化：
+
+```python
 sc.pp.neighbors(adata, n_neighbors=10, n_pcs=25)
 sc.tl.umap(adata)
+```
 
-# 聚类 (Leiden)
-# 使用分辨率 0.4 以匹配 R 示例
+邻居图连接相似的细胞，并构成聚类的基础。
+
+### 3.5 聚类
+
+执行 Leiden 聚类以识别细胞群体：
+
+```python
 sc.tl.leiden(adata, resolution=0.4, key_added='leiden_res_0.4')
+```
 
-# 可视化
+`resolution` 参数控制聚类的粒度。较低的值 = 更少、更宽泛的聚类。
+
+### 3.6 可视化聚类
+
+```python
 sc.pl.umap(adata, color=['leiden_res_0.4'])
 ```
 
 ![GTEX 乳腺组织聚类的 UMAP 可视化](/images/gtex-umap-clusters.png)
 
-### 3.2 寻找标记基因
+## 4. 寻找标记基因
 
-CASSIA 需要每个聚类的标记基因列表。我们可以使用 `scanpy.tl.rank_genes_groups` 生成此列表。
+CASSIA 需要每个聚类的标记基因列表。我们将使用 Wilcoxon 秩和检验来识别差异表达基因。
+
+### 4.1 运行差异表达分析
 
 ```python
-# 寻找聚类的标记
 sc.tl.rank_genes_groups(adata, 'leiden_res_0.4', method='wilcoxon')
+```
 
-# 将标记提取到 DataFrame 中
+### 4.2 提取结果
+
+将结果提取到 DataFrame：
+
+```python
 markers = sc.get.rank_genes_groups_df(adata, group=None)
-
-# 重命名列以匹配 CASSIA 的预期格式 (类似 Seurat)
-# Scanpy 输出: names, scores, logfoldchanges, pvals, pvals_adj
-markers = markers.rename(columns={
-    'names': 'gene',
-    'logfoldchanges': 'avg_log2FC', 
-    'pvals_adj': 'p_val_adj', 
-    'group': 'cluster'
-})
-
-# 筛选正标记 (可选，CASSIA 会处理，但这是个好习惯)
-markers = markers[markers['avg_log2FC'] > 0]
-
 print(markers.head())
 ```
 
-## 4. 使用 CASSIA 注释聚类
+### 4.3 格式化为 CASSIA 格式
 
-### 4.1 基本注释
-
-现在我们有了聚类和标记基因，我们可以使用 CASSIA 进行注释：
+重命名列以匹配 CASSIA 的预期格式：
 
 ```python
-# 运行 CASSIA 流程
+markers = markers.rename(columns={
+    'names': 'gene',
+    'logfoldchanges': 'avg_log2FC',
+    'pvals_adj': 'p_val_adj',
+    'group': 'cluster'
+})
+```
+
+筛选正标记（上调基因）：
+
+```python
+markers = markers[markers['avg_log2FC'] > 0]
+```
+
+## 5. 使用 CASSIA 注释聚类
+
+### 5.1 运行 CASSIA 流程
+
+现在我们可以使用 CASSIA 注释聚类：
+
+```python
 results = CASSIA.runCASSIA_pipeline(
     output_file_name = "gtex_breast_annotation",
     tissue = "Breast",
     species = "Human",
-    marker = markers, # 直接传递 DataFrame
-    max_workers = 6,  # 匹配数据集中的聚类数
+    marker = markers,
+    max_workers = 6,
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     score_threshold = 75,
-    annotationboost_model="anthropic/claude-sonnet-4.5",
-    annotationboost_provider="openrouter",
+    annotationboost_model = "anthropic/claude-sonnet-4.5",
+    annotationboost_provider = "openrouter",
     merge_model = "google/gemini-2.5-flash",
     merge_provider = "openrouter"
 )
 ```
 
-默认提供商是 OpenRouter，默认模型经过选择以优化注释质量。要查看每个新模型的表现，请访问我们的基准测试网站：[sc-llm-benchmark.com/methods/cassia](https://sc-llm-benchmark.com/methods/cassia)
+要查看每个模型的表现，请访问我们的基准测试网站：[sc-llm-benchmark.com/methods/cassia](https://sc-llm-benchmark.com/methods/cassia)
 
-输出文件保存在以组织和物种命名的文件夹中。在文件夹内，您将看到以下文件：
+### 5.2 输出文件
 
-- `gtex_breast_annotation_summary.csv`: 注释结果摘要
-- `gtex_breast_annotation_full.csv`: 完整的注释结果，包括完整的对话历史记录和不同级别的合并聚类
-- `gtex_breast_annotation_scored.csv`: 评分后的注释结果
-- `gtex_breast_annotation_report.html`: 生成的注释结果报告，包含指向所有聚类报告的路由。
+流程会创建一个包含以下文件的文件夹：
 
-`gtex_breast_annotation_scored.csv` 文件：
+| 文件 | 描述 |
+|------|------|
+| `gtex_breast_annotation_summary.csv` | 注释结果摘要 |
+| `gtex_breast_annotation_full.csv` | 包含对话历史的完整结果 |
+| `gtex_breast_annotation_scored.csv` | 评分后的注释结果 |
+| `gtex_breast_annotation_report.html` | 交互式 HTML 报告 |
 
 ![CASSIA 注释报告](/images/gtex-breast-annotation-report.png)
 
-### 4.2 将注释整合到 AnnData 对象中
-
-运行 CASSIA 后，您可以将注释整合回您的 AnnData 对象中。我们将把 CSV 结果中的注释映射到聚类观察值。
+### 5.3 加载结果
 
 ```python
-# 加载结果
 cassia_results = pd.read_csv("gtex_breast_annotation_scored.csv")
+```
 
-# 创建映射字典：聚类 ID -> 注释
-# 您可以选择 'celltype_1' (最详细) 或 'CASSIA_merged_grouping_1' (最广泛)
-annotation_map = dict(zip(cassia_results['cluster'].astype(str), cassia_results['celltype_1']))
+### 5.4 创建注释映射
 
-# 将注释映射到新的观察列
+创建将聚类 ID 映射到细胞类型注释的字典：
+
+```python
+annotation_map = dict(zip(
+    cassia_results['cluster'].astype(str),
+    cassia_results['celltype_1']
+))
+```
+
+您可以选择不同的粒度级别：
+- `celltype_1`：最详细的注释
+- `CASSIA_merged_grouping_1`：最宽泛的类别
+
+### 5.5 添加到 AnnData
+
+将注释映射到您的 AnnData 对象：
+
+```python
 adata.obs['CASSIA_annotation'] = adata.obs['leiden_res_0.4'].map(annotation_map)
+```
 
-# 检查新注释
+验证映射：
+
+```python
 print(adata.obs[['leiden_res_0.4', 'CASSIA_annotation']].head())
 ```
 
-### 4.3 可视化注释
+## 6. 可视化注释
 
-现在我们可以在 UMAP 上可视化 CASSIA 注释。
+将 CASSIA 注释与黄金标准标签进行比较：
 
 ```python
 sc.pl.umap(adata, color=['Broad_cell_type', 'CASSIA_annotation'], legend_loc='on data')
@@ -173,17 +243,16 @@ sc.pl.umap(adata, color=['Broad_cell_type', 'CASSIA_annotation'], legend_loc='on
 
 ![图 2: 注释结果](/images/Figure2_CASSIA.png)
 
-CASSIA 会自动将注释总结为不同粒度级别（从一般到详细），您可以在输出 CSV 中找到这些级别并进行类似的可视化。
+CASSIA 会自动将注释总结为不同的粒度级别，您可以在输出 CSV 中找到这些级别。
 
-## 5. 下一步
+## 7. 下一步
 
 完成聚类和注释后：
 
-- 对主要聚类进行子集化并重复步骤
+- 对主要聚类进行子集化并重复分析以获得更精细的分辨率
 - 对注释质量低的聚类使用 `CASSIA.runCASSIA_annotationboost()`
 - 尝试 `CASSIA.symphonyCompare()` 来区分相似的细胞类型
 - 探索 `CASSIA.runCASSIA_subclusters()` 以对特定群体进行更详细的分析
 - 实施 `CASSIA.runCASSIA_batch_n_times()` 进行不确定性量化
 
-有关这些高级技术的详细信息，请参阅“扩展分析”教程。
-
+有关这些高级技术的详细信息，请参阅"扩展分析"教程。

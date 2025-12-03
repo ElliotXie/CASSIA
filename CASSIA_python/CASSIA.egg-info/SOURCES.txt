@@ -58,12 +58,6 @@ CASSIA/imaging/__init__.py
 CASSIA/imaging/llm_image.py
 CASSIA/pipeline/__init__.py
 CASSIA/pipeline/pipeline.py
-CASSIA/reference_agent/__init__.py
-CASSIA/reference_agent/complexity_scorer.py
-CASSIA/reference_agent/reference_agent.py
-CASSIA/reference_agent/reference_selector.py
-CASSIA/reference_agent/section_extractor.py
-CASSIA/reference_agent/utils.py
 CASSIA/reports/__init__.py
 CASSIA/reports/generate_batch_report.py
 CASSIA/reports/generate_hypothesis_report.py

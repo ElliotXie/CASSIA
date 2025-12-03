@@ -13,7 +13,8 @@ CASSIA.runCASSIA_score_batch(
     output_file = output_name + "_scored.csv",
     max_workers = 6,
     model = "openai/gpt-5.1",
-    provider = "openrouter"
+    provider = "openrouter",
+    generate_report = True  # Default, generates HTML report automatically
 )
 ```
 
@@ -24,6 +25,7 @@ CASSIA.runCASSIA_score_batch(
 - **`max_workers`**: Number of parallel scoring threads.
 - **`model`**: The LLM used for quality scoring. High-capability models like `claude-4.5-sonnet` or `gpt-4o` are recommended for accurate scoring.
 - **`provider`**: The API provider for the model (e.g., "openrouter").
+- **`generate_report`**: Whether to automatically generate an HTML report (default: `True`). The report is saved as `{output_file}_report.html`.
 
 ### Interpreting Scores
 
@@ -33,10 +35,12 @@ CASSIA.runCASSIA_score_batch(
 
 ### Report Generation
 
-Generate detailed reports from your analysis. This step typically follows after quality scoring. The score report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
+By default, `runCASSIA_score_batch` automatically generates an HTML report at `{output_file}_report.html`. The report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
+
+If you need to regenerate a report from an existing scored CSV, or want to customize the output path, use:
 
 ```python
-# Generate quality report
+# Regenerate report from existing scored CSV (optional)
 CASSIA.runCASSIA_generate_score_report(
     csv_path = output_name + "_scored.csv",
     index_name = output_name + "_report.html"
@@ -48,7 +52,7 @@ CASSIA.runCASSIA_generate_score_report(
 - **`csv_path`**: Path to the scored results CSV file (e.g., "my_annotation_scored.csv").
 - **`index_name`**: The name for the generated report index file (e.g., "my_report.html").
 
-_Generates individual reports and an index page from the scored results._
+_This function is only needed when regenerating reports from existing data or customizing output paths._
 
 ### Alternative Report Generation Functions
 

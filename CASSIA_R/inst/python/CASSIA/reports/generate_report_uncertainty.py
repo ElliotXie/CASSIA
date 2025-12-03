@@ -21,6 +21,70 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
+import re
+
+
+def _parse_unified_results(unified_str: str) -> Counter:
+    """
+    Parse unified results string and return Counter of main cell types.
+
+    Args:
+        unified_str: String like "result1:(Plasma Cell, IgA-producing Plasma Cell),result2:..."
+
+    Returns:
+        Counter of main cell types
+    """
+    if not unified_str:
+        return Counter()
+
+    # Pattern: result1:(MainType, SubType) or result1:('MainType', 'SubType')
+    pattern = r"result\d+:\(?['\"]?([^,'\")]+)"
+    matches = re.findall(pattern, unified_str)
+    return Counter(matches)
+
+
+def _parse_unified_results_subtypes(unified_str: str) -> Counter:
+    """
+    Parse unified results string and return Counter of sub cell types.
+
+    Args:
+        unified_str: String like "result1:(Plasma Cell, IgA-producing Plasma Cell),result2:..."
+
+    Returns:
+        Counter of sub cell types
+    """
+    if not unified_str:
+        return Counter()
+
+    # Pattern: result1:(MainType, SubType) or result1:('MainType', 'SubType')
+    # Capture the sub type (second element after the comma)
+    pattern = r"result\d+:\(?['\"]?[^,'\")]+['\"]?,\s*['\"]?([^)'\")]+)"
+    matches = re.findall(pattern, unified_str)
+    return Counter([m.strip() for m in matches])
+
+
+def _parse_unified_results_to_table(unified_str: str) -> List[Tuple[str, str, str]]:
+    """
+    Parse unified results string into table data.
+
+    Args:
+        unified_str: String like "result1:(Plasma Cell, IgA-producing),result2:..."
+
+    Returns:
+        List of tuples: (iteration_num, main_type, sub_type)
+    """
+    if not unified_str:
+        return []
+
+    results = []
+    # Pattern: result1:(MainType, SubType) or result1:('MainType', 'SubType')
+    pattern = r"result(\d+):\(?['\"]?([^,'\")]+)['\"]?,\s*['\"]?([^)'\")]+)"
+    matches = re.findall(pattern, unified_str)
+    for match in matches:
+        iter_num, main_type, sub_type = match
+        results.append((iter_num, main_type.strip(), sub_type.strip()))
+    return results
+
 
 def _get_score_class(score: float) -> Tuple[str, str, str]:
     """
@@ -217,7 +281,6 @@ def _build_rounds_table(original_results: List,
             <td style="text-align: center; font-weight: bold;">{i}</td>
             <td>{main_type}</td>
             <td>{sub_type}</td>
-            <td style="text-align: center;">{icon}</td>
         </tr>
         ''')
 
@@ -256,6 +319,7 @@ def generate_uq_html_report(
     mixed_types = results.get('Possible_mixed_celltypes_llm', [])
     original_results = results.get('original_results', [])
     llm_reasoning = results.get('llm_response', '')  # LLM's reasoning for the consensus score
+    unified_results = results.get('unified_results_llm', '')  # Unified results LLM string
 
     # Handle consensus types
     if isinstance(consensus_types, tuple) and len(consensus_types) >= 2:
@@ -272,17 +336,55 @@ def generate_uq_html_report(
     # Calculate summary stats
     stats = _calculate_summary_stats(original_results, consensus_main, consensus_sub)
 
-    # Generate pie chart
-    pie_chart_base64 = _generate_pie_chart(stats['main_type_counts'],
-                                           'Cell Type Distribution')
-    pie_chart_html = f'''
-        <div class="chart-container">
-            <img src="data:image/png;base64,{pie_chart_base64}" alt="Cell Type Distribution">
-        </div>
-    ''' if pie_chart_base64 else '<p style="color: #666; font-style: italic;">Pie chart unavailable (matplotlib not installed)</p>'
+    # Generate pie charts using unified results
+    unified_main_counts = _parse_unified_results(unified_results)
+    unified_sub_counts = _parse_unified_results_subtypes(unified_results)
 
-    # Build rounds table
+    # Main cell type pie chart
+    pie_chart_main_base64 = _generate_pie_chart(
+        unified_main_counts if unified_main_counts else stats['main_type_counts'],
+        'Main Cell Type Distribution'
+    )
+    # Sub cell type pie chart
+    pie_chart_sub_base64 = _generate_pie_chart(
+        unified_sub_counts if unified_sub_counts else stats['sub_type_counts'],
+        'Sub Cell Type Distribution'
+    )
+
+    # Build pie charts HTML (side by side)
+    if pie_chart_main_base64 or pie_chart_sub_base64:
+        pie_chart_html = '<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">'
+        if pie_chart_main_base64:
+            pie_chart_html += f'''
+            <div class="chart-container">
+                <img src="data:image/png;base64,{pie_chart_main_base64}" alt="Main Cell Type Distribution">
+            </div>
+            '''
+        if pie_chart_sub_base64:
+            pie_chart_html += f'''
+            <div class="chart-container">
+                <img src="data:image/png;base64,{pie_chart_sub_base64}" alt="Sub Cell Type Distribution">
+            </div>
+            '''
+        pie_chart_html += '</div>'
+    else:
+        pie_chart_html = '<p style="color: #666; font-style: italic;">Pie charts unavailable (matplotlib not installed)</p>'
+
+    # Build rounds table (original results)
     rounds_table = _build_rounds_table(original_results, consensus_main, consensus_sub)
+
+    # Build unified results table
+    unified_results_data = _parse_unified_results_to_table(unified_results)
+    unified_rows = []
+    for iter_num, main_type, sub_type in unified_results_data:
+        unified_rows.append(f'''
+        <tr>
+            <td style="text-align: center; font-weight: bold;">{iter_num}</td>
+            <td>{main_type}</td>
+            <td>{sub_type}</td>
+        </tr>
+        ''')
+    unified_rounds_table = '\n'.join(unified_rows) if unified_rows else '<tr><td colspan="3">No unified results data</td></tr>'
 
     # Format mixed types
     mixed_types_html = ', '.join(mixed_types) if mixed_types else '<span style="color: #666;">None detected</span>'
@@ -570,23 +672,38 @@ def generate_uq_html_report(
         </div>
 
         <div class="section">
-            <h3 class="section-title">📊 Cell Type Distribution</h3>
+            <h3 class="section-title">📊 Cell Type Distribution (from Unified Results)</h3>
             {pie_chart_html}
         </div>
 
         <div class="section">
-            <h3 class="section-title">🔄 Per-Round Results</h3>
+            <h3 class="section-title">🔄 Per-Round Results (Original)</h3>
             <table>
                 <thead>
                     <tr>
                         <th style="width: 60px;">Round</th>
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
-                        <th style="width: 80px; text-align: center;">Match</th>
                     </tr>
                 </thead>
                 <tbody>
                     {rounds_table}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">🔄 Per-Round Results (Unified)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Round</th>
+                        <th>Main Cell Type</th>
+                        <th>Sub Cell Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {unified_rounds_table}
                 </tbody>
             </table>
         </div>
@@ -667,24 +784,16 @@ def generate_uq_batch_html_report(
     # Calculate summary statistics
     total_clusters = len(processed_results)
     scores = []
-    high_confidence = 0
-    medium_confidence = 0
-    low_confidence = 0
 
     for cluster_id, result in processed_results.items():
         if isinstance(result, dict) and 'error' not in result:
-            score = result.get('consensus_score_llm', 0)
+            # Use llm_generated_consensus_score_llm (already 0-100 percentage)
+            score = result.get('llm_generated_consensus_score_llm', 0)
             if isinstance(score, (int, float)):
                 scores.append(score)
-                if score >= 0.8:
-                    high_confidence += 1
-                elif score >= 0.5:
-                    medium_confidence += 1
-                else:
-                    low_confidence += 1
 
     avg_score = sum(scores) / len(scores) if scores else 0
-    avg_score_class, _, avg_interpretation = _get_score_class(avg_score)
+    avg_score_class, _, avg_interpretation = _get_score_class(avg_score / 100)  # Divide by 100 for class
 
     # Build cluster rows
     cluster_rows = []
@@ -692,17 +801,16 @@ def generate_uq_batch_html_report(
         if isinstance(result, dict) and 'error' not in result:
             main_type = result.get('general_celltype_llm', 'Unknown')
             sub_type = result.get('sub_celltype_llm', 'Unknown')
-            score = result.get('consensus_score_llm', 0)
-            mixed_types = result.get('mixed_celltypes_llm', [])
+            # Use llm_generated_consensus_score_llm (already 0-100 percentage)
+            score = result.get('llm_generated_consensus_score_llm', 0)
+            unified_llm = result.get('unified_results_llm', 'N/A')
+            unified_oncology = result.get('unified_results_oncology', 'N/A')
 
-            # Get score styling
-            score_class, score_color, _ = _get_score_class(score)
-            score_pct = int(score * 100)
+            # Get score styling (divide by 100 for class since it expects 0-1)
+            score_class, score_color, _ = _get_score_class(score / 100 if score else 0)
+            score_pct = int(score)  # Already 0-100, no multiplication needed
 
-            # Format mixed types
-            mixed_html = ', '.join(mixed_types) if mixed_types else '<span style="color: #999;">None</span>'
-
-            # Build iteration details
+            # Build iteration details (original results)
             original = organized_results.get(cluster_id, [])
             iteration_rows = []
             for i, item in enumerate(original, 1):
@@ -715,6 +823,23 @@ def generate_uq_batch_html_report(
                 iteration_rows.append(f'<tr><td>{i}</td><td>{iter_main}</td><td>{iter_sub}</td></tr>')
 
             iterations_table = '\n'.join(iteration_rows) if iteration_rows else '<tr><td colspan="3">No iteration data</td></tr>'
+
+            # Parse unified results into table format
+            unified_llm_data = _parse_unified_results_to_table(unified_llm)
+            unified_oncology_data = _parse_unified_results_to_table(unified_oncology)
+
+            # Build LLM unified table rows
+            unified_llm_rows = []
+            for iter_num, main, sub in unified_llm_data:
+                unified_llm_rows.append(f'<tr><td>{iter_num}</td><td>{main}</td><td>{sub}</td></tr>')
+            unified_llm_table = '\n'.join(unified_llm_rows) if unified_llm_rows else '<tr><td colspan="3">No data</td></tr>'
+
+            # Build Oncology unified table rows
+            unified_oncology_rows = []
+            for iter_num, main, sub in unified_oncology_data:
+                unified_oncology_rows.append(f'<tr><td>{iter_num}</td><td>{main}</td><td>{sub}</td></tr>')
+            unified_oncology_table = '\n'.join(unified_oncology_rows) if unified_oncology_rows else '<tr><td colspan="3">No data</td></tr>'
+
             detail_id = f"cluster_detail_{cluster_id.replace(' ', '_').replace('.', '_')}"
 
             cluster_rows.append(f'''
@@ -725,18 +850,31 @@ def generate_uq_batch_html_report(
                 <td style="text-align: center;">
                     <span class="score-pill {score_class}" style="background: {score_color};">{score_pct}%</span>
                 </td>
-                <td>{mixed_html}</td>
                 <td style="text-align: center;">
                     <button class="toggle-btn" onclick="toggleClusterDetail('{detail_id}')">Show</button>
                 </td>
             </tr>
             <tr id="{detail_id}" class="detail-row" style="display: none;">
-                <td colspan="6">
+                <td colspan="5">
                     <div class="iteration-box">
-                        <strong>Per-Iteration Results:</strong>
+                        <strong>Per-Iteration Results (Original):</strong>
                         <table class="iteration-table">
                             <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
                             <tbody>{iterations_table}</tbody>
+                        </table>
+                    </div>
+                    <div class="iteration-box" style="margin-top: 15px;">
+                        <strong>Unified Per-Iteration Results (LLM):</strong>
+                        <table class="iteration-table">
+                            <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
+                            <tbody>{unified_llm_table}</tbody>
+                        </table>
+                    </div>
+                    <div class="iteration-box" style="margin-top: 15px;">
+                        <strong>Unified Per-Iteration Results (Oncology):</strong>
+                        <table class="iteration-table">
+                            <thead><tr><th>Iter</th><th>Main Type</th><th>Sub Type</th></tr></thead>
+                            <tbody>{unified_oncology_table}</tbody>
                         </table>
                     </div>
                 </td>
@@ -748,7 +886,7 @@ def generate_uq_batch_html_report(
             cluster_rows.append(f'''
             <tr class="cluster-row row-error">
                 <td style="font-weight: 600;">{cluster_id}</td>
-                <td colspan="4" style="color: #ef4444;">{error_msg}</td>
+                <td colspan="3" style="color: #ef4444;">{error_msg}</td>
                 <td></td>
             </tr>
             ''')
@@ -988,27 +1126,10 @@ def generate_uq_batch_html_report(
                 </div>
                 <div class="summary-card">
                     <div class="score-badge {avg_score_class}">
-                        <span style="font-size: 24px;">{int(avg_score * 100)}%</span>
+                        <span style="font-size: 24px;">{int(avg_score)}%</span>
                     </div>
                     <div class="summary-label">Avg LLM Consensus Score</div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-value" style="color: #22c55e;">{high_confidence}</div>
-                    <div class="summary-label">High Confidence</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value" style="color: #eab308;">{medium_confidence}</div>
-                    <div class="summary-label">Medium Confidence</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value" style="color: #ef4444;">{low_confidence}</div>
-                    <div class="summary-label">Low Confidence</div>
-                </div>
-            </div>
-            <div class="confidence-bar">
-                <div class="confidence-segment" style="width: {high_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #22c55e;">{high_confidence}</div>
-                <div class="confidence-segment" style="width: {medium_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #eab308;">{medium_confidence}</div>
-                <div class="confidence-segment" style="width: {low_confidence/total_clusters*100 if total_clusters > 0 else 0}%; background: #ef4444;">{low_confidence}</div>
             </div>
         </div>
 
@@ -1021,7 +1142,6 @@ def generate_uq_batch_html_report(
                         <th>Main Cell Type</th>
                         <th>Sub Cell Type</th>
                         <th style="text-align: center;">LLM Consensus Score</th>
-                        <th>Mixed Types</th>
                         <th style="text-align: center;">Details</th>
                     </tr>
                 </thead>

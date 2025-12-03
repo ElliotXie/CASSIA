@@ -319,7 +319,7 @@ def generate_uq_html_report(
     mixed_types = results.get('Possible_mixed_celltypes_llm', [])
     original_results = results.get('original_results', [])
     llm_reasoning = results.get('llm_response', '')  # LLM's reasoning for the consensus score
-    unified_results = results.get('unified_results', '')  # Unified results string
+    unified_results = results.get('unified_results_llm', '')  # Unified results LLM string
 
     # Handle consensus types
     if isinstance(consensus_types, tuple) and len(consensus_types) >= 2:
@@ -693,7 +693,7 @@ def generate_uq_html_report(
         </div>
 
         <div class="section">
-            <h3 class="section-title">🔄 Per-Round Results (Unified)</h3>
+            <h3 class="section-title">🔄 Per-Round Results (Unified LLM)</h3>
             <table>
                 <thead>
                     <tr>
