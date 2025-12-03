@@ -485,6 +485,61 @@ def consensus_similarity_flexible(results, main_weight=0.7, sub_weight=0.3):
     return similarity_score, consensus_general, consensus_sub
 
 
+def consensus_similarity_from_tuples(parsed_results, main_weight=0.7, sub_weight=0.3):
+    """
+    Calculate consensus similarity from parsed results with simple tuple format.
+
+    Args:
+        parsed_results: dict where values are tuples (main_type, sub_type)
+                       e.g., {"result1": ("Plasma Cell", "IgA-producing"), ...}
+        main_weight: weight for main cell type agreement
+        sub_weight: weight for sub cell type agreement
+
+    Returns:
+        tuple: (similarity_score, consensus_general, consensus_sub)
+    """
+    from collections import Counter
+
+    if not parsed_results:
+        return 0.0, "Unknown", "Unknown"
+
+    # Extract cell types from the tuple structure
+    general_types = []
+    sub_types = []
+
+    for key, value in parsed_results.items():
+        if isinstance(value, tuple) and len(value) >= 2:
+            main_type = str(value[0]).strip() if value[0] else "Unknown"
+            sub_type = str(value[1]).strip() if value[1] else "Unknown"
+            general_types.append(main_type)
+            sub_types.append(sub_type)
+
+    if not general_types or not sub_types:
+        return 0.0, "Unknown", "Unknown"
+
+    # Get consensus (most common) types
+    general_counter = Counter(general_types)
+    sub_counter = Counter(sub_types)
+
+    consensus_general = general_counter.most_common(1)[0][0]
+    consensus_sub = sub_counter.most_common(1)[0][0]
+
+    # Calculate similarity score based on agreement with consensus
+    total_score = 0
+    for key, value in parsed_results.items():
+        if isinstance(value, tuple) and len(value) >= 2:
+            result_general = str(value[0]).strip() if value[0] else ""
+            result_sub = str(value[1]).strip() if value[1] else ""
+
+            if result_general == consensus_general:
+                total_score += main_weight
+
+            if result_sub == consensus_sub:
+                total_score += sub_weight
+
+    similarity_score = total_score / (len(parsed_results) * (main_weight + sub_weight))
+
+    return similarity_score, consensus_general, consensus_sub
 
 
 
@@ -954,9 +1009,9 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     # Calculate similarity score
     try:
         parsed_results_llm = parse_results_to_dict(results_unification_llm)
-        consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_flexible(
-            parsed_results_llm, 
-            main_weight=main_weight, 
+        consensus_score_llm, consensus_1_llm, consensus_2_llm = consensus_similarity_from_tuples(
+            parsed_results_llm,
+            main_weight=main_weight,
             sub_weight=sub_weight
         )
     except Exception as e:
