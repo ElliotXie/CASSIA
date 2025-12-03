@@ -60,14 +60,23 @@ def run_cassia_pipeline_test(results_dir):
     # Use only 2 clusters for faster testing
     test_clusters = ['monocyte', 'plasma cell']
 
-    # Load full marker data and filter
-    full_df = load_markers()
-    marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
+    # Load raw FindAllMarkers data from data folder for annotation boost
+    import pandas as pd
+    data_folder = Path(__file__).parent / "data"
+    raw_markers_path = data_folder / "findallmarkers_output.csv"
+    
+    if not raw_markers_path.exists():
+        raise FileNotFoundError(f"Raw marker file not found: {raw_markers_path}")
+    
+    # Load and filter to only the 2 test clusters
+    raw_markers = pd.read_csv(raw_markers_path)
+    marker_df = raw_markers[raw_markers['cluster'].isin(test_clusters)].copy()
 
     print(f"\nTesting pipeline for {len(test_clusters)} clusters:")
     for cluster in test_clusters:
         print(f"  - {cluster}")
-    print(f"\nLoaded marker data: {marker_df.shape}")
+    print(f"\nLoaded raw marker data: {marker_df.shape}")
+    print(f"Data source: {raw_markers_path}")
 
     # Results directory passed in from main()
     output_name = str(results_dir['outputs'] / "pipeline_test")
@@ -97,7 +106,7 @@ def run_cassia_pipeline_test(results_dir):
             score_provider=llm_config.get('provider', 'openrouter'),
             annotationboost_model=llm_config.get('model', 'google/gemini-2.5-flash'),
             annotationboost_provider=llm_config.get('provider', 'openrouter'),
-            score_threshold=75,
+            score_threshold=99,
             merge_annotations=True,
             merge_model=llm_config.get('model', 'google/gemini-2.5-flash'),
             merge_provider=llm_config.get('provider', 'openrouter'),

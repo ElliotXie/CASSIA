@@ -57,15 +57,24 @@ run_cassia_pipeline_test <- function() {
   # Use only 2 clusters for faster testing
   test_clusters <- c("monocyte", "plasma cell")
 
-  # Load full marker data and filter to test clusters
-  full_df <- load_markers()
-  marker_df <- full_df[full_df$Broad.cell.type %in% test_clusters, ]
+  # Load raw FindAllMarkers data from data folder for annotation boost
+  data_folder <- file.path(script_dir, "data")
+  raw_markers_path <- file.path(data_folder, "findallmarkers_output.csv")
+  
+  if (!file.exists(raw_markers_path)) {
+    stop("Raw marker file not found: ", raw_markers_path)
+  }
+  
+  # Load and filter to only the 2 test clusters
+  raw_markers <- read.csv(raw_markers_path)
+  marker_df <- raw_markers[raw_markers$cluster %in% test_clusters, ]
 
   log_msg("\nTesting pipeline for", length(test_clusters), "clusters:")
   for (cluster in test_clusters) {
     log_msg("  -", cluster)
   }
-  log_msg("\nLoaded marker data:", nrow(marker_df), "rows")
+  log_msg("\nLoaded raw marker data:", nrow(marker_df), "rows")
+  log_msg("Data source:", raw_markers_path)
 
   # Create results directory
   results <- create_results_dir("15_cassia_pipeline", get_test_mode())
@@ -100,7 +109,7 @@ run_cassia_pipeline_test <- function() {
       score_provider = llm_config$provider %||% "openrouter",
       annotationboost_model = llm_config$model %||% "google/gemini-2.5-flash",
       annotationboost_provider = llm_config$provider %||% "openrouter",
-      score_threshold = 75,
+      score_threshold = 99,
       do_merge_annotations = TRUE,
       merge_model = llm_config$model %||% "google/gemini-2.5-flash",
       merge_provider = llm_config$provider %||% "openrouter",

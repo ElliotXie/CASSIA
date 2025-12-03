@@ -1,0 +1,141 @@
+{
+  "timestamp": "2025-12-01T19:04:14",
+  "mode": "installed",
+  "language": "R",
+  "total_duration": 564.06,
+  "summary": {
+    "passed": 12,
+    "failed": 3,
+    "errors": 0,
+    "skipped": 1
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 18.83,
+      "mode": "install",
+      "script": "test_single_annotation_install.R"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 46.05,
+      "mode": "install",
+      "script": "test_batch_annotation_install.R"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 84.46,
+      "mode": "install",
+      "script": "test_validator_comparison_install.R"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 59.2,
+      "mode": "install",
+      "script": "test_quality_scoring_install.R"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 28.35,
+      "mode": "install",
+      "script": "test_model_settings_install.R"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 67.8,
+      "mode": "install",
+      "script": "test_annotation_boost_install.R"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 43.15,
+      "mode": "install",
+      "script": "test_merging_annotation_install.R"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 28.74,
+      "mode": "install",
+      "script": "test_uncertainty_quantification_install.R"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 26.87,
+      "mode": "install",
+      "script": "test_subclustering_install.R"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 32.01,
+      "mode": "install",
+      "script": "test_symphony_compare_install.R"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 10.67,
+      "mode": "install",
+      "script": "test_report_generation_install.R"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 45.29,
+      "mode": "install",
+      "script": "test_batch_with_reference_install.R"
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "skipped",
+      "reason": "No R test script found (install)",
+      "duration": 0,
+      "mode": "install"
+    },
+    {
+      "name": "13_call_llm",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 18.9,
+      "mode": "install",
+      "script": "test_call_llm_install.R"
+    },
+    {
+      "name": "14_input_validation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 10.63,
+      "mode": "install",
+      "script": "test_input_validation_install.R"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 43.05,
+      "mode": "install",
+      "script": "test_cassia_pipeline_install.R"
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "timestamp": "2025-12-01T23:07:40",
+  "mode": "installed",
+  "language": "R",
+  "total_duration": 1059.18,
+  "summary": {
+    "passed": 12,
+    "failed": 3,
+    "errors": 0,
+    "skipped": 1
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 21.57,
+      "mode": "install",
+      "script": "test_single_annotation_install.R"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 47.88,
+      "mode": "install",
+      "script": "test_batch_annotation_install.R"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 82.22,
+      "mode": "install",
+      "script": "test_validator_comparison_install.R"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 56.36,
+      "mode": "install",
+      "script": "test_quality_scoring_install.R"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 34.55,
+      "mode": "install",
+      "script": "test_model_settings_install.R"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 65.41,
+      "mode": "install",
+      "script": "test_annotation_boost_install.R"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 69.68,
+      "mode": "install",
+      "script": "test_merging_annotation_install.R"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 60.52,
+      "mode": "install",
+      "script": "test_uncertainty_quantification_install.R"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 27.15,
+      "mode": "install",
+      "script": "test_subclustering_install.R"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 461.23,
+      "mode": "install",
+      "script": "test_symphony_compare_install.R"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 13.62,
+      "mode": "install",
+      "script": "test_report_generation_install.R"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 44.19,
+      "mode": "install",
+      "script": "test_batch_with_reference_install.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing pre-installed CASSIA package\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:37: UserWarning: Scientific computing libraries not available: No module named 'scanpy'\n  warnings.warn(f\"Scientific computing libraries not available: {e}\")\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nCASSIA loaded successfully! Happy annotating!\nCASSIA R package installed and loaded successfully",
+      "reason": "CASSIA R package installed and loaded successfully"
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "skipped",
+      "reason": "No R test script found (install)",
+      "duration": 0,
+      "mode": "install"
+    },
+    {
+      "name": "13_call_llm",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 19.03,
+      "mode": "install",
+      "script": "test_call_llm_install.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing pre-installed CASSIA package\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:37: UserWarning: Scientific computing libraries not available: No module named 'scanpy'\n  warnings.warn(f\"Scientific computing libraries not available: {e}\")\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nCASSIA loaded successfully! Happy annotating!\nCASSIA R package installed and loaded successfully\nError in file(con, \"w\") : invalid 'description' argument\nCalls: run_call_llm_install_test ... save_test_metadata -> <Anonymous> -> writeLines -> file\nIn addition: Warning message:\nIn value[[3L]](cond) :\n  Could not open log file: invalid 'description' argument\nExecution halted",
+      "reason": "Execution halted"
+    },
+    {
+      "name": "14_input_validation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 14.58,
+      "mode": "install",
+      "script": "test_input_validation_install.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing pre-installed CASSIA package\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:37: UserWarning: Scientific computing libraries not available: No module named 'scanpy'\n  warnings.warn(f\"Scientific computing libraries not available: {e}\")\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nCASSIA loaded successfully! Happy annotating!\nCASSIA R package installed and loaded successfully\nC:\\Users\\ellio\\AppData\\Local\\R\\win-library\\4.4\\CASSIA\\python\\CASSIA\\core\\validation.py:128: UserWarning: Only 3 markers provided. Recommended minimum is 50 markers for reliable cell type annotation. Results may be less accurate with fewer markers.\n  warnings.warn(\nError in file(con, \"w\") : invalid 'description' argument\nCalls: run_all_tests ... save_test_metadata -> <Anonymous> -> writeLines -> file\nIn addition: Warning message:\nIn value[[3L]](cond) :\n  Could not open log file: invalid 'description' argument\nExecution halted",
+      "reason": "Execution halted"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 40.98,
+      "mode": "install",
+      "script": "test_cassia_pipeline_install.R"
+    }
+  ]
+}

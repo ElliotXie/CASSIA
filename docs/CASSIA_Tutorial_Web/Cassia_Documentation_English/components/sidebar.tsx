@@ -37,7 +37,6 @@ const chapters = [
       { titleKey: "annotationBoost", slug: "annotation-boost" },
       { titleKey: "compareCellTypes", slug: "compare-cell-types" },
       { titleKey: "subclusteringAnalysis", slug: "subclustering-analysis" },
-      { titleKey: "annotationBoostExtra", slug: "annotation-boost-extra" },
       { titleKey: "ragAgent", slug: "ragagent" },
     ],
   },
@@ -66,7 +65,6 @@ const vignetteChapters = [
     titleKey: "analysisWithSeurat",
     items: [
       { titleKey: "clusteringAndAnnotation", slug: "clustering-and-annotation" },
-      { titleKey: "fullWorkflow", slug: "full-workflow-best-practices" }
     ],
   }
 ]

@@ -35,8 +35,7 @@
     "introduction": "教程简介",
     "basicAnnotation": "基础注释",
     "extendedAnalysis": "使用可选代理的扩展分析",
-    "clusteringAndAnnotation": "使用 GTEX 乳腺数据进行注释和可视化",
-    "fullWorkflow": "包含详细质量控制的完整工作流最佳实践"
+    "clusteringAndAnnotation": "使用 GTEX 乳腺数据进行注释和可视化"
   },
   "home": {
     "title": "CASSIA",

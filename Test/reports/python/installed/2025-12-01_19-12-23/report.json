@@ -1,0 +1,144 @@
+{
+  "timestamp": "2025-12-01T19:12:23.095094",
+  "mode": "installed",
+  "language": "python",
+  "version": "0.3.1",
+  "location": "D:\\anaconda3\\Lib\\site-packages",
+  "total_duration": 143.63,
+  "summary": {
+    "passed": 1,
+    "failed": 15,
+    "errors": 0,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 16.66,
+      "stdout": "",
+      "stderr": "\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\01_single_annotation\\test_single_annotation_install.py\", line 160, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\01_single_annotation\\test_single_annotation_install.py\", line 149, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.01,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\02_batch_annotation\\test_batch_annotation_install.py\", line 161, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\02_batch_annotation\\test_batch_annotation_install.py\", line 150, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.7,
+      "stdout": "",
+      "stderr": "ib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\03_validator_comparison\\test_validator_comparison_install.py\", line 177, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\03_validator_comparison\\test_validator_comparison_install.py\", line 166, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.86,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\04_quality_scoring\\test_quality_scoring_install.py\", line 207, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\04_quality_scoring\\test_quality_scoring_install.py\", line 196, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.96,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\05_model_settings\\test_model_settings_install.py\", line 205, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\05_model_settings\\test_model_settings_install.py\", line 194, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.7,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\06_annotation_boost\\test_annotation_boost_install.py\", line 225, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\06_annotation_boost\\test_annotation_boost_install.py\", line 214, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 6.09,
+      "stdout": "",
+      "stderr": "conda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\07_merging_annotation\\test_merging_annotation_install.py\", line 215, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\07_merging_annotation\\test_merging_annotation_install.py\", line 204, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.54,
+      "stdout": "",
+      "stderr": "agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\08_uncertainty_quantification\\test_uncertainty_quantification_install.py\", line 172, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\08_uncertainty_quantification\\test_uncertainty_quantification_install.py\", line 161, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.98,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\09_subclustering\\test_subclustering_install.py\", line 165, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\09_subclustering\\test_subclustering_install.py\", line 154, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 6.37,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\10_symphony_compare\\test_symphony_compare_install.py\", line 169, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\10_symphony_compare\\test_symphony_compare_install.py\", line 158, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.97,
+      "stdout": "",
+      "stderr": "\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\11_report_generation\\test_report_generation_install.py\", line 236, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\11_report_generation\\test_report_generation_install.py\", line 225, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 6.13,
+      "stdout": "",
+      "stderr": "ib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_batch_with_reference\\test_batch_with_reference_install.py\", line 140, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_batch_with_reference\\test_batch_with_reference_install.py\", line 129, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 45.89,
+      "stdout": "\u001b[KCASSIA Batch Analysis \u2827\n\u001b[K[\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591\u2591] 88%\n\u001b[KCompleted: 7 | Processing: 1 | Pending: 0\n\u001b[KActive: Megakaryocytes\n\u001b[4A\u001b[KCASSIA Batch Analysis \u2807\n\u001b[K[\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591\u2591] 88%\n\u001b[KCompleted: 7 | Processing: 1 | Pending: 0\n\u001b[KActive: Megakaryocytes\n\u001b[4A\u001b[KCASSIA Batch Analysis \u2713\n\u001b[K[\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588] 100%\n\u001b[KCompleted: 8 | Processing: 0 | Pending: 0\n\u001b[KActive: None\n\u001b[4A\u001b[KCASSIA Batch Analysis \u2713\n\u001b[K[\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588] 100%\n\u001b[KCompleted: 8 | Processing: 0 | Pending: 0\n\u001b[KActive: None\n\u001b[K\n\u001b[?25hAll analyses completed. Results saved to 'C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\outputs\\scanpy_batch_results'.\nHTML report generated: C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\outputs\\scanpy_batch_results_report.html\nThree files have been created:\n1. C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\outputs\\scanpy_batch_results_full.csv (full data CSV)\n2. C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\outputs\\scanpy_batch_results_summary.csv (summary data CSV)\n3. C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\outputs\\scanpy_batch_results_report.html (interactive HTML report)\n\nBatch Results:\n  Clusters annotated: 8/8\n  Output files created:\n    - scanpy_batch_results_full.csv\n    - scanpy_batch_results_summary.csv\n\nDuration: 40.74s\n\nConsole output saved to: C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\12_scanpy_format\\results\\python\\installed\\20251201_191124\\logs\\test_log.txt\n\nResult: PASSED\n\n============================================================\n\n[OK] Test PASSED\n    Total duration: 40.77s\n",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\n"
+    },
+    {
+      "name": "13_call_llm",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.58,
+      "stdout": "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\nsk-tpx8NezgFiN_0bc_OTlGu8dR4frHKGhexTghwC9tZ9T3BlbkFJUivhCaisVncyPkFRkJCFSvROrZ0jNAlw0dHiU4EbYA\n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\nNone\nLoaded API keys from set_api_keys.py\n",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\13_call_llm\\test_call_llm_install.py\", line 202, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\13_call_llm\\test_call_llm_install.py\", line 191, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "14_input_validation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.52,
+      "stdout": "",
+      "stderr": "\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\14_input_validation\\test_input_validation_install.py\", line 266, in <module>\n    exit_code = main()\n                ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\14_input_validation\\test_input_validation_install.py\", line 255, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 5.67,
+      "stdout": "",
+      "stderr": "D:\\anaconda3\\Lib\\site-packages\\CASSIA\\agents\\annotation_boost\\super_annotation_boost.py:46: UserWarning: GSEApy not available - pathway enrichment will use simplified method\n  warnings.warn(\"GSEApy not available - pathway enrichment will use simplified method\")\nTraceback (most recent call last):\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\15_cassia_pipeline\\test_cassia_pipeline_install.py\", line 193, in <module>\n    success = main()\n              ^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\15_cassia_pipeline\\test_cassia_pipeline_install.py\", line 181, in main\n    logging_context = setup_logging(results_dir)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ellio\\OneDrive - UW-Madison\\CASSIA_enjoy\\CASSIA\\Test\\shared\\python\\result_manager.py\", line 86, in setup_logging\n    log_path = logs_dir / log_filename\n               ~~~~~~~~~^~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'dict' and 'str'\n"
+    }
+  ]
+}

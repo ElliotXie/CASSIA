@@ -35,8 +35,7 @@
     "introduction": "Introduction to Vignettes",
     "basicAnnotation": "Basic Annotation",
     "extendedAnalysis": "Extended Analysis with Optional Agents",
-    "clusteringAndAnnotation": "Annotation and Visualization using GTEX Breast Data",
-    "fullWorkflow": "Full Workflow Best Practices with Extensive Quality Control"
+    "clusteringAndAnnotation": "Annotation and Visualization using GTEX Breast Data"
   },
   "home": {
     "title": "CASSIA",
