@@ -721,38 +721,6 @@ def generate_uq_html_report(
         </div>
 
         <div class="section">
-            <h3 class="section-title">📈 Agreement Summary</h3>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-value">{stats['unique_main_types']}</div>
-                    <div class="summary-label">Unique Main Types</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['unique_sub_types']}</div>
-                    <div class="summary-label">Unique Sub Types</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['full_agreements']}/{stats['n_rounds']}</div>
-                    <div class="summary-label">Full Agreements</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['main_agreement_pct']:.0f}%</div>
-                    <div class="summary-label">Main Type Agreement</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {stats['main_agreement_pct']}%; background: #22c55e;"></div>
-                    </div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">{stats['sub_agreement_pct']:.0f}%</div>
-                    <div class="summary-label">Sub Type Agreement</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {stats['sub_agreement_pct']}%; background: #3b82f6;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
             <h3 class="section-title">🧬 Markers Analyzed</h3>
             <p style="color: #4b5563; font-size: 14px;">{markers_preview}</p>
         </div>
