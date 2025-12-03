@@ -33,23 +33,4 @@ CASSIA.runCASSIA_score_batch(
 - **76-89**: Good confidence, adequate evidence.
 - **<75**: Low confidence. These clusters are candidates for further analysis using the Annotation Boost Agent or Compare Agent.
 
-### Report Generation
-
-By default, `runCASSIA_score_batch` automatically generates an HTML report at `{output_file}_report.html`. The report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
-
-If you need to regenerate a report from an existing scored CSV, or want to customize the output path, use:
-
-```python
-# Regenerate report from existing scored CSV (optional)
-CASSIA.runCASSIA_generate_score_report(
-    csv_path = output_name + "_scored.csv",
-    index_name = output_name + "_report.html"
-)
-```
-
-### Parameter Details
-
-- **`csv_path`**: Path to the scored results CSV file (e.g., "my_annotation_scored.csv").
-- **`index_name`**: The name for the generated report index file (e.g., "my_report.html").
-
-_This function is only needed when regenerating reports from existing data or customizing output paths._
+An HTML report is automatically generated at `{output_file}_report.html` containing all CASSIA outputs including structured results, conversation histories, and quality scores.

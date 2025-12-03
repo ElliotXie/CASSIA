@@ -39,22 +39,4 @@ runCASSIA_score_batch(
 - **76-89**：良好的置信度，充分的证据
 - **<75**：低置信度，需要通过注释增强智能体和比较智能体运行
 
-# 报告生成
-
-默认情况下，`runCASSIA_score_batch` 会自动在 `{output_file}_report.html` 生成 HTML 报告。报告包括 CASSIA 的所有输出，包括结构化输出、对话历史和质量分数。
-
-如果您需要从现有的评分 CSV 重新生成报告，或想自定义输出路径，请使用：
-
-```R
-runCASSIA_generate_score_report(
-  csv_path = "my_annotation_scored.csv",
-  output_name = "CASSIA_reports_summary"
-)
-```
-
-### 参数详情
-
-- **`csv_path`** (字符串): 评分结果 CSV 文件的路径（例如 "my_annotation_scored.csv"）。
-- **`output_name`** (字符串): 生成的报告文件的基本名称。
-
-_此函数仅在需要从现有数据重新生成报告或自定义输出路径时使用。_
+HTML 报告会自动生成在 `{output_file}_report.html`，包含所有 CASSIA 输出，包括结构化结果、对话历史和质量分数。

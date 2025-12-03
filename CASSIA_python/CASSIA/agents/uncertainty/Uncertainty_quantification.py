@@ -1301,19 +1301,21 @@ def parse_results_to_dict_single(results):
 def extract_celltypes_from_llm_single(llm_response, provider="openai"):
     """
     Wrapper around the unified extract_celltypes_from_llm function for single analysis.
-    
+
     Args:
         llm_response: The text response from the LLM
         provider: The provider that generated the response ("openai", "anthropic", "openrouter", or a custom URL)
-        
+
     Returns:
-        general_celltype, sub_celltype, mixed_celltypes
+        general_celltype, sub_celltype, mixed_celltypes, llm_consensus_score
     """
-    return extract_celltypes_from_llm(
+    # Use single_analysis=False to get all 4 return values including consensus_score
+    general_celltype, sub_celltype, mixed_celltypes, consensus_score = extract_celltypes_from_llm(
         llm_response=llm_response,
         provider=provider,
-        single_analysis=True
+        single_analysis=False
     )
+    return general_celltype, sub_celltype, mixed_celltypes, consensus_score
 
 def consensus_similarity_flexible_single(results, main_weight=0.7, sub_weight=0.3):
     general_types = [result[0] for result in results.values()]
@@ -1454,11 +1456,11 @@ Output in JSON format:
         temperature=0.3
     )
     
-    # Extract consensus celltypes using the unified function
-    general_celltype, sub_celltype, mixed_types = extract_celltypes_from_llm_single(
+    # Extract consensus celltypes using the unified function (now returns 4 values including llm_consensus_score)
+    general_celltype, sub_celltype, mixed_types, llm_consensus_score = extract_celltypes_from_llm_single(
         result_consensus, provider=provider
     )
-    
+
     # Calculate similarity score
     parsed_results = parse_results_to_dict_single(results)
     consensus_score, consensus_1, consensus_2 = consensus_similarity_flexible_single(parsed_results,main_weight=main_weight,sub_weight=sub_weight)
@@ -1470,7 +1472,8 @@ Output in JSON format:
         'sub_celltype_llm': sub_celltype,
         'Possible_mixed_celltypes_llm': mixed_types,
         'llm_response': result_consensus,
-        'consensus_score_llm': None,  # Using None instead of consensus_score_llm which isn't returned by extract_celltypes_from_llm_single
+        'consensus_score_llm': consensus_score,  # Similarity score (0-1)
+        'llm_generated_consensus_score_llm': llm_consensus_score,  # LLM consensus score (0-100)
         'similarity_score': consensus_score,
         'original_results': results
     }

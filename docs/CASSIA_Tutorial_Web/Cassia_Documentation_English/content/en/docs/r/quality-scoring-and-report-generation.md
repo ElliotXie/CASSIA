@@ -39,22 +39,4 @@ The scored output file contains:
 - **76-89**: Good confidence, adequate evidence
 - **<75**: Low confidence, need to run through Annotation Boost Agent and Compare Agent
 
-# Report Generation
-
-By default, `runCASSIA_score_batch` automatically generates an HTML report at `{output_file}_report.html`. The report includes all outputs from CASSIA, including structured outputs, conversation histories, and quality scores.
-
-If you need to regenerate a report from an existing scored CSV, or want to customize the output path, use:
-
-```R
-runCASSIA_generate_score_report(
-  csv_path = "my_annotation_scored.csv",
-  output_name = "CASSIA_reports_summary"
-)
-```
-
-### Parameter Details
-
-- **`csv_path`** (character string): Path to the scored results CSV file (e.g., "my_annotation_scored.csv").
-- **`output_name`** (character string): The base name for the generated report files.
-
-_This function is only needed when regenerating reports from existing data or customizing output paths._
+An HTML report is automatically generated at `{output_file}_report.html` containing all CASSIA outputs including structured results, conversation histories, and quality scores.
