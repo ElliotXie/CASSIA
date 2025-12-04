@@ -220,15 +220,10 @@ export default function HomePage() {
         <div className="text-center mb-20">
           
           <h2 className="text-5xl lg:text-6xl font-bold mb-6">
-            <span className="gradient-text">Automated Cell Type</span>
-            <br />
-            <span className="text-gray-900 dark:text-white">Annotation Platform</span>
+            <span className="gradient-text">CASSIA</span>
           </h2>
-          
+
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed">
-            Transform your single-cell RNA-seq analysis with AI-powered precision. Upload marker data,
-            configure your analysis, and receive comprehensive cell type annotations with detailed reports.
-            <br />
             <span className="font-semibold text-blue-600 dark:text-blue-400">Built for biologists, powered by cutting-edge language models.</span>
           </p>
           
