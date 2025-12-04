@@ -3,7 +3,7 @@ title: Single Cluster Analysis
 ---
 
 The `runCASSIA` function analyzes a single cluster of marker genes to identify the cell type.
-Note that CASSIA is designed to handle multiple clusters at once, this function is specifically designed for users who only have one cluster to analyze.
+Note that CASSIA is designed to handle multiple clusters at once. This function is specifically designed for users who only have one cluster to analyze.
 
 ### Example
 
@@ -13,7 +13,7 @@ For detailed information on model settings and recommendations, please refer to 
 
 ```R
 # Parameters
-model <- "anthropic/claude-4.5-sonnet"  # Model to use
+model <- "anthropic/claude-sonnet-4.5"  # Model to use
 temperature <- 0
 marker_list <- c("CD3D", "CD3E", "CD2", "TRAC")
 tissue <- "blood"

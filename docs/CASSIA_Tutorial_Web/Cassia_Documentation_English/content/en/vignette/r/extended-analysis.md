@@ -28,7 +28,7 @@ runCASSIA_batch_n_times(
     output_name = "CASSIA_Uncertainty",
     tissue = "large intestine",
     species = "human",
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter",
     max_workers = 6, # How many workers to use for each batch
     batch_max_workers = 1  # How many batches to run in parallel
@@ -42,7 +42,7 @@ runCASSIA_similarity_score_batch(
     file_pattern = paste0(output_name, "_Uncertainty_*_full.csv"), # The file pattern of the uncertainty results
     output_name = "cs_results",
     max_workers = 6,
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter"
 )
 ```
@@ -65,7 +65,7 @@ The consensus similarity score provides a quantitative measure of annotation sta
 
 The monocyte cluster is sometimes annotated as mixed population of immune cell and neuron/glia cells.
 
-Here we use annotation boost agent to test these hypothesis in more detail.
+Here we use annotation boost agent to test these hypotheses in more detail.
 
 ```r
 # Run validation plus for the high mitochondrial content cluster
@@ -76,7 +76,7 @@ runCASSIA_annotationboost(
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter"
 )
 ```
@@ -92,7 +92,7 @@ This advanced module is a more powerful version of the `compareCelltypes` functi
 This is particularly useful when you have ambiguous clusters or when different models give conflicting annotations.
 
 ```r
-# The marker here are copy from CASSIA's previous results.
+# The markers here are copied from CASSIA's previous results.
 
 marker="IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1"
 
@@ -146,7 +146,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter"
 )
 
@@ -159,7 +159,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell mixed with other celltypes",
     output_name = "subclustering_results2",
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter"
 )
 
@@ -171,7 +171,7 @@ A CSV file will be generated containing the subclustering results. The image bel
 
 
 
-It is recommend to run the CS score for the subclustering to get a more confident answer. 
+It is recommended to run the CS score for the subclustering to get a more confident answer. 
 ```r
 
 runCASSIA_n_subcluster(
@@ -179,7 +179,7 @@ runCASSIA_n_subcluster(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     base_output_name = "subclustering_results_n",
-    model = "anthropic/claude-4.5-sonnet",
+    model = "anthropic/claude-sonnet-4.5",
     temperature = 0,
     provider = "openrouter",
     max_workers = 5,

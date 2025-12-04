@@ -21,8 +21,8 @@ from fixtures import get_full_marker_dataframe
 
 
 def get_local_marker_file_path():
-    """Get the path to the local FindAllMarkers output file."""
-    return Path(__file__).parent / "data" / "findallmarkers_output.csv"
+    """Get the path to the local Scanpy rank_genes_groups output file."""
+    return Path(__file__).parent / "data" / "scanpy_rank_genes_df.csv"
 
 
 from test_utils import (

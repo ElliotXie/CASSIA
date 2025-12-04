@@ -35,7 +35,7 @@ CASSIA.runCASSIA_pipeline(
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
 - **`annotation_provider`**: Provider for the annotation model.
-- **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-4.5-sonnet` for accurate scoring.
+- **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
 - **`score_provider`**: Provider for the score model.
 - **`score_threshold`**: Annotations with a quality score below this threshold (0-100) will trigger the Annotation Boost process. Default is 75.
 - **`annotationboost_model`**: Model used for refining low-confidence annotations.

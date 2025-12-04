@@ -44,7 +44,7 @@ similarity_scores = CASSIA.runCASSIA_similarity_score_batch(
 
 The monocyte cluster is sometimes annotated as mixed population of immune cell and neuron/glia cells.
 
-Here we use annotation boost agent to test these hypothesis in more detail.
+Here we use annotation boost agent to test these hypotheses in more detail.
 
 ```python
 # Run validation plus for the high mitochondrial content cluster
@@ -91,7 +91,7 @@ run_complete_analysis(
 This agent can be used after you finish the default CASSIA pipeline, and are still unsure about a celltype. You can use this agent to get a more confident subtype annotation. Here we use the Plasma Cells cluster as examples. To distinguish if it is more like a general plasma cell or other celltypes.
 
 ```python
-# The marker here are copy from CASSIA's previous results.
+# The markers here are copied from CASSIA's previous results.
 marker = "IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3, IGHV3-74, IGHM, ANKRD36BP2, AMPD1, IGKV3-20, IGHA2, DERL3, AC104699.1, LINC02362, AL391056.1, LILRB4, CCL3, BMP6, UBE2QL1, LINC00309, AL133467.1, GPRC5D, FCRL5, DNAAF1, AP002852.1, AC007569.1, CXorf21, RNU1-85P, U62317.4, TXNDC5, LINC02384, CCR10, BFSP2, APOBEC3A, AC106897.1"
 
 # Run Symphony Compare
@@ -120,7 +120,7 @@ CASSIA.runCASSIA_subclusters(marker = subcluster_results,
     provider = "openrouter")
 ```
 
-It is recommend to run the CS score for the subclustering to get a more confident answer.
+It is recommended to run the CS score for the subclustering to get a more confident answer.
 
 ```python
 CASSIA.runCASSIA_n_subcluster(

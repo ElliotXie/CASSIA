@@ -60,17 +60,17 @@ def run_cassia_pipeline_test(results_dir):
     # Use only 2 clusters for faster testing
     test_clusters = ['monocyte', 'plasma cell']
 
-    # Load raw FindAllMarkers data from data folder for annotation boost
+    # Load raw Scanpy rank_genes_groups data from data folder for annotation boost
     import pandas as pd
     data_folder = Path(__file__).parent / "data"
-    raw_markers_path = data_folder / "findallmarkers_output.csv"
-    
+    raw_markers_path = data_folder / "scanpy_rank_genes_df.csv"
+
     if not raw_markers_path.exists():
         raise FileNotFoundError(f"Raw marker file not found: {raw_markers_path}")
-    
+
     # Load and filter to only the 2 test clusters
     raw_markers = pd.read_csv(raw_markers_path)
-    marker_df = raw_markers[raw_markers['cluster'].isin(test_clusters)].copy()
+    marker_df = raw_markers[raw_markers['group'].isin(test_clusters)].copy()
 
     print(f"\nTesting pipeline for {len(test_clusters)} clusters:")
     for cluster in test_clusters:
@@ -122,25 +122,49 @@ def run_cassia_pipeline_test(results_dir):
         if pipeline_output_dir and pipeline_output_dir.exists():
             print(f"\nPipeline output directory: {pipeline_output_dir.name}")
 
-            annotation_dir = pipeline_output_dir / "01_annotation_results"
+            # Check expected subdirectories (updated structure)
+            annotation_report_dir = pipeline_output_dir / "01_annotation_report"
+            boost_dir = pipeline_output_dir / "02_annotation_boost"
+            csv_dir = pipeline_output_dir / "03_csv_files"
 
             checks_passed = True
             print("\nValidating output structure:")
 
-            if annotation_dir.exists():
-                print(f"  [OK] 01_annotation_results exists")
-                final_results = annotation_dir / "FINAL_RESULTS.csv"
-                if final_results.exists():
-                    print(f"  [OK] FINAL_RESULTS.csv exists")
+            # Check 01_annotation_report (HTML reports)
+            if annotation_report_dir.exists():
+                print(f"  [OK] 01_annotation_report exists")
+                html_files = list(annotation_report_dir.glob("*.html"))
+                print(f"       - Contains {len(html_files)} HTML report(s)")
+            else:
+                print(f"  [WARN] 01_annotation_report missing")
+
+            # Check 02_annotation_boost
+            if boost_dir.exists():
+                print(f"  [OK] 02_annotation_boost exists")
+                boost_subdirs = [d for d in boost_dir.iterdir() if d.is_dir()]
+                print(f"       - Contains {len(boost_subdirs)} cluster folder(s)")
+            else:
+                print(f"  [INFO] 02_annotation_boost missing (expected if all scores above threshold)")
+
+            # Check 03_csv_files (includes FINAL_RESULTS)
+            if csv_dir.exists():
+                print(f"  [OK] 03_csv_files exists")
+                # Check for FINAL_RESULTS.csv (pattern: *_FINAL_RESULTS.csv)
+                final_results_files = list(csv_dir.glob("*_FINAL_RESULTS.csv"))
+                if final_results_files:
+                    final_results = final_results_files[0]
+                    print(f"  [OK] FINAL_RESULTS.csv exists: {final_results.name}")
                     import pandas as pd
                     results_df = pd.read_csv(final_results)
                     print(f"       - Contains {len(results_df)} rows")
                 else:
-                    print(f"  [WARN] FINAL_RESULTS.csv not found")
+                    print(f"  [WARN] FINAL_RESULTS.csv not found in 03_csv_files")
+                csv_files = list(csv_dir.glob("*.csv"))
+                print(f"       - Contains {len(csv_files)} CSV file(s)")
             else:
-                print(f"  [FAIL] 01_annotation_results missing")
+                print(f"  [FAIL] 03_csv_files missing")
                 checks_passed = False
-                errors.append("01_annotation_results directory missing")
+                errors.append("03_csv_files directory missing")
 
             if checks_passed:
                 status = "passed"

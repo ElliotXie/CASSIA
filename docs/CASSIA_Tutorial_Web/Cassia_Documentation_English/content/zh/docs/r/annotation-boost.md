@@ -77,6 +77,12 @@ runCASSIA_annotationboost(
     - `"v1"`（默认）：中等参与度。
     - `"v0"`：高参与度（更严格的检查）。
 
+### 输出文件
+
+分析生成以下输出文件：
+- `{output_name}_summary.html`：包含详细分析结果和可视化的 HTML 报告。
+- `{output_name}_raw_conversation.txt`：包含完整分析对话的原始对话文本。
+
 ### 故障排除
 
 1. **低置信度结果**：

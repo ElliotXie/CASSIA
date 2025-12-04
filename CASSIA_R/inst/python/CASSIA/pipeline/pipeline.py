@@ -8,7 +8,6 @@ report generation.
 
 import os
 import datetime
-import shutil
 import pandas as pd
 
 
@@ -93,7 +92,7 @@ def runCASSIA_pipeline(
         base_dir = "."  # Current working directory (backward compatible)
 
     # Create a main folder based on tissue and species for organizing reports
-    main_folder_name = f"CASSIA_{tissue}_{species}"
+    main_folder_name = f"CASSIA_Pipeline_{tissue}_{species}"
     main_folder_name = "".join(c for c in main_folder_name if c.isalnum() or c in (' ', '-', '_')).strip()
     main_folder_name = main_folder_name.replace(' ', '_')
 
@@ -116,23 +115,23 @@ def runCASSIA_pipeline(
         print(f"Created main folder: {main_folder_path}")
 
     # Create organized subfolders according to user's specifications
-    annotation_results_folder = os.path.join(main_folder_path, "01_annotation_results")  # All CSV files
-    reports_folder = os.path.join(main_folder_path, "02_reports")  # All HTML reports except annotation boost
-    boost_folder = os.path.join(main_folder_path, "03_boost_analysis")  # All annotation boost related results
+    reports_folder = os.path.join(main_folder_path, "01_annotation_report")  # HTML report
+    boost_folder = os.path.join(main_folder_path, "02_annotation_boost")  # All annotation boost related results
+    csv_folder = os.path.join(main_folder_path, "03_csv_files")  # All CSV files
 
     # Create all subfolders
-    for folder in [annotation_results_folder, reports_folder, boost_folder]:
+    for folder in [reports_folder, boost_folder, csv_folder]:
         if not os.path.exists(folder):
             os.makedirs(folder)
             print(f"Created subfolder: {folder}")
 
     # Define derived file names with folder paths (use output_base_name for internal paths)
-    # All CSV files go to the annotation_results_folder
-    raw_full_csv = os.path.join(annotation_results_folder, f"{output_base_name}_full.csv")
-    raw_summary_csv = os.path.join(annotation_results_folder, f"{output_base_name}_summary.csv")
-    raw_sorted_csv = os.path.join(annotation_results_folder, f"{output_base_name}_sorted_full.csv")
-    score_file_name = os.path.join(annotation_results_folder, f"{output_base_name}_scored.csv")
-    merged_annotation_file = os.path.join(annotation_results_folder, f"{output_base_name}_merged.csv")
+    # All CSV files go to the csv_folder
+    raw_full_csv = os.path.join(csv_folder, f"{output_base_name}_full.csv")
+    raw_summary_csv = os.path.join(csv_folder, f"{output_base_name}_summary.csv")
+    raw_sorted_csv = os.path.join(csv_folder, f"{output_base_name}_sorted_full.csv")
+    score_file_name = os.path.join(csv_folder, f"{output_base_name}_scored.csv")
+    merged_annotation_file = os.path.join(csv_folder, f"{output_base_name}_merged.csv")
 
     # Reports go to the reports_folder - ALL HTML reports should be in this folder
     report_base_name = os.path.join(reports_folder, f"{output_base_name}")
@@ -237,7 +236,7 @@ def runCASSIA_pipeline(
         final_df = final_df.sort_values(by=['Cluster ID'])
 
         # Save the final combined results
-        final_combined_file = os.path.join(annotation_results_folder, f"{output_base_name}_FINAL_RESULTS.csv")
+        final_combined_file = os.path.join(csv_folder, f"{output_base_name}_FINAL_RESULTS.csv")
         final_df.to_csv(final_combined_file, index=False)
         print(f"✓ Final combined results saved to {final_combined_file}")
 
@@ -328,34 +327,6 @@ def runCASSIA_pipeline(
 
         print("✓ Boost annotation completed")
 
-    print("\n=== Organizing intermediate files ===")
-    # Create intermediate files folder
-    intermediate_folder = os.path.join(annotation_results_folder, "intermediate_files")
-    if not os.path.exists(intermediate_folder):
-        os.makedirs(intermediate_folder)
-
-    # List of intermediate files to move
-    intermediate_files = [
-        raw_full_csv,
-        raw_summary_csv,
-        raw_sorted_csv,
-        score_file_name,
-        merged_annotation_file
-    ]
-
-    # Move intermediate files to intermediate folder
-    for file_path in intermediate_files:
-        if os.path.exists(file_path):
-            try:
-                filename = os.path.basename(file_path)
-                destination = os.path.join(intermediate_folder, filename)
-                shutil.move(file_path, destination)
-                print(f"Moved {filename} to intermediate_files folder")
-            except Exception as e:
-                print(f"Warning: Could not move {filename}: {str(e)}")
-
-    print("✓ Intermediate files organized")
-
     # Try to clean up the original files in the root directory
     try:
         for file_to_remove in [original_full_csv, original_summary_csv, annotation_output + "_sorted_full.csv"]:
@@ -368,7 +339,7 @@ def runCASSIA_pipeline(
     print("\n=== Cell type analysis pipeline completed ===")
     print(f"All results have been organized in the '{main_folder_path}' folder:")
     print(f"  📊 MAIN RESULTS: {final_combined_file}")
-    print(f"  📁 HTML Reports: {reports_folder}")
+    print(f"  📁 HTML Report: {reports_folder}")
     print(f"  🔍 Annotation Boost Results: {boost_folder}")
-    print(f"  📂 Intermediate Files: {intermediate_folder}")
+    print(f"  📂 CSV Files: {csv_folder}")
     print(f"\n✅ Your final results are in: {os.path.basename(final_combined_file)}")

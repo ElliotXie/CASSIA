@@ -53,7 +53,7 @@ runCASSIA_batch(
     # Required parameters
     marker = markers,                    # Marker data (data frame or file path)
     output_name = "my_annotation",       # Base name for output files
-    model = "anthropic/claude-4.5-sonnet", # Model to use
+    model = "anthropic/claude-sonnet-4.5", # Model to use
     tissue = "brain",                    # Tissue type
     species = "human",                   # Species
     
@@ -91,7 +91,7 @@ runCASSIA_batch(
 
 2. **Parallel Processing**:
    - `max_workers`: Controls parallel processing threads
-   - Recommended: 80% of available CPU cores
+   - Recommended: 75% of available CPU cores
    - Example: For a 16-core machine, set to 13
 
 3. **Additional Context** (optional):
@@ -102,7 +102,7 @@ runCASSIA_batch(
    - Tip: Compare results with and without additional context
    
 4. **Model Selection**:
-   - Default is `anthropic/claude-4.5-sonnet` for best performance.
+   - Default is `anthropic/claude-sonnet-4.5` for best performance.
    - You can use `google/gemini-2.5-flash` for a faster, preliminary look at your data.
 
 ### Output Files

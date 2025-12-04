@@ -101,7 +101,7 @@ The output file is saved in a folder named after the tissue and species. Inside 
 - `gtex_breast_annotation_summary.csv`: The summary of the annotation results
 - `gtex_breast_annotation_full.csv`: The full annotation results with full conversation history and merged clusters at different levels
 - `gtex_breast_annotation_scored.csv`: The scored annotation results
-- `gtex_breast_annotation_report.html`: Genearted report of the annotation results, contains the router to all the clusters reports.
+- `gtex_breast_annotation_report.html`: Generated report of the annotation results, contains the router to all the clusters reports.
 
 The gtex_breast_annotation_scored.csv file:
 

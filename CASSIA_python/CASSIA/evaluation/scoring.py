@@ -286,6 +286,9 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         if 'Scoring_Reasoning' not in results.columns:
             results['Scoring_Reasoning'] = None
 
+        # Determine output file path (before early return check)
+        actual_output_file = output_file if output_file else input_file.replace('.csv', '_scored.csv')
+
         # Create a list of unscored rows to process
         rows_to_process = [
             (idx, row) for idx, row in results.iterrows()
@@ -294,6 +297,8 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
         if not rows_to_process:
             print("All rows already scored!")
+            # Save the results to output file before returning
+            results.to_csv(actual_output_file, index=False)
             return results
 
         # Initialize progress tracker
@@ -304,9 +309,6 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         # Set up a lock for DataFrame updates
         df_lock = threading.Lock()
         failed_analyses = []  # Track failed rows for reporting
-
-        # Determine output file path
-        actual_output_file = output_file if output_file else input_file.replace('.csv', '_scored.csv')
 
         # Define a function that includes retry logic and progress tracking
         def process_with_retry(row_data):

@@ -1,7 +1,7 @@
 # CASSIA - Cell Annotation with Semantic Similarity for Intelligent Analysis
 # Root module with backward-compatible exports from reorganized submodules
 
-__version__ = "0.3.6"
+__version__ = "0.3.8"
 
 # =============================================================================
 # BACKWARD COMPATIBILITY LAYER
@@ -234,5 +234,13 @@ except ImportError:
 # -----------------------------------------------------------------------------
 from .core.utils import safe_get, natural_sort_key, clean_conversation_history, write_csv
 from .core.progress_tracker import BatchProgressTracker
+
+# -----------------------------------------------------------------------------
+# ANNDATA INTEGRATION (optional Scanpy dependency)
+# -----------------------------------------------------------------------------
+try:
+    from .core.anndata_utils import add_cassia_to_anndata, enhance_scanpy_markers
+except ImportError:
+    pass  # anndata not installed
 
 # End of __init__.py

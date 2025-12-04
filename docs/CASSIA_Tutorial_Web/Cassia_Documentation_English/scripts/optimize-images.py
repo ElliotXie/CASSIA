@@ -1,22 +1,42 @@
 #!/usr/bin/env python3
 """
 Image Optimization Script for CASSIA Documentation
-Converts images to WebP format with resizing for optimal web performance.
+
+USAGE:
+  1. Drop your PNG/JPG images into public/images/
+  2. Run: python scripts/optimize-images.py
+  3. Done! Images are optimized and originals backed up.
+
+The script will:
+  - Detect new unoptimized images (PNG/JPG)
+  - Back up originals to public/images_original/
+  - Convert to WebP (resized if needed)
+  - Keep whichever is smaller (WebP or original)
+  - Clean up automatically
 """
 
 import os
+import shutil
 from pathlib import Path
 from PIL import Image
 
 # Configuration
 MAX_WIDTH = 1400  # Max width in pixels (supports retina displays)
 WEBP_QUALITY = 92  # High quality, visually lossless
-IMAGES_DIR = Path(__file__).parent.parent / "public" / "images"
-BACKUP_DIR = Path(__file__).parent.parent / "public" / "images_original"
+
+# Directories
+SCRIPT_DIR = Path(__file__).parent
+IMAGES_DIR = SCRIPT_DIR.parent / "public" / "images"
+BACKUP_DIR = SCRIPT_DIR.parent / "public" / "images_original"
+
+# Supported formats
+IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg'}
+
 
 def get_file_size_kb(path):
     """Get file size in KB."""
     return os.path.getsize(path) / 1024
+
 
 def optimize_image(input_path, output_path, max_width=MAX_WIDTH, quality=WEBP_QUALITY):
     """
@@ -27,9 +47,8 @@ def optimize_image(input_path, output_path, max_width=MAX_WIDTH, quality=WEBP_QU
     with Image.open(input_path) as img:
         original_size = img.size
 
-        # Convert RGBA to RGB if necessary (WebP supports both, but RGB is smaller)
+        # Handle different color modes
         if img.mode in ('RGBA', 'LA', 'P'):
-            # Keep alpha channel for transparency
             if img.mode == 'P':
                 img = img.convert('RGBA')
         elif img.mode != 'RGB':
@@ -46,73 +65,159 @@ def optimize_image(input_path, output_path, max_width=MAX_WIDTH, quality=WEBP_QU
 
         return original_size, img.size
 
+
+def find_new_images():
+    """Find PNG/JPG images that haven't been optimized yet."""
+    new_images = []
+
+    for img_path in IMAGES_DIR.iterdir():
+        if img_path.suffix.lower() not in IMAGE_EXTENSIONS:
+            continue
+
+        # Check if this image is already backed up (meaning it's been processed)
+        backup_path = BACKUP_DIR / img_path.name
+        if backup_path.exists():
+            continue
+
+        new_images.append(img_path)
+
+    return new_images
+
+
+def process_image(img_path):
+    """
+    Process a single image:
+    1. Back up original
+    2. Create WebP version
+    3. Compare sizes
+    4. Keep smaller version, delete other
+
+    Returns: dict with results
+    """
+    original_kb = get_file_size_kb(img_path)
+
+    # Ensure backup directory exists
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Back up original
+    backup_path = BACKUP_DIR / img_path.name
+    shutil.copy2(img_path, backup_path)
+
+    # Create WebP version
+    webp_name = img_path.stem + '.webp'
+    webp_path = IMAGES_DIR / webp_name
+
+    try:
+        orig_dims, new_dims = optimize_image(img_path, webp_path)
+        webp_kb = get_file_size_kb(webp_path)
+
+        # Decide which to keep
+        if webp_kb < original_kb:
+            # WebP is smaller - delete original, keep WebP
+            img_path.unlink()
+            kept_format = 'webp'
+            kept_kb = webp_kb
+            final_name = webp_name
+        else:
+            # Original is smaller - delete WebP, keep original
+            webp_path.unlink()
+            kept_format = img_path.suffix[1:]  # Remove the dot
+            kept_kb = original_kb
+            final_name = img_path.name
+
+        savings = ((original_kb - kept_kb) / original_kb) * 100
+
+        return {
+            'success': True,
+            'original_name': img_path.name,
+            'final_name': final_name,
+            'original_kb': original_kb,
+            'kept_kb': kept_kb,
+            'kept_format': kept_format,
+            'savings': savings,
+            'dimensions': f"{orig_dims[0]}x{orig_dims[1]} -> {new_dims[0]}x{new_dims[1]}"
+        }
+
+    except Exception as e:
+        return {
+            'success': False,
+            'original_name': img_path.name,
+            'error': str(e)
+        }
+
+
 def main():
-    print("=" * 60)
-    print("CASSIA Documentation Image Optimization")
-    print("=" * 60)
-    print(f"\nSettings:")
-    print(f"  Max width: {MAX_WIDTH}px")
-    print(f"  WebP quality: {WEBP_QUALITY}")
-    print(f"  Source: {BACKUP_DIR}")
-    print(f"  Output: {IMAGES_DIR}")
+    print("=" * 65)
+    print("  CASSIA Documentation - Image Optimizer")
+    print("=" * 65)
+    print()
+    print(f"  Settings: max {MAX_WIDTH}px width, WebP quality {WEBP_QUALITY}")
+    print(f"  Images folder: {IMAGES_DIR}")
+    print(f"  Backup folder: {BACKUP_DIR}")
     print()
 
-    # Get all images from backup directory
-    image_extensions = {'.png', '.jpg', '.jpeg'}
-    images = [f for f in BACKUP_DIR.iterdir() if f.suffix.lower() in image_extensions]
+    # Find new images to process
+    new_images = find_new_images()
 
-    if not images:
-        print("No images found in backup directory!")
+    if not new_images:
+        print("  No new images to optimize!")
+        print()
+        print("  To add new images:")
+        print("    1. Drop PNG/JPG files into public/images/")
+        print("    2. Run this script again")
+        print()
+
+        # Show current status
+        current_images = list(IMAGES_DIR.iterdir())
+        if current_images:
+            total_size = sum(f.stat().st_size for f in current_images if f.is_file())
+            print(f"  Current images: {len([f for f in current_images if f.is_file()])} files, {total_size/1024:.0f} KB total")
         return
 
-    total_original = 0
-    total_optimized = 0
+    print(f"  Found {len(new_images)} new image(s) to optimize:")
+    print()
+
+    # Process each image
     results = []
+    for img_path in sorted(new_images):
+        print(f"  Processing: {img_path.name}...", end=" ", flush=True)
+        result = process_image(img_path)
+        results.append(result)
 
-    print(f"Processing {len(images)} images...\n")
-    print(f"{'Image':<40} {'Original':>10} {'Optimized':>10} {'Savings':>10}")
-    print("-" * 70)
-
-    for img_path in sorted(images):
-        # Output path with .webp extension
-        output_name = img_path.stem + '.webp'
-        output_path = IMAGES_DIR / output_name
-
-        # Get original size
-        original_kb = get_file_size_kb(img_path)
-        total_original += original_kb
-
-        # Optimize
-        try:
-            orig_dims, new_dims = optimize_image(img_path, output_path)
-            optimized_kb = get_file_size_kb(output_path)
-            total_optimized += optimized_kb
-
-            savings = ((original_kb - optimized_kb) / original_kb) * 100
-
-            print(f"{img_path.name:<40} {original_kb:>8.0f}KB {optimized_kb:>8.0f}KB {savings:>8.1f}%")
-
-            results.append({
-                'name': img_path.name,
-                'original_kb': original_kb,
-                'optimized_kb': optimized_kb,
-                'savings': savings,
-                'orig_dims': orig_dims,
-                'new_dims': new_dims
-            })
-
-        except Exception as e:
-            print(f"{img_path.name:<40} ERROR: {e}")
+        if result['success']:
+            print(f"OK -> {result['final_name']}")
+        else:
+            print(f"ERROR: {result['error']}")
 
     # Summary
-    print("-" * 70)
-    total_savings = ((total_original - total_optimized) / total_original) * 100
-    print(f"{'TOTAL':<40} {total_original:>8.0f}KB {total_optimized:>8.0f}KB {total_savings:>8.1f}%")
     print()
-    print(f"Total saved: {total_original - total_optimized:.0f} KB ({total_savings:.1f}%)")
+    print("-" * 65)
+    print(f"  {'Image':<30} {'Original':>10} {'Final':>10} {'Saved':>10}")
+    print("-" * 65)
+
+    total_original = 0
+    total_final = 0
+
+    for r in results:
+        if r['success']:
+            total_original += r['original_kb']
+            total_final += r['kept_kb']
+            print(f"  {r['final_name']:<30} {r['original_kb']:>8.0f}KB {r['kept_kb']:>8.0f}KB {r['savings']:>8.1f}%")
+        else:
+            print(f"  {r['original_name']:<30} {'ERROR':>10}")
+
+    if total_original > 0:
+        total_savings = ((total_original - total_final) / total_original) * 100
+        print("-" * 65)
+        print(f"  {'TOTAL':<30} {total_original:>8.0f}KB {total_final:>8.0f}KB {total_savings:>8.1f}%")
+
     print()
-    print("Optimization complete!")
-    print(f"Original images preserved in: {BACKUP_DIR}")
+    print("  Done! Originals backed up to: images_original/")
+    print()
+    print("  IMPORTANT: Update your markdown to use the new filename!")
+    print("  Example: ![Description](/images/your-image.webp)")
+    print()
+
 
 if __name__ == "__main__":
     main()

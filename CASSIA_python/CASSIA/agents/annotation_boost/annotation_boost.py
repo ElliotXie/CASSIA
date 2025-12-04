@@ -1144,7 +1144,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     # Load marker data - handle both DataFrame and file path
     source_path = None
     if isinstance(marker_path, pd.DataFrame):
-        marker = marker_path
+        marker = marker_path.copy()
     else:
         source_path = marker_path
         marker = pd.read_csv(marker_path)
@@ -1152,6 +1152,16 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         # Clean up by removing the 'Unnamed: 0' column if it exists
         if 'Unnamed: 0' in marker.columns:
             marker.drop(columns=['Unnamed: 0'], inplace=True)
+
+    # Normalize Scanpy column names to Seurat format (column renaming only, no filtering)
+    # This allows annotation boost to work with both Scanpy and Seurat marker formats
+    scanpy_to_seurat_mapping = {
+        'group': 'cluster',
+        'names': 'gene',
+        'logfoldchanges': 'avg_log2FC',
+        'pvals_adj': 'p_val_adj'
+    }
+    marker = marker.rename(columns=scanpy_to_seurat_mapping)
 
     # Validate that the marker file is in FindAllMarkers format
     validate_findallmarkers_format(marker, source_path)

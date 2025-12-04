@@ -77,12 +77,18 @@ runCASSIA_annotationboost(
     - `"v1"` (default): Moderate involvement.
     - `"v0"`: High involvement (stricter checks).
 
+### Output Files
+
+The analysis generates the following output files:
+- `{output_name}_summary.html`: HTML report with detailed analysis results and visualizations.
+- `{output_name}_raw_conversation.txt`: Raw conversation text containing the full analysis dialogue.
+
 ### Troubleshooting
 
 1. **Low Confidence Results**:
    - Increase `num_iterations` to gather more evidence.
    - Review marker gene quality.
-   - check for potential issues like doublets, batch effects, or background contamination.
+   - Check for potential issues like doublets, batch effects, or background contamination.
 
 2. **Inconsistent Results**:
    - Verify input data quality and consistency.

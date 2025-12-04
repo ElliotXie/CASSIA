@@ -25,7 +25,7 @@ seurat_corrected <- add_cassia_to_seurat(
   cassia_cluster_col="True Cell Type" # Column in the scored results with the true cell types
 )
 
-# This will add six new columns to the seurat object:the genearl celltype, all three subcelltypes, the mostly likely celltype, the second likely celltype, the third likely celltype, and mixed celltype,and the quality score of each cell type.
+# This will add six new columns to the seurat object: the general celltype, all three sub cell types, the most likely celltype, the second likely celltype, the third likely celltype, and mixed celltype, and the quality score of each cell type.
 ```
 
 
@@ -71,7 +71,7 @@ runCASSIA_pipeline(
 - **`marker`**: Marker gene data (data frame or path to CSV).
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
-- **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-4.5-sonnet` for accurate scoring.
+- **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
 - **`annotationboost_model`**: Model used for refining low-confidence annotations.
 - **`do_merge_annotations`**: Logical. If `TRUE`, merges detailed cell types into broader categories.
 - **`merge_model`**: Model used for the merging step.

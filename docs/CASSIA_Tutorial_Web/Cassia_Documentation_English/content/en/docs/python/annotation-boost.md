@@ -22,7 +22,7 @@ Annotation Boost is an advanced validation tool that enhances annotation confide
 
 ### Running Annotation Boost
 
-The monocyte cluster is sometimes annotated as mixed population of immune cell and neuron/glia cells. Here we use annotation boost agent to test these hypothesis in more detail.
+The monocyte cluster is sometimes annotated as mixed population of immune cell and neuron/glia cells. Here we use annotation boost agent to test these hypotheses in more detail.
 
 ```python
 # Run validation plus for the high mitochondrial content cluster
@@ -51,6 +51,12 @@ CASSIA.runCASSIA_annotationboost(
 - **`search_strategy`**: Strategy for exploring hypotheses ("breadth" or "depth").
 - **`report_style`**: Format of the final report ("per_iteration" or "total_summary").
 - **`validator_involvement`**: Level of validation strictness ("v1" or "v0").
+
+### Output Files
+
+The analysis generates the following output files:
+- `{output_name}_summary.html`: HTML report with detailed analysis results and visualizations.
+- `{output_name}_raw_conversation.txt`: Raw conversation text containing the full analysis dialogue.
 
 ### Troubleshooting
 

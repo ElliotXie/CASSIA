@@ -24,9 +24,9 @@ const chapters = [
     titleKey: "basicWorkflow",
     items: [
       { titleKey: "fastMode", slug: "fast-mode" },
-      { titleKey: "singleClusterAnalysis", slug: "single-cluster-analysis" },
       { titleKey: "batchProcessing", slug: "batch-processing" },
       { titleKey: "qualityScoring", slug: "quality-scoring-and-report-generation" },
+      { titleKey: "singleClusterAnalysis", slug: "single-cluster-analysis" },
     ],
   },
   {

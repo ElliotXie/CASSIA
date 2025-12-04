@@ -52,6 +52,12 @@ CASSIA.runCASSIA_annotationboost(
 - **`report_style`**: 最终报告的格式（"per_iteration" 或 "total_summary"）。
 - **`validator_involvement`**: 验证严格程度（"v1" 或 "v0"）。
 
+### 输出文件
+
+分析生成以下输出文件：
+- `{output_name}_summary.html`：包含详细分析结果和可视化的 HTML 报告。
+- `{output_name}_raw_conversation.txt`：包含完整分析对话的原始对话文本。
+
 ### 故障排除
 
 1. **低置信度结果**：

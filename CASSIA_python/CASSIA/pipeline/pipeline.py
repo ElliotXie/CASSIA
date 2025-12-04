@@ -245,9 +245,9 @@ def runCASSIA_pipeline(
         final_combined_file = score_file_name  # Fallback to scored file
 
     print("\n=== Generating main reports ===")
-    # Read scored CSV and convert to list of dicts for report generation
-    scored_df = pd.read_csv(score_file_name)
-    rows_data = scored_df.to_dict('records')
+    # Read final combined CSV (includes merged groupings) and convert to list of dicts
+    final_df = pd.read_csv(final_combined_file)
+    rows_data = final_df.to_dict('records')
 
     # Generate the HTML report (report_base_name already includes reports_folder path)
     report_output_path = f"{report_base_name}_report.html"

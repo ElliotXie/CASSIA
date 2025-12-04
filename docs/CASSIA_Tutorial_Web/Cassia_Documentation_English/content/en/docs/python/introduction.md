@@ -6,7 +6,7 @@ Welcome to the CASSIA Python tutorial! This guide will walk you through using th
 
 
 ## What is CASSIA?
-CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) is designed to enhance cell type annotation by leveraging the power of multi-agent large language models (LLMs). We will introduce each of the agent in this tutorial.
+CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) is designed to enhance cell type annotation by leveraging the power of multi-agent large language models (LLMs). We will introduce each of the agents in this tutorial.
 
 ![CASSIA Agent Workflow](/images/agent.webp)
 
