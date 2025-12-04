@@ -585,24 +585,28 @@ export default function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer">
-                  📚 Complete R Documentation/Vignette
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📚</span>
+                  <span className="ml-2">Complete R Documentation/Vignette</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank" rel="noopener noreferrer">
-                  📝 Example Python workflow/Vignette
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📝</span>
+                  <span className="ml-2">Example Python workflow/Vignette</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://sc-llm-benchmark.com/methods/cassia" target="_blank" rel="noopener noreferrer">
-                  🤖 LLMs Annotation Benchmark
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://sc-llm-benchmark.com/methods/cassia" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">🤖</span>
+                  <span className="ml-2">LLMs Annotation Benchmark</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" rel="noopener noreferrer">
-                  📄 BioRxiv Preprint
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📄</span>
+                  <span className="ml-2">BioRxiv Preprint</span>
                 </Link>
               </Button>
             </CardContent>
@@ -620,24 +624,28 @@ export default function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer">
-                  📦 R & Python Package Installation
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📦</span>
+                  <span className="ml-2">R & Python Package Installation</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer">
-                  📚 Complete Documentation
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📚</span>
+                  <span className="ml-2">Complete Documentation</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer">
-                  💬 Community Support
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">💬</span>
+                  <span className="ml-2">Community Support</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer">
-                  🐛 Report Issues
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">🐛</span>
+                  <span className="ml-2">Report Issues</span>
                 </Link>
               </Button>
             </CardContent>
