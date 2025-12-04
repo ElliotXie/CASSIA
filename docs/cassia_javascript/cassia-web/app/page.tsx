@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff } from 'lucide-react'
+import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -447,9 +447,8 @@ export default function HomePage() {
                 </li>
               </ul>
               <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white btn-modern">
-                <Link href="/pipeline" className="flex flex-col items-center justify-center">
-                  <span>Run CASSIA Pipeline</span>
-                  <ArrowRight className="h-4 w-4 mt-1" />
+                <Link href="/pipeline">
+                  Run CASSIA Pipeline
                 </Link>
               </Button>
             </CardContent>
@@ -496,9 +495,8 @@ export default function HomePage() {
                 </li>
               </ul>
               <Button asChild className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white btn-modern">
-                <Link href="/batch" className="flex flex-col items-center justify-center">
-                  <span>Run CASSIA Batch</span>
-                  <ArrowRight className="h-4 w-4 mt-1" />
+                <Link href="/batch">
+                  Run CASSIA Batch
                 </Link>
               </Button>
             </CardContent>
@@ -565,9 +563,8 @@ export default function HomePage() {
                 </Button>
               </div>
               <Button variant="outline" asChild className="w-full glass border-white/30 hover:bg-white/20 btn-modern">
-                <Link href="/agents" className="flex flex-col items-center justify-center">
-                  <span>View All Agents</span>
-                  <ArrowRight className="h-4 w-4 mt-1" />
+                <Link href="/agents">
+                  View All Agents
                 </Link>
               </Button>
             </CardContent>
@@ -588,28 +585,24 @@ export default function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer">
-                  <span>📚 Complete R Documentation/Vignette</span>
-                  <ArrowRight className="h-4 w-4" />
+                  📚 Complete R Documentation/Vignette
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank" rel="noopener noreferrer">
-                  <span>📝 Example Python workflow/Vignette</span>
-                  <ArrowRight className="h-4 w-4" />
+                  📝 Example Python workflow/Vignette
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://sc-llm-benchmark.com/methods/cassia" target="_blank" rel="noopener noreferrer">
-                  <span>🤖 LLMs Annotation Benchmark</span>
-                  <ArrowRight className="h-4 w-4" />
+                  🤖 LLMs Annotation Benchmark
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" rel="noopener noreferrer">
-                  <span>📄 BioRxiv Preprint</span>
-                  <ArrowRight className="h-4 w-4" />
+                  📄 BioRxiv Preprint
                 </Link>
               </Button>
             </CardContent>
@@ -627,28 +620,24 @@ export default function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer">
-                  <span>📦 R & Python Package Installation</span>
-                  <ArrowRight className="h-4 w-4" />
+                  📦 R & Python Package Installation
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer">
-                  <span>📚 Complete Documentation</span>
-                  <ArrowRight className="h-4 w-4" />
+                  📚 Complete Documentation
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer">
-                  <span>💬 Community Support</span>
-                  <ArrowRight className="h-4 w-4" />
+                  💬 Community Support
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-between" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer">
-                  <span>🐛 Report Issues</span>
-                  <ArrowRight className="h-4 w-4" />
+                  🐛 Report Issues
                 </Link>
               </Button>
             </CardContent>
