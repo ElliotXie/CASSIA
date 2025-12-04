@@ -57,14 +57,16 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearError()
-    
+
     try {
       if (isSignUp) {
         await signUp(email, password, fullName)
+        // Don't call onSuccess for sign-up - let user see success dialog first
+        // onSuccess will be called when they dismiss the success dialog
       } else {
         await signIn(email, password)
+        onSuccess?.() // Close dialog for successful sign-in
       }
-      onSuccess?.()
     } catch (error) {
       // Error is handled by the store
       console.error('Authentication error:', error)
@@ -92,6 +94,8 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
     if (successMessage?.includes('check your email')) {
       setIsSignUp(false)
     }
+    // Close parent dialog after user dismisses success message
+    onSuccess?.()
   }
   
   return (
