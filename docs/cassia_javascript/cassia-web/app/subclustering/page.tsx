@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Play, HelpCircle, Layers, Upload, Download, FileText } from 'lucide-react';
 import { ContactDialog } from '@/components/ContactDialog';
+import modelSettings from '../public/examples/model_settings.json';
 
 export default function SubclusteringPage() {
   const [showContactModal, setShowContactModal] = useState(false);
@@ -46,6 +47,24 @@ export default function SubclusteringPage() {
       setProvider(globalProvider);
     }
   }, [globalApiKey, globalProvider]);
+
+  // Update model when provider changes
+  useEffect(() => {
+    const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
+    if (providerData) {
+      setModel(providerData.default_model);
+    }
+  }, [provider]);
+
+  // Get available models for current provider
+  const getAvailableModels = () => {
+    const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
+    if (!providerData) return [];
+    return Object.entries(providerData.models || {}).map(([key, model]) => ({
+      id: model.actual_name,
+      name: model.description.split(' - ')[0] || model.actual_name
+    }));
+  };
 
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -233,12 +252,17 @@ export default function SubclusteringPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-                    <Input
-                      type="text"
+                    <select
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
-                      placeholder="Model name"
-                    />
+                      className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
+                    >
+                      {getAvailableModels().map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </CardContent>
               </Card>
