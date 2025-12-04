@@ -424,11 +424,18 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
     conversation = str(row.get('Conversation History', ''))
     marker_list = html.escape(str(row.get('Marker List', '')))
 
+    # Check for pre-formatted annotation HTML (from pipeline extraction)
+    # This preserves line breaks that would otherwise be lost in CSV round-trip
+    pre_formatted_annotation = row.get('_formatted_annotation_html', '')
+
     # Parse conversation history
     sections = parse_conversation_history(conversation)
 
-    # Format each section
-    annotation_html = format_analysis_text(sections['annotation']) if sections['annotation'] else '<p>No annotation data available.</p>'
+    # Format each section - use pre-formatted HTML if available
+    if pre_formatted_annotation:
+        annotation_html = pre_formatted_annotation
+    else:
+        annotation_html = format_analysis_text(sections['annotation']) if sections['annotation'] else '<p>No annotation data available.</p>'
 
     validator_html = ''
     if sections['validator']:
