@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CASSIA - Cell Annotation Intelligence Assistant",
+  title: "CASSIA - Collective Agent System for Single-cell Interpretable Annotation",
   description: "AI-powered single-cell RNA-seq analysis platform for automated cell type annotation with comprehensive analysis reports. Built for biologists, powered by large language models.",
   keywords: ["single-cell", "RNA-seq", "cell annotation", "bioinformatics", "AI", "machine learning"],
   authors: [{ name: "CASSIA Team" }],
   openGraph: {
-    title: "CASSIA - Cell Annotation Intelligence Assistant",
+    title: "CASSIA - Collective Agent System for Single-cell Interpretable Annotation",
     description: "AI-powered single-cell RNA-seq analysis platform",
     type: "website",
   },

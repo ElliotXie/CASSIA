@@ -168,7 +168,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">CASSIA</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Cell Annotation Intelligence Assistant</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Collective Agent System for Single-cell Interpretable Annotation</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -642,7 +642,7 @@ export default function HomePage() {
               <h3 className="text-xl font-bold gradient-text">CASSIA v2.0</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-              Cell Annotation using Single-cell Sequencing Intelligence Assistant
+              Collective Agent System for Single-cell Interpretable Annotation
               <br />
               <span className="text-sm">Built with Next.js, powered by Large Language Models</span>
             </p>
