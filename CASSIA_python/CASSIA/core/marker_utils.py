@@ -174,12 +174,15 @@ def get_top_markers(df, n_genes=10, format_type=None, ranking_method="avg_log2FC
         min_non_inf = df_work['avg_log2FC'].replace([np.inf, -np.inf], np.nan).min()
         df_work['avg_log2FC'] = df_work['avg_log2FC'].replace([np.inf, -np.inf], [max_non_inf, min_non_inf])
 
-        # Check if PCT columns exist (only if user called sc.tl.rank_genes_groups with pts=True)
-        has_pct = 'pcts' in df.columns or 'pct' in df.columns
+        # Check if PCT columns exist (from enhance_scanpy_markers which produces pct.1/pct.2)
+        has_pct = 'pct.1' in df.columns
         if has_pct:
-            pct_col = 'pcts' if 'pcts' in df.columns else 'pct'
-            df_work['pct.1'] = df[pct_col]
-            df_work['pct.2'] = 0  # Scanpy doesn't provide pct.2 in the same way
+            # Copy pct columns to working dataframe
+            df_work['pct.1'] = df['pct.1']
+            if 'pct.2' in df.columns:
+                df_work['pct.2'] = df['pct.2']
+            else:
+                df_work['pct.2'] = 0
             # Filter with PCT
             df_filtered = df_work[
                 (df_work['p_val_adj'] < 0.05) &

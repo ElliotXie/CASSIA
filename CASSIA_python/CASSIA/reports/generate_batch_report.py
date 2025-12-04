@@ -299,25 +299,26 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
         '''
 
     # Extract and format merged groupings if available
+    # These show hierarchy: Broad → Detailed → Specific annotation levels
     merged_1 = str(row.get('Merged_Grouping_1', ''))
     merged_2 = str(row.get('Merged_Grouping_2', ''))
     merged_3 = str(row.get('Merged_Grouping_3', ''))
 
     merged_html = ""
     if any([merged_1.strip(), merged_2.strip(), merged_3.strip()]):
-        merged_tags = []
+        merged_items = []
         if merged_1.strip():
-            merged_tags.append(f'<span class="merged-tag merged-broad" title="Broad Category">{html.escape(truncate_text(merged_1, 40))}</span>')
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Broad:</span><span class="merged-tag merged-broad">{html.escape(truncate_text(merged_1, 40))}</span></div>')
         if merged_2.strip():
-            merged_tags.append(f'<span class="merged-tag merged-detailed" title="Detailed">{html.escape(truncate_text(merged_2, 40))}</span>')
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Detailed:</span><span class="merged-tag merged-detailed">{html.escape(truncate_text(merged_2, 40))}</span></div>')
         if merged_3.strip():
-            merged_tags.append(f'<span class="merged-tag merged-specific" title="Specific">{html.escape(truncate_text(merged_3, 40))}</span>')
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Specific:</span><span class="merged-tag merged-specific">{html.escape(truncate_text(merged_3, 40))}</span></div>')
 
         merged_html = f'''
         <div class="card-section merged-section">
-            <div class="section-label">Merged Groups:</div>
+            <div class="section-label">Merged Cell Type Groups (Broad → Specific):</div>
             <div class="merged-groupings">
-                {"".join(merged_tags)}
+                {"".join(merged_items)}
             </div>
         </div>
         '''
@@ -951,44 +952,42 @@ def get_css_styles() -> str:
     }
 
     /* Ranked subtype colors with BACKGROUND - deeper = more likely */
+    /* No bullet points - background color is sufficient */
     .sub-types-list li.rank-1 {
         background: rgba(13, 148, 136, 0.25);
         color: #0d9488;
         font-weight: 600;
-        padding: 6px 12px 6px 24px;
+        padding: 8px 12px;
         border-radius: 6px;
         border-left: 3px solid #0d9488;
         margin-bottom: 4px;
     }
     .sub-types-list li.rank-1::before {
-        background: #0d9488;
-        top: 12px;
+        display: none;
     }
 
     .sub-types-list li.rank-2 {
         background: rgba(20, 184, 166, 0.15);
         color: #134e4a;
-        padding: 6px 12px 6px 24px;
+        padding: 8px 12px;
         border-radius: 6px;
         border-left: 3px solid #14b8a6;
         margin-bottom: 4px;
     }
     .sub-types-list li.rank-2::before {
-        background: #14b8a6;
-        top: 12px;
+        display: none;
     }
 
     .sub-types-list li.rank-3 {
         background: rgba(94, 234, 212, 0.12);
         color: #64748b;
-        padding: 6px 12px 6px 24px;
+        padding: 8px 12px;
         border-radius: 6px;
         border-left: 3px solid #5eead4;
         margin-bottom: 4px;
     }
     .sub-types-list li.rank-3::before {
-        background: #5eead4;
-        top: 12px;
+        display: none;
     }
 
     .empty-field {
@@ -1349,8 +1348,22 @@ def get_css_styles() -> str:
 
     .merged-groupings {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 6px;
+    }
+
+    .merged-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .merged-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        min-width: 55px;
     }
 
     .merged-tag {

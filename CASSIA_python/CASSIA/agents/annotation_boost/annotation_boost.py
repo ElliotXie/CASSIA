@@ -648,8 +648,8 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
     else:
         output_df = marker_filtered
     
-    # Remove unwanted columns
-    columns_to_remove = ['cluster', 'Unnamed: 0']
+    # Remove unwanted columns (including 'scores' from Scanpy which is typically empty)
+    columns_to_remove = ['cluster', 'Unnamed: 0', 'scores']
     for col in columns_to_remove:
         if col in output_df.columns:
             output_df = output_df.drop(columns=[col])
@@ -678,6 +678,10 @@ def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, st
     The conversation history contains gene expression data in tabular format from USER messages.
     This function parses those tables and creates a lookup dictionary for tooltip display.
 
+    Supports both:
+    - Full format (Seurat/enhanced Scanpy): gene, avg_log2FC, pct.1, pct.2, p_val_adj
+    - Minimal format (basic Scanpy): gene, avg_log2FC, p_val_adj
+
     Args:
         conversation_history: List of conversation messages with role and content
 
@@ -687,16 +691,23 @@ def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, st
             'CD3D': {'avg_log2FC': '2.45', 'pct.1': '0.85', 'pct.2': '0.12', 'p_val_adj': '1.2e-50'},
             ...
         }
+        Note: pct.1 and pct.2 may be None if not available in the source data.
     """
     gene_stats = {}
 
-    # Pattern to match gene statistics table rows
-    # Format: gene_name    number    number    number    number (scientific notation)
-    # Examples:
-    #   IGHA2       7.38  0.89  0.10  0.00e+00
-    #   CD3D       -2.45  0.85  0.12  1.20e-50
-    gene_row_pattern = re.compile(
+    # Pattern 1: Full format with pct values (4 numbers: logFC, pct1, pct2, pval)
+    # Matches: GENE  2.45  0.85  0.12  1.20e-50
+    # Used by: Seurat FindAllMarkers, enhanced Scanpy (via enhance_scanpy_markers())
+    gene_row_pattern_full = re.compile(
         r'^\s*([A-Z][A-Z0-9\-\.]+)\s+(-?\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*[eE][-+]?\d+|\d+\.?\d*)\s*$',
+        re.MULTILINE
+    )
+
+    # Pattern 2: Minimal format without pct values (2 numbers: logFC, pval)
+    # Matches: GENE  2.45  1.20e-50
+    # Used by: Basic Scanpy rank_genes_groups output (without pct.1/pct.2)
+    gene_row_pattern_no_pct = re.compile(
+        r'^\s*([A-Z][A-Z0-9\-\.]+)\s+(-?\d+\.?\d*)\s+(\d+\.?\d*[eE][-+]?\d+|\d+\.?\d*)\s*$',
         re.MULTILINE
     )
 
@@ -707,8 +718,9 @@ def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, st
 
         # Only look at USER messages which contain the gene expression data
         if msg.get('role', '').upper() == 'USER':
-            matches = gene_row_pattern.findall(content)
-            for match in matches:
+            # Try full pattern first (with pct values)
+            matches_full = gene_row_pattern_full.findall(content)
+            for match in matches_full:
                 gene_name, avg_log2fc, pct1, pct2, p_val_adj = match
                 gene_stats[gene_name.upper()] = {
                     'avg_log2FC': avg_log2fc,
@@ -717,11 +729,27 @@ def extract_gene_stats_from_conversation(conversation_history: List[Dict[str, st
                     'p_val_adj': p_val_adj
                 }
 
+            # Also try no-pct pattern for any genes not yet captured
+            # This handles basic Scanpy format without pct columns
+            matches_no_pct = gene_row_pattern_no_pct.findall(content)
+            for match in matches_no_pct:
+                gene_name, avg_log2fc, p_val_adj = match
+                if gene_name.upper() not in gene_stats:  # Don't overwrite full stats
+                    gene_stats[gene_name.upper()] = {
+                        'avg_log2FC': avg_log2fc,
+                        'pct.1': None,  # Not available in basic Scanpy format
+                        'pct.2': None,
+                        'p_val_adj': p_val_adj
+                    }
+
     return gene_stats
 
 def create_gene_badge_html(gene: str, gene_stats: Dict[str, Dict[str, str]] = None) -> str:
     """
     Create HTML for a gene badge with optional tooltip showing statistics.
+
+    Handles both full stats (with pct.1/pct.2) and minimal stats (without pct values).
+    When pct values are None (basic Scanpy format), the pct rows are omitted from the tooltip.
 
     Args:
         gene: Gene name to display
@@ -735,8 +763,8 @@ def create_gene_badge_html(gene: str, gene_stats: Dict[str, Dict[str, str]] = No
     if gene_stats and gene_upper in gene_stats:
         stats = gene_stats[gene_upper]
         avg_log2fc = stats.get('avg_log2FC', 'N/A')
-        pct1 = stats.get('pct.1', 'N/A')
-        pct2 = stats.get('pct.2', 'N/A')
+        pct1 = stats.get('pct.1')  # May be None for basic Scanpy format
+        pct2 = stats.get('pct.2')  # May be None for basic Scanpy format
         p_val_adj = stats.get('p_val_adj', 'N/A')
 
         # Determine if log2FC is positive or negative for coloring
@@ -746,10 +774,15 @@ def create_gene_badge_html(gene: str, gene_stats: Dict[str, Dict[str, str]] = No
         except (ValueError, TypeError):
             fc_class = ''
 
-        tooltip_html = f'''<span class="tooltip">
-            <div class="stat-row"><span class="stat-label">avg_log2FC:</span><span class="stat-value {fc_class}">{avg_log2fc}</span></div>
+        # Build tooltip HTML - only include pct rows if values exist
+        pct_html = ''
+        if pct1 is not None and pct2 is not None:
+            pct_html = f'''
             <div class="stat-row"><span class="stat-label">pct.1:</span><span class="stat-value">{pct1}</span></div>
-            <div class="stat-row"><span class="stat-label">pct.2:</span><span class="stat-value">{pct2}</span></div>
+            <div class="stat-row"><span class="stat-label">pct.2:</span><span class="stat-value">{pct2}</span></div>'''
+
+        tooltip_html = f'''<span class="tooltip">
+            <div class="stat-row"><span class="stat-label">avg_log2FC:</span><span class="stat-value {fc_class}">{avg_log2fc}</span></div>{pct_html}
             <div class="stat-row"><span class="stat-label">p_val_adj:</span><span class="stat-value">{p_val_adj}</span></div>
         </span>'''
 
@@ -1155,10 +1188,12 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
 
     # Normalize Scanpy column names to Seurat format (column renaming only, no filtering)
     # This allows annotation boost to work with both Scanpy and Seurat marker formats
+    # Note: enhance_scanpy_markers() already outputs pct.1/pct.2 directly - no mapping needed for those
     scanpy_to_seurat_mapping = {
         'group': 'cluster',
         'names': 'gene',
         'logfoldchanges': 'avg_log2FC',
+        'pvals': 'p_val',
         'pvals_adj': 'p_val_adj'
     }
     marker = marker.rename(columns=scanpy_to_seurat_mapping)
