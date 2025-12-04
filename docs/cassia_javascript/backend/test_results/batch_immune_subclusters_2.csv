@@ -1,6 +1,0 @@
-True Cell Type,main_cell_type,sub_cell_type
-"1","Naive CD4+ T cells","Naive CD8+ T cells"
-"2","CD4+ Central Memory T cells","CD8+ Central Memory T cells"
-"3","Naive CD8+ T cells","CD8+ Central Memory T cells (early transitional, less likely but possible if some markers are slightly less stringent)"
-"4","CD8+ Central Memory T cells","CD8+ Effector Memory T cells (less likely due to CCR7, but could be a transitional state)"
-"5","Natural Killer (NK) cells","NKT cells (Natural Killer T cells) or highly cytotoxic CD8+ T cells"

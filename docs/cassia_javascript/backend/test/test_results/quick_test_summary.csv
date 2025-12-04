@@ -1,4 +1,0 @@
-True Cell Type,Predicted Main Cell Type,Predicted Sub Cell Types,Possible Mixed Cell Types,Marker List,Iterations,Model,Provider,Tissue,Species
-b_cell,B Lymphocytes,"Naive B cells, Memory B cells",,"CD79A, CD79B, CD19",1,google/gemini-2.5-flash-preview,openrouter,lung,human
-monocyte,Macrophages,"M2-like Macrophages, Monocyte-derived Macrophages, Interstitial Macrophages",Monocyte-to-Macrophage differentiation continuum,"CD14, CD68, CD163",1,google/gemini-2.5-flash-preview,openrouter,lung,human
-t_cell,T cell,,"CD4+ T helper cells, CD8+ cytotoxic T lymphocytes, Gamma-delta T cells, Natural Killer T (NKT) cells, Regulatory T cells","CD3D, CD3E, CD3G",1,google/gemini-2.5-flash-preview,openrouter,lung,human

@@ -26,18 +26,20 @@ import os
 **您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。
 
 ```python
-os.environ["OPENROUTER_API_KEY"] = "your_openrouter_key"
-# os.environ["OPENAI_API_KEY"] = "your_openai_key"
-# os.environ["ANTHROPIC_API_KEY"] = "your_anthropic_key"
+CASSIA.set_api_key("your-openrouter-key", provider="openrouter")
+# CASSIA.set_api_key("your-openai-key", provider="openai")
+# CASSIA.set_api_key("your-anthropic-key", provider="anthropic")
 ```
 
 ## 2. 加载数据
 
 在本教程中，我们将使用来自 GTEX 项目的乳腺组织数据集作为示例。该数据集为乳腺组织细胞类型提供了全面的参考。
 
+下载数据集：[GTEx_breast_minimal.h5ad](https://drive.google.com/file/d/1HhGX0AD6tfUYzuYc2LToxghTGk8LZeUp/view?usp=sharing)
+
 ```python
 # 加载 GTEX 乳腺数据集 (假设为 .h5ad 格式)
-adata = sc.read("gtex_ref.h5ad")
+adata = sc.read("GTEx_breast_minimal.h5ad")
 ```
 
 探索元数据以了解您的数据集：
@@ -46,7 +48,7 @@ adata = sc.read("gtex_ref.h5ad")
 print(adata.obs.columns)
 ```
 
-我们假设数据集在 `Broad_cell_type` 和 `Granular_cell_type` 等列中包含黄金标准细胞类型标签以供参考。
+该数据集在 `Broad cell type` 和 `Granular cell type` 列中包含黄金标准细胞类型标签以供参考。
 
 ## 3. 降维和聚类
 
@@ -57,45 +59,45 @@ print(adata.obs.columns)
 首先，对数据进行归一化以消除细胞间测序深度的差异：
 
 ```python
+# 保存原始计数数据
+adata.layers["counts"] = adata.X.copy()
+
+# 归一化到中位数总计数
 sc.pp.normalize_total(adata, target_sum=1e4)
 sc.pp.log1p(adata)
 ```
-
-这将每个细胞缩放到 10,000 总计数，并应用对数变换以减少高表达基因的影响。
 
 ### 3.2 特征选择
 
 识别用于聚类的高变基因：
 
 ```python
-sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
-```
-
-仅保留高变基因（保留原始数据用于后续可视化）：
-
-```python
-adata_raw = adata
-adata = adata[:, adata.var.highly_variable]
+sc.pp.highly_variable_genes(adata, n_top_genes=2000)
 ```
 
 ### 3.3 降维
 
-缩放数据并执行 PCA：
-
 ```python
-sc.pp.scale(adata, max_value=10)
-sc.tl.pca(adata, svd_solver='arpack')
+sc.tl.pca(adata)
 ```
 
-缩放确保每个基因的贡献相等。PCA 将数据降维到捕获最大方差的主成分。
+PCA 将数据降维到捕获最大方差的主成分。
 
 ### 3.4 邻居图和 UMAP
 
 构建 k-近邻图并计算 UMAP 用于可视化：
 
 ```python
-sc.pp.neighbors(adata, n_neighbors=10, n_pcs=25)
+sc.pp.neighbors(adata)
 sc.tl.umap(adata)
+```
+
+```python
+sc.pl.umap(
+    adata,
+    color="Broad cell type",
+    size=2,
+)
 ```
 
 邻居图连接相似的细胞，并构成聚类的基础。
@@ -116,8 +118,6 @@ sc.tl.leiden(adata, resolution=0.4, key_added='leiden_res_0.4')
 sc.pl.umap(adata, color=['leiden_res_0.4'])
 ```
 
-![GTEX 乳腺组织聚类的 UMAP 可视化](/images/gtex-umap-clusters.png)
-
 ## 4. 寻找标记基因
 
 CASSIA 需要每个聚类的标记基因列表。我们将使用 Wilcoxon 秩和检验来识别差异表达基因。
@@ -125,7 +125,7 @@ CASSIA 需要每个聚类的标记基因列表。我们将使用 Wilcoxon 秩和
 ### 4.1 运行差异表达分析
 
 ```python
-sc.tl.rank_genes_groups(adata, 'leiden_res_0.4', method='wilcoxon')
+sc.tl.rank_genes_groups(adata, groupby="leiden_res_0.4", method="wilcoxon",use_raw=False)
 ```
 
 ### 4.2 提取结果
@@ -137,23 +137,13 @@ markers = sc.get.rank_genes_groups_df(adata, group=None)
 print(markers.head())
 ```
 
-### 4.3 格式化为 CASSIA 格式
-
-重命名列以匹配 CASSIA 的预期格式：
-
-```python
-markers = markers.rename(columns={
-    'names': 'gene',
-    'logfoldchanges': 'avg_log2FC',
-    'pvals_adj': 'p_val_adj',
-    'group': 'cluster'
-})
 ```
-
-筛选正标记（上调基因）：
-
-```python
-markers = markers[markers['avg_log2FC'] > 0]
+  group     names     scores  logfoldchanges          pvals      pvals_adj
+0     0     KRT15  48.403599        5.089063   0.000000e+00   0.000000e+00
+1     0   TFCP2L1  36.434315        4.719573  1.218868e-290  1.078393e-286
+2     0       KIT  35.415207        4.628579  9.961057e-275  5.875364e-271
+3     0      NFIB  34.773083        2.135615  6.208985e-265  2.746700e-261
+4     0  ANKRD36C  34.635426        3.357123  7.404516e-263  2.620458e-259
 ```
 
 ## 5. 使用 CASSIA 注释聚类
@@ -169,12 +159,12 @@ results = CASSIA.runCASSIA_pipeline(
     species = "Human",
     marker = markers,
     max_workers = 6,
-    annotation_model = "anthropic/claude-sonnet-4.5",
+    annotation_model = "openai/gpt-5.1",
     annotation_provider = "openrouter",
-    score_model = "openai/gpt-5.1",
+    score_model = "anthropic/claude-sonnet-4.5",
     score_provider = "openrouter",
     score_threshold = 75,
-    annotationboost_model = "anthropic/claude-sonnet-4.5",
+    annotationboost_model = "openai/gpt-5.1",
     annotationboost_provider = "openrouter",
     merge_model = "google/gemini-2.5-flash",
     merge_provider = "openrouter"
@@ -185,21 +175,16 @@ results = CASSIA.runCASSIA_pipeline(
 
 ### 5.2 输出文件
 
-流程会创建一个包含以下文件的文件夹：
+流程会创建一个包含三个子文件夹的输出文件夹：
 
-| 文件 | 描述 |
-|------|------|
-| `gtex_breast_annotation_summary.csv` | 注释结果摘要 |
-| `gtex_breast_annotation_full.csv` | 包含对话历史的完整结果 |
-| `gtex_breast_annotation_scored.csv` | 评分后的注释结果 |
-| `gtex_breast_annotation_report.html` | 交互式 HTML 报告 |
-
-![CASSIA 注释报告](/images/gtex-breast-annotation-report.webp)
+- `01_html_reports/` - 每个聚类的交互式 HTML 报告
+- `02_cluster_annotations/` - 每个聚类的单独注释结果
+- `03_csv_files/` - 汇总 CSV 文件，包括最终结果
 
 ### 5.3 加载结果
 
 ```python
-cassia_results = pd.read_csv("gtex_breast_annotation_scored.csv")
+cassia_results = pd.read_csv("CASSIA_Pipeline_output/gtex_breast_annotation_FINAL_RESULTS.csv")
 ```
 
 ### 5.4 创建注释映射
@@ -208,14 +193,13 @@ cassia_results = pd.read_csv("gtex_breast_annotation_scored.csv")
 
 ```python
 annotation_map = dict(zip(
-    cassia_results['cluster'].astype(str),
-    cassia_results['celltype_1']
+    cassia_results['Cluster ID'].astype(str),
+    cassia_results['Predicted General Cell Type']
 ))
 ```
 
 您可以选择不同的粒度级别：
-- `celltype_1`：最详细的注释
-- `CASSIA_merged_grouping_1`：最宽泛的类别
+- `Predicted General Cell Type`：宽泛的注释
 
 ### 5.5 添加到 AnnData
 
@@ -234,14 +218,6 @@ print(adata.obs[['leiden_res_0.4', 'CASSIA_annotation']].head())
 ## 6. 可视化注释
 
 将 CASSIA 注释与黄金标准标签进行比较：
-
-```python
-sc.pl.umap(adata, color=['Broad_cell_type', 'CASSIA_annotation'], legend_loc='on data')
-```
-
-![图 1: 黄金标准聚类](/images/Figure1_GoldStandard.webp)
-
-![图 2: 注释结果](/images/Figure2_CASSIA.webp)
 
 CASSIA 会自动将注释总结为不同的粒度级别，您可以在输出 CSV 中找到这些级别。
 

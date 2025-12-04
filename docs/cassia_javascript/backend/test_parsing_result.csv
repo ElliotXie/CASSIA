@@ -1,5 +1,0 @@
-Result ID,main_cell_type,sub_cell_type,key_markers,reason
-"1","CD8+ memory T cells","Tissue-resident memory CD8+ T cells (TRM)","IL7R, CD8A, CD8B, CCL4, KLRB1, ITK","The presence of IL7R, CD8A, and CD8B suggests a CD8+ T cell identity. CCL4 is associated with effector functions, while KLRB1 (CD161) and ITK indicate a memory-like or tissue-resident phenotype."
-"2","Exhausted CD8+ T cells","NK-like CD8+ T cells","LAYN, HAVCR2 (TIM-3), TIGIT, IKZF2, KLRC2, KLRC3","LAYN (Lag-3) and HAVCR2 (TIM-3) are markers of exhausted or chronically stimulated CD8+ T cells."
-"3","Effector CD8+ T cells","Central memory CD8+ T cells","GZMK, GZMH, PRF1, NKG7, CCR7, CD27","GZMK, GZMH, PRF1, and NKG7 are markers of cytotoxic activity, typical of effector CD8+ T cells."
-"4","Regulatory CD8+ T cells","Epithelial-like CD8+ T cells (rare subset)","WFDC2, CEACAM7, CLDN8, PPARG, HOXD13, HOXB13","WFDC2, CEACAM7, and CLDN8 are markers associated with epithelial or secretory cells."

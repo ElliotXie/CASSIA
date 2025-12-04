@@ -1,7 +1,0 @@
-True Cell Type,main_cell_type,sub_cell_type
-"1","Naive CD4+ T cells","Naive CD8+ T cells"
-"2","Central Memory CD4+ T cells","Central Memory CD8+ T cells"
-"3","Cytotoxic CD8+ T cells","Effector Memory CD8+ T cells"
-"4","Regulatory T cells (Tregs)","Activated CD4+ T cells (with Treg-like features)"
-"5","Natural Killer (NK) cells","NKT-like cells (given some shared cytotoxic markers with T cells, though the KIRs and CD16 strongly favor NK)"
-"6","Naive B cells","Memory B cells"
