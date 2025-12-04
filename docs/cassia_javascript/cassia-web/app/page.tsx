@@ -226,8 +226,9 @@ export default function HomePage() {
           </h2>
           
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed">
-            Transform your single-cell RNA-seq analysis with AI-powered precision. Upload marker data, 
-            configure your analysis, and receive comprehensive cell type annotations with detailed reports. 
+            Transform your single-cell RNA-seq analysis with AI-powered precision. Upload marker data,
+            configure your analysis, and receive comprehensive cell type annotations with detailed reports.
+            <br />
             <span className="font-semibold text-blue-600 dark:text-blue-400">Built for biologists, powered by cutting-edge language models.</span>
           </p>
           
