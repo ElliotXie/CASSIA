@@ -128,23 +128,22 @@ CASSIA 需要每个聚类的标记基因列表。我们将使用 Wilcoxon 秩和
 sc.tl.rank_genes_groups(adata, groupby="leiden_res_0.4", method="wilcoxon",use_raw=False)
 ```
 
-### 4.2 提取结果
+### 4.2 提取增强的标记基因
 
-将结果提取到 DataFrame：
+使用 CASSIA 的 `enhance_scanpy_markers()` 提取带有表达百分比值(`pct.1` 和 `pct.2`)的标记基因。此函数直接从 `adata.uns['rank_genes_groups']` 读取并添加重要的元数据：
 
 ```python
-markers = sc.get.rank_genes_groups_df(adata, group=None)
+# 提取带有 pct.1/pct.2 值的增强标记基因
+markers = CASSIA.enhance_scanpy_markers(adata, cluster_col="leiden_res_0.4", n_genes=50)
 print(markers.head())
 ```
 
-```
-  group     names     scores  logfoldchanges          pvals      pvals_adj
-0     0     KRT15  48.403599        5.089063   0.000000e+00   0.000000e+00
-1     0   TFCP2L1  36.434315        4.719573  1.218868e-290  1.078393e-286
-2     0       KIT  35.415207        4.628579  9.961057e-275  5.875364e-271
-3     0      NFIB  34.773083        2.135615  6.208985e-265  2.746700e-261
-4     0  ANKRD36C  34.635426        3.357123  7.404516e-263  2.620458e-259
-```
+返回的 DataFrame 包含：
+- `pct.1`: 簇内表达每个基因的细胞百分比
+- `pct.2`: 簇外表达每个基因的细胞百分比
+- 标准统计信息: `avg_log2FC`, `p_val_adj`, `scores`
+
+这些百分比值帮助 CASSIA 更好地理解标记基因的特异性，对于注释增强尤其有用。
 
 ## 5. 使用 CASSIA 注释聚类
 
@@ -187,39 +186,74 @@ results = CASSIA.runCASSIA_pipeline(
 cassia_results = pd.read_csv("CASSIA_Pipeline_output/gtex_breast_annotation_FINAL_RESULTS.csv")
 ```
 
-### 5.4 创建注释映射
+### 5.4 将注释添加到 AnnData
 
-创建将聚类 ID 映射到细胞类型注释的字典：
-
-```python
-annotation_map = dict(zip(
-    cassia_results['Cluster ID'].astype(str),
-    cassia_results['Predicted General Cell Type']
-))
-```
-
-您可以选择不同的粒度级别：
-- `Predicted General Cell Type`：宽泛的注释
-
-### 5.5 添加到 AnnData
-
-将注释映射到您的 AnnData 对象：
+使用 CASSIA 的 `add_cassia_to_anndata()` 自动将所有注释结果整合到 AnnData 对象中：
 
 ```python
-adata.obs['CASSIA_annotation'] = adata.obs['leiden_res_0.4'].map(annotation_map)
+# 自动进行簇匹配并添加 CASSIA 注释
+CASSIA.add_cassia_to_anndata(
+    adata,
+    cassia_results,
+    cluster_col="leiden_res_0.4",
+    prefix="CASSIA_"
+)
 ```
 
-验证映射：
+此函数自动：
+- 匹配 CASSIA 结果和 AnnData 之间的簇 ID（支持模糊匹配）
+- 向 `adata.obs` 添加多个注释列
+- 在 `adata.uns['CASSIA']` 中存储簇级摘要
+
+### 5.5 查看注释
+
+该函数向 `adata.obs` 添加了多个有用的列：
 
 ```python
-print(adata.obs[['leiden_res_0.4', 'CASSIA_annotation']].head())
+# 查看添加的列
+cassia_cols = [col for col in adata.obs.columns if col.startswith('CASSIA_')]
+print("添加的列:", cassia_cols)
+
+# 查看样本注释
+print(adata.obs[['leiden_res_0.4', 'CASSIA_general_celltype', 'CASSIA_sub_celltype', 'CASSIA_score']].head(10))
+
+# 查看簇级摘要
+print("\n簇级摘要:")
+print(adata.uns['CASSIA'])
 ```
+
+可用的注释列包括：
+- `CASSIA_general_celltype`: 宽泛的细胞类型注释
+- `CASSIA_sub_celltype`: 详细的亚细胞类型注释
+- `CASSIA_score`: 置信度评分 (0-100)
+- `CASSIA_combined_celltype`: 格式为"一般类型 :: 亚类型"
+- 合并分组和替代预测的其他列
 
 ## 6. 可视化注释
 
 将 CASSIA 注释与黄金标准标签进行比较：
 
-CASSIA 会自动将注释总结为不同的粒度级别，您可以在输出 CSV 中找到这些级别。
+```python
+# 将 CASSIA 注释与原始聚类一起可视化
+sc.pl.umap(adata, color=['leiden_res_0.4', 'CASSIA_general_celltype'], ncols=2, size=2)
+
+# 与黄金标准标签进行比较（如果可用）
+sc.pl.umap(adata, color=['CASSIA_general_celltype', 'Broad cell type'], ncols=2, size=2)
+```
+
+您还可以创建汇总统计信息：
+
+```python
+# 统计每种细胞类型的细胞数量
+celltype_counts = adata.obs['CASSIA_general_celltype'].value_counts()
+print(celltype_counts)
+
+# 比较聚类分配与 CASSIA 注释
+comparison = adata.obs.groupby(['leiden_res_0.4', 'CASSIA_general_celltype']).size().unstack(fill_value=0)
+print(comparison)
+```
+
+CASSIA 会自动将注释总结为不同的粒度级别，您可以在输出 CSV 和 `adata.obs` 中的各种 `CASSIA_*` 列中找到这些级别。
 
 ## 7. 下一步
 

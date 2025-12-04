@@ -128,23 +128,22 @@ CASSIA requires a list of marker genes for each cluster. We'll use the Wilcoxon 
 sc.tl.rank_genes_groups(adata, groupby="leiden_res_0.4", method="wilcoxon",use_raw=False)
 ```
 
-### 4.2 Extract Results
+### 4.2 Extract Enhanced Markers
 
-Extract the results into a DataFrame:
+Use CASSIA's `enhance_scanpy_markers()` to extract marker genes with percentage expression values (`pct.1` and `pct.2`). This function reads directly from `adata.uns['rank_genes_groups']` and adds important metadata:
 
 ```python
-markers = sc.get.rank_genes_groups_df(adata, group=None)
+# Extract enhanced markers with pct.1/pct.2 values
+markers = CASSIA.enhance_scanpy_markers(adata, cluster_col="leiden_res_0.4", n_genes=50)
 print(markers.head())
 ```
 
-```
-  group     names     scores  logfoldchanges          pvals      pvals_adj
-0     0     KRT15  48.403599        5.089063   0.000000e+00   0.000000e+00
-1     0   TFCP2L1  36.434315        4.719573  1.218868e-290  1.078393e-286
-2     0       KIT  35.415207        4.628579  9.961057e-275  5.875364e-271
-3     0      NFIB  34.773083        2.135615  6.208985e-265  2.746700e-261
-4     0  ANKRD36C  34.635426        3.357123  7.404516e-263  2.620458e-259
-```
+The returned DataFrame includes:
+- `pct.1`: Percentage of cells in the cluster expressing each gene
+- `pct.2`: Percentage of cells outside the cluster expressing each gene
+- Standard statistics: `avg_log2FC`, `p_val_adj`, `scores`
+
+These percentage values help CASSIA better understand marker specificity and are particularly useful for annotation boost.
 
 ## 5. Annotating Clusters with CASSIA
 
@@ -187,39 +186,74 @@ The pipeline creates an output folder with three subfolders:
 cassia_results = pd.read_csv("CASSIA_Pipeline_output/gtex_breast_annotation_FINAL_RESULTS.csv")
 ```
 
-### 5.4 Create Annotation Mapping
+### 5.4 Add Annotations to AnnData
 
-Create a dictionary mapping cluster IDs to cell type annotations:
-
-```python
-annotation_map = dict(zip(
-    cassia_results['Cluster ID'].astype(str),
-    cassia_results['Predicted General Cell Type']
-))
-```
-
-You can choose different granularity levels:
-- `Predicted General Cell Type`: Broad annotations
-
-### 5.5 Add to AnnData
-
-Map the annotations to your AnnData object:
+Use CASSIA's `add_cassia_to_anndata()` to automatically integrate all annotation results into your AnnData object:
 
 ```python
-adata.obs['CASSIA_annotation'] = adata.obs['leiden_res_0.4'].map(annotation_map)
+# Add CASSIA annotations with automatic cluster matching
+CASSIA.add_cassia_to_anndata(
+    adata,
+    cassia_results,
+    cluster_col="leiden_res_0.4",
+    prefix="CASSIA_"
+)
 ```
 
-Verify the mapping:
+This function automatically:
+- Matches cluster IDs between CASSIA results and AnnData (with fuzzy matching)
+- Adds multiple annotation columns to `adata.obs`
+- Stores cluster-level summary in `adata.uns['CASSIA']`
+
+### 5.5 View Annotations
+
+The function adds several useful columns to `adata.obs`:
 
 ```python
-print(adata.obs[['leiden_res_0.4', 'CASSIA_annotation']].head())
+# View added columns
+cassia_cols = [col for col in adata.obs.columns if col.startswith('CASSIA_')]
+print("Added columns:", cassia_cols)
+
+# View sample annotations
+print(adata.obs[['leiden_res_0.4', 'CASSIA_general_celltype', 'CASSIA_sub_celltype', 'CASSIA_score']].head(10))
+
+# View cluster-level summary
+print("\nCluster-level summary:")
+print(adata.uns['CASSIA'])
 ```
+
+Available annotation columns include:
+- `CASSIA_general_celltype`: Broad cell type annotations
+- `CASSIA_sub_celltype`: Detailed sub-celltype annotations
+- `CASSIA_score`: Confidence score (0-100)
+- `CASSIA_combined_celltype`: Format "General :: Subtype"
+- Additional columns for merged groupings and alternative predictions
 
 ## 6. Visualize Annotations
 
 Compare CASSIA annotations with gold standard labels:
 
-CASSIA automatically summarizes annotations into different levels of granularity, which you can find in the output CSVs.
+```python
+# Visualize CASSIA annotations alongside original clusters
+sc.pl.umap(adata, color=['leiden_res_0.4', 'CASSIA_general_celltype'], ncols=2, size=2)
+
+# Compare with gold standard labels (if available)
+sc.pl.umap(adata, color=['CASSIA_general_celltype', 'Broad cell type'], ncols=2, size=2)
+```
+
+You can also create summary statistics:
+
+```python
+# Count cells per cell type
+celltype_counts = adata.obs['CASSIA_general_celltype'].value_counts()
+print(celltype_counts)
+
+# Compare cluster assignments with CASSIA annotations
+comparison = adata.obs.groupby(['leiden_res_0.4', 'CASSIA_general_celltype']).size().unstack(fill_value=0)
+print(comparison)
+```
+
+CASSIA automatically summarizes annotations into different levels of granularity, which you can find in the output CSVs and the various `CASSIA_*` columns in `adata.obs`.
 
 ## 7. Next Steps
 
