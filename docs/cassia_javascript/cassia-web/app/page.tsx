@@ -586,15 +586,15 @@ export default function HomePage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📚</span>
-                  <span className="ml-2">Complete R Documentation/Vignette</span>
+                <Link href="https://docs.cassia.bio/en/docs/python/introduction" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">🐍</span>
+                  <span className="ml-2">Python Documentation/Vignette</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📝</span>
-                  <span className="ml-2">Example Python workflow/Vignette</span>
+                <Link href="https://docs.cassia.bio/en/docs/r/introduction" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                  <span className="w-6 text-center flex-shrink-0">📊</span>
+                  <span className="ml-2">R Documentation/Vignette</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
@@ -631,18 +631,6 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📚</span>
-                  <span className="ml-2">Complete Documentation</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">💬</span>
-                  <span className="ml-2">Community Support</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer" className="flex items-center">
                   <span className="w-6 text-center flex-shrink-0">🐛</span>
                   <span className="ml-2">Report Issues</span>
@@ -669,7 +657,7 @@ export default function HomePage() {
               <span className="text-sm">Built with Next.js, powered by Large Language Models</span>
             </p>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-              <a href="https://cassia-documentation-en-new.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Documentation</a>
+              <a href="https://docs.cassia.bio/en" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Documentation</a>
               <a href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">GitHub</a>
               <button onClick={() => setShowContactModal(true)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Support</button>
             </div>
