@@ -227,11 +227,11 @@ export default function BatchPage() {
                     <button
                       onClick={() => {
                         setSelectedMode('performance')
-                        setModel('anthropic/claude-sonnet-4')
+                        setModel('anthropic/claude-sonnet-4.5')
                       }}
                       className={cn(
                         "relative p-4 rounded-lg border-2 transition-all text-left",
-                        selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4'
+                        selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5'
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                       )}
@@ -248,7 +248,7 @@ export default function BatchPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">Model:</span>
-                          <span className="text-sm">Claude Sonnet 4</span>
+                          <span className="text-sm">Claude Sonnet 4.5</span>
                         </div>
                         <div className="flex gap-1 flex-wrap">
                           <Badge variant="default" className="text-xs">
@@ -262,7 +262,7 @@ export default function BatchPage() {
                           </Badge>
                         </div>
                       </div>
-                      {selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4' && (
+                      {selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5' && (
                         <div className="absolute top-2 right-2">
                           <Badge className="bg-blue-500">Selected</Badge>
                         </div>
