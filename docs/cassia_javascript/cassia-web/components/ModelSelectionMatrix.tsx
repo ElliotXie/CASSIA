@@ -82,9 +82,9 @@ const presets = {
     description: 'Best quality results',
     icon: <Zap className="h-4 w-4" />,
     models: {
-      annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4' },
-      scoring: { provider: 'openrouter', model: 'openai/gpt-4o-2024-08-06' },
-      annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4' }
+      annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' },
+      scoring: { provider: 'openrouter', model: 'openai/gpt-5.1' },
+      annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' }
     }
   },
   balanced: {
@@ -93,7 +93,7 @@ const presets = {
     icon: <Settings className="h-4 w-4" />,
     models: {
       annotation: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
-      scoring: { provider: 'openrouter', model: 'anthropic/claude-3.5-haiku' },
+      scoring: { provider: 'openrouter', model: 'anthropic/claude-4.5-haiku' },
       annotationBoost: { provider: 'openrouter', model: 'google/gemini-2.5-flash' }
     }
   }
