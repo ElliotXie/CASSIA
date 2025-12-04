@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Play, HelpCircle, Music, Upload, Download, ChevronDown, ChevronUp } from 'lucide-react';
-import { MODEL_PRESETS, DEFAULT_MODEL_PRESET, getModelPreset } from '@/lib/config/model-presets';
+import { MODEL_PRESETS, DEFAULT_MODEL_PRESET, getModelPreset, getModelPersona } from '@/lib/config/model-presets';
 
 // Component to parse and display model responses
 const ParsedModelResponse = ({ response }: { response: string }) => {
@@ -335,7 +335,8 @@ export default function SymphonyComparePage() {
                                                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                             />
                                                             <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">
-                                                                {model}
+                                                                <div className="font-medium">{getModelPersona(model)}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-gray-400">{model}</div>
                                                             </span>
                                                         </label>
                                                     ));
@@ -754,10 +755,10 @@ export default function SymphonyComparePage() {
                                                                 {results.raw_responses.map((resp, index) => (
                                                                     <div key={index} className="glass rounded-lg p-4 border border-white/20">
                                                                         <h5 className="font-semibold text-gray-900 dark:text-white mb-2">
-                                                                            {resp.model} ({resp.researcher})
+                                                                            {getModelPersona(resp.model)}
                                                                         </h5>
                                                                         <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                                                                            Round: {resp.round}
+                                                                            Model: {resp.model} | Round: {resp.round}
                                                                         </div>
                                                                         <div className="space-y-3">
                                                                             <ParsedModelResponse response={resp.response} />
