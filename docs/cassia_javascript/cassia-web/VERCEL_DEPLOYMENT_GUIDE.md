@@ -20,8 +20,8 @@ The 500 error you encountered is now fixed! Here's what was done:
 2. **Add these variables**:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://gpwvgcjjhjnxkzvafokv.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwd3ZnY2pqaGpueGt6dmFmb2t2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTc3MTMsImV4cCI6MjA2ODM5MzcxM30.9_-L5K5tFW5d_4ucvgfqZGPbqET745YukaizZxY8yeg
+NEXT_PUBLIC_SUPABASE_URL=https://fauimshrishydpnactfc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdWltc2hyaXNoeWRwbmFjdGZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDExNTEsImV4cCI6MjA4MDM3NzE1MX0.Hb29NqCCEAMdK--JsmU0g3r7CbFXRuQiroH09rxkHfQ
 ```
 
 ### **Important Notes:**
