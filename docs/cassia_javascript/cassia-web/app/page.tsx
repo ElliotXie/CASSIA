@@ -219,7 +219,7 @@ export default function HomePage() {
         {/* Enhanced Hero Section */}
         <div className="text-center mb-20">
           
-          <h2 className="text-5xl lg:text-6xl font-bold mb-6">
+          <h2 className="text-7xl lg:text-8xl font-bold mb-6">
             <span className="gradient-text">CASSIA</span>
           </h2>
 
