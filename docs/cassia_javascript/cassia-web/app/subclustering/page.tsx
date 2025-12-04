@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Play, HelpCircle, Layers, Upload, Download, FileText } from 'lucide-react';
 import { ContactDialog } from '@/components/ContactDialog';
-import modelSettings from '../public/examples/model_settings.json';
+import modelSettings from '../../public/examples/model_settings.json';
 
 export default function SubclusteringPage() {
   const [showContactModal, setShowContactModal] = useState(false);
