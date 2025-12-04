@@ -161,22 +161,32 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         const supabase = createClient()
         set({ isLoading: true, error: null })
-        
+
         try {
           const { error } = await supabase.auth.signOut()
           if (error) throw error
-          
-          set({ 
-            user: null, 
-            session: null, 
+
+          // Clear the auth state
+          set({
+            user: null,
+            session: null,
             profile: null,
             isAuthenticated: false,
-            userId: null
+            userId: null,
+            isLoading: false
           })
+
+          // Clear the persisted storage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cassia-auth-storage')
+          }
+
+          // Reload the page to ensure clean state
+          if (typeof window !== 'undefined') {
+            window.location.href = '/'
+          }
         } catch (error) {
-          set({ error: (error as AuthError).message })
-        } finally {
-          set({ isLoading: false })
+          set({ error: (error as AuthError).message, isLoading: false })
         }
       },
       
