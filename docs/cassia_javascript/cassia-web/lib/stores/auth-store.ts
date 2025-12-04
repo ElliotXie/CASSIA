@@ -103,6 +103,7 @@ export const useAuthStore = create<AuthState>()(
               data: {
                 full_name: fullName,
               },
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
             },
           })
 
