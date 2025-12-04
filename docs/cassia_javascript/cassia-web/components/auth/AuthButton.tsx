@@ -34,7 +34,7 @@ export function AuthButton() {
     return (
       <Dialog open={showLogin} onOpenChange={setShowLogin}>
         <DialogTrigger asChild>
-          <Button variant="outline">
+          <Button variant="outline" size="sm" className="glass border-white/30 hover:bg-white/20 btn-modern">
             <User className="h-4 w-4 mr-2" />
             Sign In
           </Button>
@@ -53,7 +53,7 @@ export function AuthButton() {
     <div className="flex items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="glass border-white/30 hover:bg-white/20 btn-modern flex items-center gap-2">
             <User className="h-4 w-4" />
             {profile?.full_name || user?.email || 'User'}
           </Button>
