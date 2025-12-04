@@ -562,11 +562,6 @@ export default function HomePage() {
                   </Link>
                 </Button>
               </div>
-              <Button variant="outline" asChild className="w-full glass border-white/30 hover:bg-white/20 btn-modern">
-                <Link href="/agents">
-                  View All Agents
-                </Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
