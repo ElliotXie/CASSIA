@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Play, HelpCircle, Target, Upload, Download } from 'lucide-react';
+import modelSettings from '../../../public/examples/model_settings.json';
 
 export default function ScoringAgentPage() {
     const globalApiKey = useApiKeyStore((state) => state.getApiKey());
@@ -36,6 +37,24 @@ export default function ScoringAgentPage() {
             setProvider(globalProvider);
         }
     }, [globalApiKey, globalProvider]);
+
+    // Update model when provider changes
+    useEffect(() => {
+        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
+        if (providerData) {
+            setModel(providerData.default_model);
+        }
+    }, [provider]);
+
+    // Get available models for current provider
+    const getAvailableModels = () => {
+        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
+        if (!providerData) return [];
+        return Object.entries(providerData.models || {}).map(([key, model]) => ({
+            id: model.actual_name,
+            name: model.description.split(' - ')[0] || model.actual_name
+        }));
+    };
 
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -182,13 +201,18 @@ export default function ScoringAgentPage() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model (Optional)</label>
-                                        <Input
-                                            type="text"
+                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
+                                        <select
                                             value={model}
                                             onChange={(e) => setModel(e.target.value)}
-                                            placeholder="Model name"
-                                        />
+                                            className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
+                                        >
+                                            {getAvailableModels().map((m) => (
+                                                <option key={m.id} value={m.id}>
+                                                    {m.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </CardContent>
                             </Card>

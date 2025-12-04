@@ -188,7 +188,7 @@
     },
     "high": {
       "description": "High-performance models with premium pricing",
-      "models": ["gpt-5.1", "claude-sonnet-4.5", "anthropic/claude-sonnet-4.5", "openai/gpt-5.1", "google/gemini-2.5-pro"]
+      "models": ["anthropic/claude-sonnet-4.5", "openai/gpt-5.1", "google/gemini-2.5-pro", "gpt-5.1", "claude-sonnet-4.5"]
     }
   }
 }
