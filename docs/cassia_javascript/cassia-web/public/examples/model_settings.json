@@ -1,17 +1,17 @@
 {
   "version": "1.0.0",
-  "last_updated": "2025-01-17",
+  "last_updated": "2025-12-03",
   "providers": {
     "openai": {
       "name": "OpenAI",
       "base_url": "https://api.openai.com/v1",
-      "default_model": "gpt-4o-2024-08-06",
-      "recommended_model": "gpt-4o-2024-08-06",
+      "default_model": "gpt-5.1",
+      "recommended_model": "gpt-5.1",
       "models": {
-        "gpt-4o-2024-08-06": {
-          "actual_name": "gpt-4o-2024-08-06",
-          "aliases": ["gpt4o", "gpt-4-omni", "gpt4-omni", "gpt-4o-latest", "gpt-4o"],
-          "description": "GPT-4o August 2024 model with vision capabilities",
+        "gpt-5.1": {
+          "actual_name": "gpt-5.1",
+          "aliases": ["gpt5", "gpt-5", "gpt51", "gpt-5-latest"],
+          "description": "GPT-5.1 high-performance model",
           "recommended": true,
           "cost_tier": "high",
           "context_window": 128000,
@@ -31,22 +31,22 @@
     "anthropic": {
       "name": "Anthropic",
       "base_url": "https://api.anthropic.com",
-      "default_model": "claude-sonnet-4-20250514",
-      "recommended_model": "claude-sonnet-4-20250514",
+      "default_model": "claude-sonnet-4.5",
+      "recommended_model": "claude-sonnet-4.5",
       "models": {
-        "claude-sonnet-4-20250514": {
-          "actual_name": "claude-sonnet-4-20250514",
-          "aliases": ["claude-3.5-sonnet", "claude35sonnet", "sonnet", "claude-sonnet", "claude-3-5-sonnet-latest", "claude-3-5-sonnet-20241022"],
-          "description": "Claude Sonnet 4 May 2025 model with enhanced reasoning capabilities",
+        "claude-sonnet-4.5": {
+          "actual_name": "claude-sonnet-4.5",
+          "aliases": ["claude-4.5-sonnet", "claude45sonnet", "sonnet", "claude-sonnet", "sonnet-4.5"],
+          "description": "Claude Sonnet 4.5 high-performance model with enhanced reasoning capabilities",
           "recommended": true,
           "cost_tier": "high",
           "context_window": 200000,
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         },
-        "claude-3-5-haiku-latest": {
-          "actual_name": "claude-3-5-haiku-latest",
-          "aliases": ["claude-3.5-haiku", "claude35haiku", "haiku", "claude-haiku"],
-          "description": "Fast and efficient Claude model for simpler tasks",
+        "claude-4.5-haiku": {
+          "actual_name": "claude-4.5-haiku",
+          "aliases": ["claude-haiku-4.5", "claude45haiku", "haiku", "claude-haiku"],
+          "description": "Claude 4.5 Haiku - fast and efficient model for simpler tasks",
           "recommended": false,
           "cost_tier": "low",
           "context_window": 200000,
@@ -57,22 +57,40 @@
     "openrouter": {
       "name": "OpenRouter",
       "base_url": "https://openrouter.ai/api/v1",
-      "default_model": "google/gemini-2.5-flash",
-      "recommended_model": "google/gemini-2.5-flash",
+      "default_model": "anthropic/claude-sonnet-4.5",
+      "recommended_model": "anthropic/claude-sonnet-4.5",
       "models": {
+        "anthropic/claude-sonnet-4.5": {
+          "actual_name": "anthropic/claude-sonnet-4.5",
+          "aliases": ["claude-sonnet-4.5-openrouter", "claude45-sonnet", "sonnet-4.5"],
+          "description": "Claude Sonnet 4.5 via OpenRouter - current default high-performance model",
+          "recommended": true,
+          "cost_tier": "high",
+          "context_window": 200000,
+          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
+        },
+        "openai/gpt-5.1": {
+          "actual_name": "openai/gpt-5.1",
+          "aliases": ["gpt-5.1-openrouter", "gpt51-openrouter", "gpt-5"],
+          "description": "GPT-5.1 via OpenRouter - balanced option",
+          "recommended": true,
+          "cost_tier": "high",
+          "context_window": 128000,
+          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
+        },
         "google/gemini-2.5-flash": {
           "actual_name": "google/gemini-2.5-flash",
           "aliases": ["gemini-2.5-flash", "gemini25flash", "gemini-flash", "flash"],
-          "description": "Google Gemini 2.5 Flash - most recommended balance model",
+          "description": "Google Gemini 2.5 Flash - one of the best-performed low-cost models",
           "recommended": true,
           "cost_tier": "low",
           "context_window": 1000000,
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         },
-        "anthropic/claude-3.5-haiku": {
-          "actual_name": "anthropic/claude-3.5-haiku",
-          "aliases": ["claude-3.5-haiku-openrouter", "claude35haiku-openrouter", "haiku-openrouter"],
-          "description": "Claude 3.5 Haiku via OpenRouter - balance category",
+        "anthropic/claude-4.5-haiku": {
+          "actual_name": "anthropic/claude-4.5-haiku",
+          "aliases": ["claude-4.5-haiku-openrouter", "claude45haiku-openrouter", "haiku-openrouter"],
+          "description": "Claude 4.5 Haiku via OpenRouter - balance category",
           "recommended": true,
           "cost_tier": "low",
           "context_window": 200000,
@@ -85,24 +103,6 @@
           "recommended": true,
           "cost_tier": "very_low",
           "context_window": 65536,
-          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
-        },
-        "openai/gpt-4o-2024-08-06": {
-          "actual_name": "openai/gpt-4o-2024-08-06",
-          "aliases": ["gpt-4o-openrouter", "gpt4o-openrouter", "gpt-4o-aug"],
-          "description": "GPT-4o August 2024 model via OpenRouter - performance category",
-          "recommended": true,
-          "cost_tier": "high",
-          "context_window": 128000,
-          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
-        },
-        "anthropic/claude-sonnet-4": {
-          "actual_name": "anthropic/claude-sonnet-4",
-          "aliases": ["claude-sonnet-4-openrouter", "claude4-sonnet", "sonnet-4"],
-          "description": "Claude Sonnet 4 via OpenRouter - most recommended performance model",
-          "recommended": true,
-          "cost_tier": "high",
-          "context_window": 200000,
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         },
         "google/gemini-2.5-pro": {
@@ -119,57 +119,57 @@
   },
   "provider_shortcuts": {
     "openai": {
-      "gpt4": "gpt-4o-2024-08-06",
-      "gpt": "gpt-4o-2024-08-06",
-      "best": "gpt-4o-2024-08-06",
-      "premium": "gpt-4o-2024-08-06",
+      "gpt5": "gpt-5.1",
+      "gpt": "gpt-5.1",
+      "best": "gpt-5.1",
+      "premium": "gpt-5.1",
       "cheap": "gpt-4.1-2025-04-14",
       "fast": "gpt-4.1-2025-04-14",
-      "default": "gpt-4o-2024-08-06"
+      "default": "gpt-5.1"
     },
     "anthropic": {
-      "claude": "claude-sonnet-4-20250514",
-      "sonnet": "claude-sonnet-4-20250514",
-      "best": "claude-sonnet-4-20250514",
-      "premium": "claude-sonnet-4-20250514",
-      "cheap": "claude-3-5-haiku-latest",
-      "fast": "claude-3-5-haiku-latest",
-      "default": "claude-sonnet-4-20250514"
+      "claude": "claude-sonnet-4.5",
+      "sonnet": "claude-sonnet-4.5",
+      "best": "claude-sonnet-4.5",
+      "premium": "claude-sonnet-4.5",
+      "cheap": "claude-4.5-haiku",
+      "fast": "claude-4.5-haiku",
+      "default": "claude-sonnet-4.5"
     },
     "openrouter": {
-      "gpt4": "openai/gpt-4o-2024-08-06",
-      "gpt": "openai/gpt-4o-2024-08-06",
-      "claude": "anthropic/claude-sonnet-4",
-      "sonnet": "anthropic/claude-sonnet-4",
+      "gpt5": "openai/gpt-5.1",
+      "gpt": "openai/gpt-5.1",
+      "claude": "anthropic/claude-sonnet-4.5",
+      "sonnet": "anthropic/claude-sonnet-4.5",
       "gemini": "google/gemini-2.5-flash",
       "flash": "google/gemini-2.5-flash",
       "deepseek": "deepseek/deepseek-chat-v3-0324",
-      "best": "google/gemini-2.5-flash",
-      "premium": "anthropic/claude-sonnet-4",
+      "best": "anthropic/claude-sonnet-4.5",
+      "premium": "anthropic/claude-sonnet-4.5",
       "cheap": "deepseek/deepseek-chat-v3-0324",
       "fast": "google/gemini-2.5-flash",
-      "default": "google/gemini-2.5-flash"
+      "default": "anthropic/claude-sonnet-4.5"
     }
   },
   "use_case_recommendations": {
     "annotation": {
-      "best": "google/gemini-2.5-flash",
-      "alternatives": ["anthropic/claude-sonnet-4", "openai/gpt-4o-2024-08-06", "deepseek/deepseek-chat-v3-0324"],
+      "best": "anthropic/claude-sonnet-4.5",
+      "alternatives": ["google/gemini-2.5-flash", "openai/gpt-5.1", "deepseek/deepseek-chat-v3-0324"],
       "description": "Models optimized for cell type annotation tasks"
     },
     "scoring": {
       "best": "deepseek/deepseek-chat-v3-0324",
-      "alternatives": ["google/gemini-2.5-flash", "anthropic/claude-3.5-haiku"],
+      "alternatives": ["google/gemini-2.5-flash", "anthropic/claude-4.5-haiku"],
       "description": "Models optimized for annotation quality scoring"
     },
     "annotation_boost": {
-      "best": "anthropic/claude-sonnet-4",
-      "alternatives": ["google/gemini-2.5-pro", "openai/gpt-4o-2024-08-06"],
+      "best": "anthropic/claude-sonnet-4.5",
+      "alternatives": ["google/gemini-2.5-pro", "openai/gpt-5.1"],
       "description": "Models optimized for deep annotation analysis"
     },
     "merging": {
       "best": "google/gemini-2.5-flash",
-      "alternatives": ["deepseek/deepseek-chat-v3-0324", "anthropic/claude-3.5-haiku"],
+      "alternatives": ["deepseek/deepseek-chat-v3-0324", "anthropic/claude-4.5-haiku"],
       "description": "Models optimized for merging annotations"
     }
   },
@@ -180,7 +180,7 @@
     },
     "low": {
       "description": "Low cost models with good performance",
-      "models": ["google/gemini-2.5-flash", "claude-3-5-haiku-latest", "anthropic/claude-3.5-haiku"]
+      "models": ["google/gemini-2.5-flash", "claude-4.5-haiku", "anthropic/claude-4.5-haiku"]
     },
     "medium": {
       "description": "Medium cost models with balanced performance",
@@ -188,7 +188,7 @@
     },
     "high": {
       "description": "High-performance models with premium pricing",
-      "models": ["gpt-4o-2024-08-06", "claude-sonnet-4-20250514", "anthropic/claude-sonnet-4", "openai/gpt-4o-2024-08-06", "google/gemini-2.5-pro"]
+      "models": ["gpt-5.1", "claude-sonnet-4.5", "anthropic/claude-sonnet-4.5", "openai/gpt-5.1", "google/gemini-2.5-pro"]
     }
   }
 }
