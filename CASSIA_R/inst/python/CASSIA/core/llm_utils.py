@@ -278,10 +278,21 @@ def call_llm(
             "Content-Type": "application/json"
         }
 
+        # Handle message history properly (similar to custom HTTP provider)
+        api_messages = messages.copy()
+        params_copy = additional_params.copy() if additional_params else {}
+
+        # If additional_params contains message history, use it instead of the single prompt
+        if 'messages' in params_copy:
+            api_messages = params_copy.pop('messages')
+            # Only add system prompt if not already in history
+            if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
+                api_messages.insert(0, {"role": "system", "content": system_prompt})
+
         data = {
-            **additional_params,
+            **params_copy,
             "model": model,
-            "messages": messages,
+            "messages": api_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }

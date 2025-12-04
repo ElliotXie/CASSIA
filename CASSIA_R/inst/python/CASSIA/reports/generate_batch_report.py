@@ -156,6 +156,16 @@ def format_json_summary(json_text: str) -> str:
             sub_types = data.get('sub_cell_types', [])
             mixed_types = data.get('possible_mixed_cell_types', [])
 
+            # Generate ranked subtype items with color coding
+            rank_classes = ['rank-1', 'rank-2', 'rank-3']
+            if sub_types:
+                subtype_items = ''.join(
+                    f'<li class="{rank_classes[i] if i < 3 else ""}">{html.escape(str(t))}</li>'
+                    for i, t in enumerate(sub_types)
+                )
+            else:
+                subtype_items = '<li class="empty">None identified</li>'
+
             html_content = f'''
             <div class="json-summary">
                 <div class="summary-field">
@@ -165,7 +175,7 @@ def format_json_summary(json_text: str) -> str:
                 <div class="summary-field">
                     <span class="field-label">Sub Cell Types:</span>
                     <ul class="type-list">
-                        {"".join(f'<li>{html.escape(str(t))}</li>' for t in sub_types) if sub_types else '<li class="empty">None identified</li>'}
+                        {subtype_items}
                     </ul>
                 </div>
                 <div class="summary-field">
@@ -239,11 +249,15 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
         except (ValueError, TypeError):
             pass
 
-    # Format sub types as list
+    # Format sub types as list with ranked colors (deeper = more likely)
     sub_types_html = ""
     if sub_types and sub_types.strip():
         sub_list = [s.strip() for s in sub_types.split(',')]
-        sub_types_html = '<ul class="sub-types-list">' + ''.join(f'<li>{html.escape(s)}</li>' for s in sub_list[:3])
+        rank_classes = ['rank-1', 'rank-2', 'rank-3']
+        sub_types_html = '<ul class="sub-types-list">' + ''.join(
+            f'<li class="{rank_classes[i]}">{html.escape(s)}</li>'
+            for i, s in enumerate(sub_list[:3])
+        )
         if len(sub_list) > 3:
             sub_types_html += f'<li class="more">+{len(sub_list) - 3} more</li>'
         sub_types_html += '</ul>'
@@ -284,6 +298,31 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
         </div>
         '''
 
+    # Extract and format merged groupings if available
+    # These show hierarchy: Broad → Detailed → Specific annotation levels
+    merged_1 = str(row.get('Merged_Grouping_1', ''))
+    merged_2 = str(row.get('Merged_Grouping_2', ''))
+    merged_3 = str(row.get('Merged_Grouping_3', ''))
+
+    merged_html = ""
+    if any([merged_1.strip(), merged_2.strip(), merged_3.strip()]):
+        merged_items = []
+        if merged_1.strip():
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Broad:</span><span class="merged-tag merged-broad">{html.escape(truncate_text(merged_1, 40))}</span></div>')
+        if merged_2.strip():
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Detailed:</span><span class="merged-tag merged-detailed">{html.escape(truncate_text(merged_2, 40))}</span></div>')
+        if merged_3.strip():
+            merged_items.append(f'<div class="merged-item"><span class="merged-label">Specific:</span><span class="merged-tag merged-specific">{html.escape(truncate_text(merged_3, 40))}</span></div>')
+
+        merged_html = f'''
+        <div class="card-section merged-section">
+            <div class="section-label">Merged Cell Type Groups (Broad → Specific):</div>
+            <div class="merged-groupings">
+                {"".join(merged_items)}
+            </div>
+        </div>
+        '''
+
     # Truncate marker list for preview
     marker_preview = truncate_text(marker_list, 80)
 
@@ -309,6 +348,8 @@ def generate_cluster_card(row: Dict[str, Any], index: int) -> str:
             <div class="section-label">Sub Cell Types:</div>
             {sub_types_html}
         </div>
+
+        {merged_html}
 
         {mixed_html}
 
@@ -423,6 +464,43 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
         </div>
         '''
 
+    # Merged groupings section if available
+    merged_1 = str(row.get('Merged_Grouping_1', ''))
+    merged_2 = str(row.get('Merged_Grouping_2', ''))
+    merged_3 = str(row.get('Merged_Grouping_3', ''))
+
+    merged_section_html = ''
+    if any([merged_1.strip(), merged_2.strip(), merged_3.strip()]):
+        merged_section_html = f'''
+        <div class="modal-section merged-groupings-section">
+            <h3 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Merged Cell Type Groupings
+            </h3>
+            <div class="section-content">
+                <div class="merged-detail-grid">
+                    <div class="merged-detail-item">
+                        <span class="merged-level">Broad:</span>
+                        <span class="merged-value">{html.escape(merged_1) if merged_1.strip() else 'N/A'}</span>
+                    </div>
+                    <div class="merged-detail-item">
+                        <span class="merged-level">Detailed:</span>
+                        <span class="merged-value">{html.escape(merged_2) if merged_2.strip() else 'N/A'}</span>
+                    </div>
+                    <div class="merged-detail-item">
+                        <span class="merged-level">Specific:</span>
+                        <span class="merged-value">{html.escape(merged_3) if merged_3.strip() else 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        '''
+
     modal_html = f'''
     <div class="modal-content" id="modal-content-{index}">
         <div class="modal-header">
@@ -482,6 +560,8 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
             </div>
 
             {scoring_html}
+
+            {merged_section_html}
         </div>
     </div>
     '''
@@ -871,6 +951,45 @@ def get_css_styles() -> str:
         background: var(--text-muted);
     }
 
+    /* Ranked subtype colors with BACKGROUND - deeper = more likely */
+    /* No bullet points - background color is sufficient */
+    .sub-types-list li.rank-1 {
+        background: rgba(13, 148, 136, 0.25);
+        color: #0d9488;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border-left: 3px solid #0d9488;
+        margin-bottom: 4px;
+    }
+    .sub-types-list li.rank-1::before {
+        display: none;
+    }
+
+    .sub-types-list li.rank-2 {
+        background: rgba(20, 184, 166, 0.15);
+        color: #134e4a;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border-left: 3px solid #14b8a6;
+        margin-bottom: 4px;
+    }
+    .sub-types-list li.rank-2::before {
+        display: none;
+    }
+
+    .sub-types-list li.rank-3 {
+        background: rgba(94, 234, 212, 0.12);
+        color: #64748b;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border-left: 3px solid #5eead4;
+        margin-bottom: 4px;
+    }
+    .sub-types-list li.rank-3::before {
+        display: none;
+    }
+
     .empty-field {
         color: var(--text-muted);
         font-style: italic;
@@ -1200,6 +1319,115 @@ def get_css_styles() -> str:
         color: var(--text-muted);
         font-style: italic;
         background: rgba(100, 116, 139, 0.05);
+    }
+
+    /* Ranked subtypes in modal type-list */
+    .type-list li.rank-1 {
+        background: rgba(13, 148, 136, 0.15);
+        color: #0d9488;
+        font-weight: 600;
+        border-left: 3px solid #0d9488;
+    }
+
+    .type-list li.rank-2 {
+        background: rgba(20, 184, 166, 0.12);
+        color: #134e4a;
+        border-left: 3px solid #14b8a6;
+    }
+
+    .type-list li.rank-3 {
+        background: rgba(94, 234, 212, 0.12);
+        color: #64748b;
+        border-left: 3px solid #5eead4;
+    }
+
+    /* Merged cell type groupings styles */
+    .merged-section {
+        margin-top: 8px;
+    }
+
+    .merged-groupings {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .merged-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .merged-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        min-width: 55px;
+    }
+
+    .merged-tag {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .merged-broad {
+        background: rgba(13, 148, 136, 0.15);
+        color: #0d9488;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+    }
+
+    .merged-detailed {
+        background: rgba(5, 150, 105, 0.15);
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.3);
+    }
+
+    .merged-specific {
+        background: rgba(245, 158, 11, 0.15);
+        color: #b45309;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Merged groupings section in modal */
+    .merged-groupings-section .section-title {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+        color: #7c3aed;
+    }
+
+    .merged-detail-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .merged-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+        background: rgba(139, 92, 246, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid #7c3aed;
+    }
+
+    .merged-level {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7c3aed;
+        font-weight: 600;
+    }
+
+    .merged-value {
+        font-size: 0.95rem;
+        color: var(--text-primary);
     }
 
     .json-raw {
