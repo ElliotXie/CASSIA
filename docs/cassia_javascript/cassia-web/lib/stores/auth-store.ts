@@ -10,21 +10,23 @@ interface AuthState {
   profile: Profile | null
   isLoading: boolean
   error: string | null
+  successMessage: string | null
   isAuthenticated: boolean
   userId: string | null
-  
+
   // Auth actions
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, fullName?: string) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<void>
-  
+
   // Session management
   initialize: () => Promise<void>
   refreshSession: () => Promise<void>
   loadProfile: () => Promise<void>
   clearError: () => void
+  clearSuccess: () => void
   forceResetLoading: () => void
 }
 
@@ -36,40 +38,42 @@ export const useAuthStore = create<AuthState>()(
       profile: null,
       isLoading: false,
       error: null,
+      successMessage: null,
       isAuthenticated: false,
       userId: null,
-      
+
       clearError: () => set({ error: null }),
+      clearSuccess: () => set({ successMessage: null }),
       forceResetLoading: () => {
         console.log('Auth store: Force resetting loading state')
-        set({ isLoading: false, error: null })
+        set({ isLoading: false, error: null, successMessage: null })
       },
       
       signIn: async (email: string, password: string) => {
         const supabase = createClient()
-        set({ isLoading: true, error: null })
-        
+        set({ isLoading: true, error: null, successMessage: null })
+
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
           })
-          
+
           if (error) throw error
-          
-          set({ 
-            user: data.user, 
+
+          set({
+            user: data.user,
             session: data.session,
             isAuthenticated: !!data.user,
             userId: data.user?.id || null
           })
-          
+
           // Load profile after successful sign in
           await get().loadProfile()
         } catch (error) {
           const authError = error as AuthError
           let userFriendlyMessage = authError.message
-          
+
           // Make error messages more user-friendly
           if (authError.message.includes('Invalid login credentials')) {
             userFriendlyMessage = 'Invalid email or password. Please check your credentials and try again.'
@@ -80,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
           } else if (authError.message.includes('Too many requests')) {
             userFriendlyMessage = 'Too many failed attempts. Please wait a moment before trying again.'
           }
-          
+
           set({ error: userFriendlyMessage })
         } finally {
           set({ isLoading: false })
@@ -89,8 +93,8 @@ export const useAuthStore = create<AuthState>()(
       
       signUp: async (email: string, password: string, fullName?: string) => {
         const supabase = createClient()
-        set({ isLoading: true, error: null })
-        
+        set({ isLoading: true, error: null, successMessage: null })
+
         try {
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -101,19 +105,42 @@ export const useAuthStore = create<AuthState>()(
               },
             },
           })
-          
+
           if (error) throw error
-          
-          set({ 
-            user: data.user, 
-            session: data.session,
-            isAuthenticated: !!data.user,
-            userId: data.user?.id || null
-          })
+
+          // Check if email confirmation is required
+          // If session is null but user exists, email confirmation is needed
+          if (data.user && !data.session) {
+            console.log('Auth store: Email confirmation required for user:', data.user.email)
+            set({
+              user: null,  // Don't set user until confirmed
+              session: null,
+              isAuthenticated: false,
+              userId: null,
+              successMessage: 'Registration successful! Please check your email to confirm your account before signing in.',
+              error: null
+            })
+          } else {
+            // Auto sign-in enabled (no email confirmation required)
+            console.log('Auth store: User registered and automatically signed in')
+            set({
+              user: data.user,
+              session: data.session,
+              isAuthenticated: !!data.user,
+              userId: data.user?.id || null,
+              successMessage: 'Registration successful! Welcome to CASSIA.',
+              error: null
+            })
+
+            // Load profile after successful sign up
+            if (data.user) {
+              await get().loadProfile()
+            }
+          }
         } catch (error) {
           const authError = error as AuthError
           let userFriendlyMessage = authError.message
-          
+
           // Make error messages more user-friendly
           if (authError.message.includes('User already registered')) {
             userFriendlyMessage = 'An account with this email already exists. Please sign in instead.'
@@ -124,7 +151,7 @@ export const useAuthStore = create<AuthState>()(
           } else if (authError.message.includes('Signup is disabled')) {
             userFriendlyMessage = 'Account creation is temporarily disabled. Please contact support.'
           }
-          
+
           set({ error: userFriendlyMessage })
         } finally {
           set({ isLoading: false })

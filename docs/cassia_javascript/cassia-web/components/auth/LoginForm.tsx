@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertCircle, X } from 'lucide-react'
+import { AlertCircle, X, CheckCircle } from 'lucide-react'
 
 interface LoginFormProps {
   onToggleMode?: () => void
@@ -26,8 +26,9 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
   const [isSignUp, setIsSignUp] = useState(false)
   const [fullName, setFullName] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
-  
-  const { signIn, signUp, isLoading, error, clearError, forceResetLoading } = useAuthStore()
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+
+  const { signIn, signUp, isLoading, error, successMessage, clearError, clearSuccess, forceResetLoading } = useAuthStore()
   
   // Force reset loading state when component mounts
   useEffect(() => {
@@ -41,6 +42,17 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
       setShowErrorDialog(true)
     }
   }, [error])
+
+  // Show success dialog when success message occurs
+  useEffect(() => {
+    if (successMessage) {
+      setShowSuccessDialog(true)
+      // Clear form fields after successful registration
+      setEmail('')
+      setPassword('')
+      setFullName('')
+    }
+  }, [successMessage])
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,13 +74,24 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
   const toggleMode = () => {
     setIsSignUp(!isSignUp)
     clearError()
+    clearSuccess()
     setShowErrorDialog(false)
+    setShowSuccessDialog(false)
     onToggleMode?.()
   }
-  
+
   const handleCloseErrorDialog = () => {
     setShowErrorDialog(false)
     clearError()
+  }
+
+  const handleCloseSuccessDialog = () => {
+    setShowSuccessDialog(false)
+    clearSuccess()
+    // If registration required email confirmation, switch to sign in mode
+    if (successMessage?.includes('check your email')) {
+      setIsSignUp(false)
+    }
   }
   
   return (
@@ -168,6 +191,29 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
             >
               <X className="h-4 w-4" />
               Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              Success
+            </DialogTitle>
+            <DialogDescription className="text-left">
+              {successMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              onClick={handleCloseSuccessDialog}
+              className="flex items-center gap-2"
+            >
+              OK
             </Button>
           </div>
         </DialogContent>
