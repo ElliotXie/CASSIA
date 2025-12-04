@@ -386,16 +386,16 @@ export default function HomePage() {
           </div>
           
           {!apiKey && (
-            <div className="mt-6 p-4 glass border border-orange-400/30 bg-orange-50/20 rounded-xl">
+            <div className="mt-6">
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white text-sm font-bold">!</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-orange-800 dark:text-orange-400 mb-2">Why do I need an API key?</h4>
-                  <p className="text-orange-700 dark:text-orange-300 text-sm leading-relaxed">
-                    CASSIA uses advanced AI language models to analyze your cell marker data and provide intelligent annotations. 
-                    You need an API key from OpenRouter, OpenAI, or Anthropic to access these models. Your key is stored securely 
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Why do I need an API key?</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    CASSIA uses advanced AI language models to analyze your cell marker data and provide intelligent annotations.
+                    You need an API key from OpenRouter, OpenAI, or Anthropic to access these models. Your key is stored securely
                     in your browser and never shared with our servers.
                   </p>
                 </div>
