@@ -77,8 +77,8 @@ run_cassia_pipeline_install_test <- function() {
   log_msg("\nLoaded raw marker data:", nrow(marker_df), "rows")
   log_msg("Data source:", raw_markers_path)
 
-  # Create results directory
-  results_dirs <- create_results_dir("15_cassia_pipeline", get_test_mode())
+  # Create results directory (use "installed" mode for install tests)
+  results_dirs <- create_results_dir("15_cassia_pipeline", "installed")
 
   start_logging(results_dirs$logs)
   output_name <- file.path(results_dirs$outputs, "pipeline_test")
