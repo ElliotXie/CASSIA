@@ -608,7 +608,9 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
                 cols = result.columns.tolist()
                 cols.insert(0, cols.pop(cols.index('gene')))
                 result = result[cols]
-            
+                # Reset index to clean integer range to prevent index from creating extra columns later
+                result = result.reset_index(drop=True)
+
             if debug_mode:
                 print(f"DEBUG: Created result DataFrame with {len(valid_rows)} rows")
         else:
@@ -648,20 +650,17 @@ def get_marker_info(gene_list: List[str], marker: Union[pd.DataFrame, Any]) -> s
     else:
         output_df = marker_filtered
     
-    # Remove unwanted columns (including 'scores' from Scanpy which is typically empty)
-    columns_to_remove = ['cluster', 'Unnamed: 0', 'scores']
-    for col in columns_to_remove:
-        if col in output_df.columns:
-            output_df = output_df.drop(columns=[col])
-    
-    # Ensure 'gene' column is the first column
-    if 'gene' in output_df.columns and list(output_df.columns).index('gene') > 0:
-        cols = list(output_df.columns)
-        cols.remove('gene')
-        cols.insert(0, 'gene')
-        output_df = output_df[cols]
-        
-    # Generate marker info string from valid genes only - don't show the row indices
+    # STRICT WHITELIST: Only allow specific statistical columns
+    # This prevents random columns from user's CSV appearing in LLM output
+    allowed_columns = ['gene', 'avg_log2FC', 'pct.1', 'pct.2', 'p_val_adj']
+
+    # Keep only columns that exist in both allowed list and dataframe
+    columns_to_keep = [col for col in allowed_columns if col in output_df.columns]
+
+    # Apply whitelist filter and reset index to prevent index-derived columns
+    output_df = output_df[columns_to_keep].reset_index(drop=True)
+
+    # Generate marker info string - clean output with only allowed columns
     marker_string = output_df.to_string(index=False)
     
     # If there are genes with all NA values, add a message
