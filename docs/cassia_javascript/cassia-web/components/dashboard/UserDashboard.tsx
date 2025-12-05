@@ -29,7 +29,7 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
     isLoading,
     error
   } = useResultsStore()
-  const { apiKey, provider } = useApiKeyStore()
+  const { apiKeys } = useApiKeyStore()
 
   const [selectedResults, setSelectedResults] = useState<string[]>([])
 
@@ -38,7 +38,7 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
       loadResults(20) // Load last 20 results
     }
   }, [user, loadResults])
-  
+
   const handleExport = async () => {
     if (selectedResults.length === 0) return
     
@@ -74,7 +74,8 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
     }
   }
 
-  const hasApiKey = apiKey && apiKey.length > 0
+  // Check if any API key is set across all providers
+  const hasApiKey = Object.values(apiKeys).some(key => key && key.length > 0)
   
   if (!user) {
     return (
