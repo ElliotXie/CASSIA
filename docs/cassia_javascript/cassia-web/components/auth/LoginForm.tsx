@@ -64,8 +64,11 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
         // Don't call onSuccess for sign-up - let user see success dialog first
         // onSuccess will be called when they dismiss the success dialog
       } else {
-        await signIn(email, password)
-        onSuccess?.() // Close dialog for successful sign-in
+        const success = await signIn(email, password)
+        // Only close dialog if sign-in actually succeeded
+        if (success) {
+          onSuccess?.()
+        }
       }
     } catch (error) {
       // Error is handled by the store

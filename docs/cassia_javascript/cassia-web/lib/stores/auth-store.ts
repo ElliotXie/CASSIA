@@ -15,7 +15,7 @@ interface AuthState {
   userId: string | null
 
   // Auth actions
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<boolean>
   signUp: (email: string, password: string, fullName?: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: false, error: null, successMessage: null })
       },
       
-      signIn: async (email: string, password: string) => {
+      signIn: async (email: string, password: string): Promise<boolean> => {
         const supabase = createClient()
         set({ isLoading: true, error: null, successMessage: null })
 
@@ -72,6 +72,8 @@ export const useAuthStore = create<AuthState>()(
 
           // Load profile after successful sign in
           await get().loadProfile()
+
+          return true // Return success
         } catch (error) {
           const authError = error as AuthError
           let userFriendlyMessage = authError.message
@@ -88,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           set({ error: userFriendlyMessage })
+          return false // Return failure
         } finally {
           set({ isLoading: false })
         }
