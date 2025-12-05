@@ -66,7 +66,8 @@ export const useAuthStore = create<AuthState>()(
             user: data.user,
             session: data.session,
             isAuthenticated: !!data.user,
-            userId: data.user?.id || null
+            userId: data.user?.id || null,
+            successMessage: 'Successfully signed in!'
           })
 
           // Load profile after successful sign in

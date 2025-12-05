@@ -27,9 +27,9 @@ export function AuthButton() {
   const [showProfile, setShowProfile] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
 
-  // Show notification when signed out
+  // Show notification when signed in or signed out
   useEffect(() => {
-    if (successMessage?.includes('signed out')) {
+    if (successMessage) {
       setShowNotification(true)
       const timer = setTimeout(() => {
         setShowNotification(false)
@@ -46,11 +46,11 @@ export function AuthButton() {
   if (!isAuthenticated) {
     return (
       <>
-        {/* Sign-out notification */}
-        {showNotification && (
+        {/* Success notification */}
+        {showNotification && successMessage && (
           <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
             <CheckCircle className="h-4 w-4" />
-            <span>Signed out successfully</span>
+            <span>{successMessage}</span>
           </div>
         )}
         <Dialog open={showLogin} onOpenChange={setShowLogin}>
@@ -72,8 +72,16 @@ export function AuthButton() {
   }
   
   return (
-    <div className="flex items-center gap-2">
-      <DropdownMenu>
+    <>
+      {/* Success notification */}
+      {showNotification && successMessage && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
+          <CheckCircle className="h-4 w-4" />
+          <span>{successMessage}</span>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="glass border-white/30 hover:bg-white/20 btn-modern flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -101,6 +109,7 @@ export function AuthButton() {
           <ProfileForm />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   )
 }
