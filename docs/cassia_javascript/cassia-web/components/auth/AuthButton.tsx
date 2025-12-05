@@ -31,7 +31,7 @@ export function AuthButton() {
       const timer = setTimeout(() => {
         setShowNotification(false)
         clearSuccess()
-      }, 3000)
+      }, 1000)
       return () => clearTimeout(timer)
     }
   }, [successMessage, clearSuccess])
