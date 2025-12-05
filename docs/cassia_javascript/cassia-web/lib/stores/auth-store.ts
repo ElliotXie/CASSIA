@@ -182,30 +182,26 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         const supabase = createClient()
-        set({ isLoading: true, error: null })
+        set({ isLoading: true, error: null, successMessage: null })
 
         try {
           const { error } = await supabase.auth.signOut()
           if (error) throw error
 
-          // Clear the auth state
+          // Clear the auth state and show success message
           set({
             user: null,
             session: null,
             profile: null,
             isAuthenticated: false,
             userId: null,
-            isLoading: false
+            isLoading: false,
+            successMessage: 'You have been signed out successfully.'
           })
 
           // Clear the persisted storage
           if (typeof window !== 'undefined') {
             localStorage.removeItem('cassia-auth-storage')
-          }
-
-          // Reload the page to ensure clean state
-          if (typeof window !== 'undefined') {
-            window.location.href = '/'
           }
         } catch (error) {
           set({ error: (error as AuthError).message, isLoading: false })

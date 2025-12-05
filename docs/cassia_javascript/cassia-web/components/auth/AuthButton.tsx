@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import { LoginForm } from './LoginForm'
@@ -19,33 +19,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, LogOut, Settings, Database } from 'lucide-react'
+import { User, LogOut, Settings, CheckCircle } from 'lucide-react'
 
 export function AuthButton() {
-  const { user, profile, signOut, isAuthenticated } = useAuthStore()
+  const { user, profile, signOut, isAuthenticated, successMessage, clearSuccess } = useAuthStore()
   const [showLogin, setShowLogin] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-  
+  const [showNotification, setShowNotification] = useState(false)
+
+  // Show notification when signed out
+  useEffect(() => {
+    if (successMessage?.includes('signed out')) {
+      setShowNotification(true)
+      const timer = setTimeout(() => {
+        setShowNotification(false)
+        clearSuccess()
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage, clearSuccess])
+
   const handleSignOut = async () => {
     await signOut()
   }
   
   if (!isAuthenticated) {
     return (
-      <Dialog open={showLogin} onOpenChange={setShowLogin}>
-        <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="glass border-white/30 hover:bg-white/20 btn-modern">
-            <User className="h-4 w-4 mr-2" />
-            Sign In
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Authentication</DialogTitle>
-          </DialogHeader>
-          <LoginForm onSuccess={() => setShowLogin(false)} />
-        </DialogContent>
-      </Dialog>
+      <>
+        {/* Sign-out notification */}
+        {showNotification && (
+          <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
+            <CheckCircle className="h-4 w-4" />
+            <span>Signed out successfully</span>
+          </div>
+        )}
+        <Dialog open={showLogin} onOpenChange={setShowLogin}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="glass border-white/30 hover:bg-white/20 btn-modern">
+              <User className="h-4 w-4 mr-2" />
+              Sign In
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authentication</DialogTitle>
+            </DialogHeader>
+            <LoginForm onSuccess={() => setShowLogin(false)} />
+          </DialogContent>
+        </Dialog>
+      </>
     )
   }
   

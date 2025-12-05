@@ -1,0 +1,129 @@
+{
+  "timestamp": "2025-12-04T17:58:22",
+  "mode": "installed",
+  "language": "R",
+  "total_duration": 600.71,
+  "summary": {
+    "passed": 11,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 1
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 28.62,
+      "mode": "install",
+      "script": "test_single_annotation_install.R"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 41.93,
+      "mode": "install",
+      "script": "test_batch_annotation_install.R"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 66.89,
+      "mode": "install",
+      "script": "test_validator_comparison_install.R"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 27.99,
+      "mode": "install",
+      "script": "test_quality_scoring_install.R"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 25.31,
+      "mode": "install",
+      "script": "test_model_settings_install.R"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 51.75,
+      "mode": "install",
+      "script": "test_annotation_boost_install.R"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 37.62,
+      "mode": "install",
+      "script": "test_merging_annotation_install.R"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 56.73,
+      "mode": "install",
+      "script": "test_uncertainty_quantification_install.R"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 22.86,
+      "mode": "install",
+      "script": "test_subclustering_install.R"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 123.86,
+      "mode": "install",
+      "script": "test_symphony_compare_install.R"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 9.67,
+      "mode": "install",
+      "script": "test_report_generation_install.R"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 32.21,
+      "mode": "install",
+      "script": "test_batch_with_reference_install.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing pre-installed CASSIA package\nCASSIA loaded successfully! Happy annotating!\nCASSIA R package installed and loaded successfully",
+      "reason": "CASSIA R package installed and loaded successfully"
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "skipped",
+      "reason": "No R test script found (install)",
+      "duration": 0,
+      "mode": "install"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 75.13,
+      "mode": "install",
+      "script": "test_cassia_pipeline_install.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing pre-installed CASSIA package\nCASSIA loaded successfully! Happy annotating!\nCASSIA R package installed and loaded successfully",
+      "reason": "CASSIA R package installed and loaded successfully"
+    }
+  ]
+}
