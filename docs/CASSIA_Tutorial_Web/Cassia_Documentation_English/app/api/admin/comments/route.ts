@@ -3,10 +3,17 @@ import { createClient } from "@supabase/supabase-js"
 
 // Create a Supabase client with service role for admin operations
 // This bypasses RLS to allow reading/updating all comments
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Using lazy initialization to avoid build-time errors
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  return createClient(url, key)
+}
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "cassia-admin-2024"
 
@@ -26,6 +33,7 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get("status") // pending, approved, rejected, or null for all
 
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     let query = supabaseAdmin
       .from("comments")
       .select("*")
@@ -66,6 +74,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
+    const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin
       .from("comments")
       .update({ status, admin_notes })
@@ -98,6 +107,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Missing comment id" }, { status: 400 })
     }
 
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from("comments")
       .delete()
