@@ -72,7 +72,7 @@ We recommend setting up APIs for anthropic and openrouter to use this tutorial
 # Set up API keys from environment variables
 setLLMApiKey(Sys.getenv("OPENAI_API_KEY"), provider = "openai", persist = TRUE)
 setLLMApiKey(Sys.getenv("ANTHROPIC_API_KEY"), provider = "anthropic", persist = TRUE)
-setLLMApiKey("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", provider = "openrouter", persist = TRUE)
+setLLMApiKey("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", provider = "openrouter", persist = TRUE)
 
 print("API keys loaded from environment variables")
 

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { ContactDialog } from '@/components/ContactDialog'
@@ -12,7 +12,7 @@ import { AuthButton } from '@/components/auth/AuthButton'
 import { UserDashboard } from '@/components/dashboard/UserDashboard'
 import { LoadApiKeysButton } from '@/components/LoadApiKeysButton'
 import modelSettings from '../public/examples/model_settings.json'
-import { useSearchParams } from 'next/navigation'
+import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
 
 export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
@@ -27,26 +27,9 @@ export default function HomePage() {
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [testMessage, setTestMessage] = useState('')
   const [showApiKey, setShowApiKey] = useState(false)
-  const [showConfirmationNotification, setShowConfirmationNotification] = useState(false)
-  const searchParams = useSearchParams()
 
   // Get current API key
   const apiKey = apiKeys[provider]
-
-  // Handle email confirmation success
-  useEffect(() => {
-    if (searchParams.get('confirmed') === 'true') {
-      setShowConfirmationNotification(true)
-      const timer = setTimeout(() => {
-        setShowConfirmationNotification(false)
-      }, 5000)
-
-      // Clean up URL
-      window.history.replaceState({}, '', '/')
-
-      return () => clearTimeout(timer)
-    }
-  }, [searchParams])
 
   // Default models for each provider from model_settings.json
   const getDefaultModel = (providerName: string) => {
@@ -174,12 +157,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Email confirmation notification */}
-      {showConfirmationNotification && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
-          <CheckCircle className="h-4 w-4" />
-          <span>Email confirmed! You can now sign in.</span>
-        </div>
-      )}
+      <Suspense fallback={null}>
+        <EmailConfirmationHandler />
+      </Suspense>
 
       {/* Enhanced Header with glassmorphism */}
       <header className="glass border-b border-white/20 sticky top-0 z-50">
