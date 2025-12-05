@@ -92,3 +92,15 @@ class BatchParameterValidationError(CASSIAValidationError):
     - Invalid ranking_method
     """
     pass
+
+
+class APIValidationError(CASSIAValidationError):
+    """Raised when API key validation fails.
+
+    This includes:
+    - Missing API keys
+    - Invalid API keys (authentication failures)
+    - API quota or rate limit issues during validation
+    - Network connectivity issues
+    """
+    pass

@@ -113,7 +113,8 @@ def runCASSIA_pipeline(
     ascending: bool = None,
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
-    output_dir: str = None
+    output_dir: str = None,
+    validate_api_keys_before_start: bool = False
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -142,6 +143,8 @@ def runCASSIA_pipeline(
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
         validator_involvement (str): Validator involvement level
         output_dir (str): Directory where the output folder will be created. If None, uses current working directory.
+        validate_api_keys_before_start (bool): If True, validates all required API keys before starting the pipeline.
+            Fails fast with clear error messages if any keys are invalid. Default: False.
     """
     # Import dependencies here to avoid circular imports
     try:
@@ -160,6 +163,53 @@ def runCASSIA_pipeline(
             from scoring import runCASSIA_score_batch
             from generate_batch_report import generate_batch_html_report_from_data
             from annotation_boost import runCASSIA_annotationboost
+
+    # Validate API keys before starting pipeline (if requested)
+    if validate_api_keys_before_start:
+        try:
+            from CASSIA.core.api_validation import validate_api_keys
+        except ImportError:
+            try:
+                from ..core.api_validation import validate_api_keys
+            except ImportError:
+                from api_validation import validate_api_keys
+
+        print("\n=== Validating API Keys ===")
+
+        # Collect all providers that will be used
+        providers_to_check = set()
+        if annotation_provider:
+            providers_to_check.add(annotation_provider)
+        if score_provider:
+            providers_to_check.add(score_provider)
+        if annotationboost_provider:
+            providers_to_check.add(annotationboost_provider)
+        if merge_annotations and merge_provider:
+            providers_to_check.add(merge_provider)
+
+        # Remove None values
+        providers_to_check.discard(None)
+
+        # Validate each provider
+        validation_failed = False
+        for provider in providers_to_check:
+            # Skip custom HTTP URLs (can't validate easily)
+            if provider.startswith("http"):
+                print(f"Skipping validation for custom provider: {provider}")
+                continue
+
+            is_valid = validate_api_keys(provider, verbose=True)
+            if not is_valid:
+                validation_failed = True
+
+        if validation_failed:
+            raise ValueError(
+                "API key validation failed for one or more providers. "
+                "Please check the error messages above and fix your API keys. "
+                "You can set API keys with: CASSIA.set_api_key(provider, 'your-key')"
+            )
+
+        print("✓ All API keys validated successfully\n")
 
     # Determine base directory for output
     if output_dir is not None:
