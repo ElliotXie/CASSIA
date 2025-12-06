@@ -12,7 +12,7 @@
 - 🧬 Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)  
 - 🚀 Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification  
 - 🌎 Cross-species annotation capabilities, validated across human, mouse, and non-model organisms  
-- 🧪 Web UI also available: [https://www.cassiacell.com](https://www.cassiacell.com)
+- 🧪 Web UI also available: [https://www.cassia.bio](https://www.cassia.bio/)
 
 ## Installation
 
@@ -38,7 +38,7 @@ CASSIA.runCASSIA_pipeline(
     output_file_name = "FastAnalysisResults",
     tissue = "large intestine",
     species = "human",
-    marker_path = unprocessed_markers,
+    marker = unprocessed_markers,
     max_workers = 6,  # Matches the number of clusters in dataset
     annotation_model = "openai/gpt-4o-2024-11-20", #openai/gpt-4o-2024-11-20
     annotation_provider = "openrouter",
@@ -50,7 +50,7 @@ CASSIA.runCASSIA_pipeline(
 )
 ```
 
-For detailed workflows and agent customization, see the [Example](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb).
+For detailed workflows and agent customization, see the [Documentation](https://docs.cassia.bio/en/vignette/python/introduction).
 
 ## Contributing
 
@@ -62,4 +62,4 @@ MIT License © 2024 Elliot Xie and contributors.
 
 ## Support
 
-Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA/issues) or visit [CASSIAcell.com](https://www.cassiacell.com) for help.
+Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA/issues) or visit [cassia.bio](https://www.cassia.bio/) for help.

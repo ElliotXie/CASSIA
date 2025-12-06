@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Play, Settings, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, FileText } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
@@ -17,6 +17,7 @@ import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 import { ContactDialog } from '@/components/ContactDialog'
+import { ReportViewerModal, type BatchReportData } from '@/components/reports'
 
 export default function PipelinePage() {
   const [showAdvanced, setShowAdvanced] = useState(false)
