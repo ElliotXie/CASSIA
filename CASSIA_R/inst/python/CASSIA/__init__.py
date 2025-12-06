@@ -43,6 +43,11 @@ from .core.marker_utils import loadmarker, list_available_markers, split_markers
 from .core.llm_utils import call_llm
 
 # -----------------------------------------------------------------------------
+# API KEY VALIDATION
+# -----------------------------------------------------------------------------
+from .core.api_validation import validate_api_keys, clear_validation_cache
+
+# -----------------------------------------------------------------------------
 # MODEL SETTINGS (with fuzzy alias support)
 # -----------------------------------------------------------------------------
 from .core.model_settings import (
@@ -64,7 +69,8 @@ from .core.exceptions import (
     ProviderValidationError,
     ModelValidationError,
     TissueSpeciesValidationError,
-    BatchParameterValidationError
+    BatchParameterValidationError,
+    APIValidationError
 )
 
 # Alias for backward compatibility
