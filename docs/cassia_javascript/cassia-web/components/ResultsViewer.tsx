@@ -111,7 +111,6 @@ export function ResultsViewer() {
                     <th className="text-left p-2 font-medium w-1/4">Main Type</th>
                     <th className="text-left p-2 font-medium w-1/3">Subtype</th>
                     {!isBatchResults && <th className="text-left p-2 font-medium w-1/6">Score</th>}
-                    {isBatchResults && <th className="text-left p-2 font-medium w-1/6">Confidence</th>}
                   </tr>
                 </thead>
               <tbody>
@@ -168,31 +167,35 @@ export function ResultsViewer() {
                   }
                   
                   return actualResults.map((row, i) => {
-                    let displayValue, colorClass
-                    
                     if (isBatchResults) {
-                      // For batch results, show confidence level
-                      const confidence = row.confidence
-                      if (confidence === 'High') {
-                        colorClass = 'bg-green-100 text-green-800'
-                      } else if (confidence === 'Medium') {
-                        colorClass = 'bg-yellow-100 text-yellow-800'
-                      } else if (confidence === 'Low') {
-                        colorClass = 'bg-red-100 text-red-800'
-                      } else {
-                        colorClass = 'bg-gray-100 text-gray-800'
-                      }
-                      displayValue = confidence
-                    } else {
-                      // For pipeline results, show numerical score
-                      const scoreNum = typeof row.score === 'string' && row.score !== 'N/A' ? parseFloat(row.score) : row.score
-                      colorClass = typeof scoreNum === 'number' ? 
-                        (scoreNum >= 90 ? 'bg-green-100 text-green-800' : 
-                         scoreNum >= 70 ? 'bg-yellow-100 text-yellow-800' : 
-                         'bg-red-100 text-red-800') : 'bg-gray-100 text-gray-800'
-                      displayValue = row.score
+                      return (
+                        <tr key={i} className="border-t">
+                          <td className="p-2">
+                            <div className="truncate max-w-24" title={row.cluster}>
+                              {row.cluster}
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="truncate max-w-32" title={row.mainType}>
+                              {row.mainType}
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="truncate max-w-48" title={row.subtype}>
+                              {row.subtype}
+                            </div>
+                          </td>
+                        </tr>
+                      )
                     }
-                    
+
+                    // Pipeline results with score
+                    const scoreNum = typeof row.score === 'string' && row.score !== 'N/A' ? parseFloat(row.score) : row.score
+                    const colorClass = typeof scoreNum === 'number' ? 
+                      (scoreNum >= 90 ? 'bg-green-100 text-green-800' : 
+                       scoreNum >= 70 ? 'bg-yellow-100 text-yellow-800' : 
+                       'bg-red-100 text-red-800') : 'bg-gray-100 text-gray-800'
+
                     return (
                       <tr key={i} className="border-t">
                         <td className="p-2">
@@ -212,7 +215,7 @@ export function ResultsViewer() {
                         </td>
                         <td className="p-2">
                           <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ${colorClass}`}>
-                            {displayValue}
+                            {row.score}
                           </span>
                         </td>
                       </tr>
