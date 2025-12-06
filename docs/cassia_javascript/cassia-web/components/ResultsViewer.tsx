@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Download, Database } from 'lucide-react'
+import { BarChart3, Download, Database, FileText } from 'lucide-react'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 
 export function ResultsViewer() {
