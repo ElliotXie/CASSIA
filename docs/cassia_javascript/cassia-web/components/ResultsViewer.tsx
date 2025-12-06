@@ -15,10 +15,9 @@ export function ResultsViewer() {
   const isBatchResults = results.total_clusters !== undefined || results.output_files !== undefined
   
   // Function to handle CSV download fallback
-  const downloadCSVFallback = (csvContent: string, filename: string) => {
+  const downloadFileFallback = (content: string, filename: string, mime: string) => {
     try {
-      // Create a blob with the CSV content
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const blob = new Blob([content], { type: mime })
       
       // Try URL.createObjectURL first
       if (typeof URL !== 'undefined' && URL.createObjectURL && typeof URL.createObjectURL === 'function') {
@@ -46,9 +45,8 @@ export function ResultsViewer() {
       }
     } catch (error) {
       console.error('Download failed:', error)
-      // Final fallback - open in new window
-      const csvData = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent)
-      const newWindow = window.open(csvData, '_blank')
+      const dataUrl = `data:${mime};charset=utf-8,` + encodeURIComponent(content)
+      const newWindow = window.open(dataUrl, '_blank')
       if (newWindow) {
         newWindow.document.title = filename
       }
@@ -239,7 +237,7 @@ export function ResultsViewer() {
               {results.csv_data.full && (
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded border">
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <Database className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <Database className="h-4 w-4 text-green-600 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm truncate" title={results.csv_data.full.filename}>
                         {results.csv_data.full.filename}
@@ -252,8 +250,8 @@ export function ResultsViewer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => downloadCSVFallback(results.csv_data.full.content, results.csv_data.full.filename)}
-                    className="flex-shrink-0 ml-2"
+                    onClick={() => downloadFileFallback(results.csv_data.full.content, results.csv_data.full.filename, 'text/csv;charset=utf-8;')}
+                    className="shrink-0 ml-2"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
@@ -264,7 +262,7 @@ export function ResultsViewer() {
               {results.csv_data.summary && (
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded border">
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <Database className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    <Database className="h-4 w-4 text-blue-600 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm truncate" title={results.csv_data.summary.filename}>
                         {results.csv_data.summary.filename}
@@ -277,13 +275,44 @@ export function ResultsViewer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => downloadCSVFallback(results.csv_data.summary.content, results.csv_data.summary.filename)}
-                    className="flex-shrink-0 ml-2"
+                    onClick={() => downloadFileFallback(results.csv_data.summary.content, results.csv_data.summary.filename, 'text/csv;charset=utf-8;')}
+                    className="shrink-0 ml-2"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* HTML report for batch results */}
+        {isBatchResults && results.html_report && (
+          <div className="space-y-3">
+            <h4 className="font-medium text-sm flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span>Interactive HTML Report</span>
+            </h4>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded border">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <FileText className="h-4 w-4 text-purple-600 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate" title={results.html_report.filename}>
+                    {results.html_report.filename}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    HTML report with conversation context per cluster
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadFileFallback(results.html_report.content, results.html_report.filename, 'text/html;charset=utf-8;')}
+                className="shrink-0 ml-2"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}
