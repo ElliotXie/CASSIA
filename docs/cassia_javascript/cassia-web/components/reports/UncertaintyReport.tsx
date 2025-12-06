@@ -24,17 +24,17 @@ export interface RoundResult {
 
 export interface ClusterUncertainty {
   clusterId: string
-  consensusScore: number // 0-100
-  consensusMainType: string
-  consensusSubType: string
+  consensusScore: number // 0-100 (llm_generated_consensus_score_llm in Python)
+  consensusMainType: string // general_celltype_llm in Python
+  consensusSubType: string // sub_celltype_llm in Python
   possibleMixedTypes?: string[]
   llmReasoning?: string
-  roundResults: RoundResult[]
-  // Optional unified results from different methods
-  unifiedResults?: {
-    llm?: RoundResult[]
-    oncology?: RoundResult[]
-  }
+  // Original per-iteration results (before unification)
+  originalResults: RoundResult[]
+  // Unified results from LLM unification
+  unifiedResultsLlm?: RoundResult[]
+  // Legacy field for backward compatibility (maps to originalResults)
+  roundResults?: RoundResult[]
 }
 
 export interface UncertaintyReportProps {
@@ -87,19 +87,21 @@ function ClusterUncertaintyCard({
   onToggle: () => void
 }) {
   const scoreInfo = getScoreInfo(cluster.consensusScore)
+  // Use originalResults with fallback to roundResults for backward compatibility
+  const results = cluster.originalResults || cluster.roundResults || []
   const mainTypeDistribution = useMemo(
-    () => calculateTypeDistribution(cluster.roundResults, 'mainType'),
-    [cluster.roundResults]
+    () => calculateTypeDistribution(results, 'mainType'),
+    [results]
   )
   const subTypeDistribution = useMemo(
-    () => calculateTypeDistribution(cluster.roundResults, 'subType'),
-    [cluster.roundResults]
+    () => calculateTypeDistribution(results, 'subType'),
+    [results]
   )
 
   // Count agreements
   const agreements = useMemo(() => {
     let full = 0, partial = 0, none = 0
-    cluster.roundResults.forEach(r => {
+    results.forEach(r => {
       const mainMatch = r.mainType.toLowerCase() === cluster.consensusMainType.toLowerCase()
       const subMatch = r.subType.toLowerCase() === cluster.consensusSubType.toLowerCase()
 
@@ -107,8 +109,8 @@ function ClusterUncertaintyCard({
       else if (mainMatch) partial++
       else none++
     })
-    return { full, partial, none, total: cluster.roundResults.length }
-  }, [cluster])
+    return { full, partial, none, total: results.length }
+  }, [results, cluster.consensusMainType, cluster.consensusSubType])
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -282,7 +284,7 @@ function ClusterUncertaintyCard({
                   </tr>
                 </thead>
                 <tbody>
-                  {cluster.roundResults.map((round, i) => {
+                  {results.map((round, i) => {
                     const mainMatch = round.mainType.toLowerCase() === cluster.consensusMainType.toLowerCase()
                     const subMatch = round.subType.toLowerCase() === cluster.consensusSubType.toLowerCase()
                     const agreement = mainMatch && subMatch ? 'full' : mainMatch ? 'partial' : 'none'

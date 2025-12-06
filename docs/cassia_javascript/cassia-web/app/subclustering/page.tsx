@@ -9,7 +9,8 @@ import { useApiKeyStore } from '@/lib/stores/api-key-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Layers, Upload, Download, FileText } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Layers, Upload, Download, FileText, FileCode } from 'lucide-react';
+import { exportSubclusteringReportHTML, downloadHTML } from '@/components/reports/exportHTML';
 import { ContactDialog } from '@/components/ContactDialog';
 import modelSettings from '../../public/examples/model_settings.json';
 
@@ -157,6 +158,54 @@ export default function SubclusteringPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  // Convert dataFrame results to SubclusterResult format for HTML export
+  const convertToSubclusterResults = (dataFrame: any) => {
+    if (!dataFrame || !dataFrame.columns) return [];
+
+    const resultIdCol = dataFrame['Result ID'] || [];
+    const mainTypeCol = dataFrame['main_cell_type'] || [];
+    const subTypeCol = dataFrame['sub_cell_type'] || [];
+    const markersCol = dataFrame['key_markers'] || [];
+    const reasonCol = dataFrame['reason'] || [];
+
+    return resultIdCol.map((_: any, i: number) => ({
+      clusterId: String(resultIdCol[i] || ''),
+      mainCellType: String(mainTypeCol[i] || ''),
+      subCellType: String(subTypeCol[i] || ''),
+      keyMarkers: String(markersCol[i] || ''),
+      reason: String(reasonCol[i] || '')
+    }));
+  };
+
+  // Convert batch result dataFrame to SubclusterResult format
+  const convertBatchToSubclusterResults = (dataFrame: any[]) => {
+    if (!dataFrame || !Array.isArray(dataFrame)) return [];
+
+    return dataFrame.map((row: any) => ({
+      clusterId: String(row['Result ID'] || ''),
+      mainCellType: String(row['main_cell_type'] || ''),
+      subCellType: String(row['sub_cell_type'] || ''),
+      keyMarkers: String(row['key_markers'] || ''),
+      reason: String(row['reason'] || '')
+    }));
+  };
+
+  // Download HTML report for single analysis
+  const downloadHTMLReport = () => {
+    if (!results?.dataFrame) return;
+    const subclusterData = convertToSubclusterResults(results.dataFrame);
+    const html = exportSubclusteringReportHTML(subclusterData, model);
+    downloadHTML(html, `${outputName}.html`);
+  };
+
+  // Download HTML report for batch analysis
+  const downloadBatchHTMLReport = (result: any, iteration: number) => {
+    if (!result?.dataFrame) return;
+    const subclusterData = convertBatchToSubclusterResults(result.dataFrame);
+    const html = exportSubclusteringReportHTML(subclusterData, model);
+    downloadHTML(html, `${outputName}_${iteration}.html`);
   };
 
   return (
@@ -500,14 +549,24 @@ export default function SubclusteringPage() {
                       <CardTitle>📊 Single Analysis Results</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Button
-                        onClick={() => downloadCSV(results.csvContent, `${outputName}.csv`)}
-                        className="w-full mb-4"
-                        variant="outline"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Results CSV
-                      </Button>
+                      <div className="flex gap-2 mb-4">
+                        <Button
+                          onClick={() => downloadCSV(results.csvContent, `${outputName}.csv`)}
+                          className="flex-1"
+                          variant="outline"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download CSV
+                        </Button>
+                        <Button
+                          onClick={downloadHTMLReport}
+                          className="flex-1"
+                          variant="outline"
+                        >
+                          <FileCode className="h-4 w-4 mr-2" />
+                          Download HTML Report
+                        </Button>
+                      </div>
                       
                       {results.dataFrame && (
                         <div className="glass rounded-lg p-4 border border-white/20 overflow-auto max-h-96">
@@ -576,15 +635,26 @@ export default function SubclusteringPage() {
                               </p>
                             ) : (
                               <div className="space-y-3">
-                                <Button
-                                  onClick={() => downloadCSV(result.csvContent, `${outputName}_${result.iteration}.csv`)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full"
-                                >
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download Run {result.iteration} CSV
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => downloadCSV(result.csvContent, `${outputName}_${result.iteration}.csv`)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    CSV
+                                  </Button>
+                                  <Button
+                                    onClick={() => downloadBatchHTMLReport(result, result.iteration)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                  >
+                                    <FileCode className="h-4 w-4 mr-2" />
+                                    HTML Report
+                                  </Button>
+                                </div>
                                 
                                 {result.dataFrame && (
                                   <div className="glass rounded-lg p-3 border border-white/20 overflow-auto max-h-48">

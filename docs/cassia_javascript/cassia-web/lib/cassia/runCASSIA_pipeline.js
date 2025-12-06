@@ -12,6 +12,7 @@ import { runCASSIABatch } from './runCASSIA_batch.js';
 import { scoreAnnotationBatch } from './scoring.js';
 import { iterativeMarkerAnalysis, generateSummaryReport } from './annotationBoost.js';
 import { parseCSV, formatAsCSV } from '../utils/csv-parser.js';
+import { generateBatchHtmlReportFromData } from './generateBatchReport.js';
 
 /**
  * Pipeline execution state for progress tracking
@@ -246,10 +247,35 @@ export async function runCASSIAPipeline(config) {
         state.completeStep('Annotation boost');
         notifyProgress();
 
-        // Skip HTML report generation - only keep CSV files
-        notifyLog('📋 Skipping HTML report generation - keeping CSV files only');
+        // Step 4: Generate HTML Report (like Python version)
+        state.updateStep('Generating HTML report', 0);
+        notifyProgress();
 
-        // Step 4: Organize Final Results
+        // Prepare report data with scores included
+        const reportRows = prepareReportDataWithScores(
+            annotationResults,
+            actualScoringResults,
+            {
+                tissue: config.tissue,
+                species: config.species,
+                model: models.annotation.model,
+                provider: models.annotation.provider,
+                additionalInfo: config.additionalInfo
+            }
+        );
+
+        const htmlReport = generateBatchHtmlReportFromData(
+            reportRows,
+            null,
+            `CASSIA Pipeline Analysis - ${config.tissue} (${config.species})`
+        );
+
+        state.results.htmlReport = htmlReport;
+        state.completeStep('HTML report generation');
+        notifyLog(`📊 HTML report generated: ${(htmlReport.length / 1024).toFixed(1)}KB`);
+        notifyProgress();
+
+        // Step 5: Organize Final Results
         state.updateStep('Organizing final results', 0);
         notifyProgress();
 
@@ -509,7 +535,7 @@ function calculateTotalGenes(annotationResults) {
 function calculateAverageScore(scoringResults) {
     // Handle the scoring results format (object with results property or direct array)
     let resultsArray = [];
-    
+
     if (Array.isArray(scoringResults)) {
         resultsArray = scoringResults;
     } else if (scoringResults && scoringResults.results && Array.isArray(scoringResults.results)) {
@@ -518,14 +544,90 @@ function calculateAverageScore(scoringResults) {
         console.warn('⚠️ calculateAverageScore: scoringResults is not in expected format');
         return 0;
     }
-    
+
     const validScores = resultsArray
         .map(r => parseFloat(r.Score))
         .filter(score => !isNaN(score));
-    
+
     if (validScores.length === 0) return 0;
-    
+
     return Math.round((validScores.reduce((a, b) => a + b, 0) / validScores.length) * 100) / 100;
+}
+
+/**
+ * Prepare report data with scores for HTML report generation
+ * Combines annotation results with scoring results
+ */
+function prepareReportDataWithScores(annotationResults, scoringResults, config) {
+    const rows = [];
+    const scoringArray = Array.isArray(scoringResults) ? scoringResults : (scoringResults?.results || []);
+
+    for (const [cellType, details] of Object.entries(annotationResults.results || {})) {
+        // Find matching score
+        const scoreData = scoringArray.find(s =>
+            s['True Cell Type'] === cellType || s['Cluster ID'] === cellType
+        );
+
+        // Format conversation history
+        const conversationHistory = details.conversation_history || [];
+        let formattedHistory = '';
+
+        if (Array.isArray(conversationHistory)) {
+            if (conversationHistory.length > 0 && conversationHistory[0]?.all_iterations) {
+                // Handle nested format with all_iterations
+                formattedHistory = conversationHistory[0].all_iterations
+                    .map(iter => {
+                        if (!iter.annotation || !Array.isArray(iter.annotation)) return '';
+                        return iter.annotation.map(entry => {
+                            if (Array.isArray(entry) && entry.length >= 2) {
+                                return `${String(entry[0] || '').trim()}: ${String(entry[1] || '')}`;
+                            }
+                            return String(entry);
+                        }).join(' | ');
+                    })
+                    .filter(item => item.length > 0)
+                    .join(' | ');
+            } else {
+                // Handle flat array format
+                formattedHistory = conversationHistory
+                    .map(entry => {
+                        if (Array.isArray(entry) && entry.length >= 2) {
+                            return `${entry[0]}: ${entry[1]}`;
+                        } else if (typeof entry === 'object' && entry.role && entry.content) {
+                            return `${entry.role}: ${entry.content}`;
+                        }
+                        return String(entry);
+                    })
+                    .join(' | ');
+            }
+        } else if (typeof conversationHistory === 'string') {
+            formattedHistory = conversationHistory;
+        }
+
+        const analysisResult = details.analysis_result || {};
+
+        rows.push({
+            'Cluster ID': cellType,
+            'Predicted General Cell Type': analysisResult.main_cell_type || '',
+            'Predicted Detailed Cell Type': (analysisResult.sub_cell_types || []).join(', '),
+            'Possible Mixed Cell Types': (analysisResult.possible_mixed_cell_types || []).join(', '),
+            'Marker Number': analysisResult.num_markers || '',
+            'Marker List': (analysisResult.marker_list || []).join(', '),
+            'Iterations': analysisResult.iterations || 1,
+            'Model': config.model || '',
+            'Provider': config.provider || '',
+            'Tissue': config.tissue || '',
+            'Species': config.species || '',
+            'Additional Info': config.additionalInfo || 'N/A',
+            'Score': scoreData?.Score || '',
+            'Conversation History': formattedHistory
+        });
+    }
+
+    // Sort by cluster ID
+    rows.sort((a, b) => String(a['Cluster ID']).localeCompare(String(b['Cluster ID'])));
+
+    return rows;
 }
 
 /**
@@ -591,8 +693,18 @@ async function organizeFinalResults(results, config) {
         finalResults.summary.totalFiles++;
     }
     
-    // Skip HTML report generation - only keep CSV files
-    
+    // Add HTML report to files
+    if (results.htmlReport) {
+        finalResults.files.reports = finalResults.files.reports || {};
+        finalResults.files.reports.main = {
+            filename: `${config.outputName}_report.html`,
+            content: results.htmlReport,
+            type: 'text/html',
+            size: results.htmlReport.length
+        };
+        finalResults.summary.totalFiles++;
+    }
+
     // Prepare boost analysis files
     if (results.boost) {
         for (const [clusterName, boostResult] of Object.entries(results.boost)) {

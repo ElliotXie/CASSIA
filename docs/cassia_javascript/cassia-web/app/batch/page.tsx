@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
@@ -17,11 +18,13 @@ import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { ContactDialog } from '@/components/ContactDialog'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { ReportViewerModal } from '@/components/reports'
 
 export default function BatchPage() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
-  const [selectedMode, setSelectedMode] = useState<'performance' | 'balanced'>('balanced')
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [selectedMode, setSelectedMode] = useState<'performance' | 'balanced' | undefined>('balanced')
   
   const {
     outputName,
@@ -60,6 +63,31 @@ export default function BatchPage() {
     validatorInvolvement: 'v1',
     formatType: 'auto'
   })
+
+  // Model options for each provider (same as CASSIA Pipeline)
+  const modelOptions = {
+    openrouter: [
+      { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
+      { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
+      { id: 'openai/gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
+      { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
+      { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', cost: 'high', speed: 'medium' },
+      { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
+      { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', cost: 'low', speed: 'fast' },
+      { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', cost: 'medium', speed: 'fast' }
+    ],
+    openai: [
+      { id: 'gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
+      { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' }
+    ],
+    anthropic: [
+      { id: 'claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
+      { id: 'claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' }
+    ]
+  }
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
 
@@ -324,6 +352,47 @@ export default function BatchPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Model Selection Dropdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Model Selection
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Select Model</label>
+                  <Select
+                    value={model}
+                    onValueChange={(value) => {
+                      setModel(value)
+                      setSelectedMode(undefined)
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelOptions[provider as keyof typeof modelOptions]?.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{m.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              (${m.cost} cost, {m.speed})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Currently selected: <span className="font-medium">{model}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* File Upload */}
             <Card>

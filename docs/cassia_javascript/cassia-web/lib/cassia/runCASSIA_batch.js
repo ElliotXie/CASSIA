@@ -1,4 +1,5 @@
 import { runCASSIA } from './runCASSIA.js';
+import { generateBatchHtmlReportFromData } from './generateBatchReport.js';
 
 // ----------------- Model Presets -----------------
 
@@ -633,16 +634,84 @@ export async function runCASSIABatch({
     const summaryCsv = formatAsCSV(summaryHeaders, summaryData);
     
     const csvReadyMessage = `📄 CSV files ready! Full: ${(fullCsv.length / 1024).toFixed(1)}KB, Summary: ${(summaryCsv.length / 1024).toFixed(1)}KB`;
-    const batchCompleteMessage = "✅ Batch analysis complete!";
-    
+
     console.log(csvReadyMessage);
+    if (onLog) onLog(csvReadyMessage);
+
+    // Generate HTML report (same as Python version)
+    const htmlReportMessage = "📊 Generating HTML report...";
+    console.log(htmlReportMessage);
+    if (onLog) onLog(htmlReportMessage);
+
+    const htmlRows = [];
+    for (const [trueCellType, details] of Object.entries(results)) {
+        const mainCellType = safeGet(details, 'analysis_result', 'main_cell_type') || '';
+        const subCellTypes = (safeGet(details, 'analysis_result', 'sub_cell_types') || []).join(', ');
+        const possibleMixedCellTypes = (safeGet(details, 'analysis_result', 'possible_mixed_cell_types') || []).join(', ');
+        const markerNumber = safeGet(details, 'analysis_result', 'num_markers') || '';
+        const markerList = (safeGet(details, 'analysis_result', 'marker_list') || []).join(', ');
+        const iterations = safeGet(details, 'analysis_result', 'iterations') || '';
+
+        // Process conversation history for HTML (preserve formatting)
+        const conversationHistory = details.conversation_history;
+        let rawConversationHistory = '';
+
+        if (conversationHistory && conversationHistory.all_iterations) {
+            rawConversationHistory = conversationHistory.all_iterations
+                .map(iter => {
+                    if (!iter.annotation || !Array.isArray(iter.annotation)) {
+                        return '';
+                    }
+                    return iter.annotation.map(entry => {
+                        if (Array.isArray(entry) && entry.length >= 2) {
+                            return `${String(entry[0] || '').trim()}: ${String(entry[1] || '')}`;
+                        } else if (typeof entry === 'object' && entry.role && entry.content) {
+                            return `${entry.role}: ${entry.content}`;
+                        }
+                        return String(entry);
+                    }).join(' | ');
+                })
+                .filter(item => item.length > 0)
+                .join(' | ');
+        }
+
+        htmlRows.push({
+            'Cluster ID': trueCellType,
+            'Predicted General Cell Type': mainCellType,
+            'Predicted Detailed Cell Type': subCellTypes,
+            'Possible Mixed Cell Types': possibleMixedCellTypes,
+            'Marker Number': markerNumber,
+            'Marker List': markerList,
+            'Iterations': iterations,
+            'Model': finalModel,
+            'Provider': finalProvider,
+            'Tissue': tissue,
+            'Species': species,
+            'Additional Info': additionalInfo || 'N/A',
+            'Conversation History': rawConversationHistory
+        });
+    }
+
+    // Sort HTML rows by cluster ID
+    htmlRows.sort((a, b) => String(a['Cluster ID']).localeCompare(String(b['Cluster ID'])));
+
+    const htmlContent = generateBatchHtmlReportFromData(
+        htmlRows,
+        null, // No file output in browser, return string
+        `CASSIA Batch Analysis - ${tissue} (${species})`
+    );
+
+    const htmlReadyMessage = `📊 HTML report ready! Size: ${(htmlContent.length / 1024).toFixed(1)}KB`;
+    const batchCompleteMessage = "✅ Batch analysis complete!";
+
+    console.log(htmlReadyMessage);
     console.log(batchCompleteMessage);
-    
+
     if (onLog) {
-        onLog(csvReadyMessage);
+        onLog(htmlReadyMessage);
         onLog(batchCompleteMessage);
     }
-    
+
     return {
         total_clusters: tasks.length,
         successful_analyses: Object.keys(results).length,
@@ -666,11 +735,17 @@ export async function runCASSIABatch({
                 data: fullData
             },
             summary: {
-                filename: `${outputName}_summary.csv`, 
+                filename: `${outputName}_summary.csv`,
                 content: summaryCsv,
                 headers: summaryHeaders,
                 data: summaryData
             }
+        },
+        html_report: {
+            filename: `${outputName}_report.html`,
+            content: htmlContent,
+            type: 'text/html',
+            size: htmlContent.length
         },
         results: results
     };
