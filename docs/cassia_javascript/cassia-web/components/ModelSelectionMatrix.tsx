@@ -92,9 +92,9 @@ const presets = {
     description: 'Good quality with reasonable speed',
     icon: <Settings className="h-4 w-4" />,
     models: {
-      annotation: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
-      scoring: { provider: 'openrouter', model: 'anthropic/claude-4.5-haiku' },
-      annotationBoost: { provider: 'openrouter', model: 'google/gemini-2.5-flash' }
+      annotation: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' },
+      scoring: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
+      annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' }
     }
   }
 }

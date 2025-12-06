@@ -59,15 +59,15 @@ const defaultConfig = {
   pipelineModels: {
     annotation: {
       provider: 'openrouter',
-      model: modelSettings.use_case_recommendations.annotation.best
+      model: 'anthropic/claude-haiku-4.5'
     },
     scoring: {
       provider: 'openrouter', 
-      model: modelSettings.use_case_recommendations.scoring.best
+      model: 'google/gemini-2.5-flash'
     },
     annotationBoost: {
       provider: 'openrouter',
-      model: modelSettings.use_case_recommendations.annotation_boost.best
+      model: 'anthropic/claude-haiku-4.5'
     }
   },
   outputName: 'cassia_analysis',

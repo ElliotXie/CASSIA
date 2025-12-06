@@ -107,6 +107,19 @@ export function ResultsDownloader({ finalResults, isVisible }: ResultsDownloader
     return <FileDown className="h-4 w-4 text-gray-600" />
   }
 
+  const getBoostFileLabel = (fileName: string, type: string) => {
+    const safeName = (fileName || '').toLowerCase()
+    const safeType = (type || '').toLowerCase()
+
+    if (safeName.includes('conversation') || safeName.includes('history') || safeType.includes('jsonl')) {
+      return 'Conversation history'
+    }
+    if (safeName.includes('report') || safeName.includes('summary') || safeType.includes('html')) {
+      return 'HTML report'
+    }
+    return 'Boost output'
+  }
+
   if (!finalResults || !isVisible || !downloadUrls) {
     return null
   }
@@ -228,6 +241,13 @@ export function ResultsDownloader({ finalResults, isVisible }: ResultsDownloader
                   {group.files.length} files
                 </Badge>
               </div>
+
+              {group.title === 'Annotation Boost' && (
+                <div className="text-xs text-muted-foreground bg-muted/40 rounded p-2 mb-2">
+                  <span className="font-semibold">What’s inside: </span>
+                  HTML report = detailed results per cluster · Conversation history = full chat transcript used for boosting
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {group.files.map((file) => (
@@ -239,7 +259,14 @@ export function ResultsDownloader({ finalResults, isVisible }: ResultsDownloader
                       {getFileIcon(file.type)}
                       <div className="min-w-0 flex-1">
                         <div className="font-medium text-sm truncate">{file.name}</div>
-                        <div className="text-xs text-muted-foreground">{formatFileSize(file.size)}</div>
+                        <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
+                          <span>{formatFileSize(file.size)}</span>
+                          {group.title === 'Annotation Boost' && (
+                            <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                              {getBoostFileLabel(file.name, file.type)}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     

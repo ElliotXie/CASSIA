@@ -325,27 +325,6 @@ export default function PipelinePage() {
               </ErrorBoundary>
             )}
 
-            {/* Interactive Report Viewer Button */}
-            {results && results.finalResults && !isRunning && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">📊 Interactive Reports</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => setShowReportModal(true)}
-                    className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    View Interactive Report
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Explore results with search, filtering, and full conversation history
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Quick Info */}
             <Card>
               <CardHeader>
