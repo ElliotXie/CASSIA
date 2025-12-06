@@ -652,27 +652,15 @@ export async function runCASSIABatch({
         const markerList = (safeGet(details, 'analysis_result', 'marker_list') || []).join(', ');
         const iterations = safeGet(details, 'analysis_result', 'iterations') || '';
 
-        // Process conversation history for HTML (preserve formatting)
+        // Process conversation history for HTML - pass as JSON string
+        // The parseConversationHistory() function in generateBatchReport.js will handle parsing
         const conversationHistory = details.conversation_history;
         let rawConversationHistory = '';
 
-        if (conversationHistory && conversationHistory.all_iterations) {
-            rawConversationHistory = conversationHistory.all_iterations
-                .map(iter => {
-                    if (!iter.annotation || !Array.isArray(iter.annotation)) {
-                        return '';
-                    }
-                    return iter.annotation.map(entry => {
-                        if (Array.isArray(entry) && entry.length >= 2) {
-                            return `${String(entry[0] || '').trim()}: ${String(entry[1] || '')}`;
-                        } else if (typeof entry === 'object' && entry.role && entry.content) {
-                            return `${entry.role}: ${entry.content}`;
-                        }
-                        return String(entry);
-                    }).join(' | ');
-                })
-                .filter(item => item.length > 0)
-                .join(' | ');
+        if (conversationHistory) {
+            // Pass the full conversation history as JSON string
+            // This preserves all data including validation_result and Formatting Agent
+            rawConversationHistory = JSON.stringify(conversationHistory);
         }
 
         htmlRows.push({
@@ -697,7 +685,6 @@ export async function runCASSIABatch({
 
     const htmlContent = generateBatchHtmlReportFromData(
         htmlRows,
-        null, // No file output in browser, return string
         `CASSIA Batch Analysis - ${tissue} (${species})`
     );
 

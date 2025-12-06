@@ -42,7 +42,8 @@ function truncateText(text, maxLength = 100) {
 
 /**
  * Parse conversation history into structured sections
- * @param {string} historyText - Raw conversation history text with sections separated by " | "
+ * Handles both JSON format (from web version) and pipe-separated format (from Python)
+ * @param {string} historyText - Raw conversation history (JSON or pipe-separated text)
  * @returns {Object} Dictionary with keys: 'annotation', 'validator', 'formatting', 'scoring'
  */
 function parseConversationHistory(historyText) {
@@ -55,6 +56,52 @@ function parseConversationHistory(historyText) {
 
     if (!historyText) return result;
 
+    // Try to parse as JSON first (web version format)
+    try {
+        const jsonData = JSON.parse(historyText);
+
+        if (jsonData && jsonData.all_iterations) {
+            // Extract from JSON structure
+            for (const iter of jsonData.all_iterations) {
+                // Handle annotation entries
+                if (iter.annotation && Array.isArray(iter.annotation)) {
+                    // Get the last annotation entry (the final response)
+                    const lastAnnotation = iter.annotation[iter.annotation.length - 1];
+                    if (Array.isArray(lastAnnotation) && lastAnnotation.length >= 2) {
+                        // Append to annotation (in case of multiple iterations)
+                        if (result.annotation) {
+                            result.annotation += '\n\n--- Iteration ' + iter.iteration + ' ---\n\n';
+                        }
+                        result.annotation += String(lastAnnotation[1] || '');
+                    }
+                }
+
+                // Handle validation result
+                if (iter.validation_result) {
+                    if (result.validator) {
+                        result.validator += '\n\n';
+                    }
+                    result.validator += String(iter.validation_result);
+                }
+
+                // Handle Formatting Agent entry (has role and content instead of annotation array)
+                if (iter.role === 'Formatting Agent' && iter.content) {
+                    result.formatting = String(iter.content);
+                }
+            }
+
+            // Also check final_result for formatted JSON
+            if (jsonData.final_result && !result.formatting) {
+                result.formatting = JSON.stringify(jsonData.final_result, null, 2);
+            }
+
+            return result;
+        }
+    } catch (e) {
+        // Not JSON, fall through to pipe-separated parsing
+    }
+
+    // Fall back to pipe-separated format (Python version format)
     const sections = historyText.split(' | ');
 
     for (const section of sections) {
@@ -1694,11 +1741,10 @@ function getJavaScript() {
  * This preserves newlines in conversation history for better formatting.
  *
  * @param {Array} rows - List of dictionaries containing analysis data for each cluster
- * @param {string|null} outputPath - Output path for HTML file (null for browser - returns string)
  * @param {string} reportTitle - Title displayed in the report header
  * @returns {string} HTML content string
  */
-export function generateBatchHtmlReportFromData(rows, outputPath = null, reportTitle = 'CASSIA Batch Analysis Report') {
+export function generateBatchHtmlReportFromData(rows, reportTitle = 'CASSIA Batch Analysis Report') {
     if (!rows || rows.length === 0) {
         throw new Error('No data provided');
     }
@@ -1864,4 +1910,5 @@ ${getJavaScript()}
     return htmlContent;
 }
 
-export default { generateBatchHtmlReportFromData };
+const generateBatchReport = { generateBatchHtmlReportFromData };
+export default generateBatchReport;

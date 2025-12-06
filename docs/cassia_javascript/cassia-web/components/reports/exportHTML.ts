@@ -7,7 +7,7 @@ import type { BatchReportData } from './BatchReport'
 import type { ClusterHypothesis } from './HypothesisReport'
 import type { EvaluationResult } from './EvaluationReport'
 import type { SubclusterResult } from './SubclusteringReport'
-import type { ClusterUncertainty } from './UncertaintyReport'
+import type { ClusterUncertainty, RoundResult } from './UncertaintyReport'
 
 /**
  * Common HTML template wrapper with styling
@@ -658,7 +658,7 @@ function generateSVGPieChart(
 /**
  * Calculate type distribution from results
  */
-function calculateDistribution(results: Array<{ mainType: string; subType: string }>, field: 'mainType' | 'subType'): { name: string; value: number }[] {
+function calculateDistribution(results: RoundResult[], field: 'mainType' | 'subType'): { name: string; value: number }[] {
   const counts: Record<string, number> = {}
   results.forEach(r => {
     const value = r[field] || 'Unknown'
@@ -723,7 +723,6 @@ export function exportUncertaintyReportHTML(
     const mainType = cluster.consensusMainType || 'Unknown'
     const subType = cluster.consensusSubType || 'Unknown'
     const score = cluster.consensusScore || 0
-    const scoreClass = getScoreClass(score)
     const scorePct = Math.round(score)
 
     // Get results (use originalResults with fallback)

@@ -530,6 +530,7 @@ export default function HomePage() {
                     </div>
                   </Link>
                 </Button>
+{/* Hidden until progress indicator is added
                 <Button variant="outline" size="sm" asChild className="justify-center h-auto py-3 glass border-white/30 hover:bg-white/20 btn-modern">
                   <Link href="/agents/symphony-compare">
                     <div className="text-center">
@@ -538,6 +539,7 @@ export default function HomePage() {
                     </div>
                   </Link>
                 </Button>
+                */}
                 <Button variant="outline" size="sm" asChild className="justify-center h-auto py-3 glass border-white/30 hover:bg-white/20 btn-modern">
                   <Link href="/agents/scoring">
                     <div className="text-center">
@@ -551,14 +553,6 @@ export default function HomePage() {
                     <div className="text-center">
                       <div className="font-medium text-gray-900 dark:text-white">Annotation Merging</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">Group similar types</div>
-                    </div>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild className="justify-center h-auto py-3 glass border-white/30 hover:bg-white/20 btn-modern">
-                  <Link href="/subclustering">
-                    <div className="text-center">
-                      <div className="font-medium text-gray-900 dark:text-white">Subclustering</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Subtype analysis</div>
                     </div>
                   </Link>
                 </Button>

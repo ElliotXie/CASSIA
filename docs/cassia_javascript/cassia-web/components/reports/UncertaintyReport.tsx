@@ -30,7 +30,7 @@ export interface ClusterUncertainty {
   possibleMixedTypes?: string[]
   llmReasoning?: string
   // Original per-iteration results (before unification)
-  originalResults: RoundResult[]
+  originalResults?: RoundResult[]
   // Unified results from LLM unification
   unifiedResultsLlm?: RoundResult[]
   // Legacy field for backward compatibility (maps to originalResults)

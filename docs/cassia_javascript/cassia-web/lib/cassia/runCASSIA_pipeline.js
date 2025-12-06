@@ -266,7 +266,6 @@ export async function runCASSIAPipeline(config) {
 
         const htmlReport = generateBatchHtmlReportFromData(
             reportRows,
-            null,
             `CASSIA Pipeline Analysis - ${config.tissue} (${config.species})`
         );
 
@@ -568,40 +567,19 @@ function prepareReportDataWithScores(annotationResults, scoringResults, config) 
             s['True Cell Type'] === cellType || s['Cluster ID'] === cellType
         );
 
-        // Format conversation history
-        const conversationHistory = details.conversation_history || [];
+        // Format conversation history - pass as JSON string
+        // The parseConversationHistory() function in generateBatchReport.js will handle parsing
+        const conversationHistory = details.conversation_history;
         let formattedHistory = '';
 
-        if (Array.isArray(conversationHistory)) {
-            if (conversationHistory.length > 0 && conversationHistory[0]?.all_iterations) {
-                // Handle nested format with all_iterations
-                formattedHistory = conversationHistory[0].all_iterations
-                    .map(iter => {
-                        if (!iter.annotation || !Array.isArray(iter.annotation)) return '';
-                        return iter.annotation.map(entry => {
-                            if (Array.isArray(entry) && entry.length >= 2) {
-                                return `${String(entry[0] || '').trim()}: ${String(entry[1] || '')}`;
-                            }
-                            return String(entry);
-                        }).join(' | ');
-                    })
-                    .filter(item => item.length > 0)
-                    .join(' | ');
+        if (conversationHistory) {
+            if (typeof conversationHistory === 'string') {
+                formattedHistory = conversationHistory;
             } else {
-                // Handle flat array format
-                formattedHistory = conversationHistory
-                    .map(entry => {
-                        if (Array.isArray(entry) && entry.length >= 2) {
-                            return `${entry[0]}: ${entry[1]}`;
-                        } else if (typeof entry === 'object' && entry.role && entry.content) {
-                            return `${entry.role}: ${entry.content}`;
-                        }
-                        return String(entry);
-                    })
-                    .join(' | ');
+                // Pass the full conversation history as JSON string
+                // This preserves all data including validation_result and Formatting Agent
+                formattedHistory = JSON.stringify(conversationHistory);
             }
-        } else if (typeof conversationHistory === 'string') {
-            formattedHistory = conversationHistory;
         }
 
         const analysisResult = details.analysis_result || {};
