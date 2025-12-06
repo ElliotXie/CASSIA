@@ -119,10 +119,9 @@ function calculateHistogram(data: EvaluationResult[], isSimilarityScale: boolean
     ]
 
     scores.forEach(score => {
-      const bin = bins.find(b => score >= b.min && score < b.max)
+      // Handle score of exactly 100 (include in last bin)
+      const bin = bins.find(b => score >= b.min && (score < b.max || (b.max === 100 && score === 100)))
       if (bin) bin.count++
-      // Handle score of exactly 100
-      if (score === 100) bins[4].count++
     })
 
     return bins

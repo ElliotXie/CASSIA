@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="CASSIA",
-    version="0.3.10",
+    version="0.3.11",
     packages=find_packages(),
     package_data={
         'CASSIA': ['data/*.csv'],  # Include all CSV files in data directory

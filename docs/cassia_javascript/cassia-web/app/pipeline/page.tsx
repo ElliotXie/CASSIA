@@ -22,6 +22,7 @@ import { ReportViewerModal, type BatchReportData } from '@/components/reports'
 export default function PipelinePage() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   
   const {
     pipelineModels,
@@ -317,11 +318,32 @@ export default function PipelinePage() {
             {/* Results Download Panel */}
             {results && results.finalResults && (
               <ErrorBoundary>
-                <ResultsDownloader 
+                <ResultsDownloader
                   finalResults={results.finalResults}
                   isVisible={!isRunning && results.finalResults}
                 />
               </ErrorBoundary>
+            )}
+
+            {/* Interactive Report Viewer Button */}
+            {results && results.finalResults && !isRunning && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">📊 Interactive Reports</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => setShowReportModal(true)}
+                    className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Interactive Report
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Explore results with search, filtering, and full conversation history
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
             {/* Quick Info */}
@@ -398,8 +420,8 @@ export default function PipelinePage() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-lg w-full border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
             <ContactDialog />
             <div className="flex justify-end pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowContactModal(false)}
                 className="border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold py-3"
               >
@@ -408,6 +430,35 @@ export default function PipelinePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Interactive Report Viewer Modal */}
+      {results && results.finalResults && (
+        <ReportViewerModal
+          open={showReportModal}
+          onOpenChange={setShowReportModal}
+          data={{
+            batch: results.finalResults.batchResults?.map((row: any) => ({
+              clusterId: row.cluster_id || row.Cluster || row['Cluster ID'] || `Cluster ${row.index || 0}`,
+              mainType: row.predicted_cell_type || row.main_cell_type || row['Predicted Cell Type'] || 'Unknown',
+              subTypes: row.sub_cell_types || row['Sub Cell Types'] || '',
+              mixedTypes: row.possible_mixed_cell_types || row['Mixed Cell Types'] || '',
+              markers: row.markers || row.marker_list || row.Markers || '',
+              markerCount: row.marker_count || row['Marker Count'] || 0,
+              score: row.score || row.quality_score || row.Score,
+              tissue: row.tissue || tissue,
+              species: row.species || species,
+              model: row.model || pipelineModels.annotation.model,
+              provider: row.provider || 'openrouter',
+              iterations: row.iterations || 1,
+              conversationHistory: row.conversation_history || row.conversationHistory || '',
+              mergedGrouping1: row.merged_grouping_1 || row['Merged Grouping 1'] || '',
+              mergedGrouping2: row.merged_grouping_2 || row['Merged Grouping 2'] || '',
+              mergedGrouping3: row.merged_grouping_3 || row['Merged Grouping 3'] || ''
+            })) || []
+          }}
+          title="CASSIA Analysis Report"
+        />
       )}
     </div>
   )

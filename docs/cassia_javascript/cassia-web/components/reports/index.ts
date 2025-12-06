@@ -16,3 +16,13 @@ export { UncertaintyReport, type UncertaintyReportProps, type ClusterUncertainty
 
 // Unified Report Viewer
 export { ReportViewer, ReportViewerModal, type ReportViewerProps, type ReportData, type ReportType } from './ReportViewer'
+
+// HTML Export Utilities
+export {
+  exportBatchReportHTML,
+  exportHypothesisReportHTML,
+  exportEvaluationReportHTML,
+  exportSubclusteringReportHTML,
+  exportUncertaintyReportHTML,
+  downloadHTML
+} from './exportHTML'

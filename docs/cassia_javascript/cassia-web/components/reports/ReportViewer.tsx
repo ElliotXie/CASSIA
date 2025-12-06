@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FileText, X, Maximize2, Minimize2, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +18,12 @@ import { UncertaintyReport, type ClusterUncertainty } from './UncertaintyReport'
 import { cn } from '@/lib/utils'
 
 export type ReportType = 'batch' | 'hypothesis' | 'evaluation' | 'subclustering' | 'uncertainty'
+
+const VALID_REPORT_TYPES: ReportType[] = ['batch', 'hypothesis', 'evaluation', 'subclustering', 'uncertainty']
+
+function isValidReportType(value: string): value is ReportType {
+  return VALID_REPORT_TYPES.includes(value as ReportType)
+}
 
 export interface ReportData {
   batch?: BatchReportData[]
@@ -56,6 +62,13 @@ export function ReportViewer({
   const [activeReport, setActiveReport] = useState<ReportType>(
     defaultReport || reports[0] || 'batch'
   )
+
+  // Sync activeReport with defaultReport prop changes
+  useEffect(() => {
+    if (defaultReport && reports.includes(defaultReport)) {
+      setActiveReport(defaultReport)
+    }
+  }, [defaultReport, reports])
 
   const reportLabels: Record<ReportType, string> = {
     batch: 'Batch Analysis',
@@ -97,7 +110,7 @@ export function ReportViewer({
 
       {/* Report Tabs */}
       {reports.length > 1 ? (
-        <Tabs value={activeReport} onValueChange={(v) => setActiveReport(v as ReportType)}>
+        <Tabs value={activeReport} onValueChange={(v) => { if (isValidReportType(v)) setActiveReport(v) }}>
           <TabsList className="bg-teal-50 border border-teal-100">
             {reports.map((report) => (
               <TabsTrigger
