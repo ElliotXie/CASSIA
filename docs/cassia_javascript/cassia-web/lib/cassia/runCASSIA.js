@@ -1,81 +1,47 @@
 import { callLLM } from './llm_utils.js';
 
 // ----------------- System Prompts -----------------
+// These prompts are faithfully ported from Python main_function_code.py
 
 const finalAnnotationSystemV1 = `
 You are a professional computational biologist with expertise in single-cell RNA sequencing (scRNA-seq).
 A list of highly expressed markers ranked by expression intensity from high to low
 from a cluster of cells will be provided , and your task is to identify the cell type. You must think step-by-step, providing a comprehensive and specific analysis. The audience is an expert in the field, and you will be rewarded $10000 if you do a good job.
 
-Here are the steps you should follow:
+Steps to Follow:
 
-**Step 1: Analyze Marker Genes**
-- Examine the provided ranked marker list carefully
-- Identify known marker genes and their associated cell types
-- Consider the expression levels and specificity of each marker
+1. List the Key Functional Markers: Extract and group the key marker genes associated with function or pathway, explaining their roles.
+2. List the Key Cell Type Markers: Extract and group the key marker genes associated with target tissue cell types, explaining their roles.
+3. Cross-reference Known Databases: Use available scRNA-seq databases and relevant literature to cross-reference these markers.
+4. Determine the Most Probable General Cell Type: Based on the expression of these markers, infer the most likely general cell type of the cluster.
+5. Identify the Top 3 Most Probable Sub Cell Types: Based on the expression of these markers, infer the top three most probable sub cell types within the general cell type. Rank them from most likely to least likely. Finally, specify the most likely subtype based on the markers.
+6. Provide a Concise Summary of Your Analysis
 
-**Step 2: Consider Biological Context**
-- Take into account the tissue type and species if provided
-- Consider the biological plausibility of different cell types in this context
-- Think about developmental relationships and cell type hierarchies
+Always include your step-by-step detailed reasoning.
+You can say "FINAL ANNOTATION COMPLETED" when you have completed your analysis.
 
-**Step 3: Formulate Hypotheses**
-- Based on the markers, generate 2-3 plausible cell type hypotheses
-- Rank these hypotheses by likelihood based on the evidence
-- Consider both broad categories and specific subtypes
-
-**Step 4: Final Decision**
-- Make a definitive cell type identification
-- Provide supporting evidence from the marker genes
-- Explain why this cell type is most likely given the evidence
-
-**Step 5: Consider Subtypes and Mixed Populations**
-- Identify any relevant subtypes or states
-- Consider if this might be a mixed population
-- Provide confidence level in your annotation
-
-When you have completed your analysis, state "FINAL ANNOTATION COMPLETED" followed by your final conclusion.
-
-Your analysis should be thorough, scientifically rigorous, and clearly explained.
+If you receive feedback from the validation process, incorporate it into your analysis and provide an updated annotation.
 `.trim();
 
 const finalAnnotationSystemV2 = `
 You are a professional computational biologist with expertise in single-cell RNA sequencing (scRNA-seq).
 A list of highly expressed markers ranked by expression intensity from high to low
-from a cluster of cells will be provided , and your task is to identify the cell type. You must think step-by-step, providing a comprehensive and specific analysis. The audience is an expert in the field, and you will be rewarded $10000 if you do a good job.
+from a cluster of cells will be provided, and your task is to identify the cell type. The tissue of origin is not specified, so you must consider multiple possibilities. You must think step-by-step, providing a comprehensive and specific analysis. The audience is an expert in the field, and you will be rewarded $10000 if you do a good job.
 
-Since the tissue context is unknown or unspecified, focus primarily on the marker genes to determine cell type identity.
+Steps to Follow:
 
-Here are the steps you should follow:
+1. List the Key Functional Markers: Extract and group the key marker genes associated with function or pathway, explaining their roles.
+2. List the Key Cell Type Markers: Extract and group the key marker genes associated with various cell types, explaining their roles.
+3. Cross-reference Known Databases: Use available scRNA-seq databases and relevant literature to cross-reference these markers.
+4. Determine the possible tissue type: Determine the possible tissue type based on the marker list, and provide a detailed explanation for your reasoning.
+5. Determine the Most Probable General Cell Type: Based on the expression of these markers, infer the most likely general cell type of the cluster.
+6. Identify the Top 3 Most Probable Sub Cell Types: Based on the expression of these markers, infer the top three most probable sub cell types. Rank them from most likely to least likely. Finally, specify the most likely subtype based on the markers.
+7. Provide a Concise Summary of Your Analysis
 
-**Step 1: Analyze Marker Genes**
-- Examine the provided ranked marker list carefully
-- Identify known marker genes and their associated cell types
-- Consider the expression levels and specificity of each marker
+Always include your step-by-step detailed reasoning.
+You can say "FINAL ANNOTATION COMPLETED" when you have completed your analysis.
 
-**Step 2: Consider General Biological Context**
-- Consider the biological plausibility of different cell types
-- Think about developmental relationships and cell type hierarchies
-- Focus on broadly expressed markers that are tissue-independent
-
-**Step 3: Formulate Hypotheses**
-- Based on the markers, generate 2-3 plausible cell type hypotheses
-- Rank these hypotheses by likelihood based on the evidence
-- Consider both broad categories and specific subtypes
-
-**Step 4: Final Decision**
-- Make a definitive cell type identification
-- Provide supporting evidence from the marker genes
-- Explain why this cell type is most likely given the evidence
-
-**Step 5: Consider Subtypes and Mixed Populations**
-- Identify any relevant subtypes or states
-- Consider if this might be a mixed population
-- Provide confidence level in your annotation
-
-When you have completed your analysis, state "FINAL ANNOTATION COMPLETED" followed by your final conclusion.
-
-Your analysis should be thorough, scientifically rigorous, and clearly explained.
+If you receive feedback from the validation process, incorporate it into your analysis and provide an updated annotation.
 `.trim();
 
 const couplingValidatorSystemV0 = `
@@ -117,63 +83,90 @@ Feedback: give detailed feedback and instruction for revising the annotation
 `.trim();
 
 const couplingValidatorSystemV2 = `
-You are a rigorous validation agent for single-cell RNA-seq cell type annotations.
-Your role is to critically evaluate cell type annotations against the provided marker gene evidence.
+You are an expert biologist specializing in single-cell analysis. Your critical role is to validate the final annotation results for a cell cluster where the tissue of origin is not specified. You will be provided with the proposed annotation result and a ranked list of marker genes it used.
 
-Since the tissue context is unknown, focus primarily on marker gene consistency and general biological plausibility.
+Below are steps to follow:
 
-**Validation Criteria:**
+1. Marker Consistency: Make sure the markers are in the provided marker list.
+   Ensure consistency between the identified cell type and the provided markers.
 
-1. **Marker Consistency**: Do the provided markers strongly support the annotated cell type?
-2. **Evidence Strength**: Are there sufficient and specific markers to support the annotation?
-3. **Alternative Explanations**: Could the markers better support a different cell type?
-4. **Mixed Populations**: Consider if this might be a mixed or transitional population
+2. Tissue-Agnostic Validation:
+   Ensure that the suggested possible tissues of origin are consistent with the marker expression.
 
-**Validation Process:**
-- Examine each major marker gene and its known associations
-- Check for any conflicting evidence or missing expected markers
-- Consider if the annotation is appropriately specific for tissue-blind analysis
-- Evaluate the overall confidence level
+3. Mixed Cell Type Consideration:
+   Be aware that mixed cell types may be present. Only raise this point if multiple distinct cell types are strongly supported by several high-ranking markers. In cases of potential mixed populations, flag this for further investigation rather than outright rejection.
 
-**Response Format:**
-If the annotation is well-supported by the markers:
-"VALIDATION PASSED: The annotation is consistent with the marker evidence."
+Output Format:
 
-If the annotation has issues:
-"VALIDATION FAILED: [Specific concerns about the annotation]"
-"SUGGESTED IMPROVEMENTS: [Specific suggestions for better annotation]"
+If pass:
+Validation result: VALIDATION PASSED
 
-Be thorough but decisive in your validation.
+If failed:
+Validation result: VALIDATION FAILED
+Feedback: give detailed feedback and instruction for revising the annotation
 `.trim();
 
-const formattingAgentSystemV1 = `
-You are a precise data formatting agent. Your task is to extract and structure cell type annotation results into a standardized JSON format.
+// Formatting system for tissue-blind mode (when tissue is not specified)
+const formattingSystemTissueBlind = `
+You are a formatting assistant for single-cell analysis results. Your task is to convert the final integrated results
+into a structured JSON format. Follow these guidelines:
 
-**Required JSON Structure:**
+1. Extract the main cell type and any sub-cell types identified.
+2. Include only information explicitly stated in the input.
+3. If there are possible mixed cell types highlighted, list them.
+4. Include possible tissues.
+5. IMPORTANT: Ensure that all string values in the JSON are properly escaped. For example, any newline characters inside a string must be represented as \\\\n.
+
+Provide the JSON output within triple backticks, like this:
+\`\`\`json
 {
-    "main_cell_type": "Primary cell type name",
-    "sub_cell_types": ["List of relevant subtypes"],
-    "possible_mixed_cell_types": ["Any mixed/transitional types mentioned"],
-    "confidence_level": "High/Medium/Low",
-    "supporting_markers": ["Key markers supporting the annotation"],
-    "reasoning": "Brief explanation of the annotation decision"
+"main_cell_type": "...",
+"sub_cell_types": ["...", "..."],
+"possible_mixed_cell_types": ["...", "..."],
+"possible_tissues": ["...", "..."]
 }
+\`\`\`
+`.trim();
 
-**Instructions:**
-1. Extract the primary cell type from the analysis
-2. Identify any subtypes or states mentioned
-3. Note any mixed or transitional populations discussed
-4. Assess confidence based on the strength of evidence
-5. List the most important supporting markers
-6. Provide a concise reasoning summary
+// Formatting system for non-tissue-blind mode (when tissue is specified)
+const formattingSystemNonTissueBlind = `
+You are a formatting assistant for single-cell analysis results. Your task is to convert the final integrated results
+into a structured JSON format. Follow these guidelines:
 
-**Important:**
-- Use standardized cell type nomenclature when possible
-- Be consistent with capitalization and naming
-- Ensure all fields are filled appropriately
-- If information is not available, use appropriate null values or empty arrays
+1. Extract the main cell type and the three most likely sub-cell types identified from step 4 and step 5 of the Final Annotation Agent response. Even the main cell type is the same as the sub-cell types, you still need to list it as a sub-cell type. Strictly follow the order of the sub-cell types.
+2. Include only information explicitly stated in the input.
+3. If there are possible mixed cell types highlighted, list them.
+4. IMPORTANT: Ensure that all string values in the JSON are properly escaped. For example, any newline characters inside a string must be represented as \\\\n.
 
-Return ONLY the JSON object wrapped in \`\`\`json\`\`\` code blocks.
+Provide the JSON output within triple backticks, like this:
+\`\`\`json
+{
+"main_cell_type": "...",
+"sub_cell_types": ["...", "..."],
+"possible_mixed_cell_types": ["...", "..."]
+}
+\`\`\`
+`.trim();
+
+// Formatting system for failed analyses (when validation fails after max iterations)
+const formattingSystemFailed = `
+You are a formatting assistant for single-cell analysis results. Your task is to convert the final integrated results
+into a structured JSON format, with special consideration for uncertain or conflicting annotations. Follow these guidelines:
+
+1. The analysis failed after multiple attempts. Please try to extract as much information as possible. Summarize what has gone wrong and what has been tried.
+2. Provide a detailed feedback on why the analysis failed, and what has been tried and why it did not work.
+3. Finally, provide a detailed step-by-step reasoning of how to fix the analysis.
+
+Provide the JSON output within triple backticks, like this:
+\`\`\`json
+{
+"main_cell_type": "if any",
+"sub_cell_types": "if any",
+"possible_cell_types": "if any",
+"feedback": "...",
+"next_steps": "..."
+}
+\`\`\`
 `.trim();
 
 // ----------------- Helper Functions -----------------
@@ -316,101 +309,128 @@ class Agent {
 }
 
 // ----------------- Core Analysis Logic -----------------
+// Faithfully ported from Python _run_analysis_logic in main_function_code.py
 
 async function runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind) {
     const onboardingData = userData;
-    
+
     // Construct initial prompt
     const initialPrompt = constructPrompt(onboardingData);
-    
+
     let validationPassed = false;
     let iteration = 0;
     let finalAnnotationConversation = [];
     let allConversations = [];
+    let validationResult = "";
     const maxIterations = 3;
-    
-    // Validation loop
+
+    // Validation loop - matches Python logic
     while (!validationPassed && iteration < maxIterations) {
         iteration++;
         console.log(`Starting iteration ${iteration}...`);
-        
-        // Run final annotation
-        const currentPrompt = iteration === 1 ? initialPrompt : 
-            `Based on the previous feedback, please revise your analysis:\n${initialPrompt}`;
-            
+
+        // Build prompt - Python-faithful retry logic with actual feedback included
+        let currentPrompt;
+        if (iteration === 1) {
+            currentPrompt = initialPrompt;
+        } else {
+            // Include previous response and validation feedback like Python does
+            const previousResponse = finalAnnotationConversation.length > 0
+                ? finalAnnotationConversation[finalAnnotationConversation.length - 1][1]
+                : "";
+
+            currentPrompt = `Previous annotation attempt failed validation. Please review your previous response and the validation feedback, then provide an updated annotation:
+
+Previous response:
+${previousResponse}
+
+Validation feedback:
+${validationResult}
+
+Original prompt:
+${initialPrompt}
+
+Please provide an updated annotation addressing the validation feedback.`;
+        }
+
         finalAnnotationConversation = await finalAnnotation(finalAnnotationAgent, currentPrompt);
-        
-        // Extract annotation result for validation
-        const annotationText = finalAnnotationConversation
-            .map(msg => msg[1])
-            .join('\n');
-        
-        // Run validation
-        const validationResult = await couplingValidation(
-            couplingValidatorAgent, 
-            annotationText, 
+        allConversations.push({
+            iteration: iteration,
+            annotation: [...finalAnnotationConversation]
+        });
+
+        // Run validation on the last annotation response
+        validationResult = await couplingValidation(
+            couplingValidatorAgent,
+            finalAnnotationConversation[finalAnnotationConversation.length - 1][1],
             onboardingData
         );
-        
+        allConversations[allConversations.length - 1].validation_result = validationResult;
+
         if (validationResult.includes("VALIDATION PASSED")) {
             validationPassed = true;
             console.log(`Validation passed on iteration ${iteration}`);
         } else {
             console.log(`Validation failed on iteration ${iteration}, retrying...`);
-            // Add validation feedback to the conversation history
-            finalAnnotationAgent.chatHistories["user"].push({
-                role: "user",
-                content: `Validation feedback: ${validationResult}`
-            });
         }
-        
-        // Store conversation for this iteration
-        allConversations.push({
-            iteration: iteration,
-            annotation: finalAnnotationConversation,
-            validation_passed: validationPassed
-        });
+
+        allConversations[allConversations.length - 1].validation_passed = validationPassed;
     }
-    
-    // Format results
+
+    // Select appropriate formatting system based on validation status and tissue context
+    // This matches Python logic in _run_analysis_logic
+    if (validationPassed) {
+        formattingAgent.system = isTissueBlind ? formattingSystemTissueBlind : formattingSystemNonTissueBlind;
+    } else {
+        formattingAgent.system = formattingSystemFailed;
+    }
+
+    // Format results - pass last 2 annotation messages like Python does
     let formattedResult;
     try {
-        const formattingResponse = await formatResults(formattingAgent, finalAnnotationConversation);
+        const lastAnnotations = finalAnnotationConversation.slice(-2);
+        const formattingResponse = await formatResults(formattingAgent, lastAnnotations);
+        allConversations.push({
+            role: "Formatting Agent",
+            content: formattingResponse
+        });
+
         formattedResult = extractJsonFromReply(formattingResponse);
-        
+
         if (!formattedResult) {
             throw new Error("Failed to extract JSON from formatting response");
         }
     } catch (error) {
         console.warn("Formatting failed, using fallback format");
+        console.error("Error: Unable to extract JSON from the formatted output.");
+
         // Fallback formatting
         const annotationText = finalAnnotationConversation
             .map(msg => msg[1])
             .join(' ');
-            
+
         formattedResult = {
             main_cell_type: "Unknown",
             sub_cell_types: [],
             possible_mixed_cell_types: [],
-            confidence_level: "Low",
-            supporting_markers: Array.isArray(onboardingData.marker_list) 
-                ? onboardingData.marker_list.slice(0, 5) 
-                : [],
-            reasoning: annotationText.substring(0, 200) + "..."
+            feedback: "Failed to parse formatting response",
+            next_steps: annotationText.substring(0, 200) + "..."
         };
     }
-    
-    // Add metadata
+
+    // Add metadata like Python does
     formattedResult.iterations = iteration;
-    formattedResult.validation_passed = validationPassed;
-    
+    formattedResult.num_markers = Array.isArray(onboardingData.marker_list)
+        ? onboardingData.marker_list.length
+        : 0;
+
     // Prepare conversation history
     const conversationHistory = {
         all_iterations: allConversations,
         final_result: formattedResult,
         input_data: onboardingData
     };
-    
+
     return [formattedResult, conversationHistory];
 }
 
@@ -439,8 +459,9 @@ async function runCellTypeAnalysis(model, temperature, markerList, tissue, speci
     }
     
     const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openai", apiKey);
-    const formattingAgent = new Agent(formattingAgentSystemV1, model, temperature, "openai", apiKey);
-    
+    // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
+    const formattingAgent = new Agent("", model, temperature, "openai", apiKey);
+
     // Prepare user data
     const userData = {
         species: species,
@@ -476,8 +497,9 @@ async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue,
     }
     
     const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "anthropic", apiKey);
-    const formattingAgent = new Agent(formattingAgentSystemV1, model, temperature, "anthropic", apiKey);
-    
+    // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
+    const formattingAgent = new Agent("", model, temperature, "anthropic", apiKey);
+
     const userData = {
         species: species,
         tissue_type: tissue,
@@ -512,8 +534,9 @@ async function runCellTypeAnalysisOpenRouter(model, temperature, markerList, tis
     }
     
     const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openrouter", apiKey);
-    const formattingAgent = new Agent(formattingAgentSystemV1, model, temperature, "openrouter", apiKey);
-    
+    // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
+    const formattingAgent = new Agent("", model, temperature, "openrouter", apiKey);
+
     const userData = {
         species: species,
         tissue_type: tissue,
@@ -548,8 +571,9 @@ async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, ma
     }
     
     const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, baseUrl, apiKey);
-    const formattingAgent = new Agent(formattingAgentSystemV1, model, temperature, baseUrl, apiKey);
-    
+    // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
+    const formattingAgent = new Agent("", model, temperature, baseUrl, apiKey);
+
     const userData = {
         species: species,
         tissue_type: tissue,

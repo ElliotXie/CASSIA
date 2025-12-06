@@ -144,7 +144,7 @@ export async function scoreSingleAnalysis(
         model,
         apiKey,
         0.7,  // temperature
-        2000, // max_tokens - ensure enough tokens for reasoning + score
+        4096, // max_tokens - aligned with Python version
         null  // system_prompt
     );
     

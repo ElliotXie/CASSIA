@@ -300,25 +300,16 @@ For EACH of the following cell types, you must provide your analysis in a specif
 The cell types to analyze are:
 ${celltypesListStr}
 
-CRITICAL: You must use EXACTLY this format for EACH cell type (no variations):
-
-<celltype>B cells</celltype>
+The required output format for EACH cell type is:
+<celltype>cell type name</celltype>
 <reasoning>
-Detailed reasoning analyzing the marker genes specifically for B cells. Consider which markers are expressed, which are specific, and overall match quality.
+Your detailed reasoning for the match, considering each marker's relevance.
 </reasoning>
-<score>85</score>
-
-<celltype>T cells</celltype>
-<reasoning>
-Detailed reasoning analyzing the marker genes specifically for T cells. Consider which markers are expressed, which are specific, and overall match quality.
-</reasoning>
-<score>92</score>
-
-Replace "B cells" and "T cells" with the actual cell type names. The score must be a number from 0-100.
+<score>A score from 0-100 indicating the match quality.</score>
 
 Please provide a complete block of <celltype>, <reasoning>, and <score> for every cell type listed above.
 
-Marker genes to analyze: ${markerSet}`;
+Ranked marker set: ${markerSet}`;
     
     console.log(`\n📋 Generated initial prompt:\n${initialPrompt}\n`);
 
