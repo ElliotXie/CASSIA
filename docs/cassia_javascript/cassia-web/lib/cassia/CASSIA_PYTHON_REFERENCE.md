@@ -12,10 +12,7 @@
 | **Batch Mode (Default)** | `CASSIA_python/CASSIA/engine/tools_function.py` | `runCASSIA_batch()` |
 | **Pipeline Mode** | `CASSIA_python/CASSIA/pipeline/pipeline.py` | `runCASSIA_pipeline()` |
 | **Annotation Boost** | `CASSIA_python/CASSIA/agents/annotation_boost/annotation_boost.py` | `runCASSIA_annotationboost()` |
-| **Uncertainty Quantification** | `CASSIA_python/CASSIA/agents/uncertainty/Uncertainty_quantification.py` | `runCASSIA_n_times()` |
 | **Merging/Grouping** | `CASSIA_python/CASSIA/agents/merging/merging_annotation.py` | `merge_annotations()` |
-| **Subclustering** | `CASSIA_python/CASSIA/agents/subclustering/subclustering.py` | `runCASSIA_subclusters()` |
-| **Hypothesis Generation** | `CASSIA_python/CASSIA/hypothesis/hypothesis_generation.py` | `generate_hypothesis()` |
 
 ---
 
@@ -46,32 +43,9 @@ CASSIA_python/CASSIA/
 │   │   └── super_annotation_boost.py   # Advanced scanpy-based tools
 │   ├── merging/                         # Cluster grouping
 │   │   └── merging_annotation.py       # Merge similar annotations
-│   ├── subclustering/                  # Hierarchical annotation
-│   │   └── subclustering.py            # Multi-resolution subclustering
-│   ├── uncertainty/                    # Robustness analysis
-│   │   └── Uncertainty_quantification.py # Multiple run analysis
-│   └── reference_agent/                 # Intelligent reference retrieval
-│       ├── reference_agent.py          # Main orchestrator
-│       ├── complexity_scorer.py        # Assess marker complexity
-│       ├── reference_selector.py       # Select relevant references
-│       ├── section_extractor.py        # Extract reference content
-│       └── references_brain/           # Pre-built reference knowledge base
-├── evaluation/                          # Quality assessment
-│   ├── scoring.py                      # LLM-based annotation scoring (0-100)
-│   ├── LLM_evaluation.py               # Evaluation workflow
-│   └── cell_type_comparison.py         # Compare annotations across methods
 ├── reports/                             # HTML report generation
 │   ├── generate_reports.py             # Main report functions
 │   ├── generate_batch_report.py        # Batch results HTML
-│   ├── generate_hypothesis_report.py   # Hypothesis reports
-│   └── generate_report_uncertainty.py  # Uncertainty reports
-├── hypothesis/                          # Hypothesis generation
-│   ├── hypothesis_generation.py        # Generate cell type hypotheses
-│   └── summarize_hypothesis_runs.py    # Summarize hypothesis results
-├── imaging/                             # Image analysis
-│   └── llm_image.py                    # LLM-based image analysis
-├── comparison/                          # Multi-model comparison
-│   └── symphony_compare.py             # Compare across different models
 ├── config/                              # Configuration
 │   └── set_api_keys.py                 # API key setup utilities
 └── data/                                # Data files
@@ -286,42 +260,6 @@ def runCASSIA_score_batch(
 
 ---
 
-### 8. Uncertainty Quantification
-
-**File**: `CASSIA_python/CASSIA/agents/uncertainty/Uncertainty_quantification.py`
-
-**Functions**:
-- `runCASSIA_n_times()` - Single cluster, N runs
-- `runCASSIA_batch_n_times()` - Batch, N runs each
-- `runCASSIA_similarity_score_batch()` - Score similarity
-
-**Purpose**: Assess annotation robustness via multiple runs
-
----
-
-### 9. Merging/Grouping
-
-**File**: `CASSIA_python/CASSIA/agents/merging/merging_annotation.py`
-
-**Functions**: `merge_annotations()`, `merge_annotations_all()`
-
-**Detail Levels**:
-- `"broad"` - General categories (e.g., "Myeloid cells")
-- `"detailed"` - More specific groups
-- `"very_detailed"` - Most granular groupings
-
----
-
-
-### 11. Hypothesis Generation
-
-**File**: `CASSIA_python/CASSIA/hypothesis/hypothesis_generation.py`
-
-**Function**: `generate_hypothesis()`
-
-**Purpose**: Generate alternative cell type hypotheses from marker genes
-
----
 
 ### 12. Report Generation
 
@@ -349,36 +287,3 @@ def runCASSIA_score_batch(
 | `generate_hypothesis()` | `hypothesis/hypothesis_generation.py` | Alternative hypotheses |
 | `runCASSIA_score_batch()` | `evaluation/scoring.py` | Quality scoring |
 | `call_llm()` | `core/llm_utils.py` | Raw LLM access |
-
-
-
----
-
-## Data Flow Diagram
-
-```
-Input Markers (CSV/DataFrame)
-    ↓
-get_top_markers() [ranking by method]
-    ↓
-BatchProgressTracker.start()
-    ↓
-ThreadPoolExecutor (max_workers)
-    ├→ For each cluster:
-    │   ├→ ReferenceAgent (optional)
-    │   ├→ run_cell_type_analysis() [3-agent system]
-    │   └→ return (annotation, history)
-    ↓
-write_csv() → {output_name}_full.csv
-write_csv() → {output_name}_summary.csv
-    ↓
-[Optional] scoring.py → add Score column
-[Optional] annotation_boost.py → deep analysis
-[Optional] merge_annotations.py → grouping
-    ↓
-generate_batch_html_report() → HTML report
-```
-
----
-
-*Last Updated: 2025-12-05*

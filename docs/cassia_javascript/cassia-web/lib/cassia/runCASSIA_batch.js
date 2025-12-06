@@ -559,12 +559,6 @@ export async function runCASSIABatch({
                 .replace(/\s+/g, ' ')       // Collapse spaces again
                 .replace(/\|+/g, '|')       // Remove duplicate separators
                 .trim();
-            
-            // Truncate extremely long conversation histories to prevent CSV bloat
-            const maxConversationLength = 5000; // 5KB limit per conversation
-            if (rawConversationHistory.length > maxConversationLength) {
-                rawConversationHistory = rawConversationHistory.substring(0, maxConversationLength) + '... [truncated]';
-            }
         }
         
         // Helper function to sanitize cell values
