@@ -127,12 +127,6 @@ export async function callLLM(
                 throw new Error("API key is required for custom endpoint");
             }
 
-            const client = new OpenAI({
-                apiKey: apiKey,
-                baseURL: provider,
-                dangerouslyAllowBrowser: true
-            });
-
             // Handle message history properly
             let apiMessages = [...messages];
 
@@ -149,28 +143,64 @@ export async function callLLM(
                 }
             }
 
-            // Use Responses API when reasoning is requested, Chat Completions otherwise
-            if (reasoningConfig && reasoningConfig.effort) {
-                // Responses API for reasoning models
-                const requestOptions = {
-                    model,
-                    input: apiMessages,
-                    reasoning: { effort: reasoningConfig.effort },
-                    ...additionalParams
-                };
-                const response = await client.responses.create(requestOptions);
-                return response.output_text;
-            } else {
-                // Chat Completions API (default - more compatible)
-                const requestOptions = {
+            // Check if we're in a browser environment
+            const isBrowser = typeof window !== 'undefined';
+
+            if (isBrowser) {
+                // Use proxy to bypass CORS in browser
+                const requestBody = {
+                    baseUrl: provider,
+                    apiKey: apiKey,
                     model,
                     messages: apiMessages,
                     temperature,
                     max_tokens: maxTokens,
                     ...additionalParams
                 };
-                const response = await client.chat.completions.create(requestOptions);
-                return response.choices[0].message.content;
+
+                const response = await fetch('/api/proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } else {
+                // Direct call in Node.js environment (no CORS issues)
+                const client = new OpenAI({
+                    apiKey: apiKey,
+                    baseURL: provider,
+                });
+
+                // Use Responses API when reasoning is requested, Chat Completions otherwise
+                if (reasoningConfig && reasoningConfig.effort) {
+                    // Responses API for reasoning models
+                    const requestOptions = {
+                        model,
+                        input: apiMessages,
+                        reasoning: { effort: reasoningConfig.effort },
+                        ...additionalParams
+                    };
+                    const response = await client.responses.create(requestOptions);
+                    return response.output_text;
+                } else {
+                    // Chat Completions API (default - more compatible)
+                    const requestOptions = {
+                        model,
+                        messages: apiMessages,
+                        temperature,
+                        max_tokens: maxTokens,
+                        ...additionalParams
+                    };
+                    const response = await client.chat.completions.create(requestOptions);
+                    return response.choices[0].message.content;
+                }
             }
         } catch (error) {
             throw new Error(`Custom API error: ${error.message}`);

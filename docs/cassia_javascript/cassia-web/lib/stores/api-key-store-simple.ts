@@ -5,17 +5,19 @@ import { useAuthStore } from './auth-store'
 import modelSettings from '../../public/examples/model_settings.json'
 import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
 
-export type Provider = 'openrouter' | 'anthropic' | 'openai'
+export type Provider = 'openrouter' | 'anthropic' | 'openai' | 'custom'
 
 interface ApiKeyState {
   apiKeys: {
     openrouter: string
     anthropic: string
     openai: string
+    custom: string
   }
   provider: Provider
   model: string
   reasoningEffort: ReasoningEffort | null
+  customBaseUrl: string  // Custom provider base URL
   isLoading: boolean
   error: string | null
 
@@ -28,6 +30,7 @@ interface ApiKeyState {
   setProvider: (provider: Provider) => void
   setModel: (model: string) => void
   setReasoningEffort: (effort: ReasoningEffort | null) => void
+  setCustomBaseUrl: (url: string) => void
   clearError: () => void
 
   // Helpers
@@ -51,11 +54,13 @@ export const useApiKeyStore = create<ApiKeyState>()(
       apiKeys: {
         openrouter: '',
         anthropic: '',
-        openai: ''
+        openai: '',
+        custom: ''
       },
       provider: 'openrouter',
       model: modelSettings.providers.openrouter.default_model,
       reasoningEffort: getDefaultReasoningEffort('openrouter', modelSettings.providers.openrouter.default_model),
+      customBaseUrl: '',
       isLoading: false,
       error: null,
 
@@ -75,6 +80,10 @@ export const useApiKeyStore = create<ApiKeyState>()(
 
       setReasoningEffort: (effort: ReasoningEffort | null) => {
         set({ reasoningEffort: effort })
+      },
+
+      setCustomBaseUrl: (url: string) => {
+        set({ customBaseUrl: url })
       },
       
       setApiKey: async (key: string, provider?: Provider) => {
@@ -148,7 +157,8 @@ export const useApiKeyStore = create<ApiKeyState>()(
           const loadedKeys = {
             openrouter: '',
             anthropic: '',
-            openai: ''
+            openai: '',
+            custom: ''
           }
           
           data?.forEach((keyData) => {
@@ -219,6 +229,7 @@ export const useApiKeyStore = create<ApiKeyState>()(
         provider: state.provider,
         model: state.model,
         reasoningEffort: state.reasoningEffort,
+        customBaseUrl: state.customBaseUrl,
         apiKeys: state.apiKeys
       })
     }

@@ -6,87 +6,20 @@ This vignette covers the fundamental steps to use CASSIA for cell type annotatio
 
 ## 1. Installation and Setup
 
-Before using CASSIA, you need to install it and set up the necessary environment.
-
-### 1.1 Package Installation
+Before starting, make sure you have CASSIA installed and configured. For detailed instructions, see the [**Setting Up CASSIA**](/docs/r/setting-up-cassia) documentation.
 
 ```r
-# Install prerequisite packages
-install.packages("reticulate")
-install.packages("devtools")
-
-# Install CASSIA from GitHub
-library(devtools)
-devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
-
-# Load the CASSIA package
 library(CASSIA)
-```
 
-### 1.2 Python Environment Setup
-
-CASSIA relies on Python for some backend operations. The environment will be set up automatically when you load the package, but if you encounter issues, please run the following command to manually set up the Python environment:
-
-```r
-# Manually set up the Python environment
-setup_cassia_env(conda_env = "cassia_env")
-```
-
-### 1.3 API Key Configuration
-
-CASSIA requires at least one API key to function. We recommend setting up API keys for OpenRouter, OpenAI, and Anthropic for the best experience:
-
-```r
-# Set up API keys (replace with your actual keys)
+# Set up API key (OpenRouter recommended)
 setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
-setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
-setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 ```
-
-Setting `persist = TRUE` saves the key to your `.Renviron` file for future sessions.
 
 ## 2. Working with Marker Files
 
-CASSIA works with marker gene data, typically produced by differential expression analysis tools like Seurat's `FindAllMarkers` function.
+CASSIA works with marker gene data from differential expression analysis. It accepts Seurat `FindAllMarkers` output, Scanpy `rank_genes_groups` output, or a simplified format. For detailed format specifications, see the [**Batch Processing**](/docs/r/batch-processing#marker-data-format) documentation.
 
-### 2.1 Required Format
-
-CASSIA accepts two marker file formats:
-
-**1. Raw FindAllMarkers Output (recommended):**
-
-The direct output from Seurat's `FindAllMarkers` function, which should contain these essential columns:
-- `cluster`: Cluster identifier
-- `gene`: Gene name/symbol
-- `avg_log2FC`: Log fold change
-- `p_val_adj`: Adjusted p-value
-- `pct.1`: Percentage of cells in the cluster expressing the gene
-- `pct.2`: Percentage of cells outside the cluster expressing the gene
-
-```r
-# Example of raw FindAllMarkers output format
-head(markers)
-#   p_val avg_log2FC pct.1 pct.2 p_val_adj cluster gene
-# 1 0     3.02       0.973 0.152 0         0       CD79A
-# 2 0     2.74       0.938 0.125 0         0       MS4A1
-# 3 0     2.54       0.935 0.138 0         0       CD79B
-# ...
-```
-
-**2. Processed Format:**
-
-A simplified format with cluster IDs and comma-separated gene lists:
-
-```r
-# Example of processed marker format
-head(markers_processed)
-#   cluster marker_genes
-# 1 0       CD79A,MS4A1,CD79B,HLA-DRA,TCL1A,HLA-DRB1,HLA-DQB1,HLA-DQA1,...
-# 2 1       IL7R,CCR7,LEF1,TCF7,FHIT,MAL,NOSIP,CMTM8,TRABD2A,...
-# ...
-```
-
-### 2.2 Sample Data
+### 2.1 Sample Data
 
 For this vignette, we'll use the example data included with CASSIA, which contains clusters from a large intestine dataset with six distinct cell populations:
 1. Monocyte (Original annotation is inaccurate, this cluster should be Schwann Cell instead. More evidence can be found in the paper)
@@ -122,34 +55,11 @@ fast_results <- runCASSIA_pipeline(
 )
 ```
 
-For details about each parameter, please refer to the [***Fast Mode documentation***](/docs/fast-mode).
+For details about each parameter, please refer to the [**Fast Mode**](/docs/fast-mode) documentation.
 
+### 3.2 Batch Analysis (Faster)
 
-Below is the recommended setting for optimal performance.
-
-```r
-fast_results <- runCASSIA_pipeline(
-    output_file_name = "FastAnalysisResults",
-    tissue = "large intestine",
-    species = "human",
-    marker = markers_unprocessed,
-    max_workers = 6,
-    annotation_model = "anthropic/claude-sonnet-4.5",
-    annotation_provider = "openrouter",
-    score_model = "openai/gpt-5.1",
-    score_provider = "openrouter",
-    score_threshold = 75,
-    annotationboost_model = "anthropic/claude-sonnet-4.5",
-    annotationboost_provider = "openrouter",
-    merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter",
-    max_retries = 2
-)
-```
-
-### 3.2 Detailed Batch Analysis
-
-For more control over the annotation process:
+For faster annotation without quality scoring, merging, and annotation boost. This is sufficient for most use cases:
 
 ```r
 output_name="CASSIA_analysis"
@@ -160,13 +70,10 @@ batch_results <- runCASSIA_batch(
     output_name = output_name,
     tissue = "large intestine",
     species = "human",
-    reasoning = "medium"  # Optional: use with GPT-5 series models
+    model = "anthropic/claude-sonnet-4.5",
+    provider = "openrouter"
 )
 ```
-
-> **Tip: Reasoning Effort Parameter**
->
-> Use `reasoning = "medium"` with GPT-5.1 for enhanced reasoning without long processing times. For OpenAI reasoning models, we recommend using OpenRouter to avoid identity verification requirements. Claude models use optimal reasoning by default. See [Reasoning Effort Parameter](/docs/r/setting-up-cassia#reasoning-effort-parameter) for details.
 
 ## 4. Interpreting Results
 

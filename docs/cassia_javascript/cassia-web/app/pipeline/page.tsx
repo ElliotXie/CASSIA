@@ -37,7 +37,7 @@ export default function PipelinePage() {
     setAnalysisConfig
   } = useConfigStore()
   
-  const { provider, model, getApiKey } = useApiKeyStore()
+  const { provider, model, getApiKey, customBaseUrl } = useApiKeyStore()
   const apiKey = getApiKey()
   
   const {
@@ -75,6 +75,8 @@ export default function PipelinePage() {
         maxRetries,
         additionalInfo,
         apiKey,
+        provider,
+        customBaseUrl,
         onProgress: (progressData) => {
           updateProgress(progressData.progress, progressData.step)
         },
@@ -155,8 +157,12 @@ export default function PipelinePage() {
             {/* API Configuration */}
             <ApiKeyInput />
 
-            {/* Model Selection Matrix - Only show when OpenRouter is selected */}
-            {provider === 'openrouter' && <ModelSelectionMatrix />}
+            {/* Model Selection Matrix - Show for OpenRouter, OpenAI, and Anthropic */}
+            {['openrouter', 'openai', 'anthropic'].includes(provider) && (
+              <ModelSelectionMatrix
+                lockedProvider={provider !== 'openrouter' ? (provider as 'openai' | 'anthropic') : null}
+              />
+            )}
 
             {/* File Upload */}
             <Card>

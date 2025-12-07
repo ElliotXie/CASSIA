@@ -44,7 +44,8 @@ export default function BatchPage() {
     reasoningEffort,
     getApiKey,
     setModel,
-    setReasoningEffort
+    setReasoningEffort,
+    customBaseUrl
   } = useApiKeyStore()
 
   const reasoningOptions = getReasoningEffortOptions()
@@ -96,7 +97,8 @@ export default function BatchPage() {
       { id: 'claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
       { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
       { id: 'claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' }
-    ]
+    ],
+    custom: []  // User enters model name manually
   }
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
@@ -139,6 +141,7 @@ export default function BatchPage() {
         additionalInfo: 'Batch analysis via web interface',
         maxWorkers,
         provider,
+        customBaseUrl,  // Custom provider base URL
         maxRetries: batchConfig.maxRetries,
         rankingMethod: batchConfig.rankingMethod,
         validatorInvolvement: batchConfig.validatorInvolvement,
@@ -377,61 +380,78 @@ export default function BatchPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Select Model</label>
-                    <Select
-                      value={model}
-                      onValueChange={(value) => {
-                        setModel(value)
-                        setSelectedMode(undefined)
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {modelOptions[provider as keyof typeof modelOptions]?.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{m.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                (${m.cost} cost, {m.speed})
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Currently selected: <span className="font-medium">{useCustomModel ? customModel || '(enter model name)' : model}</span>
-                    </p>
+                    {provider === 'custom' ? (
+                      // Custom provider: always show model input
+                      <div className="space-y-2">
+                        <Input
+                          placeholder="Enter model name (e.g., meta-llama/Llama-3-70b-chat-hf)"
+                          value={model}
+                          onChange={(e) => setModel(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Enter the model name as required by your custom endpoint
+                        </p>
+                      </div>
+                    ) : (
+                      // Standard providers: show dropdown
+                      <>
+                        <Select
+                          value={model}
+                          onValueChange={(value) => {
+                            setModel(value)
+                            setSelectedMode(undefined)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {modelOptions[provider as keyof typeof modelOptions]?.map((m) => (
+                              <SelectItem key={m.id} value={m.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{m.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    (${m.cost} cost, {m.speed})
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Currently selected: <span className="font-medium">{useCustomModel ? customModel || '(enter model name)' : model}</span>
+                        </p>
 
-                    {/* Custom Model Option */}
-                    <div className="flex items-center gap-2 mt-3">
-                      <input
-                        type="checkbox"
-                        id="useCustomModel"
-                        checked={useCustomModel}
-                        onChange={(e) => {
-                          setUseCustomModel(e.target.checked)
-                          if (!e.target.checked) {
-                            setCustomModel('')
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                      <label htmlFor="useCustomModel" className="text-sm cursor-pointer">
-                        Use custom model name
-                      </label>
-                    </div>
-                    {useCustomModel && (
-                      <Input
-                        placeholder="Enter model name (e.g., gpt-4-turbo, claude-3-opus)"
-                        value={customModel}
-                        onChange={(e) => {
-                          setCustomModel(e.target.value)
-                          setModel(e.target.value)
-                        }}
-                        className="mt-2"
-                      />
+                        {/* Custom Model Option */}
+                        <div className="flex items-center gap-2 mt-3">
+                          <input
+                            type="checkbox"
+                            id="useCustomModel"
+                            checked={useCustomModel}
+                            onChange={(e) => {
+                              setUseCustomModel(e.target.checked)
+                              if (!e.target.checked) {
+                                setCustomModel('')
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <label htmlFor="useCustomModel" className="text-sm cursor-pointer">
+                            Use custom model name
+                          </label>
+                        </div>
+                        {useCustomModel && (
+                          <Input
+                            placeholder="Enter model name (e.g., gpt-4-turbo, claude-3-opus)"
+                            value={customModel}
+                            onChange={(e) => {
+                              setCustomModel(e.target.value)
+                              setModel(e.target.value)
+                            }}
+                            className="mt-2"
+                          />
+                        )}
+                      </>
                     )}
                   </div>
 

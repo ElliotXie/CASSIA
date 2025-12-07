@@ -77,38 +77,100 @@ const pipelineSteps = [
   },
 ]
 
-const presets = {
-  performance: {
-    name: 'Performance',
-    description: 'Best quality results',
-    icon: <Zap className="h-4 w-4" />,
-    models: {
-      annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' },
-      scoring: { provider: 'openrouter', model: 'openai/gpt-5.1' },
-      annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' }
+interface ModelSelectionMatrixProps {
+  lockedProvider?: 'openai' | 'anthropic' | null  // null = OpenRouter mode (full control)
+}
+
+// Generate presets dynamically based on whether provider is locked
+function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
+  if (lockedProvider === 'openai') {
+    return {
+      performance: {
+        name: 'Performance',
+        description: 'Best quality results',
+        icon: <Zap className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'openai', model: 'gpt-5.1' },
+          scoring: { provider: 'openai', model: 'gpt-5.1' },
+          annotationBoost: { provider: 'openai', model: 'gpt-5.1' }
+        }
+      },
+      balanced: {
+        name: 'Balanced',
+        description: 'Good quality with reasonable speed',
+        icon: <Settings className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'openai', model: 'gpt-4o' },
+          scoring: { provider: 'openai', model: 'gpt-5-mini' },
+          annotationBoost: { provider: 'openai', model: 'gpt-4o' }
+        }
+      }
     }
-  },
-  balanced: {
-    name: 'Balanced',
-    description: 'Good quality with reasonable speed',
-    icon: <Settings className="h-4 w-4" />,
-    models: {
-      annotation: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' },
-      scoring: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
-      annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' }
+  } else if (lockedProvider === 'anthropic') {
+    return {
+      performance: {
+        name: 'Performance',
+        description: 'Best quality results',
+        icon: <Zap className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'anthropic', model: 'claude-sonnet-4.5' },
+          scoring: { provider: 'anthropic', model: 'claude-sonnet-4.5' },
+          annotationBoost: { provider: 'anthropic', model: 'claude-sonnet-4.5' }
+        }
+      },
+      balanced: {
+        name: 'Balanced',
+        description: 'Good quality with reasonable speed',
+        icon: <Settings className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'anthropic', model: 'claude-haiku-4.5' },
+          scoring: { provider: 'anthropic', model: 'claude-haiku-4.5' },
+          annotationBoost: { provider: 'anthropic', model: 'claude-haiku-4.5' }
+        }
+      }
+    }
+  } else {
+    // OpenRouter mode - full control
+    return {
+      performance: {
+        name: 'Performance',
+        description: 'Best quality results',
+        icon: <Zap className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' },
+          scoring: { provider: 'openrouter', model: 'openai/gpt-5.1' },
+          annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' }
+        }
+      },
+      balanced: {
+        name: 'Balanced',
+        description: 'Good quality with reasonable speed',
+        icon: <Settings className="h-4 w-4" />,
+        models: {
+          annotation: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' },
+          scoring: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
+          annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' }
+        }
+      }
     }
   }
 }
 
-export function ModelSelectionMatrix() {
+export function ModelSelectionMatrix({ lockedProvider = null }: ModelSelectionMatrixProps) {
   const { pipelineModels, setPipelineModel, setReasoningEffort } = useConfigStore()
   const { provider } = useApiKeyStore()
   const reasoningOptions = getReasoningEffortOptions()
   const [selectedPreset, setSelectedPreset] = useState<string>('')
   const [hasAutoSelectedBalanced, setHasAutoSelectedBalanced] = useState(false)
+  const [lastLockedProvider, setLastLockedProvider] = useState<string | null>(null)
+
+  // Get presets based on locked provider
+  const presets = getPresets(lockedProvider)
 
   const getModelsByProvider = (providerId: string) => {
-    return modelOptions.filter(model => model.provider === providerId)
+    // If provider is locked, only show models from that provider
+    const effectiveProvider = lockedProvider || providerId
+    return modelOptions.filter(model => model.provider === effectiveProvider)
   }
 
   const getModelInfo = (modelId: string) => {
@@ -125,11 +187,19 @@ export function ModelSelectionMatrix() {
 
   // Auto-select balanced preset when OpenRouter is chosen (only once)
   useEffect(() => {
-    if (provider === 'openrouter' && !hasAutoSelectedBalanced && selectedPreset === '') {
+    if (provider === 'openrouter' && !hasAutoSelectedBalanced && selectedPreset === '' && !lockedProvider) {
       applyPreset('balanced')
       setHasAutoSelectedBalanced(true)
     }
-  }, [provider, hasAutoSelectedBalanced, selectedPreset])
+  }, [provider, hasAutoSelectedBalanced, selectedPreset, lockedProvider])
+
+  // Auto-apply balanced preset when lockedProvider changes
+  useEffect(() => {
+    if (lockedProvider && lockedProvider !== lastLockedProvider) {
+      applyPreset('balanced')
+      setLastLockedProvider(lockedProvider)
+    }
+  }, [lockedProvider, lastLockedProvider])
 
   const PerformanceBadge = ({ performance, speed, cost }: { performance: string, speed: string, cost: string }) => {
     // Map performance levels to better user-friendly labels
@@ -150,11 +220,22 @@ export function ModelSelectionMatrix() {
     )
   }
 
+  // Get provider display name
+  const getProviderDisplayName = (providerId: string) => {
+    const providerInfo = providers.find(p => p.id === providerId)
+    return providerInfo?.name || providerId
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           ⚙️ Model Configuration
+          {lockedProvider && (
+            <Badge variant="secondary" className="ml-2">
+              Using: {getProviderDisplayName(lockedProvider)}
+            </Badge>
+          )}
         </CardTitle>
         <div className="flex gap-2 flex-wrap">
           {Object.entries(presets).map(([key, preset]) => (
@@ -186,42 +267,47 @@ export function ModelSelectionMatrix() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Provider</label>
-                  <Select
-                    value={currentConfig.provider}
-                    onValueChange={(provider) => {
-                      // When provider changes, select first available model for that provider
-                      const availableModels = getModelsByProvider(provider)
-                      if (availableModels.length > 0) {
-                        setPipelineModel(step.id, provider, availableModels[0].id)
-                      }
-                      setSelectedPreset('') // Clear preset selection
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {providers.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.id}>
-                          <div>
-                            <div className="font-medium">{provider.name}</div>
-                            <div className="text-xs text-muted-foreground">{provider.description}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className={`grid grid-cols-1 ${lockedProvider ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
+                {/* Provider Selector - only show when provider is not locked */}
+                {!lockedProvider && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Provider</label>
+                    <Select
+                      value={currentConfig.provider}
+                      onValueChange={(provider) => {
+                        // When provider changes, select first available model for that provider
+                        const availableModels = getModelsByProvider(provider)
+                        if (availableModels.length > 0) {
+                          setPipelineModel(step.id, provider, availableModels[0].id)
+                        }
+                        setSelectedPreset('') // Clear preset selection
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            <div>
+                              <div className="font-medium">{provider.name}</div>
+                              <div className="text-xs text-muted-foreground">{provider.description}</div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Model</label>
                   <Select
                     value={currentConfig.model}
                     onValueChange={(model) => {
-                      setPipelineModel(step.id, currentConfig.provider, model)
+                      // Use locked provider if set, otherwise use current config's provider
+                      const effectiveProvider = lockedProvider || currentConfig.provider
+                      setPipelineModel(step.id, effectiveProvider, model)
                       setSelectedPreset('') // Clear preset selection
                     }}
                   >
@@ -229,7 +315,7 @@ export function ModelSelectionMatrix() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {getModelsByProvider(currentConfig.provider).map((model) => (
+                      {getModelsByProvider(lockedProvider || currentConfig.provider).map((model) => (
                         <SelectItem key={model.id} value={model.id}>
                           <div className="font-medium">{model.name}</div>
                         </SelectItem>
@@ -239,7 +325,7 @@ export function ModelSelectionMatrix() {
                 </div>
 
                 {/* Reasoning Effort Selector - shown when model supports reasoning */}
-                {modelSupportsReasoning(currentConfig.provider, currentConfig.model) && (
+                {modelSupportsReasoning(lockedProvider || currentConfig.provider, currentConfig.model) && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-1">
                       <Brain className="h-3 w-3" />

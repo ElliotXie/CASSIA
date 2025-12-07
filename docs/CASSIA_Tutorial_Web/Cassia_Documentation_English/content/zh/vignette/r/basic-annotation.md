@@ -6,87 +6,20 @@ title: "使用标记文件进行基础注释"
 
 ## 1. 安装和设置
 
-在使用CASSIA之前，您需要安装软件包并设置必要的环境。
-
-### 1.1 软件包安装
+在开始之前，请确保已安装并配置CASSIA。有关详细说明，请参阅[**设置CASSIA**](/zh/docs/r/setting-up-cassia)文档。
 
 ```r
-# 安装前置依赖包
-install.packages("reticulate")
-install.packages("devtools")
-
-# 从GitHub安装CASSIA
-library(devtools)
-devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
-
-# 加载CASSIA包
 library(CASSIA)
-```
 
-### 1.2 Python环境设置
-
-CASSIA依赖Python进行部分后端操作。当您加载软件包时，环境会自动设置。如果遇到问题，请运行以下命令手动设置Python环境：
-
-```r
-# 手动设置Python环境
-setup_cassia_env(conda_env = "cassia_env")
-```
-
-### 1.3 API密钥配置
-
-CASSIA至少需要一个API密钥才能运行。我们建议设置OpenRouter、OpenAI和Anthropic的API密钥以获得最佳体验：
-
-```r
-# 设置API密钥（请替换为您的实际密钥）
+# 设置API密钥（推荐使用OpenRouter）
 setLLMApiKey("your_openrouter_api_key", provider = "openrouter", persist = TRUE)
-setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
-setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 ```
-
-设置 `persist = TRUE` 会将密钥保存到您的 `.Renviron` 文件中，以便在未来的会话中使用。
 
 ## 2. 使用标记文件
 
-CASSIA使用标记基因数据，通常由差异表达分析工具（如Seurat的 `FindAllMarkers` 函数）生成。
+CASSIA使用差异表达分析产生的标记基因数据。它接受Seurat的`FindAllMarkers`输出、Scanpy的`rank_genes_groups`输出或简化格式。有关详细的格式说明，请参阅[**批量处理**](/zh/docs/r/batch-processing#标记数据格式)文档。
 
-### 2.1 所需格式
-
-CASSIA接受两种标记文件格式：
-
-**1. 原始FindAllMarkers输出（推荐）：**
-
-直接来自Seurat的 `FindAllMarkers` 函数的输出，应包含以下基本列：
-- `cluster`：细胞簇标识符
-- `gene`：基因名称/符号
-- `avg_log2FC`：对数倍数变化
-- `p_val_adj`：校正后的p值
-- `pct.1`：细胞簇内表达该基因的细胞百分比
-- `pct.2`：细胞簇外表达该基因的细胞百分比
-
-```r
-# 原始FindAllMarkers输出格式示例
-head(markers)
-#   p_val avg_log2FC pct.1 pct.2 p_val_adj cluster gene
-# 1 0     3.02       0.973 0.152 0         0       CD79A
-# 2 0     2.74       0.938 0.125 0         0       MS4A1
-# 3 0     2.54       0.935 0.138 0         0       CD79B
-# ...
-```
-
-**2. 处理后格式：**
-
-简化格式，包含细胞簇ID和逗号分隔的基因列表：
-
-```r
-# 处理后标记格式示例
-head(markers_processed)
-#   cluster marker_genes
-# 1 0       CD79A,MS4A1,CD79B,HLA-DRA,TCL1A,HLA-DRB1,HLA-DQB1,HLA-DQA1,...
-# 2 1       IL7R,CCR7,LEF1,TCF7,FHIT,MAL,NOSIP,CMTM8,TRABD2A,...
-# ...
-```
-
-### 2.2 示例数据
+### 2.1 示例数据
 
 在本教程中，我们将使用CASSIA自带的示例数据，其中包含来自大肠数据集的六个不同细胞群体的细胞簇：
 1. 单核细胞（原始注释不准确，该细胞簇应为施旺细胞。更多证据可在论文中找到）
@@ -122,32 +55,11 @@ fast_results <- runCASSIA_pipeline(
 )
 ```
 
-有关每个参数的详细信息，请参阅[***快速模式文档***](/zh/docs/fast-mode)。
+有关每个参数的详细信息，请参阅[**快速模式**](/zh/docs/fast-mode)文档。
 
-以下是推荐的成本效益分析默认设置：
+### 3.2 批量分析（更快）
 
-```r
-fast_results <- runCASSIA_pipeline(
-    output_file_name = "FastAnalysisResults",
-    tissue = "large intestine",
-    species = "human",
-    marker = markers_unprocessed,
-    max_workers = 6,
-    annotation_model = "google/gemini-2.5-flash-preview",
-    annotation_provider = "openrouter",
-    score_model = "deepseek/deepseek-chat-v3-0324",
-    score_provider = "openrouter",
-    score_threshold = 75,
-    annotationboost_model = "google/gemini-2.5-flash-preview",
-    annotationboost_provider = "openrouter",
-    merge_model = "deepseek/deepseek-chat-v3-0324"
-    max_retries = 2
-)
-```
-
-### 3.2 详细批量分析
-
-如需对注释过程有更多控制：
+如需更快的注释，不运行质量评分、合并和注释增强。这对于大多数情况已经足够：
 
 ```r
 output_name="CASSIA_analysis"
@@ -158,13 +70,10 @@ batch_results <- runCASSIA_batch(
     output_name = output_name,
     tissue = "large intestine",
     species = "human",
-    reasoning = "medium"  # 可选: 用于 GPT-5 系列模型
+    model = "anthropic/claude-sonnet-4.5",
+    provider = "openrouter"
 )
 ```
-
-> **提示: 推理深度参数**
->
-> 使用 `reasoning = "medium"` 配合 GPT-5.1 可获得增强推理而不会耗费过长时间。对于 OpenAI 推理模型，我们推荐使用 OpenRouter 以避免身份验证要求。Claude 模型默认使用最佳推理。详见 [推理深度参数](/docs/r/setting-up-cassia#推理深度参数)。
 
 ## 4. 解读结果
 

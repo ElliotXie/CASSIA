@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, Key, ExternalLink, CheckCircle, AlertCircle, Download, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Key, ExternalLink, CheckCircle, AlertCircle, Download, Loader2, ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,27 +10,64 @@ import { useConfigStore } from '@/lib/stores/config-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import modelSettings from '../public/examples/model_settings.json'
 
+// Custom provider presets
+const CUSTOM_PROVIDER_PRESETS = {
+  deepseek: {
+    name: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+    helpUrl: 'https://platform.deepseek.com/api_keys'
+  },
+  qwen: {
+    name: 'Qwen (Alibaba)',
+    baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+    models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
+    helpUrl: 'https://dashscope.console.aliyun.com/apiKey'
+  },
+  kimi: {
+    name: 'Kimi (Moonshot)',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+    helpUrl: 'https://platform.moonshot.cn/console/api-keys'
+  },
+  manual: {
+    name: 'Manual Entry',
+    baseUrl: '',
+    models: [],
+    helpUrl: '#'
+  }
+} as const
+
+type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
+
 // Generate provider configurations from model_settings.json
 function generateProviders() {
   const providerHelp = {
     openrouter: 'https://openrouter.ai/keys',
     anthropic: 'https://console.anthropic.com/settings/keys',
-    openai: 'https://platform.openai.com/api-keys'
+    openai: 'https://platform.openai.com/api-keys',
+    custom: '#'
   }
-  
+
   const providers = Object.entries(modelSettings.providers).map(([providerId, provider]) => ({
     id: providerId as const,
     name: provider.name,
-    description: providerId === 'openrouter' ? 'Access to multiple models (Recommended)' : `${provider.name} models directly`,
+    description: providerId === 'openrouter'
+      ? 'Access to multiple models (Recommended)'
+      : providerId === 'custom'
+        ? 'Any OpenAI-compatible API'
+        : `${provider.name} models directly`,
     defaultModel: provider.default_model,
     helpUrl: providerHelp[providerId as keyof typeof providerHelp] || '#',
     models: Object.values(provider.models || {}).map(model => model.actual_name)
   }))
-  
-  // Ensure OpenRouter is first
+
+  // Ensure OpenRouter is first, custom is last
   return providers.sort((a, b) => {
     if (a.id === 'openrouter') return -1;
     if (b.id === 'openrouter') return 1;
+    if (a.id === 'custom') return 1;
+    if (b.id === 'custom') return -1;
     return 0;
   });
 }
@@ -43,15 +80,19 @@ export function ApiKeyInput() {
   const [validationStatus, setValidationStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
   const [loadStatus, setLoadStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const [customPreset, setCustomPreset] = useState<CustomPresetKey>('deepseek')
+  const [showPresetDropdown, setShowPresetDropdown] = useState(false)
   
   // Get API key data directly from the API key store for proper reactivity
-  const { 
-    provider, 
-    model, 
-    setApiKey, 
-    setProvider, 
+  const {
+    provider,
+    model,
+    setApiKey,
+    setProvider,
     setModel: setApiModel,
-    getApiKey 
+    getApiKey,
+    customBaseUrl,
+    setCustomBaseUrl
   } = useApiKeyStore()
 
   // Get auth data for Load API Keys functionality
@@ -81,7 +122,22 @@ export function ApiKeyInput() {
     if (providerConfig) {
       setApiModel(providerConfig.defaultModel)
     }
+    // Initialize custom provider with default preset
+    if (newProvider === 'custom') {
+      const defaultPreset = CUSTOM_PROVIDER_PRESETS.deepseek
+      setCustomBaseUrl(defaultPreset.baseUrl)
+      setApiModel(defaultPreset.models[0])
+      setCustomPreset('deepseek')
+    }
     setValidationStatus('idle')
+  }
+
+  // Get the appropriate help URL for custom provider
+  const getHelpUrl = () => {
+    if (provider === 'custom') {
+      return CUSTOM_PROVIDER_PRESETS[customPreset].helpUrl
+    }
+    return currentProvider.helpUrl
   }
 
   const handleKeyChange = (value: string) => {
@@ -100,12 +156,13 @@ export function ApiKeyInput() {
     try {
       // Simple validation - just check if the key has a reasonable format
       // Real validation would require making an API call
-      const keyPattern = {
+      const keyPattern: Record<string, RegExp | null> = {
         openrouter: /^sk-or-v1-[a-f0-9]{64}$/i,
         anthropic: /^sk-ant-api03-[a-zA-Z0-9_-]+$/,
-        openai: /^sk-[a-zA-Z0-9]{48,}$/
+        openai: /^sk-[a-zA-Z0-9]{48,}$/,
+        custom: null  // Custom provider accepts any key format
       }
-      
+
       const pattern = keyPattern[provider]
       if (pattern && pattern.test(apiKey)) {
         setValidationStatus('valid')
@@ -152,7 +209,7 @@ export function ApiKeyInput() {
 
       if (hasLoadedKeys) {
         data.forEach((keyData) => {
-          const provider = keyData.provider as 'openrouter' | 'anthropic' | 'openai'
+          const provider = keyData.provider as 'openrouter' | 'anthropic' | 'openai' | 'custom'
           try {
             // Simple base64 decryption (same as in the Supabase store)
             const decryptedKey = atob(keyData.encrypted_key)
@@ -189,7 +246,7 @@ export function ApiKeyInput() {
         {/* Provider Selection */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Provider</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {PROVIDERS.map((p) => (
               <button
                 key={p.id}
@@ -206,6 +263,117 @@ export function ApiKeyInput() {
             ))}
           </div>
         </div>
+
+        {/* Custom Provider Configuration */}
+        {provider === 'custom' && (
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            {/* Preset Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Provider</label>
+              <div className="relative">
+                <button
+                  onClick={() => setShowPresetDropdown(!showPresetDropdown)}
+                  className="w-full p-3 text-left border rounded-lg bg-background flex items-center justify-between hover:border-primary/50 transition-colors"
+                >
+                  <span>{CUSTOM_PROVIDER_PRESETS[customPreset].name}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showPresetDropdown ? 'rotate-180' : ''}`} />
+                </button>
+                {showPresetDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg">
+                    {Object.entries(CUSTOM_PROVIDER_PRESETS).map(([key, preset]) => (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          setCustomPreset(key as CustomPresetKey)
+                          if (preset.baseUrl) {
+                            setCustomBaseUrl(preset.baseUrl)
+                            // Set first model as default
+                            if (preset.models.length > 0) {
+                              setApiModel(preset.models[0])
+                            }
+                          }
+                          setShowPresetDropdown(false)
+                        }}
+                        className={`w-full p-3 text-left hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                          customPreset === key ? 'bg-primary/10' : ''
+                        }`}
+                      >
+                        <div className="font-medium text-sm">{preset.name}</div>
+                        {preset.baseUrl && (
+                          <div className="text-xs text-muted-foreground truncate">{preset.baseUrl}</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Base URL - editable for manual, readonly for presets */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Base URL</label>
+              {customPreset === 'manual' ? (
+                <Input
+                  type="url"
+                  placeholder="https://api.example.com/v1"
+                  value={customBaseUrl}
+                  onChange={(e) => setCustomBaseUrl(e.target.value)}
+                />
+              ) : (
+                <Input
+                  type="url"
+                  value={CUSTOM_PROVIDER_PRESETS[customPreset].baseUrl}
+                  readOnly
+                  className="bg-muted/50"
+                />
+              )}
+              <p className="text-xs text-muted-foreground">
+                {customPreset === 'manual'
+                  ? 'Enter any OpenAI-compatible endpoint URL'
+                  : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[customPreset].name}`
+                }
+              </p>
+            </div>
+
+            {/* Model Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Model</label>
+              {customPreset !== 'manual' && CUSTOM_PROVIDER_PRESETS[customPreset].models.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {CUSTOM_PROVIDER_PRESETS[customPreset].models.map((modelName) => (
+                      <button
+                        key={modelName}
+                        onClick={() => setApiModel(modelName)}
+                        className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
+                          model === modelName
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-muted hover:border-primary/50'
+                        }`}
+                      >
+                        {modelName}
+                      </button>
+                    ))}
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Or enter a custom model name..."
+                    value={CUSTOM_PROVIDER_PRESETS[customPreset].models.includes(model as any) ? '' : model}
+                    onChange={(e) => setApiModel(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+              ) : (
+                <Input
+                  type="text"
+                  placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
+                  value={model}
+                  onChange={(e) => setApiModel(e.target.value)}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         {/* API Key Input */}
         <div className="space-y-2">
@@ -244,7 +412,7 @@ export function ApiKeyInput() {
                 </Button>
               )}
               <a
-                href={currentProvider.helpUrl}
+                href={getHelpUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline flex items-center space-x-1"

@@ -178,6 +178,14 @@
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         }
       }
+    },
+    "custom": {
+      "name": "Custom",
+      "base_url": "",
+      "default_model": "",
+      "recommended_model": "",
+      "description": "Any OpenAI-compatible API endpoint (Together AI, Groq, Ollama, vLLM, etc.)",
+      "models": {}
     }
   },
   "provider_shortcuts": {
@@ -214,6 +222,9 @@
       "cheap": "deepseek/deepseek-chat-v3.1",
       "fast": "google/gemini-2.5-flash",
       "default": "anthropic/claude-sonnet-4.5"
+    },
+    "custom": {
+      "default": ""
     }
   },
   "use_case_recommendations": {

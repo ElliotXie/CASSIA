@@ -97,6 +97,7 @@ export async function runCASSIAPipeline(config) {
         maxRetries = 1,
         additionalInfo = '',
         apiKey,
+        customBaseUrl = null, // Custom provider base URL
         onProgress = null,
         onLog = null,
         onComplete = null,
@@ -139,12 +140,21 @@ export async function runCASSIAPipeline(config) {
         state.updateStep('Running initial cell type annotation', 0);
         notifyProgress();
 
+        // Handle custom provider - use customBaseUrl as the provider for llm_utils.js
+        const getEffectiveProvider = (modelProvider) => {
+            if (modelProvider === 'custom' && customBaseUrl) {
+                return customBaseUrl;
+            }
+            return modelProvider;
+        };
+
         const annotationResults = await runCASSIABatch({
             marker,
             apiKey,
             outputName,
             model: models.annotation.model,
             provider: models.annotation.provider,
+            customBaseUrl, // Pass through for custom provider handling
             tissue,
             species,
             additionalInfo,
@@ -179,7 +189,7 @@ export async function runCASSIAPipeline(config) {
             csvData,
             apiKey,
             model: models.scoring.model,
-            provider: models.scoring.provider,
+            provider: getEffectiveProvider(models.scoring.provider),
             maxWorkers,
             maxRetries,
             onProgress: (progress) => {
@@ -227,7 +237,10 @@ export async function runCASSIAPipeline(config) {
                         cluster,
                         marker,
                         annotationResults,
-                        models.annotationBoost,
+                        {
+                            ...models.annotationBoost,
+                            provider: getEffectiveProvider(models.annotationBoost.provider)
+                        },
                         apiKey,
                         additionalInfo
                     );

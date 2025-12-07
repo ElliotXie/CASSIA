@@ -288,6 +288,7 @@ export async function runCASSIABatch({
     geneColumnName = null,
     maxWorkers = 10,
     provider = "openrouter",
+    customBaseUrl = null, // Custom provider base URL
     maxRetries = 1,
     rankingMethod = "avg_log2FC",
     ascending = null,
@@ -299,8 +300,14 @@ export async function runCASSIABatch({
 } = {}) {
     // Apply model preset if specified
     const modelConfig = applyModelPreset(preset, provider, model);
-    const finalProvider = modelConfig.provider;
+    let finalProvider = modelConfig.provider;
     const finalModel = modelConfig.model;
+
+    // Handle custom provider - use customBaseUrl as the provider
+    // llm_utils.js will detect it starts with "http" and use it as baseURL
+    if (provider === 'custom' && customBaseUrl) {
+        finalProvider = customBaseUrl;
+    }
     const startMessage = `🚀 ===== CASSIA BATCH ANALYSIS STARTED =====`;
     console.log(`\n${startMessage}`);
     if (onLog) onLog(startMessage);
