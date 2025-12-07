@@ -283,7 +283,6 @@ def runCASSIA_score_batch(
 | `runCASSIA_n_times()` | `agents/uncertainty/Uncertainty_quantification.py` | Robustness check |
 | `runCASSIA_batch_n_times()` | `agents/uncertainty/Uncertainty_quantification.py` | Batch robustness |
 | `merge_annotations()` | `agents/merging/merging_annotation.py` | Group annotations |
-| `runCASSIA_subclusters()` | `agents/subclustering/subclustering.py` | Hierarchical annotation |
 | `generate_hypothesis()` | `hypothesis/hypothesis_generation.py` | Alternative hypotheses |
 | `runCASSIA_score_batch()` | `evaluation/scoring.py` | Quality scoring |
 | `call_llm()` | `core/llm_utils.py` | Raw LLM access |

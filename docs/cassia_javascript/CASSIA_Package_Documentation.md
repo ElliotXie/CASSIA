@@ -166,35 +166,7 @@ CASSIA includes several advanced modules for deeper investigation into your data
         )
         ```
 
-### 5.2. Symphony Compare (Advanced Cell Type Comparison)
--   **`CASSIA.symphony_compare.symphonyCompare(...)`** (also aliased as `compareCelltypes`)
-    -   **Description**: A multi-agent framework where different LLM personas "discuss" and score the likelihood of several closely related cell types based on a given set of markers. This is perfect for distinguishing between subtle cell states (e.g., Naive B cell vs. Plasmablast vs. Plasma cell).
-    -   **Key Parameters**:
-        -   `celltypes` (list[str]): A list of cell type names to be compared.
-        -   `marker_set` (str): A comma-separated string of relevant marker genes.
-        -   `model_preset` (str): A tier of models to use: `"quality"`, `"budget"`, or `"fastest"`.
-        -   `discussion_mode` (bool): If `True`, enables a multi-round debate among the agents.
-    -   **Returns**: A detailed HTML report of the debate, individual agent scores, and a final consensus.
-    -   **Usage Example**:
-        ```python
-        # A marker set with genes for B-cells (CD19, PAX5) and Plasma cells (SDC1, IRF4)
-        marker_set = "CD19, CD20, PAX5, IRF4, CD38, SDC1"
-        cell_types_to_compare = ["Naive B cell", "Plasmablast", "Plasma cell"]
-
-        CASSIA.symphony_compare.symphonyCompare(
-            tissue="lymph node",
-            species="human",
-            celltypes=cell_types_to_compare,
-            marker_set=marker_set,
-            model_preset="quality",
-            discussion_mode=True,
-            discussion_rounds=2,
-            generate_html_report=True,
-            output_file="b_cell_comparison.csv"
-        )
-        ```
-
-### 5.3. Uncertainty Quantification
+### 5.2. Uncertainty Quantification
 -   **`CASSIA.runCASSIA_batch_n_times(...)` & `CASSIA.runCASSIA_similarity_score_batch(...)`**
     -   **Description**: This two-step process assesses annotation stability. First, it runs the batch annotation `n` times with a non-zero `temperature` to introduce stochasticity. Second, it compares the `n` sets of results to compute a consensus score for each cluster.
     -   **Returns**: A CSV file containing similarity scores, indicating how consistent the annotations are across runs.
