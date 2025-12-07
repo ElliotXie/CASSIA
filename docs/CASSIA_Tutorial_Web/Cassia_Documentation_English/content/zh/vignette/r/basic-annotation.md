@@ -150,35 +150,21 @@ fast_results <- runCASSIA_pipeline(
 如需对注释过程有更多控制：
 
 ```r
-
 output_name="CASSIA_analysis"
 
 # 使用OpenRouter运行批量分析
 batch_results <- runCASSIA_batch(
     marker = markers_unprocessed,
-    output_name = output_name
+    output_name = output_name,
     tissue = "large intestine",
-    species = "human"
-)
-
-```
-
-### 3.3 质量评分
-
-评估注释的质量：
-
-```r
-# 运行质量评分
-quality_scores <- runCASSIA_score_batch(
-  input_file = paste0(output_name, "_full.csv"),
-  output_file = paste0(output_name, "_scored.csv")
+    species = "human",
+    reasoning = "medium"  # 可选: 用于 GPT-5 系列模型
 )
 ```
 
-生成的HTML报告页面如下所示，您可以点击按钮导航到相应的细胞簇。
-
-![CASSIA评分报告](/images/report_score.webp)
-
+> **提示: 推理深度参数**
+>
+> 使用 `reasoning = "medium"` 配合 GPT-5.1 可获得增强推理而不会耗费过长时间。对于 OpenAI 推理模型，我们推荐使用 OpenRouter 以避免身份验证要求。Claude 模型默认使用最佳推理。详见 [推理深度参数](/docs/r/setting-up-cassia#推理深度参数)。
 
 ## 4. 解读结果
 

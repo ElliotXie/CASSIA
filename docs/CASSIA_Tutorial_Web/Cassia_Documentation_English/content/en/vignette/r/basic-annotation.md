@@ -152,34 +152,21 @@ fast_results <- runCASSIA_pipeline(
 For more control over the annotation process:
 
 ```r
-
 output_name="CASSIA_analysis"
 
 # Run batch analysis with OpenRouter
 batch_results <- runCASSIA_batch(
     marker = markers_unprocessed,
-    output_name = output_name
+    output_name = output_name,
     tissue = "large intestine",
-    species = "human"
-)
-
-```
-
-### 3.3 Quality Scoring
-
-Evaluate the quality of the annotations:
-
-```r
-# Run quality scoring
-quality_scores <- runCASSIA_score_batch(
-  input_file = paste0(output_name, "_full.csv"),
-  output_file = paste0(output_name, "_scored.csv")
+    species = "human",
+    reasoning = "medium"  # Optional: use with GPT-5 series models
 )
 ```
-The result routing html page is shown below, you can click the button to navigate to the corresponding cluster.
 
-![CASSIA Score Report](/images/report_score.webp)
-
+> **Tip: Reasoning Effort Parameter**
+>
+> Use `reasoning = "medium"` with GPT-5.1 for enhanced reasoning without long processing times. For OpenAI reasoning models, we recommend using OpenRouter to avoid identity verification requirements. Claude models use optimal reasoning by default. See [Reasoning Effort Parameter](/docs/r/setting-up-cassia#reasoning-effort-parameter) for details.
 
 ## 4. Interpreting Results
 

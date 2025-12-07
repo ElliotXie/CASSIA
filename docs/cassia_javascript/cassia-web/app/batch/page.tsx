@@ -26,7 +26,10 @@ export default function BatchPage() {
   const [showContactModal, setShowContactModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
   const [selectedMode, setSelectedMode] = useState<'performance' | 'balanced' | undefined>('balanced')
-  
+  const [useCustomModel, setUseCustomModel] = useState(false)
+  const [customModel, setCustomModel] = useState('')
+  const [openaiIdentityVerified, setOpenaiIdentityVerified] = useState(false)
+
   const {
     outputName,
     tissue,
@@ -77,6 +80,7 @@ export default function BatchPage() {
       { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
       { id: 'openai/gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
       { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'openai/gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' },
       { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', cost: 'high', speed: 'medium' },
       { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
@@ -85,7 +89,8 @@ export default function BatchPage() {
     ],
     openai: [
       { id: 'gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
-      { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' }
+      { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' }
     ],
     anthropic: [
       { id: 'claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
@@ -396,43 +401,142 @@ export default function BatchPage() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      Currently selected: <span className="font-medium">{model}</span>
+                      Currently selected: <span className="font-medium">{useCustomModel ? customModel || '(enter model name)' : model}</span>
                     </p>
+
+                    {/* Custom Model Option */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <input
+                        type="checkbox"
+                        id="useCustomModel"
+                        checked={useCustomModel}
+                        onChange={(e) => {
+                          setUseCustomModel(e.target.checked)
+                          if (!e.target.checked) {
+                            setCustomModel('')
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor="useCustomModel" className="text-sm cursor-pointer">
+                        Use custom model name
+                      </label>
+                    </div>
+                    {useCustomModel && (
+                      <Input
+                        placeholder="Enter model name (e.g., gpt-4-turbo, claude-3-opus)"
+                        value={customModel}
+                        onChange={(e) => {
+                          setCustomModel(e.target.value)
+                          setModel(e.target.value)
+                        }}
+                        className="mt-2"
+                      />
+                    )}
                   </div>
 
-                  {/* Reasoning Effort Selector */}
-                  {modelSupportsReasoning(provider, model) && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-1">
-                        <Brain className="h-4 w-4" />
-                        Reasoning Effort
-                      </label>
-                      <Select
-                        value={reasoningEffort || 'none'}
-                        onValueChange={(value) => {
-                          setReasoningEffort(value === 'none' ? null : value as ReasoningEffort)
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose reasoning effort" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {reasoningOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center gap-2">
-                                <span>{option.label}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  ({option.description})
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Higher effort = more thorough reasoning, slower response
-                      </p>
+                  {/* Reasoning Effort Section - with OpenAI verification requirement */}
+                  {provider === 'openai' ? (
+                    // OpenAI-specific: requires identity verification for reasoning
+                    <div className="space-y-3">
+                      {/* Info note */}
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-sm">
+                        <p className="text-amber-800">
+                          <strong>Note:</strong> OpenAI requires identity verification to use reasoning models (GPT-5 with high/medium/low effort).
+                          If you haven&apos;t verified, use <strong>OpenRouter</strong> provider instead for GPT-5 reasoning.
+                        </p>
+                      </div>
+
+                      {/* Identity verification checkbox */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="openaiIdentityVerified"
+                          checked={openaiIdentityVerified}
+                          onChange={(e) => {
+                            setOpenaiIdentityVerified(e.target.checked)
+                            if (!e.target.checked) {
+                              // Reset reasoning to none when unchecked
+                              setReasoningEffort(null)
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <label htmlFor="openaiIdentityVerified" className="text-sm cursor-pointer">
+                          I have verified my identity with OpenAI
+                        </label>
+                      </div>
+
+                      {/* Show reasoning dropdown only if verified AND using GPT-5 model */}
+                      {openaiIdentityVerified && (model.toLowerCase().includes('gpt-5') || model.toLowerCase().includes('gpt5')) && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium flex items-center gap-1">
+                            <Brain className="h-4 w-4" />
+                            Reasoning Effort
+                          </label>
+                          <Select
+                            value={reasoningEffort || 'none'}
+                            onValueChange={(value) => {
+                              setReasoningEffort(value === 'none' ? null : value as ReasoningEffort)
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose reasoning effort" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {reasoningOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{option.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({option.description})
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            Higher effort = more thorough reasoning, slower response
+                          </p>
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    // Non-OpenAI providers: show reasoning if model supports it
+                    modelSupportsReasoning(provider, model) && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium flex items-center gap-1">
+                          <Brain className="h-4 w-4" />
+                          Reasoning Effort
+                        </label>
+                        <Select
+                          value={reasoningEffort || 'none'}
+                          onValueChange={(value) => {
+                            setReasoningEffort(value === 'none' ? null : value as ReasoningEffort)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose reasoning effort" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {reasoningOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                  <span>{option.label}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({option.description})
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Higher effort = more thorough reasoning, slower response
+                        </p>
+                      </div>
+                    )
                   )}
                 </div>
               </CardContent>
@@ -616,11 +720,20 @@ export default function BatchPage() {
                   <span className="text-muted-foreground">Model:</span>
                   <span className="font-medium">{model}</span>
                 </div>
-                {modelSupportsReasoning(provider, model) && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reasoning:</span>
-                    <span className="font-medium capitalize">{reasoningEffort || 'none'}</span>
-                  </div>
+                {provider === 'openai' ? (
+                  openaiIdentityVerified && (model.toLowerCase().includes('gpt-5') || model.toLowerCase().includes('gpt5')) && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reasoning:</span>
+                      <span className="font-medium capitalize">{reasoningEffort || 'none'}</span>
+                    </div>
+                  )
+                ) : (
+                  modelSupportsReasoning(provider, model) && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reasoning:</span>
+                      <span className="font-medium capitalize">{reasoningEffort || 'none'}</span>
+                    </div>
+                  )
                 )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Workers:</span>

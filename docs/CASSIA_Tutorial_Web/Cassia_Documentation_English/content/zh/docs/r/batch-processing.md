@@ -19,21 +19,25 @@ CASSIA支持批量处理，可同时分析多个簇。本篇我们将介绍如�
     - 模型ID：`"deepseek/deepseek-chat-v3-0324:free"`
 
 ### 准备标记数据
-您有三种提供标记数据的选项：
+您有四种提供标记数据的选项：
 
 1. 创建包含簇和标记基因的数据框或CSV文件
-2. 直接使用Seurat的`findAllMarkers`函数输出
-3. 使用CASSIA的示例标记数据
+2. 直接使用Seurat的`FindAllMarkers`函数输出
+3. 使用Scanpy的`rank_genes_groups`输出（Python/导出的CSV）
+4. 使用CASSIA的示例标记数据
 
 ```R
 # 选项1：加载您自己的标记数据
 markers <- read.csv("path/to/your/markers.csv")
 
-# 选项2：直接使用Seurat的findAllMarkers输出
+# 选项2：直接使用Seurat的FindAllMarkers输出
 #（假设您已经有一个Seurat对象）
 markers <- FindAllMarkers(seurat_obj)
 
-# 选项3：加载示例标记数据
+# 选项3：加载Scanpy rank_genes_groups输出（导出为CSV）
+markers <- read.csv("scanpy_markers.csv")
+
+# 选项4：加载示例标记数据
 markers <- loadExampleMarkers()
 
 # 预览数据
@@ -41,12 +45,44 @@ head(markers)
 ```
 
 #### 标记数据格式
-CASSIA接受两种格式：
+CASSIA接受三种格式：
 
-1. **FindAllMarkers输出**：Seurat的FindAllMarkers函数的标准输出
-2. **简化格式**：一个两列数据框，其中：
-   - 第一列：簇标识符
-   - 第二列：逗号分隔的排序标记基因
+**1. Seurat FindAllMarkers 输出（推荐）**
+
+Seurat的`FindAllMarkers`函数的标准输出，包含差异表达统计信息：
+
+```
+p_val  avg_log2FC  pct.1  pct.2  p_val_adj  cluster  gene
+0      3.02        0.973  0.152  0          0        CD79A
+0      2.74        0.938  0.125  0          0        MS4A1
+0      2.54        0.935  0.138  0          0        CD79B
+0      1.89        0.812  0.089  0          1        IL7R
+0      1.76        0.756  0.112  0          1        CCR7
+```
+
+**2. Scanpy rank_genes_groups 输出**
+
+Scanpy的`sc.tl.rank_genes_groups()`函数的输出，通常使用`sc.get.rank_genes_groups_df()`导出：
+
+```
+group  names   scores  pvals  pvals_adj  logfoldchanges
+0      CD79A   28.53   0      0          3.02
+0      MS4A1   25.41   0      0          2.74
+0      CD79B   24.89   0      0          2.54
+1      IL7R    22.15   0      0          1.89
+1      CCR7    20.87   0      0          1.76
+```
+
+**3. 简化格式**
+
+包含簇ID和逗号分隔标记基因的两列数据框：
+
+```
+cluster  marker_genes
+0        CD79A,MS4A1,CD79B,HLA-DRA,TCL1A
+1        IL7R,CCR7,LEF1,TCF7,FHIT,MAL
+2        CD8A,CD8B,GZMK,CCL5,NKG7
+```
 
 ### 运行批量分析
 
@@ -66,13 +102,14 @@ runCASSIA_batch(
     model = "anthropic/claude-4.5-sonnet", # 要使用的模型
     tissue = "brain",                    # 组织类型
     species = "human",                   # 物种
-    
+
     # 可选参数
     max_workers = recommended_workers,    # 并行工作进程数
     n_genes = 50,                        # 要使用的顶部标记基因数量
     additional_info = "",                # 附加上下文
     provider = "openrouter",              # API提供商
-    
+    reasoning = "medium",                # 可选: "high", "medium", "low" 用于兼容模型
+
     # 高级参数
     ranking_method = "avg_log2FC",       # 排序方法："avg_log2FC"（默认）、"p_val_adj"、"pct_diff"或"Score"
     ascending = NULL,                    # 排序方向（NULL使用方法默认值）
@@ -115,6 +152,11 @@ runCASSIA_batch(
    - 默认为 `anthropic/claude-4.5-sonnet` 以获得最佳性能。
    - 您可以使用 `google/gemini-2.5-flash` 快速查看数据。
 
+5. **推理深度**（可选）：
+   - 使用 `reasoning` 控制模型推理深度（"high"、"medium"、"low"）
+   - 推荐 GPT-5.1 使用 `"medium"` - 高深度可能需要很长时间
+   - 详见 [推理深度参数](setting-up-cassia.md#推理深度参数)
+
 ### 输出文件
 
 分析会生成三个文件：
@@ -135,12 +177,13 @@ seurat_corrected <- add_cassia_to_seurat(
 )
 ```
 
-这将向您的 Seurat 对象添加多个新列，包括：
-- `General Cell Type`：一般细胞类型类别
-- `True Cell Type`：最可能的特定细胞类型
-- `Alternative Cell Type 1 & 2`：其他可能的细胞类型
-- `Mixed Cell Type`：关于潜在混合群体的信息
-- `Quality Score`：如果有的话，注释的置信度分数
+这将根据摘要 CSV 的列向您的 Seurat 对象添加多个新列：
+- `Cluster ID`：簇标识符
+- `Predicted General Cell Type`：一般细胞类型类别
+- `Predicted Detailed Cell Type`：具体细胞类型预测
+- `Possible Mixed Cell Types`：关于潜在混合群体的信息
+- `Marker List`：用于注释的标记基因
+- 其他元数据列：`Iterations`、`Model`、`Provider`、`Tissue`、`Species`
 
 ### 获取最佳结果的提示
 

@@ -307,30 +307,6 @@ export function ApiKeyInput() {
           )}
         </div>
 
-        {/* Model Selection - Only show when not using OpenRouter */}
-        {provider !== 'openrouter' && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Model</label>
-            <select
-              value={model}
-              onChange={(e) => setApiModel(e.target.value)}
-              className="w-full p-2 border border-input rounded-md bg-background text-sm"
-            >
-              {currentProvider.models.map((modelName) => (
-                <option key={modelName} value={modelName}>
-                  {modelName}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted-foreground">
-              Default: {currentProvider.defaultModel}
-            </p>
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              💡 All pipeline steps will use this model. Switch to OpenRouter to configure individual models for each agent.
-            </p>
-          </div>
-        )}
-
         {/* Status Indicator */}
         {apiKey && (
           <div className={`p-2 rounded-md text-xs ${

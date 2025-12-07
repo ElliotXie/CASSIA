@@ -46,6 +46,7 @@ runCASSIA_pipeline(
     # Model configurations
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
+    annotation_reasoning = "medium",  # Optional: "high", "medium", "low"
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     annotationboost_model="anthropic/claude-sonnet-4.5",
@@ -71,6 +72,7 @@ runCASSIA_pipeline(
 - **`marker`**: Marker gene data (data frame or path to CSV).
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
+- **`annotation_reasoning`**: (Optional) Controls reasoning depth for annotation ("high", "medium", "low"). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter).
 - **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
 - **`annotationboost_model`**: Model used for refining low-confidence annotations.
 - **`do_merge_annotations`**: Logical. If `TRUE`, merges detailed cell types into broader categories.

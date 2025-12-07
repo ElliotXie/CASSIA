@@ -16,6 +16,7 @@ CASSIA.runCASSIA_pipeline(
     max_workers = 6,  # Matches the number of clusters in dataset
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
+    annotation_reasoning = "medium",  # Optional: reasoning for annotation step
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     score_threshold = 75,
@@ -35,6 +36,7 @@ CASSIA.runCASSIA_pipeline(
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
 - **`annotation_provider`**: Provider for the annotation model.
+- **`annotation_reasoning`**: (Optional) Controls reasoning depth for annotation ("high", "medium", "low"). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter).
 - **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
 - **`score_provider`**: Provider for the score model.
 - **`score_threshold`**: Annotations with a quality score below this threshold (0-100) will trigger the Annotation Boost process. Default is 75.

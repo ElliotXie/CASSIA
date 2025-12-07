@@ -25,6 +25,15 @@
           "cost_tier": "low",
           "context_window": 128000,
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
+        },
+        "gpt-4o": {
+          "actual_name": "gpt-4o",
+          "aliases": ["gpt4o", "gpt-4-o", "4o"],
+          "description": "GPT-4o - fast multimodal model",
+          "recommended": true,
+          "cost_tier": "medium",
+          "context_window": 128000,
+          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         }
       }
     },
@@ -111,6 +120,15 @@
           "description": "GPT-5 Mini - fast efficient model",
           "recommended": false,
           "cost_tier": "low",
+          "context_window": 128000,
+          "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
+        },
+        "openai/gpt-4o": {
+          "actual_name": "openai/gpt-4o",
+          "aliases": ["gpt-4o", "gpt4o", "4o"],
+          "description": "GPT-4o - fast multimodal model",
+          "recommended": true,
+          "cost_tier": "medium",
           "context_window": 128000,
           "use_cases": ["annotation", "scoring", "annotation_boost", "merging"]
         },

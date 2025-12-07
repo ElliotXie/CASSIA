@@ -30,7 +30,8 @@ result <- runCASSIA(
   species = species,
   additional_info = additional_info,
   provider = provider,
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  reasoning = "medium"  # 可选: "high", "medium", "low" 用于兼容模型
 )
 
 # 查看结构化输出
@@ -50,5 +51,6 @@ print(result$conversation_history)
 - **`additional_info`**: (可选) 关于实验或样本的任何额外上下文信息。
 - **`provider`**: 要使用的 API 提供商 ("openrouter", "openai", "anthropic")。
 - **`validator_involvement`**: 验证严格程度级别（"v1" 为中等，"v0" 为高）。
+- **`reasoning`**: （可选）控制兼容模型的推理深度（"high"、"medium"、"low"）。省略则使用标准模式。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 
 _注意：_ 使用OpenRouter时，需指定完整的模型ID。

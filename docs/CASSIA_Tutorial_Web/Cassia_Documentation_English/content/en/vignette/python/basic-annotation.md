@@ -87,8 +87,14 @@ CASSIA.runCASSIA_batch(
     max_workers = 6,  # Matching cluster count
     n_genes = 50,
     additional_info = None,
-    provider = "openrouter")
+    provider = "openrouter",
+    reasoning = "medium"  # Optional: use with GPT-5 series models
+)
 ```
+
+> **Tip: Reasoning Effort Parameter**
+>
+> Use `reasoning="medium"` with GPT-5.1 for enhanced reasoning without long processing times. For OpenAI reasoning models, we recommend using OpenRouter to avoid identity verification requirements. Claude models use optimal reasoning by default. See [Reasoning Effort Parameter](/docs/python/setting-up-cassia#reasoning-effort-parameter) for details.
 
 ## Quality Scoring
 

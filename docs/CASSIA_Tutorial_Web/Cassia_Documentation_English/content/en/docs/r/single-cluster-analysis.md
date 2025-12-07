@@ -30,7 +30,8 @@ result <- runCASSIA(
   species = species,
   additional_info = additional_info,
   provider = provider,
-  validator_involvement = "v1"
+  validator_involvement = "v1",
+  reasoning = "medium"  # Optional: "high", "medium", "low" for compatible models
 )
 
 # View structured output
@@ -50,5 +51,6 @@ print(result$conversation_history)
 - **`additional_info`**: (Optional) Any extra context about the experiment or sample.
 - **`provider`**: The API provider to use ("openrouter", "openai", "anthropic").
 - **`validator_involvement`**: The level of validation strictness ("v1" for moderate, "v0" for high).
+- **`reasoning`**: (Optional) Controls reasoning depth for compatible models ("high", "medium", "low"). Omit for standard mode. See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter) for details.
 
 _Note:_ When using OpenRouter, specify the complete model ID.

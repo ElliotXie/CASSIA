@@ -632,8 +632,10 @@ export async function runCASSIA(
     apiKey = null,
     reasoningEffort = null
 ) {
-    // Build reasoning config from effort level
-    const reasoningConfig = reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null;
+    // Build reasoning config from effort level (case-insensitive)
+    const reasoningConfig = reasoningEffort && reasoningEffort.toLowerCase() !== 'none'
+        ? { effort: reasoningEffort.toLowerCase() }
+        : null;
 
     if (provider.toLowerCase() === "openai") {
         return await runCellTypeAnalysis(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig);

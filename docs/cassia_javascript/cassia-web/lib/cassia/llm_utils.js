@@ -84,24 +84,32 @@ export async function callLLM(
                 }
             }
 
-            // Use Responses API when reasoning is requested, Chat Completions otherwise
-            if (reasoningConfig && reasoningConfig.effort) {
+            // Valid OpenAI reasoning effort values (excludes 'none')
+            const VALID_REASONING_EFFORTS = ['high', 'medium', 'low'];
+
+            // Only use Responses API if effort is a valid value
+            const useResponsesAPI = reasoningConfig
+                && reasoningConfig.effort
+                && VALID_REASONING_EFFORTS.includes(reasoningConfig.effort.toLowerCase());
+
+            if (useResponsesAPI) {
                 // Responses API for reasoning models (GPT-5, o1, etc.)
                 const requestOptions = {
                     model,
                     input: apiMessages,
-                    reasoning: { effort: reasoningConfig.effort },
+                    reasoning: { effort: reasoningConfig.effort.toLowerCase() },
                     ...additionalParams
                 };
                 const response = await client.responses.create(requestOptions);
                 return response.output_text;
             } else {
                 // Chat Completions API (default - more stable, widely supported)
+                // Note: Newer OpenAI models (gpt-4o, gpt-4o-mini, etc.) require max_completion_tokens
                 const requestOptions = {
                     model,
                     messages: apiMessages,
                     temperature,
-                    max_tokens: maxTokens,
+                    max_completion_tokens: maxTokens,
                     ...additionalParams
                 };
                 const response = await client.chat.completions.create(requestOptions);

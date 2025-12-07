@@ -16,6 +16,7 @@ CASSIA.runCASSIA_pipeline(
     max_workers = 6,  # 与数据集中的聚类数匹配
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
+    annotation_reasoning = "medium",  # 可选: 注释步骤的推理深度
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     score_threshold = 75,
@@ -35,6 +36,7 @@ CASSIA.runCASSIA_pipeline(
 - **`max_workers`**: 使用的并行进程数。
 - **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
 - **`annotation_provider`**: 注释模型的提供商。
+- **`annotation_reasoning`**: （可选）控制注释的推理深度（"high"、"medium"、"low"）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 - **`score_model`**: 用于质量评分的模型。**建议**：使用像 `claude-4.5-sonnet` 这样的高能力模型以获得准确的评分。
 - **`score_provider`**: 评分模型的提供商。
 - **`score_threshold`**: 质量评分低于此阈值 (0-100) 的注释将触发注释增强过程。默认值为 75。

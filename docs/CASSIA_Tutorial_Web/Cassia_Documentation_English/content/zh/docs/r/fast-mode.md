@@ -46,6 +46,7 @@ runCASSIA_pipeline(
     # 模型配置
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
+    annotation_reasoning = "medium",  # 可选: "high", "medium", "low"
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     annotationboost_model="anthropic/claude-sonnet-4.5",
@@ -71,6 +72,7 @@ runCASSIA_pipeline(
 - **`marker`**: 标记基因数据（数据框或 CSV 路径）。
 - **`max_workers`**: 并行处理的工作进程数。
 - **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
+- **`annotation_reasoning`**: （可选）控制注释的推理深度（"high"、"medium"、"low"）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 - **`score_model`**: 用于质量评分的模型。**推荐**：使用像 `claude-4.5-sonnet` 这样高性能的模型以获得准确的评分。
 - **`annotationboost_model`**: 用于优化低置信度注释的模型。
 - **`do_merge_annotations`**: 逻辑值。如果为 `TRUE`，将详细的细胞类型合并为更广泛的类别。

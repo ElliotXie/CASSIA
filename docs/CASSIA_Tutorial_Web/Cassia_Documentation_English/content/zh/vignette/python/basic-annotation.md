@@ -87,8 +87,14 @@ CASSIA.runCASSIA_batch(
     max_workers = 6,  # 匹配聚类数
     n_genes = 50,
     additional_info = None,
-    provider = "openrouter")
+    provider = "openrouter",
+    reasoning = "medium"  # 可选: 用于 GPT-5 系列模型
+)
 ```
+
+> **提示: 推理深度参数**
+>
+> 使用 `reasoning="medium"` 配合 GPT-5.1 可获得增强推理而不会耗费过长时间。对于 OpenAI 推理模型，我们推荐使用 OpenRouter 以避免身份验证要求。Claude 模型默认使用最佳推理。详见 [推理深度参数](/docs/python/setting-up-cassia#推理深度参数)。
 
 ## 质量评分
 

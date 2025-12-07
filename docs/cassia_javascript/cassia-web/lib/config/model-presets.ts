@@ -57,34 +57,46 @@ export type ReasoningEffort = 'high' | 'medium' | 'low' | 'none';
 
 /**
  * Get the default reasoning effort for a model based on provider and model type.
- * - Anthropic models (direct or via OpenRouter): "high"
- * - OpenAI models (GPT-5, o1): "medium"
- * - Other models with reasoning support (Gemini, DeepSeek): "high"
- * - Models without reasoning support: null
+ *
+ * Direct OpenAI provider:
+ * - Always returns null (requires identity verification for reasoning models)
+ * - User must opt-in via identity verification checkbox in UI
+ *
+ * OpenRouter/Anthropic providers:
+ * - Claude models: "high"
+ * - GPT-5 series via OpenRouter: "medium"
+ *
+ * Models WITHOUT reasoning effort (auto or not supported):
+ * - GPT-4o, GPT-4, and older OpenAI models: null
+ * - Gemini models: null (auto-selects effort internally)
+ * - Grok models: null
+ * - DeepSeek, Llama, etc.: null
  */
 export function getDefaultReasoningEffort(provider: string, model: string): ReasoningEffort | null {
     const modelLower = model.toLowerCase();
 
-    // Anthropic models (direct or via OpenRouter) - high
+    // Direct OpenAI provider: always return null (use Chat Completions API)
+    // OpenAI requires identity verification for reasoning models
+    // User must opt-in via identity verification checkbox
+    if (provider === 'openai') {
+        return null;
+    }
+
+    // Claude models (direct Anthropic or via OpenRouter) - high
     if (provider === 'anthropic' || modelLower.includes('claude')) {
         return 'high';
     }
 
-    // OpenAI models (direct or via OpenRouter) - medium
-    if (provider === 'openai' || modelLower.includes('gpt-5') || modelLower.includes('o1-') || modelLower.includes('o3-')) {
+    // GPT-5 series via OpenRouter supports reasoning effort
+    if (modelLower.includes('gpt-5') || modelLower.includes('gpt5')) {
         return 'medium';
     }
 
-    // Other models with reasoning support - high
-    if (modelLower.includes('gemini') ||
-        modelLower.includes('deepseek') ||
-        modelLower.includes('grok') ||
-        modelLower.includes('thinking') ||
-        modelLower.includes('kimi')) {
-        return 'high';
-    }
-
-    // Default: no reasoning
+    // All other models: no reasoning effort configuration
+    // - GPT-4o, GPT-4: no reasoning config
+    // - Gemini: auto-selects effort internally
+    // - Grok: no reasoning config
+    // - DeepSeek, Llama, etc.: no reasoning config
     return null;
 }
 

@@ -32,7 +32,8 @@ result, conversation_history, _ = CASSIA.runCASSIA(
     species=species,
     additional_info=additional_info,
     provider=provider,
-    validator_involvement="v1"
+    validator_involvement="v1",
+    reasoning="medium"  # Optional: "high", "medium", "low" for compatible models
 )
 
 # View structured output
@@ -53,6 +54,7 @@ print(conversation_history)
 - **`additional_info`**: (Optional) Any extra context about the experiment or sample.
 - **`provider`**: The API provider to use ("openrouter", "openai", "anthropic").
 - **`validator_involvement`**: The level of validation strictness ("v1" for moderate, "v0" for high).
+- **`reasoning`**: (Optional) Controls reasoning depth for compatible models ("high", "medium", "low"). Python also accepts dict format: `{"effort": "high"}`. Omit for standard mode. See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter) for details.
 
 ### Return Value
 
