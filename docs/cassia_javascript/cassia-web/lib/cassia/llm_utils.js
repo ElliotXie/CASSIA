@@ -3,7 +3,7 @@ import axios from 'axios';
 
 /**
  * Call an LLM from various providers and return the generated text.
- * 
+ *
  * @param {string} prompt - The user prompt to send to the LLM
  * @param {string} provider - One of "openai", "anthropic", or "openrouter", or custom HTTP URL
  * @param {string} model - Specific model from the provider to use (e.g., "gpt-4" for OpenAI)
@@ -12,6 +12,11 @@ import axios from 'axios';
  * @param {number} maxTokens - Maximum tokens to generate
  * @param {string} systemPrompt - Optional system prompt for providers that support it
  * @param {object} additionalParams - Additional parameters to pass to the provider's API
+ * @param {object} reasoningConfig - Optional reasoning config (OpenAI, OpenRouter, custom HTTP)
+ * @param {string} [reasoningConfig.effort] - "high"|"medium"|"low"|"minimal"|"none"
+ * @param {number} [reasoningConfig.max_tokens] - Max tokens for reasoning
+ * @param {boolean} [reasoningConfig.exclude] - Exclude reasoning from response
+ * @param {boolean} [reasoningConfig.enabled] - Enable with default settings
  * @returns {Promise<string>} The generated text response
  */
 export async function callLLM(
@@ -22,7 +27,8 @@ export async function callLLM(
     temperature = 0.7,
     maxTokens = 7000,
     systemPrompt = null,
-    additionalParams = null
+    additionalParams = null,
+    reasoningConfig = null
 ) {
     provider = provider.toLowerCase();
     additionalParams = additionalParams || {};
@@ -54,39 +60,53 @@ export async function callLLM(
     }
     messages.push({ role: "user", content: prompt });
     
-    // OpenAI API call
+    // OpenAI API call - uses Chat Completions by default, Responses API for reasoning
     if (provider === "openai") {
         try {
-            const client = new OpenAI({ 
+            const client = new OpenAI({
                 apiKey,
-                dangerouslyAllowBrowser: true 
+                dangerouslyAllowBrowser: true
             });
-            
+
             // Handle message history properly for OpenAI
             let apiMessages = [...messages];
-            
+
             // If additional_params contains message history, merge it properly
             if ('messages' in additionalParams) {
                 // Use the full conversation history from additional_params instead
                 const historyMessages = { ...additionalParams }.messages;
                 delete additionalParams.messages;
                 apiMessages = historyMessages;
-                
+
                 // Only add system prompt if it's not already in the history
                 if (systemPrompt && !apiMessages.some(msg => msg.role === 'system')) {
                     apiMessages.unshift({ role: "system", content: systemPrompt });
                 }
             }
-            
-            const response = await client.chat.completions.create({
-                model,
-                messages: apiMessages,
-                temperature,
-                max_tokens: maxTokens,
-                ...additionalParams
-            });
-            
-            return response.choices[0].message.content;
+
+            // Use Responses API when reasoning is requested, Chat Completions otherwise
+            if (reasoningConfig && reasoningConfig.effort) {
+                // Responses API for reasoning models (GPT-5, o1, etc.)
+                const requestOptions = {
+                    model,
+                    input: apiMessages,
+                    reasoning: { effort: reasoningConfig.effort },
+                    ...additionalParams
+                };
+                const response = await client.responses.create(requestOptions);
+                return response.output_text;
+            } else {
+                // Chat Completions API (default - more stable, widely supported)
+                const requestOptions = {
+                    model,
+                    messages: apiMessages,
+                    temperature,
+                    max_tokens: maxTokens,
+                    ...additionalParams
+                };
+                const response = await client.chat.completions.create(requestOptions);
+                return response.choices[0].message.content;
+            }
         } catch (error) {
             throw new Error(`OpenAI API error: ${error.message}`);
         }
@@ -98,39 +118,52 @@ export async function callLLM(
             if (!apiKey) {
                 throw new Error("API key is required for custom endpoint");
             }
-            
-            const client = new OpenAI({ 
-                apiKey: apiKey, 
+
+            const client = new OpenAI({
+                apiKey: apiKey,
                 baseURL: provider,
-                dangerouslyAllowBrowser: true 
+                dangerouslyAllowBrowser: true
             });
-            
+
             // Handle message history properly
             let apiMessages = [...messages];
-            
+
             // If additional_params contains message history, merge it properly
             if ('messages' in additionalParams) {
                 // Use the full conversation history from additional_params instead
                 const historyMessages = { ...additionalParams }.messages;
                 delete additionalParams.messages;
                 apiMessages = historyMessages;
-                
+
                 // Only add system prompt if it's not already in the history
                 if (systemPrompt && !apiMessages.some(msg => msg.role === 'system')) {
                     apiMessages.unshift({ role: "system", content: systemPrompt });
                 }
             }
-            
-            // Call the API with the proper message history
-            const response = await client.chat.completions.create({
-                model,
-                messages: apiMessages,
-                temperature,
-                max_tokens: maxTokens,
-                ...additionalParams
-            });
-            
-            return response.choices[0].message.content;
+
+            // Use Responses API when reasoning is requested, Chat Completions otherwise
+            if (reasoningConfig && reasoningConfig.effort) {
+                // Responses API for reasoning models
+                const requestOptions = {
+                    model,
+                    input: apiMessages,
+                    reasoning: { effort: reasoningConfig.effort },
+                    ...additionalParams
+                };
+                const response = await client.responses.create(requestOptions);
+                return response.output_text;
+            } else {
+                // Chat Completions API (default - more compatible)
+                const requestOptions = {
+                    model,
+                    messages: apiMessages,
+                    temperature,
+                    max_tokens: maxTokens,
+                    ...additionalParams
+                };
+                const response = await client.chat.completions.create(requestOptions);
+                return response.choices[0].message.content;
+            }
         } catch (error) {
             throw new Error(`Custom API error: ${error.message}`);
         }
@@ -145,23 +178,28 @@ export async function callLLM(
                 'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01'
             };
-            
+
+            // Add beta header if effort is being used (required for effort parameter)
+            if (reasoningConfig && reasoningConfig.effort) {
+                headers['anthropic-beta'] = 'effort-2025-11-24';
+            }
+
             // Handle message history properly for Anthropic
             let apiMessages = messages;
-            
+
             // If additional_params contains message history, use it
             if ('messages' in additionalParams) {
                 const historyMessages = { ...additionalParams }.messages;
                 delete additionalParams.messages;
                 apiMessages = historyMessages;
             }
-            
+
             // Convert messages to Anthropic format (text content structure)
             const anthropicMessages = apiMessages.map(msg => ({
                 role: msg.role === 'system' ? 'user' : msg.role, // Anthropic doesn't have system role in messages
                 content: [{ type: "text", text: msg.content }]
             })).filter(msg => msg.role !== 'user' || msg.content[0].text.trim() !== ''); // Remove empty user messages
-            
+
             // Create the message params
             const messageParams = {
                 model,
@@ -169,15 +207,20 @@ export async function callLLM(
                 temperature,
                 messages: anthropicMessages
             };
-            
+
             // Add system prompt if provided (Anthropic uses separate system field)
             if (systemPrompt) {
                 messageParams.system = systemPrompt;
             }
-            
+
+            // Add effort config if provided (Anthropic uses output_config.effort)
+            if (reasoningConfig && reasoningConfig.effort) {
+                messageParams.output_config = { effort: reasoningConfig.effort };
+            }
+
             // Add any additional parameters
             Object.assign(messageParams, additionalParams);
-            
+
             // Call the API
             const response = await axios.post(
                 'https://api.anthropic.com/v1/messages',
@@ -236,9 +279,26 @@ export async function callLLM(
                 max_tokens: maxTokens,
                 ...additionalParams
             };
-            
+
+            // Add reasoning config if provided (OpenRouter reasoning tokens feature)
+            if (reasoningConfig) {
+                data.reasoning = {};
+                if (reasoningConfig.effort !== undefined) {
+                    data.reasoning.effort = reasoningConfig.effort;
+                }
+                if (reasoningConfig.max_tokens !== undefined) {
+                    data.reasoning.max_tokens = reasoningConfig.max_tokens;
+                }
+                if (reasoningConfig.exclude !== undefined) {
+                    data.reasoning.exclude = reasoningConfig.exclude;
+                }
+                if (reasoningConfig.enabled !== undefined) {
+                    data.reasoning.enabled = reasoningConfig.enabled;
+                }
+            }
+
             const response = await axios.post(url, data, { headers });
-            
+
             return response.data.choices[0].message.content;
         } catch (error) {
             if (error.response) {

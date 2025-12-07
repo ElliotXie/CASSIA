@@ -294,6 +294,7 @@ export async function runCASSIABatch({
     validatorInvolvement = "v1",
     formatType = null,
     preset = null, // New parameter for model presets
+    reasoningEffort = null, // Reasoning effort level ('high', 'medium', 'low', 'none')
     onLog = null
 } = {}) {
     // Apply model preset if specified
@@ -381,7 +382,8 @@ export async function runCASSIABatch({
                     additionalInfo,
                     finalProvider,
                     validatorInvolvement,
-                    apiKey
+                    apiKey,
+                    reasoningEffort
                 );
                 
                 // Add metadata

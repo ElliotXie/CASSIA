@@ -140,6 +140,26 @@ except ImportError:
         from marker_utils import split_markers, get_top_markers, _validate_ranking_parameters, _prepare_ranking_column, _get_sort_direction
 
 
+def _normalize_reasoning(reasoning):
+    """
+    Normalize reasoning parameter to dict format.
+
+    Accepts either a string ("high", "medium", "low") or a dict.
+    Converts string to dict format for internal use.
+
+    Args:
+        reasoning: String like "high" or dict like {"effort": "high"}
+
+    Returns:
+        None, or dict like {"effort": "high"}
+    """
+    if reasoning is None:
+        return None
+    if isinstance(reasoning, str):
+        return {"effort": reasoning.lower()}
+    return reasoning  # Already a dict
+
+
 def set_openai_api_key(api_key):
     os.environ["OPENAI_API_KEY"] = api_key
 
@@ -183,19 +203,22 @@ def rerun_formatting_agent(agent, full_conversation_history):
     return extract_json_from_reply(formatted_result)
 
 
-def _run_core_analysis(model, temperature, marker_list, tissue, species, additional_info, provider, validator_involvement):
+def _run_core_analysis(model, temperature, marker_list, tissue, species, additional_info, provider, validator_involvement, reasoning=None):
     """
     Internal helper that runs the actual LLM analysis.
+
+    Args:
+        reasoning: Optional reasoning configuration for models that support it.
 
     Returns:
         tuple: (analysis_result, conversation_history)
     """
     if provider.lower() == "openai":
-        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
+        return run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement, reasoning=reasoning)
     elif provider.lower() == "anthropic":
-        return run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
+        return run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement, reasoning=reasoning)
     elif provider.lower() == "openrouter":
-        return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement)
+        return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement, reasoning=reasoning)
     elif provider.lower().startswith("http"):
         api_key = os.environ.get("CUSTOMIZED_API_KEY")
         if not api_key:
@@ -209,7 +232,8 @@ def _run_core_analysis(model, temperature, marker_list, tissue, species, additio
             tissue=tissue,
             species=species,
             additional_info=additional_info,
-            validator_involvement=validator_involvement
+            validator_involvement=validator_involvement,
+            reasoning=reasoning
         )
     else:
         raise ValueError("Provider must be either 'openai', 'anthropic', 'openrouter', or a base URL (http...)")
@@ -224,6 +248,7 @@ def runCASSIA(
     additional_info=None,
     provider="openrouter",
     validator_involvement="v1",
+    reasoning=None,
     # Reference parameters (optional, default off for backward compatibility)
     use_reference=False,
     reference_threshold=40,
@@ -246,6 +271,11 @@ def runCASSIA(
         additional_info (str): Additional information for the analysis
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a base URL)
         validator_involvement (str): Validator involvement level ('v1', 'v0', etc.)
+        reasoning (str or dict): Optional reasoning effort for models that support it.
+            Controls how much the model "thinks" before responding.
+            Simple: "high", "medium", or "low"
+            Dict: {"effort": "high|medium|low"} (for advanced use)
+            Supported models: OpenAI GPT-5 series, Anthropic Claude Opus 4.5, compatible via OpenRouter.
         use_reference (bool): Whether to use intelligent reference retrieval (default: False)
         reference_threshold (float): Complexity score threshold for triggering reference (0-100)
         reference_provider (str): Provider for reference complexity assessment (default: same as provider)
@@ -261,6 +291,9 @@ def runCASSIA(
     Raises:
         CASSIAValidationError: If input validation fails
     """
+    # Normalize reasoning parameter (accept string or dict)
+    reasoning = _normalize_reasoning(reasoning)
+
     # Validate all inputs early (fail-fast)
     validated = validate_runCASSIA_inputs(
         model=model,
@@ -300,7 +333,7 @@ def runCASSIA(
         reference_info["reason"] = "Reference disabled (use_reference=False)"
         result, history = _run_core_analysis(
             model, temperature, marker_list, tissue, species,
-            additional_info, provider, validator_involvement
+            additional_info, provider, validator_involvement, reasoning=reasoning
         )
         return result, history, reference_info
 
@@ -311,7 +344,7 @@ def runCASSIA(
         reference_info["reason"] = "Reference agent not available"
         result, history = _run_core_analysis(
             model, temperature, marker_list, tissue, species,
-            additional_info, provider, validator_involvement
+            additional_info, provider, validator_involvement, reasoning=reasoning
         )
         return result, history, reference_info
 
@@ -364,7 +397,7 @@ def runCASSIA(
     # Run analysis with (possibly enhanced) additional_info
     result, history = _run_core_analysis(
         model, temperature, marker_list, tissue, species,
-        combined_info, provider, validator_involvement
+        combined_info, provider, validator_involvement, reasoning=reasoning
     )
 
     return result, history, reference_info
@@ -405,6 +438,7 @@ def runCASSIA_batch(
     ranking_method="avg_log2FC",
     ascending=None,
     validator_involvement="v1",
+    reasoning=None,
     # Reference parameters (NEW)
     use_reference=False,
     reference_model=None,
@@ -432,6 +466,11 @@ def runCASSIA_batch(
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
         validator_involvement (str): Validator involvement level ('v1', 'v0', etc.)
+        reasoning (str or dict): Optional reasoning effort for models that support it.
+            Controls how much the model "thinks" before responding.
+            Simple: "high", "medium", or "low"
+            Dict: {"effort": "high|medium|low"} (for advanced use)
+            Supported: OpenAI GPT-5, Anthropic Claude Opus 4.5, compatible via OpenRouter.
         use_reference (bool): Whether to use intelligent reference retrieval per cluster (default: False)
         reference_model (str): Model for reference complexity assessment (default: fast model)
         verbose (bool): Print progress information (default: True)
@@ -442,6 +481,9 @@ def runCASSIA_batch(
     Raises:
         CASSIAValidationError: If input validation fails
     """
+    # Normalize reasoning parameter (accept string or dict)
+    reasoning = _normalize_reasoning(reasoning)
+
     # Validate all inputs early (fail-fast)
     validated = validate_runCASSIA_batch_inputs(
         marker=marker,
@@ -530,6 +572,7 @@ def runCASSIA_batch(
                     additional_info=additional_info,
                     provider=provider,
                     validator_involvement=validator_involvement,
+                    reasoning=reasoning,
                     use_reference=use_reference,
                     reference_model=reference_model,
                     verbose=False  # Suppress per-cluster verbose output

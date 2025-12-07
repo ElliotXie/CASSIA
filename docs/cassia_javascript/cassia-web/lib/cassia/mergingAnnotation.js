@@ -111,7 +111,9 @@ export async function mergeAnnotations({
                 apiKey,
                 0.3, // Lower temperature for consistency
                 2000,
-                "You are an expert cell biologist specializing in single-cell analysis. Your task is to analyze cluster annotations and suggest general cell groupings."
+                "You are an expert cell biologist specializing in single-cell analysis. Your task is to analyze cluster annotations and suggest general cell groupings.",
+                null, // additionalParams
+                reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
             );
 
             // Parse response and update data

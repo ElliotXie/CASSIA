@@ -91,11 +91,12 @@ def call_llm(
     temperature: float = 0.7,
     max_tokens: int = 4096,
     system_prompt: Optional[str] = None,
-    additional_params: Optional[Dict[str, Any]] = None
+    additional_params: Optional[Dict[str, Any]] = None,
+    reasoning: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Call an LLM from various providers and return the generated text.
-    
+
     Args:
         prompt: The user prompt to send to the LLM
         provider: One of "openai", "anthropic", or "openrouter"
@@ -105,7 +106,17 @@ def call_llm(
         max_tokens: Maximum tokens to generate
         system_prompt: Optional system prompt for providers that support it
         additional_params: Additional parameters to pass to the provider's API
-    
+        reasoning: Optional reasoning configuration for models that support it.
+            Controls how much the model "thinks" before responding.
+            Options:
+            - effort: "high", "medium", "low" (OpenAI/Anthropic/OpenRouter)
+            Example: {"effort": "high"} or {"effort": "medium"}
+
+            Provider-specific behavior:
+            - OpenAI: Uses Responses API with reasoning parameter (GPT-5 series)
+            - Anthropic: Uses beta.messages.create with effort parameter (Claude Opus 4.5)
+            - OpenRouter: Passes reasoning to chat completions endpoint
+
     Returns:
         str: The generated text response
     """
@@ -164,13 +175,46 @@ def call_llm(
 
         client = openai.OpenAI(api_key=api_key)
 
+        # Handle message history from additional_params (for conversation history)
+        params_copy = additional_params.copy() if additional_params else {}
+        api_messages = messages.copy()
+
+        if 'messages' in params_copy:
+            # Use the full conversation history from additional_params
+            api_messages = params_copy.pop('messages')
+            # Only add system prompt if not already in history
+            if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
+                api_messages.insert(0, {"role": "system", "content": system_prompt})
+
+        # Use Responses API when reasoning is specified (for GPT-5 reasoning models)
+        if reasoning:
+            try:
+                # Convert messages to input format for Responses API
+                # Note: Responses API uses "input" not "messages", and "developer" not "system"
+                input_messages = []
+                for msg in api_messages:
+                    role = "developer" if msg["role"] == "system" else msg["role"]
+                    input_messages.append({"role": role, "content": msg["content"]})
+
+                response = client.responses.create(
+                    model=model,
+                    input=input_messages,
+                    reasoning=reasoning,
+                    **params_copy
+                )
+                return response.output_text
+            except Exception as e:
+                _handle_api_error(e, provider, model)
+                raise
+
+        # Standard Chat Completions API (no reasoning)
         try:
             response = client.chat.completions.create(
                 model=model,
-                messages=messages,
+                messages=api_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **additional_params
+                **params_copy
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -181,10 +225,10 @@ def call_llm(
                 try:
                     response = client.chat.completions.create(
                         model=model,
-                        messages=messages,
+                        messages=api_messages,
                         temperature=temperature,
                         max_completion_tokens=max_tokens,
-                        **additional_params
+                        **params_copy
                     )
                     return response.choices[0].message.content
                 except Exception as retry_error:
@@ -242,32 +286,66 @@ def call_llm(
 
         client = anthropic.Anthropic(api_key=api_key)
 
-        # Format the prompt for Anthropic
-        user_content = [{"type": "text", "text": prompt}]
+        # Handle message history from additional_params (for conversation history)
+        params_copy = additional_params.copy() if additional_params else {}
 
-        # Create the message with system as a string
+        if 'messages' in params_copy:
+            # Use the full conversation history from additional_params
+            history_messages = params_copy.pop('messages')
+
+            # Anthropic doesn't accept "system" role in messages - filter it out
+            # and use the system_prompt parameter instead
+            api_messages = [
+                msg for msg in history_messages
+                if msg.get('role') != 'system'
+            ]
+        else:
+            # No history, just use the single prompt
+            api_messages = [{"role": "user", "content": prompt}]
+
+        # Create the message params
         message_params = {
             "model": model,
             "max_tokens": max_tokens,
             "temperature": temperature,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": user_content
-                }
-            ]
+            "messages": api_messages
         }
 
-        # Add system prompt if provided
+        # Add system prompt if provided (Anthropic uses separate system parameter)
         if system_prompt:
             message_params["system"] = system_prompt
 
-        # Add any additional parameters (skip model to prevent override)
-        for key, value in additional_params.items():
+        # Add any remaining additional parameters (skip model to prevent override)
+        for key, value in params_copy.items():
             if key != "model":
                 message_params[key] = value
 
-        # Call the API
+        # Use beta API when effort/reasoning is specified (for Claude Opus 4.5)
+        if reasoning and reasoning.get("effort"):
+            try:
+                # Use beta.messages.create with effort parameter
+                response = client.beta.messages.create(
+                    betas=["effort-2025-11-24"],
+                    output_config={"effort": reasoning["effort"]},
+                    **message_params
+                )
+
+                # Extract the text content from the response
+                if hasattr(response, 'content') and len(response.content) > 0:
+                    content_block = response.content[0]
+                    if hasattr(content_block, 'text'):
+                        return content_block.text
+                    elif isinstance(content_block, dict) and 'text' in content_block:
+                        return content_block['text']
+                    else:
+                        return str(response.content)
+                else:
+                    return "No content returned from Anthropic API"
+            except Exception as e:
+                _handle_api_error(e, provider, model)
+                raise
+
+        # Standard API call (no effort/reasoning)
         try:
             response = client.messages.create(**message_params)
 
@@ -313,6 +391,10 @@ def call_llm(
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
+
+        # Add reasoning configuration if provided (for models that support it)
+        if reasoning:
+            data["reasoning"] = reasoning
 
         try:
             response = requests.post(url, headers=headers, data=json.dumps(data))

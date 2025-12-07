@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Zap, Clock } from 'lucide-react'
+import { Settings, Zap, Clock, Brain } from 'lucide-react'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
+import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
 import modelSettings from '../public/examples/model_settings.json'
 
 interface ModelOption {
@@ -100,8 +101,9 @@ const presets = {
 }
 
 export function ModelSelectionMatrix() {
-  const { pipelineModels, setPipelineModel } = useConfigStore()
+  const { pipelineModels, setPipelineModel, setReasoningEffort } = useConfigStore()
   const { provider } = useApiKeyStore()
+  const reasoningOptions = getReasoningEffortOptions()
   const [selectedPreset, setSelectedPreset] = useState<string>('')
   const [hasAutoSelectedBalanced, setHasAutoSelectedBalanced] = useState(false)
 
@@ -184,7 +186,7 @@ export function ModelSelectionMatrix() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Provider</label>
                   <Select
@@ -235,6 +237,36 @@ export function ModelSelectionMatrix() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Reasoning Effort Selector - shown when model supports reasoning */}
+                {modelSupportsReasoning(currentConfig.provider, currentConfig.model) && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <Brain className="h-3 w-3" />
+                      Reasoning Effort
+                    </label>
+                    <Select
+                      value={currentConfig.reasoningEffort || 'none'}
+                      onValueChange={(effort) => {
+                        setReasoningEffort(step.id, effort === 'none' ? null : effort as ReasoningEffort)
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {reasoningOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div>
+                              <div className="font-medium">{option.label}</div>
+                              <div className="text-xs text-muted-foreground">{option.description}</div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {currentModel && (

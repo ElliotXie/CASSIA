@@ -363,7 +363,10 @@ Please provide a structured summary following the format above:`;
             model || "anthropic/claude-3.5-sonnet",
             apiKey,
             temperature,
-            7000
+            7000,
+            null, // systemPrompt
+            null, // additionalParams
+            reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
         );
         return summary.trim();
     } catch (error) {
@@ -750,15 +753,16 @@ export async function iterativeMarkerAnalysis(
             // CRITICAL FIX: Always pass the full conversation history for proper context maintenance
             console.log(`🔄 Iteration ${iteration + 1}: Sending ${messages.length} messages to LLM for context`);
             const llmResponse = await callLLM(
-                messages[messages.length - 1].content, 
-                provider, 
-                model, 
-                apiKey, 
-                temperature, 
+                messages[messages.length - 1].content,
+                provider,
+                model,
+                apiKey,
+                temperature,
                 7000,
                 null, // systemPrompt
                 // Always include conversation history to maintain context between iterations
-                { messages: messages }
+                { messages: messages },
+                reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
             );
             
             conversation += `\n--- Iteration ${iteration + 1} ---\n`;
@@ -817,7 +821,8 @@ export async function iterativeMarkerAnalysis(
             temperature,
             7000,
             null, // systemPrompt
-            { messages: messages } // Include full conversation history
+            { messages: messages }, // Include full conversation history
+            reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
         );
         
         conversation += `\nExpert Analyst:\n${finalResponse}\n`;
@@ -988,7 +993,10 @@ export async function generateSummaryReport(messages, searchStrategy = "breadth"
             model,
             apiKey,
             0.3, // Low temperature for consistent output
-            4000 // Max tokens
+            4000, // Max tokens
+            null, // systemPrompt
+            null, // additionalParams
+            reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
         );
         
         // Convert to HTML and return

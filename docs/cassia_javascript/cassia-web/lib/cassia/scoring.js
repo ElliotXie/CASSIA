@@ -125,18 +125,23 @@ function extractScoreAndReasoning(text) {
  * @param {string} model - Model to use (default: "deepseek/deepseek-chat-v3-0324")
  * @param {string} provider - AI provider to use ('openai', 'anthropic', or 'openrouter')
  * @param {string} apiKey - API key for the provider
+ * @param {string} reasoningEffort - Reasoning effort level ('high', 'medium', 'low', 'none')
  * @returns {Promise<Object>} {score: number, reasoning: string}
  */
 export async function scoreSingleAnalysis(
-    majorClusterInfo, 
-    marker, 
-    annotationHistory, 
-    model = "deepseek/deepseek-chat-v3-0324", 
+    majorClusterInfo,
+    marker,
+    annotationHistory,
+    model = "deepseek/deepseek-chat-v3-0324",
     provider = "openrouter",
-    apiKey
+    apiKey,
+    reasoningEffort = null
 ) {
     const prompt = promptCreatorScore(majorClusterInfo, marker, annotationHistory);
-    
+
+    // Reasoning config - use provided effort or default based on provider
+    const reasoningConfig = reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null;
+
     // Add explicit max_tokens to ensure responses aren't truncated
     const response = await callLLM(
         prompt,
@@ -145,7 +150,9 @@ export async function scoreSingleAnalysis(
         apiKey,
         0.7,  // temperature
         4096, // max_tokens - aligned with Python version
-        null  // system_prompt
+        null, // system_prompt
+        null, // additionalParams
+        reasoningConfig
     );
     
     const { score, reasoning } = extractScoreAndReasoning(response);

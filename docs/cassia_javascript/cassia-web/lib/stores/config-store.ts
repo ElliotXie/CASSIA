@@ -2,20 +2,18 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useApiKeyStore } from './api-key-store'
 import modelSettings from '../../public/examples/model_settings.json'
+import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
 
-interface PipelineModels {
-  annotation: {
-    provider: string
-    model: string
-  }
-  scoring: {
-    provider: string
-    model: string
-  }
-  annotationBoost: {
-    provider: string
-    model: string
-  }
+export interface PipelineStepConfig {
+  provider: string
+  model: string
+  reasoningEffort: ReasoningEffort | null
+}
+
+export interface PipelineModels {
+  annotation: PipelineStepConfig
+  scoring: PipelineStepConfig
+  annotationBoost: PipelineStepConfig
 }
 
 interface ConfigState {
@@ -34,6 +32,7 @@ interface ConfigState {
   // Actions
   setModel: (model: string) => void // Legacy single model
   setPipelineModel: (step: keyof PipelineModels, provider: string, model: string) => void
+  setReasoningEffort: (step: keyof PipelineModels, effort: ReasoningEffort | null) => void
   setAnalysisConfig: (config: Partial<{
     outputName: string
     tissue: string
@@ -59,15 +58,18 @@ const defaultConfig = {
   pipelineModels: {
     annotation: {
       provider: 'openrouter',
-      model: 'anthropic/claude-haiku-4.5'
+      model: 'anthropic/claude-haiku-4.5',
+      reasoningEffort: 'high' as ReasoningEffort // Anthropic default
     },
     scoring: {
-      provider: 'openrouter', 
-      model: 'google/gemini-2.5-flash'
+      provider: 'openrouter',
+      model: 'google/gemini-2.5-flash',
+      reasoningEffort: 'high' as ReasoningEffort // Gemini default
     },
     annotationBoost: {
       provider: 'openrouter',
-      model: 'anthropic/claude-haiku-4.5'
+      model: 'anthropic/claude-haiku-4.5',
+      reasoningEffort: 'high' as ReasoningEffort // Anthropic default
     }
   },
   outputName: 'cassia_analysis',
@@ -87,11 +89,26 @@ export const useConfigStore = create<ConfigState>()(
       
       setModel: (model: string) => set({ model }),
       
-      setPipelineModel: (step: keyof PipelineModels, provider: string, model: string) => 
+      setPipelineModel: (step: keyof PipelineModels, provider: string, model: string) =>
         set((state) => ({
           pipelineModels: {
             ...state.pipelineModels,
-            [step]: { provider, model }
+            [step]: {
+              provider,
+              model,
+              reasoningEffort: getDefaultReasoningEffort(provider, model)
+            }
+          }
+        })),
+
+      setReasoningEffort: (step: keyof PipelineModels, effort: ReasoningEffort | null) =>
+        set((state) => ({
+          pipelineModels: {
+            ...state.pipelineModels,
+            [step]: {
+              ...state.pipelineModels[step],
+              reasoningEffort: effort
+            }
           }
         })),
       

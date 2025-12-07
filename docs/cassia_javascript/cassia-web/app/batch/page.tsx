@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText, Brain } from 'lucide-react'
+import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
 import { FileUpload } from '@/components/FileUpload'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
@@ -37,9 +38,13 @@ export default function BatchPage() {
   const {
     provider,
     model,
+    reasoningEffort,
     getApiKey,
-    setModel
+    setModel,
+    setReasoningEffort
   } = useApiKeyStore()
+
+  const reasoningOptions = getReasoningEffortOptions()
   
   // Get the API key for the current provider
   const apiKey = getApiKey()
@@ -132,10 +137,12 @@ export default function BatchPage() {
         maxRetries: batchConfig.maxRetries,
         rankingMethod: batchConfig.rankingMethod,
         validatorInvolvement: batchConfig.validatorInvolvement,
-        formatType: batchConfig.formatType
+        formatType: batchConfig.formatType,
+        reasoningEffort: reasoningEffort
       }
       
       addLog(`🔧 Configuration: ${maxWorkers} workers, ${provider}/${model} model`)
+      addLog(`🧠 Reasoning effort: ${reasoningEffort || 'none'}`)
       addLog(`🎯 Target: ${tissue} ${species}`)
       addLog(`🔑 API Key: ${apiKey ? 'Set' : 'Not set'} for ${provider}`)
       
@@ -362,34 +369,71 @@ export default function BatchPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Select Model</label>
-                  <Select
-                    value={model}
-                    onValueChange={(value) => {
-                      setModel(value)
-                      setSelectedMode(undefined)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {modelOptions[provider as keyof typeof modelOptions]?.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{m.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              (${m.cost} cost, {m.speed})
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Currently selected: <span className="font-medium">{model}</span>
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Select Model</label>
+                    <Select
+                      value={model}
+                      onValueChange={(value) => {
+                        setModel(value)
+                        setSelectedMode(undefined)
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {modelOptions[provider as keyof typeof modelOptions]?.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{m.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                (${m.cost} cost, {m.speed})
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Currently selected: <span className="font-medium">{model}</span>
+                    </p>
+                  </div>
+
+                  {/* Reasoning Effort Selector */}
+                  {modelSupportsReasoning(provider, model) && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-1">
+                        <Brain className="h-4 w-4" />
+                        Reasoning Effort
+                      </label>
+                      <Select
+                        value={reasoningEffort || 'none'}
+                        onValueChange={(value) => {
+                          setReasoningEffort(value === 'none' ? null : value as ReasoningEffort)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose reasoning effort" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {reasoningOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              <div className="flex items-center gap-2">
+                                <span>{option.label}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({option.description})
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Higher effort = more thorough reasoning, slower response
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -572,6 +616,12 @@ export default function BatchPage() {
                   <span className="text-muted-foreground">Model:</span>
                   <span className="font-medium">{model}</span>
                 </div>
+                {modelSupportsReasoning(provider, model) && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Reasoning:</span>
+                    <span className="font-medium capitalize">{reasoningEffort || 'none'}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Workers:</span>
                   <span className="font-medium">{maxWorkers}</span>

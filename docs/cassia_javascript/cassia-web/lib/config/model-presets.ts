@@ -51,3 +51,58 @@ export function getAvailablePresets(): ModelPreset[] {
 export function getModelPersona(modelId: string): string {
     return MODEL_PERSONAS[modelId] || "Research Assistant";
 }
+
+// Reasoning effort configuration
+export type ReasoningEffort = 'high' | 'medium' | 'low' | 'none';
+
+/**
+ * Get the default reasoning effort for a model based on provider and model type.
+ * - Anthropic models (direct or via OpenRouter): "high"
+ * - OpenAI models (GPT-5, o1): "medium"
+ * - Other models with reasoning support (Gemini, DeepSeek): "high"
+ * - Models without reasoning support: null
+ */
+export function getDefaultReasoningEffort(provider: string, model: string): ReasoningEffort | null {
+    const modelLower = model.toLowerCase();
+
+    // Anthropic models (direct or via OpenRouter) - high
+    if (provider === 'anthropic' || modelLower.includes('claude')) {
+        return 'high';
+    }
+
+    // OpenAI models (direct or via OpenRouter) - medium
+    if (provider === 'openai' || modelLower.includes('gpt-5') || modelLower.includes('o1-') || modelLower.includes('o3-')) {
+        return 'medium';
+    }
+
+    // Other models with reasoning support - high
+    if (modelLower.includes('gemini') ||
+        modelLower.includes('deepseek') ||
+        modelLower.includes('grok') ||
+        modelLower.includes('thinking') ||
+        modelLower.includes('kimi')) {
+        return 'high';
+    }
+
+    // Default: no reasoning
+    return null;
+}
+
+/**
+ * Check if a model supports reasoning/effort configuration.
+ */
+export function modelSupportsReasoning(provider: string, model: string): boolean {
+    return getDefaultReasoningEffort(provider, model) !== null;
+}
+
+/**
+ * Get all available reasoning effort options.
+ */
+export function getReasoningEffortOptions(): { value: ReasoningEffort; label: string; description: string }[] {
+    return [
+        { value: 'high', label: 'High', description: 'Most thorough reasoning, slower' },
+        { value: 'medium', label: 'Medium', description: 'Balanced reasoning and speed' },
+        { value: 'low', label: 'Low', description: 'Faster with less reasoning' },
+        { value: 'none', label: 'None', description: 'No extended reasoning' }
+    ];
+}

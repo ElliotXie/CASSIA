@@ -688,9 +688,10 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #'
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
+#' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
+runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   # Convert marker_list to character vector if it's a data frame
   if (is.data.frame(marker_list)) {
     # Try common column names for gene markers
@@ -718,7 +719,8 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
       additional_info = additional_info,
       provider = provider,
       validator_involvement = validator_involvement,
-      use_reference = use_reference
+      use_reference = use_reference,
+      reasoning = reasoning
     )
 
     # Convert structured_output (result[[1]])
@@ -769,11 +771,12 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, ma
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
+#' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
 #'
 #' @return A list containing results from multiple runs, each with analysis_result, conversation_history, and reference_info.
 #' @export
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list,
-                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE) {
+                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   tryCatch({
     result <- py_cassia$runCASSIA_n_times(
       n = as.integer(n),
@@ -786,7 +789,8 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
       max_workers = as.integer(max_workers),
       provider = provider,
       validator_involvement = validator_involvement,
-      use_reference = use_reference
+      use_reference = use_reference,
+      reasoning = reasoning
     )
 
     # Convert the result to an R list
@@ -903,16 +907,17 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param ranking_method Method used to rank marker genes: "avg_log2FC" (default), "p_val_adj", "pct_diff", or "Score".
 #' @param ascending Logical value indicating sort direction. If NULL (default), uses method-specific default.
+#' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
-runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.json", 
-                          model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung", 
-                          species = "human", additional_info = NULL, 
-                          celltype_column = NULL, gene_column_name = NULL, 
+runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.json",
+                          model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung",
+                          species = "human", additional_info = NULL,
+                          celltype_column = NULL, gene_column_name = NULL,
                           max_workers = 10, provider = "openrouter", n_genes = 50,
                           max_retries = 1, validator_involvement = "v1",
-                          ranking_method = "avg_log2FC", ascending = NULL) {
+                          ranking_method = "avg_log2FC", ascending = NULL, reasoning = NULL) {
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -946,7 +951,8 @@ if (is.data.frame(marker)) {
       max_retries = as.integer(max_retries),
       validator_involvement = validator_involvement,
       ranking_method = ranking_method,
-      ascending = ascending
+      ascending = ascending,
+      reasoning = reasoning
     )
   })
   

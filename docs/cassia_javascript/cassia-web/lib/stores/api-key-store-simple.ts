@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from './auth-store'
 import modelSettings from '../../public/examples/model_settings.json'
+import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
 
 export type Provider = 'openrouter' | 'anthropic' | 'openai'
 
@@ -14,19 +15,21 @@ interface ApiKeyState {
   }
   provider: Provider
   model: string
+  reasoningEffort: ReasoningEffort | null
   isLoading: boolean
   error: string | null
-  
+
   // Core API key actions
   setApiKey: (key: string, provider?: Provider) => Promise<void>
   loadApiKeys: () => Promise<void>
   clearApiKey: (provider?: Provider) => Promise<void>
-  
+
   // UI state actions
   setProvider: (provider: Provider) => void
   setModel: (model: string) => void
+  setReasoningEffort: (effort: ReasoningEffort | null) => void
   clearError: () => void
-  
+
   // Helpers
   getApiKey: (provider?: Provider) => string
   apiKey: string
@@ -52,17 +55,26 @@ export const useApiKeyStore = create<ApiKeyState>()(
       },
       provider: 'openrouter',
       model: modelSettings.providers.openrouter.default_model,
+      reasoningEffort: getDefaultReasoningEffort('openrouter', modelSettings.providers.openrouter.default_model),
       isLoading: false,
       error: null,
-      
+
       clearError: () => set({ error: null }),
-      
+
       setProvider: (provider: Provider) => {
         set({ provider })
       },
-      
+
       setModel: (model: string) => {
-        set({ model })
+        const provider = get().provider
+        set({
+          model,
+          reasoningEffort: getDefaultReasoningEffort(provider, model)
+        })
+      },
+
+      setReasoningEffort: (effort: ReasoningEffort | null) => {
+        set({ reasoningEffort: effort })
       },
       
       setApiKey: async (key: string, provider?: Provider) => {
@@ -206,6 +218,7 @@ export const useApiKeyStore = create<ApiKeyState>()(
       partialize: (state) => ({
         provider: state.provider,
         model: state.model,
+        reasoningEffort: state.reasoningEffort,
         apiKeys: state.apiKeys
       })
     }

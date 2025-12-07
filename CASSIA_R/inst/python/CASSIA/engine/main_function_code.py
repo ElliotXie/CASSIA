@@ -4,6 +4,90 @@ from openai import OpenAI
 import os
 import anthropic
 import requests
+from typing import Optional, Dict, Any
+
+# Import call_llm for the shared Agent class
+try:
+    from ..core.llm_utils import call_llm
+except ImportError:
+    from core.llm_utils import call_llm
+
+
+# ----------------- Shared Agent Class -----------------
+
+class Agent:
+    """
+    Unified Agent class that works with all LLM providers via call_llm.
+
+    Maintains conversation history and supports reasoning tokens for models that support it.
+    """
+
+    def __init__(
+        self,
+        system: str = "",
+        model: str = None,
+        temperature: float = 0.7,
+        provider: str = "openrouter",
+        reasoning: Optional[Dict[str, Any]] = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None  # For custom OpenAI-compatible endpoints
+    ):
+        self.system = system
+        self.model = model
+        self.temperature = temperature
+        self.provider = provider
+        self.reasoning = reasoning
+        self.api_key = api_key
+        self.base_url = base_url
+        self.chat_histories: Dict[str, list] = {}
+
+    def __call__(self, message: str, other_agent_id: str) -> str:
+        """
+        Send a message and get a response, maintaining conversation history.
+
+        Args:
+            message: The message to send
+            other_agent_id: Identifier for the conversation (allows multiple parallel conversations)
+
+        Returns:
+            The assistant's response text
+        """
+        # Initialize history for this conversation
+        if other_agent_id not in self.chat_histories:
+            self.chat_histories[other_agent_id] = []
+            if self.system:
+                self.chat_histories[other_agent_id].append(
+                    {"role": "system", "content": self.system}
+                )
+
+        # Add user message to history
+        self.chat_histories[other_agent_id].append(
+            {"role": "user", "content": message}
+        )
+
+        # Determine the provider string for call_llm
+        # For custom endpoints, use the base_url as provider
+        effective_provider = self.base_url if self.base_url else self.provider
+
+        # Call LLM using call_llm with conversation history
+        result = call_llm(
+            prompt=message,
+            provider=effective_provider,
+            model=self.model,
+            temperature=self.temperature,
+            system_prompt=self.system,
+            reasoning=self.reasoning,
+            api_key=self.api_key,
+            additional_params={"messages": self.chat_histories[other_agent_id]}
+        )
+
+        # Add assistant response to history
+        self.chat_histories[other_agent_id].append(
+            {"role": "assistant", "content": result}
+        )
+
+        return result
+
 
 # ----------------- Helper Functions and Prompts (Defined Once) -----------------
 
@@ -324,33 +408,16 @@ Please provide an updated annotation addressing the validation feedback."""
 
 # ----------------- Public API Functions (Wrappers) -----------------
 
-def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-    class Agent:
-        def __init__(self, system="", model=model, temperature=temperature):
-            self.system = system
-            self.chat_histories = {}
-            self.model = model
-            self.temperature = temperature
-
-        def __call__(self, message, other_agent_id):
-            if other_agent_id not in self.chat_histories:
-                self.chat_histories[other_agent_id] = [{"role": "system", "content": self.system}] if self.system else []
-            
-            self.chat_histories[other_agent_id].append({"role": "user", "content": message})
-            
-            completion = client.chat.completions.create(
-                model=self.model,
-                temperature=self.temperature,
-                messages=self.chat_histories[other_agent_id]
-            )
-            result = completion.choices[0].message.content
-            self.chat_histories[other_agent_id].append({"role": "assistant", "content": result})
-            return result
-
+def run_cell_type_analysis(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1", reasoning=None):
+    """OpenAI provider for cell type analysis."""
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
-    final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
+    final_annotation_agent = Agent(
+        system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1,
+        model=model,
+        temperature=temperature,
+        provider="openai",
+        reasoning=reasoning
+    )
     
     # Select validator system based on involvement level
     if validator_involvement == "v0":
@@ -360,46 +427,40 @@ def run_cell_type_analysis(model, temperature, marker_list, tissue, species, add
     else:
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
     
-    coupling_validator_agent = Agent(system=validator_system)
-    formatting_agent = Agent(system="") # System prompt is set inside the logic function
-    
+    coupling_validator_agent = Agent(
+        system=validator_system,
+        model=model,
+        temperature=temperature,
+        provider="openai",
+        reasoning=reasoning
+    )
+    formatting_agent = Agent(
+        system="",  # System prompt is set inside the logic function
+        model=model,
+        temperature=temperature,
+        provider="openai",
+        reasoning=reasoning
+    )
+
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
     if additional_info and additional_info.lower() != "no":
         user_data["additional_info"] = additional_info
-        
+
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
-    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-    class Agent:
-        def __init__(self, system="", model=model, temperature=temperature):
-            self.system = system
-            self.chat_histories = {}
-            self.model = model
-            self.temperature = temperature
-
-        def __call__(self, message, other_agent_id):
-            if other_agent_id not in self.chat_histories:
-                self.chat_histories[other_agent_id] = []
-            
-            self.chat_histories[other_agent_id].append({"role": "user", "content": message})
-            
-            response = client.messages.create(
-                model=self.model,
-                temperature=self.temperature,
-                max_tokens=4096, # Increased token limit for Claude
-                system=self.system,
-                messages=self.chat_histories[other_agent_id]
-            )
-            
-            result = response.content[0].text
-            self.chat_histories[other_agent_id].append({"role": "assistant", "content": result})
-            return result
-
+def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1", reasoning=None):
+    """Anthropic Claude provider for cell type analysis."""
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
-    final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    
+
+    final_annotation_agent = Agent(
+        system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1,
+        model=model,
+        temperature=temperature,
+        provider="anthropic",
+        reasoning=reasoning
+    )
+
     # Select validator system based on involvement level
     if validator_involvement == "v0":
         validator_system = coupling_validator_system_v0.strip()
@@ -407,56 +468,40 @@ def run_cell_type_analysis_claude(model, temperature, marker_list, tissue, speci
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
     else:
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
-    
-    coupling_validator_agent = Agent(system=validator_system)
-    formatting_agent = Agent(system="")
+
+    coupling_validator_agent = Agent(
+        system=validator_system,
+        model=model,
+        temperature=temperature,
+        provider="anthropic",
+        reasoning=reasoning
+    )
+    formatting_agent = Agent(
+        system="",
+        model=model,
+        temperature=temperature,
+        provider="anthropic",
+        reasoning=reasoning
+    )
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
     if additional_info and additional_info.lower() != "no":
         user_data["additional_info"] = additional_info
-        
+
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
-    class Agent:
-        def __init__(self, system="", model=model, temperature=temperature):
-            self.system = system
-            self.chat_histories = {}
-            self.model = model
-            self.temperature = temperature
-
-        def __call__(self, message, other_agent_id):
-            if other_agent_id not in self.chat_histories:
-                self.chat_histories[other_agent_id] = [{"role": "system", "content": self.system}] if self.system else []
-            
-            self.chat_histories[other_agent_id].append({"role": "user", "content": message})
-            
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
-                    "HTTP-Referer": "https://elliotxie.github.io/CASSIA/",
-                    "X-Title": "CASSIA",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": self.model,
-                    "temperature": self.temperature,
-                    "messages": self.chat_histories[other_agent_id]
-                }
-            )
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                result = response_data['choices'][0]['message']['content']
-                self.chat_histories[other_agent_id].append({"role": "assistant", "content": result})
-                return result
-            else:
-                raise Exception(f"OpenRouter API error: {response.status_code} - {response.text}")
-
+def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1", reasoning=None):
+    """OpenRouter provider for cell type analysis. Supports reasoning tokens for compatible models."""
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
-    final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    
+
+    final_annotation_agent = Agent(
+        system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1,
+        model=model,
+        temperature=temperature,
+        provider="openrouter",
+        reasoning=reasoning
+    )
+
     # Select validator system based on involvement level
     if validator_involvement == "v0":
         validator_system = coupling_validator_system_v0.strip()
@@ -464,45 +509,43 @@ def run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, s
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
     else:
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
-    
-    coupling_validator_agent = Agent(system=validator_system)
-    formatting_agent = Agent(system="")
+
+    coupling_validator_agent = Agent(
+        system=validator_system,
+        model=model,
+        temperature=temperature,
+        provider="openrouter",
+        reasoning=reasoning
+    )
+    formatting_agent = Agent(
+        system="",
+        model=model,
+        temperature=temperature,
+        provider="openrouter",
+        reasoning=reasoning
+    )
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
     if additional_info and additional_info.lower() != "no":
         user_data["additional_info"] = additional_info
-        
+
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)
 
-def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1"):
+def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_list, tissue, species, additional_info, validator_involvement="v1", reasoning=None):
     """
     Custom API provider for OpenAI-compatible endpoints.
     """
-    client = OpenAI(api_key=api_key, base_url=base_url)
-
-    class Agent:
-        def __init__(self, system="", model=model, temperature=temperature):
-            self.system = system
-            self.chat_histories = {}
-            self.model = model
-            self.temperature = temperature
-
-        def __call__(self, message, other_agent_id):
-            if other_agent_id not in self.chat_histories:
-                self.chat_histories[other_agent_id] = [{"role": "system", "content": self.system}] if self.system else []
-            self.chat_histories[other_agent_id].append({"role": "user", "content": message})
-            completion = client.chat.completions.create(
-                model=self.model,
-                temperature=self.temperature,
-                messages=self.chat_histories[other_agent_id]
-            )
-            result = completion.choices[0].message.content
-            self.chat_histories[other_agent_id].append({"role": "assistant", "content": result})
-            return result
-
     is_tissue_blind = tissue.lower() in ['none', 'tissue blind'] if tissue else True
-    final_annotation_agent = Agent(system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1)
-    
+
+    final_annotation_agent = Agent(
+        system=final_annotation_system_v2 if is_tissue_blind else final_annotation_system_v1,
+        model=model,
+        temperature=temperature,
+        base_url=base_url,  # Use base_url for custom endpoints
+        api_key=api_key,
+        reasoning=reasoning
+    )
+
     # Select validator system based on involvement level
     if validator_involvement == "v0":
         validator_system = coupling_validator_system_v0.strip()
@@ -510,12 +553,26 @@ def run_cell_type_analysis_custom(base_url, api_key, model, temperature, marker_
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
     else:
         validator_system = coupling_validator_system_v2.strip() if is_tissue_blind else coupling_validator_system_v1.strip()
-    
-    coupling_validator_agent = Agent(system=validator_system)
-    formatting_agent = Agent(system="")
+
+    coupling_validator_agent = Agent(
+        system=validator_system,
+        model=model,
+        temperature=temperature,
+        base_url=base_url,
+        api_key=api_key,
+        reasoning=reasoning
+    )
+    formatting_agent = Agent(
+        system="",
+        model=model,
+        temperature=temperature,
+        base_url=base_url,
+        api_key=api_key,
+        reasoning=reasoning
+    )
 
     user_data = {"species": species, "tissue_type": tissue, "marker_list": marker_list}
     if additional_info and additional_info.lower() != "no":
         user_data["additional_info"] = additional_info
-        
+
     return _run_analysis_logic(final_annotation_agent, coupling_validator_agent, formatting_agent, user_data, is_tissue_blind)

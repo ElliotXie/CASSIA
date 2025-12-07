@@ -145,6 +145,7 @@ get_cassia_r_path <- function() {
 #'
 #' Uses load_all() for fast development testing without package installation.
 #' This is the DEFAULT and RECOMMENDED method for development.
+#' Also adds the local Python path to sys.path to ensure local Python code is used.
 #'
 #' @return TRUE if successful
 setup_cassia_dev <- function() {
@@ -161,7 +162,29 @@ setup_cassia_dev <- function() {
     try(unloadNamespace("CASSIA"), silent = TRUE)
   }
 
+  # Load CASSIA first - it will handle Python environment setup
   devtools::load_all(cassia_path, export_all = FALSE)
+
+  # After CASSIA is loaded, add local Python path to sys.path
+  # This ensures Python finds the local CASSIA code, not the installed version
+  local_python_path <- file.path(cassia_path, "inst", "python")
+  if (dir.exists(local_python_path)) {
+    message("Adding local Python path to sys.path: ", local_python_path)
+    if (requireNamespace("reticulate", quietly = TRUE)) {
+      tryCatch({
+        reticulate::py_run_string(paste0(
+          "import sys\n",
+          "local_path = r'", local_python_path, "'\n",
+          "if local_path not in sys.path:\n",
+          "    sys.path.insert(0, local_path)\n",
+          "    print(f'Added to sys.path: {local_path}')"
+        ))
+      }, error = function(e) {
+        message("Note: Could not add Python path (Python may not be initialized yet)")
+      })
+    }
+  }
+
   return(TRUE)
 }
 

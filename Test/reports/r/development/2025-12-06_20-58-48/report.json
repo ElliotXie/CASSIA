@@ -1,0 +1,147 @@
+{
+  "timestamp": "2025-12-06T20:58:48",
+  "mode": "development",
+  "language": "R",
+  "total_duration": 720.97,
+  "summary": {
+    "passed": 12,
+    "failed": 3,
+    "errors": 0,
+    "skipped": 1
+  },
+  "results": [
+    {
+      "name": "01_single_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 19.94,
+      "mode": "load_all",
+      "script": "test_single_annotation.R"
+    },
+    {
+      "name": "02_batch_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 24.26,
+      "mode": "load_all",
+      "script": "test_batch_annotation.R"
+    },
+    {
+      "name": "03_validator_comparison",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 61.18,
+      "mode": "load_all",
+      "script": "test_validator_comparison.R"
+    },
+    {
+      "name": "04_quality_scoring",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 40.22,
+      "mode": "load_all",
+      "script": "test_quality_scoring.R"
+    },
+    {
+      "name": "05_model_settings",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 24.62,
+      "mode": "load_all",
+      "script": "test_model_settings.R"
+    },
+    {
+      "name": "06_annotation_boost",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 47.62,
+      "mode": "load_all",
+      "script": "test_annotation_boost.R"
+    },
+    {
+      "name": "07_merging_annotation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 40.91,
+      "mode": "load_all",
+      "script": "test_merging_annotation.R"
+    },
+    {
+      "name": "08_uncertainty_quantification",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 50.22,
+      "mode": "load_all",
+      "script": "test_uncertainty_quantification.R"
+    },
+    {
+      "name": "09_subclustering",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 16.7,
+      "mode": "load_all",
+      "script": "test_subclustering.R"
+    },
+    {
+      "name": "10_symphony_compare",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 49.05,
+      "mode": "load_all",
+      "script": "test_symphony_compare.R"
+    },
+    {
+      "name": "11_report_generation",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 12.38,
+      "mode": "load_all",
+      "script": "test_report_generation.R"
+    },
+    {
+      "name": "12_batch_with_reference",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 37.36,
+      "mode": "load_all",
+      "script": "test_batch_with_reference.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing development CASSIA (load_all)\nLoading CASSIA R package using devtools::load_all()...\nℹ Loading CASSIA\nCASSIA loaded successfully! Happy annotating!\nAdding local Python path to sys.path: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/CASSIA_R/inst/python\nCASSIA R package loaded successfully\nWarning message:\npackage 'testthat' was built under R version 4.4.3 ",
+      "reason": "package 'testthat' was built under R version 4.4.3 "
+    },
+    {
+      "name": "12_scanpy_format",
+      "status": "skipped",
+      "reason": "No R test script found (load_all)",
+      "duration": 0,
+      "mode": "load_all"
+    },
+    {
+      "name": "15_cassia_pipeline",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 94.3,
+      "mode": "load_all",
+      "script": "test_cassia_pipeline.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing development CASSIA (load_all)\nLoading CASSIA R package using devtools::load_all()...\nℹ Loading CASSIA\nCASSIA loaded successfully! Happy annotating!\nAdding local Python path to sys.path: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/CASSIA_R/inst/python\nCASSIA R package loaded successfully\nWarning message:\npackage 'testthat' was built under R version 4.4.3 ",
+      "reason": "package 'testthat' was built under R version 4.4.3 "
+    },
+    {
+      "name": "17_api_validation",
+      "status": "failed",
+      "returncode": 1,
+      "duration": 12.95,
+      "mode": "load_all",
+      "script": "test_api_validation.R",
+      "stderr": "Warning message:\npackage 'yaml' was built under R version 4.4.3 \nWarning message:\npackage 'jsonlite' was built under R version 4.4.3 \nUsing development CASSIA (load_all)\nLoading CASSIA R package using devtools::load_all()...\nℹ Loading CASSIA\nCASSIA loaded successfully! Happy annotating!\nAdding local Python path to sys.path: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/CASSIA_R/inst/python\nCASSIA R package loaded successfully\nError importing CASSIA: could not find function \"import_cassia\"\nResults will be saved to: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/Test/17_api_validation/results/r/development/20251206_205539Results will be saved to: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/Test/17_api_validation/results/r/development/20251206_205539/logsResults will be saved to: C:/Users/ellio/OneDrive - UW-Madison/CASSIA_enjoy/CASSIA/Test/17_api_validation/results/r/development/20251206_205539/outputs\n  [ERROR] object 'CASSIA' not found\n  [ERROR] object 'CASSIA' not found\n  [ERROR] object 'CASSIA' not found\n  [OK] Exception raised for invalid key\nTest failed with error: invalid 'description' argument\nWarning message:\npackage 'testthat' was built under R version 4.4.3 ",
+      "reason": "package 'testthat' was built under R version 4.4.3 "
+    },
+    {
+      "name": "18_reasoning_effort",
+      "status": "passed",
+      "returncode": 0,
+      "duration": 188.98,
+      "mode": "load_all",
+      "script": "test_reasoning_effort.R"
+    }
+  ]
+}
