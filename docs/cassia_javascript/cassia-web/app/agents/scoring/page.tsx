@@ -3,22 +3,25 @@
 import { useState, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
-import { useApiKeyStore } from '@/lib/stores/api-key-store';
+import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Play, HelpCircle, Target, Upload, Download } from 'lucide-react';
-import modelSettings from '../../../public/examples/model_settings.json';
+import { AgentModelSelector } from '@/components/AgentModelSelector';
 
 export default function ScoringAgentPage() {
     const globalApiKey = useApiKeyStore((state) => state.getApiKey());
     const globalProvider = useApiKeyStore((state) => state.provider);
-    
+    const globalModel = useApiKeyStore((state) => state.model);
+    const globalCustomBaseUrl = useApiKeyStore((state) => state.customBaseUrl);
+
     // State management
     const [apiKey, setApiKey] = useState('');
-    const [provider, setProvider] = useState('openrouter');
+    const [provider, setProvider] = useState<Provider>('openrouter');
     const [model, setModel] = useState('google/gemini-2.5-flash');
+    const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [maxWorkers, setMaxWorkers] = useState(4);
     const [maxRetries, setMaxRetries] = useState(1);
     const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -33,28 +36,16 @@ export default function ScoringAgentPage() {
         if (globalApiKey && !apiKey) {
             setApiKey(globalApiKey);
         }
-        if (globalProvider && !provider) {
+        if (globalProvider) {
             setProvider(globalProvider);
         }
-    }, [globalApiKey, globalProvider]);
-
-    // Update model when provider changes
-    useEffect(() => {
-        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-        if (providerData) {
-            setModel(providerData.default_model);
+        if (globalModel) {
+            setModel(globalModel);
         }
-    }, [provider]);
-
-    // Get available models for current provider
-    const getAvailableModels = () => {
-        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-        if (!providerData) return [];
-        return Object.entries(providerData.models || {}).map(([key, model]) => ({
-            id: model.actual_name,
-            name: model.description.split(' - ')[0] || model.actual_name
-        }));
-    };
+        if (globalCustomBaseUrl) {
+            setCustomBaseUrl(globalCustomBaseUrl);
+        }
+    }, [globalApiKey, globalProvider, globalModel, globalCustomBaseUrl]);
 
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -109,12 +100,15 @@ export default function ScoringAgentPage() {
         setProgress({ completed: 0, total: 0, percentage: 0 });
 
         try {
+            // Use customBaseUrl as provider for custom endpoints
+            const effectiveProvider = provider === 'custom' ? customBaseUrl : provider;
+
             const result = await scoreAnnotationBatch({
                 csvData,
                 apiKey,
                 maxWorkers: Number(maxWorkers),
                 model,
-                provider,
+                provider: effectiveProvider,
                 maxRetries: Number(maxRetries),
                 onProgress: (progressData: any) => {
                     setProgress(progressData);
@@ -173,49 +167,30 @@ export default function ScoringAgentPage() {
                                 ⚙️ <span className="ml-2">Configuration</span>
                             </h2>
 
-                            {/* API Settings */}
+                            {/* API Key */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🔑 API Configuration</CardTitle>
+                                    <CardTitle className="text-lg">🔑 API Key</CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key</label>
-                                        <Input
-                                            type="password"
-                                            value={apiKey}
-                                            onChange={(e) => setApiKey(e.target.value)}
-                                            placeholder="Enter your API key"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
-                                        <select
-                                            value={provider}
-                                            onChange={(e) => setProvider(e.target.value)}
-                                            className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
-                                        >
-                                            <option value="openrouter">OpenRouter</option>
-                                            <option value="openai">OpenAI</option>
-                                            <option value="anthropic">Anthropic</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-                                        <select
-                                            value={model}
-                                            onChange={(e) => setModel(e.target.value)}
-                                            className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
-                                        >
-                                            {getAvailableModels().map((m) => (
-                                                <option key={m.id} value={m.id}>
-                                                    {m.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                <CardContent>
+                                    <Input
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        placeholder="Enter your API key"
+                                    />
                                 </CardContent>
                             </Card>
+
+                            {/* Model Selection */}
+                            <AgentModelSelector
+                                provider={provider}
+                                model={model}
+                                onProviderChange={setProvider}
+                                onModelChange={setModel}
+                                customBaseUrl={customBaseUrl}
+                                onCustomBaseUrlChange={setCustomBaseUrl}
+                            />
 
                             {/* Analysis Settings */}
                             <Card>

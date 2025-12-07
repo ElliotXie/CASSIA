@@ -5,15 +5,13 @@ import Link from 'next/link';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { iterativeMarkerAnalysis, generateSummaryReport, extractConversationForCluster, getAvailableClusters, extractTopMarkerGenes } from '@/lib/cassia/annotationBoost';
-import { useApiKeyStore } from '@/lib/stores/api-key-store';
+import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, RefreshCcw, BookOpen, Database, AlertCircle, CheckCircle, Loader2, Sparkles, Settings } from 'lucide-react';
-import modelSettings from '../../../public/examples/model_settings.json';
+import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, RefreshCcw, BookOpen, Database, AlertCircle, Loader2 } from 'lucide-react';
+import { AgentModelSelector } from '@/components/AgentModelSelector';
 
 export default function AnnotationBoostPage() {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -40,7 +38,7 @@ export default function AnnotationBoostPage() {
             return state.model;
         } catch (error) {
             console.warn('Error accessing global model:', error);
-            return modelSettings.use_case_recommendations.annotation_boost.best;
+            return 'google/gemini-2.5-flash';
         }
     });
     
@@ -50,31 +48,13 @@ export default function AnnotationBoostPage() {
     const [markerFile, setMarkerFile] = useState<File | null>(null);
     const [markerData, setMarkerData] = useState<any[]>([]);
     const [apiKey, setApiKey] = useState('');
-    const [provider, setProvider] = useState('openrouter');
-    const [model, setModel] = useState(modelSettings.use_case_recommendations.annotation_boost.best);
+    const [provider, setProvider] = useState<Provider>('openrouter');
+    const [model, setModel] = useState('google/gemini-2.5-flash');
+    const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [majorClusterInfo, setMajorClusterInfo] = useState('Human PBMC');
     const [numIterations, setNumIterations] = useState(3);
     const [searchStrategy, setSearchStrategy] = useState('breadth');
-    const [selectedMode, setSelectedMode] = useState<'performance' | 'balanced'>('balanced');
-    const [customModelId, setCustomModelId] = useState('');
     
-    // Provider-specific models from model_settings.json
-    const getModelsByProvider = (provider: string) => {
-        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-        if (!providerData || !providerData.models) {
-            return [];
-        }
-        
-        return Object.entries(providerData.models).map(([key, model]) => ({
-            value: model.actual_name,
-            label: model.description.split(' - ')[0] || model.actual_name
-        }));
-    };
-
-    const getDefaultModelForProvider = (provider: string) => {
-        const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-        return providerData?.default_model || modelSettings.use_case_recommendations.annotation_boost.best;
-    };
     const [historySource, setHistorySource] = useState<'csv' | 'manual'>('csv');
     const [manualHistory, setManualHistory] = useState('');
     const [selectedCluster, setSelectedCluster] = useState('');
@@ -120,22 +100,18 @@ export default function AnnotationBoostPage() {
                     setApiKey(globalApiKey);
                 }
                 if (globalProvider && provider !== globalProvider) {
-                    setProvider(globalProvider);
+                    setProvider(globalProvider as Provider);
                 }
                 // For annotation boost, we prefer Gemini 2.5 Flash as default
-                // Only override if there's a different saved preference
                 const savedModel = localStorage.getItem('annotation-boost-model');
                 if (savedModel && savedModel !== model) {
                     setModel(savedModel);
-                } else if (!savedModel) {
-                    // Ensure Gemini 2.5 Flash is the default for new users
-                    setModel('google/gemini-2.5-flash');
                 }
                 setIsInitialized(true);
             }
         } catch (error) {
             console.error('Error initializing global settings:', error);
-            setIsInitialized(true); // Set to true even on error to prevent infinite loops
+            setIsInitialized(true);
         }
     }, [globalApiKey, globalProvider, globalModel, apiKey, provider, model, isInitialized]);
 
@@ -314,13 +290,16 @@ export default function AnnotationBoostPage() {
         console.log('🚀 Starting Annotation Boost analysis...');
 
         try {
+            // Use customBaseUrl as provider for custom endpoints
+            const effectiveProvider = provider === 'custom' ? customBaseUrl : provider;
+
             const results = await iterativeMarkerAnalysis(
                 majorClusterInfo,
                 markerData,
                 extractTopMarkerGenes(markerData, 20), // Extract top genes as comma-separated string
                 historyToUse,
                 numIterations,
-                provider,
+                effectiveProvider,
                 model,
                 null, // additionalTask
                 0, // temperature
@@ -332,7 +311,7 @@ export default function AnnotationBoostPage() {
                 results.messages,
                 searchStrategy as 'breadth' | 'depth',
                 'per_iteration',
-                provider,
+                effectiveProvider,
                 model,
                 apiKey
             );
@@ -489,196 +468,30 @@ export default function AnnotationBoostPage() {
                                 ⚙️ <span className="ml-2">Configuration</span>
                             </h2>
 
-                            {/* API Settings */}
+                            {/* API Key */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🔑 API Configuration</CardTitle>
+                                    <CardTitle className="text-lg">🔑 API Key</CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key</label>
-                                        <Input
-                                            type="password"
-                                            value={apiKey}
-                                            onChange={(e) => setApiKey(e.target.value)}
-                                            placeholder="Enter your API key"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
-                                        <select
-                                            value={provider}
-                                            onChange={(e) => {
-                                                const newProvider = e.target.value;
-                                                setProvider(newProvider);
-                                                // Auto-switch to appropriate model for the provider
-                                                const defaultModel = getDefaultModelForProvider(newProvider);
-                                                setModel(defaultModel);
-                                                localStorage.setItem('annotation-boost-model', defaultModel);
-                                            }}
-                                            className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
-                                        >
-                                            <option value="openrouter">OpenRouter</option>
-                                            <option value="openai">OpenAI</option>
-                                            <option value="anthropic">Anthropic</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-                                        <div className="space-y-2">
-                                            <select
-                                                value={getModelsByProvider(provider).some(m => m.value === model) ? model : 'custom'}
-                                                onChange={(e) => {
-                                                    const newModel = e.target.value;
-                                                    if (newModel === 'custom') {
-                                                        setCustomModelId(model);
-                                                    } else {
-                                                        setModel(newModel);
-                                                        setCustomModelId('');
-                                                        // Save model preference for annotation boost
-                                                        localStorage.setItem('annotation-boost-model', newModel);
-                                                    }
-                                                }}
-                                                className="w-full px-3 py-2 glass border border-white/30 rounded-xl form-modern text-gray-900 dark:text-white bg-white/20 dark:bg-black/20"
-                                            >
-                                                {getModelsByProvider(provider).map(modelOption => (
-                                                    <option key={modelOption.value} value={modelOption.value}>
-                                                        {modelOption.label}
-                                                    </option>
-                                                ))}
-                                                <option value="custom">Custom Model ID</option>
-                                            </select>
-                                            {!getModelsByProvider(provider).some(m => m.value === model) && (
-                                                <Input
-                                                    type="text"
-                                                    value={model}
-                                                    onChange={(e) => {
-                                                        const newModel = e.target.value;
-                                                        setModel(newModel);
-                                                        // Save custom model preference
-                                                        localStorage.setItem('annotation-boost-model', newModel);
-                                                    }}
-                                                    placeholder="Enter custom model ID"
-                                                    className="mt-2"
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
+                                <CardContent>
+                                    <Input
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        placeholder="Enter your API key"
+                                    />
                                 </CardContent>
                             </Card>
 
-                            {/* Model Selection Guide - Only show for OpenRouter */}
-                            {provider === 'openrouter' && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Sparkles className="h-5 w-5" />
-                                            Quick Model Selection
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {/* Performance Mode */}
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedMode('performance')
-                                                    setModel('anthropic/claude-sonnet-4.5')
-                                                }}
-                                                className={cn(
-                                                    "relative p-4 rounded-lg border-2 transition-all text-left",
-                                                    selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5'
-                                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                                                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                                        <Zap className="h-5 w-5 text-white" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-lg">Performance</h3>
-                                                        <p className="text-sm text-muted-foreground">Best quality results</p>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium">Model:</span>
-                                                        <span className="text-sm">Claude Sonnet 4.5</span>
-                                                    </div>
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        <Badge variant="default" className="text-xs">
-                                                            high quality
-                                                        </Badge>
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            medium speed
-                                                        </Badge>
-                                                        <Badge variant="outline" className="text-xs">
-                                                            $high cost
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                                {selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5' && (
-                                                    <div className="absolute top-2 right-2">
-                                                        <Badge className="bg-blue-500">Selected</Badge>
-                                                    </div>
-                                                )}
-                                            </button>
-
-                                            {/* Balanced Mode */}
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedMode('balanced')
-                                                    setModel('google/gemini-2.5-flash')
-                                                }}
-                                                className={cn(
-                                                    "relative p-4 rounded-lg border-2 transition-all text-left",
-                                                    selectedMode === 'balanced' && model === 'google/gemini-2.5-flash'
-                                                        ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-                                                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                                                        <Settings className="h-5 w-5 text-white" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-lg">Balanced</h3>
-                                                        <p className="text-sm text-muted-foreground">Good quality, fast speed</p>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium">Model:</span>
-                                                        <span className="text-sm">Gemini 2.5 Flash</span>
-                                                    </div>
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            medium quality
-                                                        </Badge>
-                                                        <Badge variant="default" className="text-xs">
-                                                            fast speed
-                                                        </Badge>
-                                                        <Badge variant="default" className="text-xs">
-                                                            $low cost
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                                {selectedMode === 'balanced' && model === 'google/gemini-2.5-flash' && (
-                                                    <div className="absolute top-2 right-2">
-                                                        <Badge className="bg-green-500">Selected</Badge>
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </div>
-                                        <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                                            <p className="text-sm text-muted-foreground">
-                                                <strong>Tip:</strong> Use Performance mode for complex or critical analyses. 
-                                                Use Balanced mode for routine processing or large datasets where speed matters.
-                                            </p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
+                            {/* Model Selection */}
+                            <AgentModelSelector
+                                provider={provider}
+                                model={model}
+                                onProviderChange={setProvider}
+                                onModelChange={setModel}
+                                customBaseUrl={customBaseUrl}
+                                onCustomBaseUrlChange={setCustomBaseUrl}
+                            />
 
                             {/* Analysis Settings */}
                             <Card>

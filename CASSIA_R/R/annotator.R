@@ -320,7 +320,14 @@ py_cassia <- NULL
 # Package Load Function
 # =============================================================================
 
+# Package-level variable to store load status for .onAttach messages
+.cassia_load_status <- new.env(parent = emptyenv())
+
 .onLoad <- function(libname, pkgname) {
+  # Initialize load status
+  .cassia_load_status$message <- NULL
+  .cassia_load_status$success <- FALSE
+
   # =========================================================================
   # Step 1: Pre-flight checks - Verify Python is available and compatible
   # =========================================================================
@@ -363,7 +370,7 @@ py_cassia <- NULL
       }
 
       # Environment doesn't exist, create it using the new setup function
-      packageStartupMessage("CASSIA Python environment not found. Setting up automatically...")
+      .cassia_load_status$message <- "env_setup"
       setup_cassia_env(conda_env = env_name)
     } else {
       # Environment exists, activate it using the appropriate method
@@ -387,11 +394,11 @@ py_cassia <- NULL
     py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
     # Success!
-    packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+    .cassia_load_status$success <- TRUE
 
   }, error = function(e) {
     # If setup fails, try to run setup_cassia_env() automatically
-    packageStartupMessage("Initial setup failed, attempting automatic environment setup...")
+    .cassia_load_status$message <- "retry_setup"
     tryCatch({
       setup_cassia_env(conda_env = env_name)
 
@@ -399,7 +406,7 @@ py_cassia <- NULL
       py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
 
       # Success after retry!
-      packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+      .cassia_load_status$success <- TRUE
 
     }, error = function(e2) {
       # Determine the most likely cause of failure
@@ -415,6 +422,21 @@ py_cassia <- NULL
       }
     })
   })
+}
+
+.onAttach <- function(libname, pkgname) {
+  # Display startup messages based on load status
+  if (!is.null(.cassia_load_status$message)) {
+    if (.cassia_load_status$message == "env_setup") {
+      packageStartupMessage("CASSIA Python environment not found. Setting up automatically...")
+    } else if (.cassia_load_status$message == "retry_setup") {
+      packageStartupMessage("Initial setup failed, attempting automatic environment setup...")
+    }
+  }
+
+  if (.cassia_load_status$success) {
+    packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+  }
 }
 
 

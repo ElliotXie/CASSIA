@@ -5,16 +5,16 @@ import { ProgressTracker } from '@/components/ProgressTracker';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Still used for detail-level
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useApiKeyStore } from '@/lib/stores/api-key-store';
+import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Upload, File, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import modelSettings from '../../../public/examples/model_settings.json';
+import { AgentModelSelector } from '@/components/AgentModelSelector';
 
 export default function AnnotationMergingPage() {
   const [csvData, setCsvData] = useState(null);
@@ -22,34 +22,17 @@ export default function AnnotationMergingPage() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState('');
-  
+
   // Form state
   const [detailLevel, setDetailLevel] = useState('broad');
   const [processAllLevels, setProcessAllLevels] = useState(false);
   const [batchSize, setBatchSize] = useState(20);
   const [additionalContext, setAdditionalContext] = useState('');
-  const [provider, setProvider] = useState('openrouter');
+  const [provider, setProvider] = useState<Provider>('openrouter');
   const [model, setModel] = useState('google/gemini-2.5-flash');
-  
+  const [customBaseUrl, setCustomBaseUrl] = useState('');
+
   const { apiKey } = useApiKeyStore();
-
-  // Update model when provider changes
-  useEffect(() => {
-    const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-    if (providerData) {
-      setModel(providerData.default_model);
-    }
-  }, [provider]);
-
-  // Get available models for current provider
-  const getAvailableModels = () => {
-    const providerData = modelSettings.providers[provider as keyof typeof modelSettings.providers];
-    if (!providerData) return [];
-    return Object.entries(providerData.models || {}).map(([key, model]) => ({
-      id: model.actual_name,
-      name: model.description.split(' - ')[0] || model.actual_name
-    }));
-  };
 
   // Custom file upload for CASSIA results files
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -128,12 +111,15 @@ export default function AnnotationMergingPage() {
 
     try {
       let result;
-      
+
+      // Use customBaseUrl as provider for custom endpoints
+      const effectiveProvider = provider === 'custom' ? customBaseUrl : provider;
+
       if (processAllLevels) {
         setProgress('Processing all detail levels in parallel...');
         result = await mergeAnnotationsAll({
           csvData,
-          provider,
+          provider: effectiveProvider,
           model,
           apiKey,
           additionalContext: additionalContext || null,
@@ -144,7 +130,7 @@ export default function AnnotationMergingPage() {
         setProgress(`Processing with ${detailLevel} detail level...`);
         result = await mergeAnnotations({
           csvData,
-          provider,
+          provider: effectiveProvider,
           model,
           apiKey,
           additionalContext: additionalContext || null,
@@ -309,35 +295,18 @@ export default function AnnotationMergingPage() {
               />
             </div>
 
-            <div>
-              <Label htmlFor="provider">Provider</Label>
-              <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openrouter">OpenRouter</SelectItem>
-                  <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="anthropic">Anthropic</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
 
-            <div>
-              <Label htmlFor="model">Model</Label>
-              <Select value={model} onValueChange={setModel}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailableModels().map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Model Configuration */}
+          <div className="mt-4">
+            <AgentModelSelector
+              provider={provider}
+              model={model}
+              onProviderChange={setProvider}
+              onModelChange={setModel}
+              customBaseUrl={customBaseUrl}
+              onCustomBaseUrlChange={setCustomBaseUrl}
+            />
           </div>
 
           <div className="mt-4">
