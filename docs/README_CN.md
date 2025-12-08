@@ -10,7 +10,7 @@
 
 🌐 [体验 CASSIA 网页界面 (cassia.bio)](https://cassia.bio/) - 支持大部分CASSIA功能
 
-📚 [完整文档及示例/中英文版 (docs.cassia.bio)](cassia-delta.vercel.app)
+📚 [完整文档及示例/中英文版 (docs.cassia.bio)](https://docs.cassia.bio/zh)
 
 🤖 [模型注释能力排行榜](https://sc-llm-benchmark.com/methods/cassia)
 
@@ -164,7 +164,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 
 注意：此 README 仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
-[CASSIA 完整教程](https://cassia-documentation-en-new.vercel.app/)。
+[CASSIA 完整教程](https://docs.cassia.bio/zh)。
 
 ## 📖 引用
 

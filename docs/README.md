@@ -11,7 +11,7 @@
 
 🌐 [CASSIA Web UI (cassia.bio)](https://cassia.bio/) - A web interface supporting most of CASSIA’s functionality
 
-📚 [Complete Documentation/Vignette (docs.cassia.bio)](https://cassia-delta.vercel.app)
+📚 [Complete Documentation/Vignette (docs.cassia.bio)](https://docs.cassia.bio/en)
 
 🤖 [LLMs Annotation Benchmark (sc-llm-benchmark.com)](https://sc-llm-benchmark.com/methods/cassia)
 
@@ -171,7 +171,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 
 Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://cassia-delta.vercel.app).
+[CASSIA Complete Tutorial](https://docs.cassia.bio/en).
 
 ## 📖 Citation
 
