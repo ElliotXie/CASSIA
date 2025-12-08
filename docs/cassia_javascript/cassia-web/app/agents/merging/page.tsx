@@ -14,7 +14,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
-import { Upload, File, CheckCircle, AlertCircle, X, Zap, Loader2, Download, ArrowLeft } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, X, Zap, Loader2, Download, ArrowLeft, Database } from 'lucide-react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
@@ -374,6 +374,22 @@ export default function AnnotationMergingPage() {
                 <div className="text-xs text-gray-500 space-y-1">
                   <div>📄 Supported format: CSV</div>
                   <div>📊 Expected columns: "True Cell Type", "Predicted Main Cell Type", "Predicted Sub Cell Types"</div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      loadExampleData();
+                    }}
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploading}
+                    className="group flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30"
+                  >
+                    <Database className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-blue-700 dark:text-blue-300">Load Example Data</span>
+                  </Button>
                 </div>
               </div>
             </div>
