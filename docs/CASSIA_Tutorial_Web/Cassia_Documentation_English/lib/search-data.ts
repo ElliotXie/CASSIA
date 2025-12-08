@@ -13,13 +13,13 @@ export interface SearchItem {
 
 export const searchData: SearchItem[] = [
   {
-    "title": "Annotation Boost Plus (Optional)",
-    "slug": "annotation-boost-extra",
+    "title": "AnnData and Scanpy Integration Utilities",
+    "slug": "anndata-scanpy-utilities",
     "section": "docs",
     "lang": "python",
     "locale": "en",
-    "content": "This can be used to study a given problem related to a cluster, such as infer the state of a cluster. Here we use the cd8-positive, alpha-beta t cell as an example. Note that the performance of this a",
-    "url": "/en/docs/python/annotation-boost-extra"
+    "content": "CASSIA provides utility functions to streamline integration with Scanpy workflows and AnnData objects. These functions simplify marker extraction and annotation integration, making it easier to work w",
+    "url": "/en/docs/python/anndata-scanpy-utilities"
   },
   {
     "title": "Annotation Boost (Optional)",
@@ -36,7 +36,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "en",
-    "content": "CASSIA supports batch processing to analyze multiple clusters simultaneously. This guide explains how to run batch analysis efficiently. Preparing Marker Data For Python, marker data is typically load",
+    "content": "CASSIA supports batch processing to analyze multiple clusters simultaneously. This guide explains how to run batch analysis efficiently. Preparing Marker Data You have four options for providing marke",
     "url": "/en/docs/python/batch-processing"
   },
   {
@@ -63,7 +63,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "en",
-    "content": "Thank you for reading this far! The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents. 🤔 Uncertainty Quantificat",
+    "content": "The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents. 🤔 Uncertainty Quantification Agent (UQ Agent) Large Langu",
     "url": "/en/docs/python/introduction-to-optional-agents"
   },
   {
@@ -74,6 +74,15 @@ export const searchData: SearchItem[] = [
     "locale": "en",
     "content": "Welcome to the CASSIA Python tutorial! This guide will walk you through using the CASSIA package in Python for cell type annotation. What is CASSIA? CASSIA (Collaborative Agent System for Single-cell ",
     "url": "/en/docs/python/introduction"
+  },
+  {
+    "title": "Merging Annotations (Optional)",
+    "slug": "merging-annotations",
+    "section": "docs",
+    "lang": "python",
+    "locale": "en",
+    "content": "Merging annotations groups detailed cell type annotations into broader categories at multiple levels of granularity. This is useful for visualization and downstream analysis when you need hierarchical",
+    "url": "/en/docs/python/merging-annotations"
   },
   {
     "title": "Quality Scoring",
@@ -103,6 +112,15 @@ export const searchData: SearchItem[] = [
     "url": "/en/docs/python/setting-up-cassia"
   },
   {
+    "title": "Single Cluster Analysis",
+    "slug": "single-cluster-analysis",
+    "section": "docs",
+    "lang": "python",
+    "locale": "en",
+    "content": "The runCASSIA function analyzes a single cluster of marker genes to identify the cell type. Note that CASSIA is designed to handle multiple clusters at once. This function is specifically designed for",
+    "url": "/en/docs/python/single-cluster-analysis"
+  },
+  {
     "title": "Subclustering Analysis (Optional)",
     "slug": "subclustering-analysis",
     "section": "docs",
@@ -130,15 +148,6 @@ export const searchData: SearchItem[] = [
     "url": "/en/docs/python/uncertainty-quantification"
   },
   {
-    "title": "Annotation Boost Plus (Optional)",
-    "slug": "annotation-boost-extra",
-    "section": "docs",
-    "lang": "r",
-    "locale": "en",
-    "content": "This agent is an extended version of the annotation boost agent. It performs additional analysis on a specific cluster using a custom analysis task. This function extends the basic annotation capabili",
-    "url": "/en/docs/r/annotation-boost-extra"
-  },
-  {
     "title": "Annotation Boost (Optional)",
     "slug": "annotation-boost",
     "section": "docs",
@@ -157,7 +166,7 @@ export const searchData: SearchItem[] = [
     "url": "/en/docs/r/batch-processing"
   },
   {
-    "title": "Symphony Compare (Advanced)",
+    "title": "Symphony Compare (Optional)",
     "slug": "compare-cell-types",
     "section": "docs",
     "lang": "r",
@@ -180,7 +189,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "r",
     "locale": "en",
-    "content": "Thank you for reading this far! The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents. 🤔 Uncertainty Quantificat",
+    "content": "The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents. 🤔 Uncertainty Quantification Agent (UQ Agent) Large Langu",
     "url": "/en/docs/r/introduction-to-optional-agents"
   },
   {
@@ -191,6 +200,15 @@ export const searchData: SearchItem[] = [
     "locale": "en",
     "content": "Welcome to the CASSIA R tutorial! This guide will walk you through using the CASSIA package in R for cell type annotation. What is CASSIA? CASSIA (Collaborative Agent System for Single-cell Interpreta",
     "url": "/en/docs/r/introduction"
+  },
+  {
+    "title": "Merging Annotations (Optional)",
+    "slug": "merging-annotations",
+    "section": "docs",
+    "lang": "r",
+    "locale": "en",
+    "content": "Merging annotations groups detailed cell type annotations into broader categories at multiple levels of granularity. This is useful for visualization and downstream analysis when you need hierarchical",
+    "url": "/en/docs/r/merging-annotations"
   },
   {
     "title": "Quality Scoring",
@@ -225,7 +243,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "r",
     "locale": "en",
-    "content": "The runCASSIA function analyzes a single cluster of marker genes to identify the cell type. Note that CASSIA is designed to handle multiple clusters at once, this function is specifically designed for",
+    "content": "The runCASSIA function analyzes a single cluster of marker genes to identify the cell type. Note that CASSIA is designed to handle multiple clusters at once. This function is specifically designed for",
     "url": "/en/docs/r/single-cluster-analysis"
   },
   {
@@ -337,13 +355,13 @@ export const searchData: SearchItem[] = [
     "url": "/en/vignette/r/introduction"
   },
   {
-    "title": "注释增强 Plus（可选）",
-    "slug": "annotation-boost-extra",
+    "title": "AnnData 和 Scanpy 集成工具",
+    "slug": "anndata-scanpy-utilities",
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "这可以用来研究与聚类相关的特定问题，例如推断聚类的状态。这里我们以 cd8 阳性 alpha-beta T 细胞为例。请注意，该智能体的性能尚未经过基准测试，因此请谨慎对待结果。 用法",
-    "url": "/zh/docs/python/annotation-boost-extra"
+    "content": "CASSIA 提供实用函数来简化与 Scanpy 工作流程和 AnnData 对象的集成。这些函数简化了标记基因提取和注释整合,使单细胞分析流程更加便捷。 概述 提供两个用于 Scanpy/AnnData 集成的实用函数: 1. enhancescanpymarkers(): 从 Scanpy 的差异表达结果中提取标记基因,并添加 pct.1 和 pct.2 值(每个基因在簇内/簇外表达的细胞百分",
+    "url": "/zh/docs/python/anndata-scanpy-utilities"
   },
   {
     "title": "注释增强（可选）",
@@ -351,7 +369,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "注释增强是一种高级验证工具，通过多次分析迭代增强注释置信度。它特别适用于： - 验证低置信度注释 - 深入了解特定细胞聚类 - 解决模棱两可的细胞类型分配 - 生成全面的验证报告 所需组件 1. 输入数据： - 来自 CASSIA 批量分析的完整结果 CSV - 原始标记基因文件（注意：标记文件不应被过滤！） - 聚类背景信息 - 特定聚类标识符 2. 模型配置： - 推荐：通过 OpenRout",
+    "content": "注释增强是一种高级验证工具，通过多次分析迭代增强注释置信度。它特别适用于： - 验证低置信度注释 - 深入了解特定细胞聚类 - 解决模棱两可的细胞类型分配 - 生成全面的验证报告 所需组件 1. 输入数据： - 来自 CASSIA 批量分析的完整结果 CSV - 原始标记基因文件（注意：标记文件不应被过滤！） - 聚类背景信息 - 特定聚类标识符 2. 模型配置： - 使用至少比 gemini-2",
     "url": "/zh/docs/python/annotation-boost"
   },
   {
@@ -360,7 +378,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "CASSIA 支持批量处理以同时分析多个聚类。本指南说明如何高效地运行批量分析。 准备标记数据 对于 Python，标记数据通常从 CSV 或处理过的数据帧加载。 运行批量分析 参数详情 - marker: 标记数据（DataFrame 或文件路径）。数据应包含聚类 ID 和基因名称。 - outputname: 输出文件的基本名称。 - model: 要使用的模型（例如，\"anthropic/c",
+    "content": "CASSIA 支持批量处理以同时分析多个聚类。本指南说明如何高效地运行批量分析。 准备标记数据 您有四种提供标记数据的选项： 1. 创建包含簇和标记基因的 DataFrame 或 CSV 文件 2. 使用 Seurat 的 FindAllMarkers 输出（导出为 CSV） 3. 直接使用 Scanpy 的 rankgenesgroups 输出 4. 使用 CASSIA 的示例标记数据 标记数据",
     "url": "/zh/docs/python/batch-processing"
   },
   {
@@ -378,7 +396,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "CASSIA 的快速模式提供了一个精简的、单行解决方案来运行完整的分析流程。此模式在单个函数调用中结合了注释、评分和用于纠正低质量注释的注释增强，使用优化的默认参数。 基本用法 参数详情 - outputfilename: 输出文件夹和文件的基本名称。 - tissue: 样本的组织类型（例如，“脑”）。 - species: 样本的物种（例如，“人类”）。 - markerpath: 标记基因数",
+    "content": "CASSIA 的快速模式提供了一个精简的、单行解决方案来运行完整的分析流程。此模式在单个函数调用中结合了注释、评分和用于纠正低质量注释的注释增强，使用优化的默认参数。 基本用法 参数详情 - outputfilename: 输出文件夹和文件的基本名称。 - tissue: 样本的组织类型（例如，“脑”）。 - species: 样本的物种（例如，“人类”）。 - marker: 标记基因数据（Da",
     "url": "/zh/docs/python/fast-mode"
   },
   {
@@ -387,7 +405,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "感谢您读到这里！基本的 CASSIA 工作流程对于大多数情况来说已经足够了。但是，为了处理一些特殊情况，我们现在介绍几个高级智能体。 🤔 不确定性量化智能体 (UQ Agent) 大语言模型 (LLM) 虽然功能强大，但有时会产生可变的输出。不确定性量化 (UQ) 智能体通过采用基于共识的策略来缓解这一问题。例如，如果一个模型在一次尝试中的正确率为 80%，那么独立查询五次并通过多数投票汇总结果",
+    "content": "基本的 CASSIA 工作流程对于大多数情况来说已经足够了。但是，为了处理一些特殊情况，我们现在介绍几个高级智能体。 🤔 不确定性量化智能体 (UQ Agent) 大语言模型 (LLM) 虽然功能强大，但有时会产生可变的输出。不确定性量化 (UQ) 智能体通过采用基于共识的策略来缓解这一问题。例如，如果一个模型在一次尝试中的正确率为 80%，那么独立查询五次并通过多数投票汇总结果，理论上可以将准",
     "url": "/zh/docs/python/introduction-to-optional-agents"
   },
   {
@@ -398,6 +416,15 @@ export const searchData: SearchItem[] = [
     "locale": "zh",
     "content": "欢迎来到 CASSIA Python 教程！本指南将带您了解如何在 Python 中使用 CASSIA 包进行细胞类型注释。 什么是 CASSIA？ CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) 旨在利用多智能体大语言模型 (LLM) 的能力来增强细胞类型注释。我们将在本教程中介绍每个智能体",
     "url": "/zh/docs/python/introduction"
+  },
+  {
+    "title": "合并注释（可选）",
+    "slug": "merging-annotations",
+    "section": "docs",
+    "lang": "python",
+    "locale": "zh",
+    "content": "合并注释将详细的细胞类型注释分组到多个粒度级别的更广泛类别中。这对于需要细胞类型层次分组的可视化和下游分析非常有用。 概述 CASSIA 提供两个合并函数： - mergeannotations(): 在单个详细级别合并 - mergeannotationsall(): 同时在所有三个级别合并 详细级别 | 级别 | 列名 | 描述 | 示例 | |-------|-------------|--",
+    "url": "/zh/docs/python/merging-annotations"
   },
   {
     "title": "质量评分",
@@ -423,8 +450,17 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "首先，使用 pip 安装 CASSIA 包： 导入 CASSIA 设置 API 密钥 要使用 OpenAI 的 GPT-4、Anthropic 的 Claude 或通过 OpenRouter 使用模型，您首先需要从提供商处获取 API 密钥，然后使用 setapikey 函数设置您的 API 密钥。 注意：您必须设置至少一个 API 密钥才能使用 CASSIA。 - 将 \"your-key\" 替换",
+    "content": "首先，使用 pip 安装 CASSIA 包： 导入 CASSIA 设置 API 密钥 要使用 OpenAI 的 GPT-4、Anthropic 的 Claude 或通过 OpenRouter 使用模型，您首先需要从提供商处获取 API 密钥，然后使用 setapikey 函数设置您的 API 密钥。 注意：您必须设置至少一个 API 密钥才能使用 CASSIA。 您只需选择一个提供商。 推荐使用 ",
     "url": "/zh/docs/python/setting-up-cassia"
+  },
+  {
+    "title": "单聚类分析",
+    "slug": "single-cluster-analysis",
+    "section": "docs",
+    "lang": "python",
+    "locale": "zh",
+    "content": "runCASSIA 函数分析单个标记基因聚类以识别细胞类型。 请注意，CASSIA 设计用于同时处理多个聚类，此函数专为只有一个聚类需要分析的用户设计。 示例 有关模型设置和建议的详细信息，请参阅 如何选择模型和提供商 部分。 示例代码 参数详情 - model: 用于分析的 LLM 模型。有关选项，请参阅 安装 CASSIA。 - temperature: 控制模型输出的随机性（0 = 确定性，",
+    "url": "/zh/docs/python/single-cluster-analysis"
   },
   {
     "title": "亚群聚类分析（可选）",
@@ -450,17 +486,8 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "python",
     "locale": "zh",
-    "content": "CASSIA 中的不确定性量化有助于通过多次分析迭代和相似性评分来评估注释的可靠性。此过程对于以下方面至关重要： - 识别稳健的细胞类型分配 - 检测混合或模棱两可的聚类 - 量化注释置信度 - 了解预测的可变性 多重迭代分析 > ⚠️ 成本警告：使用 LLM 模型运行多次迭代可能会产生大量费用。每次迭代都会进行单独的 API 调用，因此总成本约为单次运行成本的 n 倍。建议从较小的迭代次数开始进",
+    "content": "CASSIA 中的不确定性量化有助于通过多次分析迭代和相似性评分来评估注释的可靠性。此过程对于以下方面至关重要： - 识别稳健的细胞类型分配 - 检测混合或模棱两可的聚类 - 量化注释置信度 - 了解预测的可变性 单聚类不确定性分析 对于分析单个聚类的不确定性，使用 runCASSIAntimessimilarityscore()： 参数详情（单聚类） - tissue: 用于上下文的组织类型。 ",
     "url": "/zh/docs/python/uncertainty-quantification"
-  },
-  {
-    "title": "注释增强扩展 (可选)",
-    "slug": "annotation-boost-extra",
-    "section": "docs",
-    "lang": "r",
-    "locale": "zh",
-    "content": "该智能体是注释增强智能体的扩展版本。它使用自定义分析任务对特定簇执行额外分析。此功能通过允许使用大型语言模型对簇特定的生物学问题进行集中调查，扩展了基本注释功能。 用法 参数详情 - fullresultpath (字符串): 先前分析的完整结果 CSV 文件的路径。应包含带有 \"full.csv\" 后缀的输出名称。 - marker: 包含分析中使用的未处理标记数据的对象。 - outputna",
-    "url": "/zh/docs/r/annotation-boost-extra"
   },
   {
     "title": "注释增强（可选）",
@@ -468,7 +495,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "r",
     "locale": "zh",
-    "content": "注释增强是一种高级验证工具，通过多次迭代分析增强注释的置信度。它特别适用于： - 验证低置信度注释 - 获取特定细胞簇的详细见解 - 解决模糊的细胞类型分配 - 生成全面的验证报告 所需组件 1. 输入数据： - CASSIA批量分析的完整结果CSV - 原始标记基因文件（Seurat输出或自定义标记文件） - 簇上下文信息 - 特定簇标识符 2. 模型配置： - 推荐：通过OpenRouter使",
+    "content": "注释增强是一种高级验证工具，通过多次迭代分析增强注释的置信度。它特别适用于： - 验证低置信度注释 - 获取特定细胞簇的详细见解 - 解决模糊的细胞类型分配 - 生成全面的验证报告 所需组件 1. 输入数据： - CASSIA批量分析的完整结果CSV - 原始标记基因文件（Seurat输出或自定义标记文件） - 簇上下文信息 - 特定簇标识符 2. 模型配置： - 使用至少比 gemini-2.5",
     "url": "/zh/docs/r/annotation-boost"
   },
   {
@@ -481,7 +508,7 @@ export const searchData: SearchItem[] = [
     "url": "/zh/docs/r/batch-processing"
   },
   {
-    "title": "Symphony Compare (高级)",
+    "title": "Symphony Compare (可选)",
     "slug": "compare-cell-types",
     "section": "docs",
     "lang": "r",
@@ -504,7 +531,7 @@ export const searchData: SearchItem[] = [
     "section": "docs",
     "lang": "r",
     "locale": "zh",
-    "content": "感谢您阅读到这里！基本的CASSIA工作流程对于大多数情况已经足够。然而，为了处理一些特殊情况，我们现在介绍几个高级智能体。 🤔 不确定性量化智能体（UQ智能体） 尽管大型语言模型（LLM）功能强大，但偶尔会产生不稳定的输出。不确定性量化（UQ）智能体通过采用基于共识的策略来缓解这一问题。例如，如果模型在单次尝试中的正确率为 80%，那么通过独立询问五次并通过多数投票汇总结果，理论上可以将准确率",
+    "content": "基本的CASSIA工作流程对于大多数情况已经足够。然而，为了处理一些特殊情况，我们现在介绍几个高级智能体。 🤔 不确定性量化智能体（UQ智能体） 尽管大型语言模型（LLM）功能强大，但偶尔会产生不稳定的输出。不确定性量化（UQ）智能体通过采用基于共识的策略来缓解这一问题。例如，如果模型在单次尝试中的正确率为 80%，那么通过独立询问五次并通过多数投票汇总结果，理论上可以将准确率提高到 94.2%",
     "url": "/zh/docs/r/introduction-to-optional-agents"
   },
   {
@@ -585,7 +612,7 @@ export const searchData: SearchItem[] = [
     "section": "vignette",
     "lang": "python",
     "locale": "zh",
-    "content": "本 Python 教程演示了使用 CASSIA 对单细胞 RNA 测序数据进行细胞类型注释的完整工作流程。我们将分析包含六个不同细胞群体的肠道细胞数据集： 1. 单核细胞 2. 浆细胞 3. cd8 阳性 alpha-beta T 细胞 4. 大肠过渡扩增细胞 5. 肠道肠内分泌细胞 6. 肠隐窝干细胞 设置和环境准备 首先，让我们安装并导入所需的包： 设置 API 密钥 加载数据 快速模式 以快",
+    "content": "本 Python 教程演示了使用 CASSIA 对单细胞 RNA 测序数据进行细胞类型注释的完整工作流程。我们将分析包含六个不同细胞群体的肠道细胞数据集： 1. 单核细胞 2. 浆细胞 3. cd8 阳性 alpha-beta T 细胞 4. 大肠过渡扩增细胞 5. 肠道肠内分泌细胞 6. 肠隐窝干细胞 设置和环境准备 首先，让我们安装并导入所需的包： 设置 API 密钥 您只需选择一个提供商。 ",
     "url": "/zh/vignette/python/basic-annotation"
   },
   {
@@ -594,7 +621,7 @@ export const searchData: SearchItem[] = [
     "section": "vignette",
     "lang": "python",
     "locale": "zh",
-    "content": "本教程演示了如何使用 Scanpy 对预处理后的 AnnData 对象进行聚类，然后使用 CASSIA 对生成的聚类进行注释。我们假设质量控制步骤已经完成。 1. 安装和设置 1.1 所需的包 1.2 导入包 2. 探索您的预处理 AnnData 对象 在本教程中，我们将使用来自 GTEX 项目的乳腺组织数据集作为示例。该数据集为乳腺组织细胞类型提供了全面的参考。 我们假设数据集在 Broadce",
+    "content": "本教程演示了如何使用 Scanpy 对预处理后的 AnnData 对象进行聚类，然后使用 CASSIA 对生成的聚类进行注释。我们假设质量控制步骤已经完成。 1. 安装和设置 1.1 所需的包 1.2 导入包 1.3 设置 API 密钥 您只需选择一个提供商。 推荐使用 OpenRouter，因为它提供多种模型的访问。 2. 加载数据 在本教程中，我们将使用来自 GTEX 项目的乳腺组织数据集作为",
     "url": "/zh/vignette/python/clustering-and-annotation"
   },
   {
@@ -630,7 +657,7 @@ export const searchData: SearchItem[] = [
     "section": "vignette",
     "lang": "r",
     "locale": "zh",
-    "content": "本教程介绍使用CASSIA进行细胞类型注释的基本步骤，适用于您已经准备好标记基因列表的情况。这非常适合您已经完成聚类分析并希望对细胞簇进行注释的场景。 1. 安装和设置 在使用CASSIA之前，您需要安装软件包并设置必要的环境。 1.1 软件包安装 1.2 Python环境设置 CASSIA依赖Python进行部分后端操作。当您加载软件包时，环境会自动设置。如果遇到问题，请运行以下命令手动设置Py",
+    "content": "本教程介绍使用CASSIA进行细胞类型注释的基本步骤，适用于您已经准备好标记基因列表的情况。这非常适合您已经完成聚类分析并希望对细胞簇进行注释的场景。 1. 安装和设置 在开始之前，请确保已安装并配置CASSIA。有关详细说明，请参阅设置CASSIA文档。 2. 使用标记文件 CASSIA使用差异表达分析产生的标记基因数据。它接受Seurat的FindAllMarkers输出、Scanpy的ran",
     "url": "/zh/vignette/r/basic-annotation"
   },
   {
