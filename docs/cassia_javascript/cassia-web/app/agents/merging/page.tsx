@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
+import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Upload, File, CheckCircle, AlertCircle, X } from 'lucide-react';
@@ -31,6 +32,7 @@ export default function AnnotationMergingPage() {
   const [provider, setProvider] = useState<Provider>('openrouter');
   const [model, setModel] = useState('google/gemini-2.5-flash');
   const [customBaseUrl, setCustomBaseUrl] = useState('');
+  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
 
   const { apiKey } = useApiKeyStore();
 
@@ -124,6 +126,7 @@ export default function AnnotationMergingPage() {
           apiKey,
           additionalContext: additionalContext || null,
           batchSize: parseInt(batchSize),
+          reasoningEffort,
           onProgress: (msg) => setProgress(msg)
         });
       } else {
@@ -136,6 +139,7 @@ export default function AnnotationMergingPage() {
           additionalContext: additionalContext || null,
           batchSize: parseInt(batchSize),
           detailLevel,
+          reasoningEffort,
           onProgress: (msg) => setProgress(msg)
         });
       }
@@ -306,6 +310,8 @@ export default function AnnotationMergingPage() {
               onModelChange={setModel}
               customBaseUrl={customBaseUrl}
               onCustomBaseUrlChange={setCustomBaseUrl}
+              reasoningEffort={reasoningEffort}
+              onReasoningEffortChange={setReasoningEffort}
             />
           </div>
 

@@ -6,6 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { iterativeMarkerAnalysis, generateSummaryReport, extractConversationForCluster, getAvailableClusters, extractTopMarkerGenes } from '@/lib/cassia/annotationBoost';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
+import { ReasoningEffort } from '@/lib/config/model-presets';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +52,7 @@ export default function AnnotationBoostPage() {
     const [provider, setProvider] = useState<Provider>('openrouter');
     const [model, setModel] = useState('google/gemini-2.5-flash');
     const [customBaseUrl, setCustomBaseUrl] = useState('');
+    const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [majorClusterInfo, setMajorClusterInfo] = useState('Human PBMC');
     const [numIterations, setNumIterations] = useState(3);
     const [searchStrategy, setSearchStrategy] = useState('breadth');
@@ -468,6 +470,18 @@ export default function AnnotationBoostPage() {
                                 ⚙️ <span className="ml-2">Configuration</span>
                             </h2>
 
+                            {/* Model Selection */}
+                            <AgentModelSelector
+                                provider={provider}
+                                model={model}
+                                onProviderChange={setProvider}
+                                onModelChange={setModel}
+                                customBaseUrl={customBaseUrl}
+                                onCustomBaseUrlChange={setCustomBaseUrl}
+                                reasoningEffort={reasoningEffort}
+                                onReasoningEffortChange={setReasoningEffort}
+                            />
+
                             {/* API Key */}
                             <Card>
                                 <CardHeader>
@@ -482,16 +496,6 @@ export default function AnnotationBoostPage() {
                                     />
                                 </CardContent>
                             </Card>
-
-                            {/* Model Selection */}
-                            <AgentModelSelector
-                                provider={provider}
-                                model={model}
-                                onProviderChange={setProvider}
-                                onModelChange={setModel}
-                                customBaseUrl={customBaseUrl}
-                                onCustomBaseUrlChange={setCustomBaseUrl}
-                            />
 
                             {/* Analysis Settings */}
                             <Card>

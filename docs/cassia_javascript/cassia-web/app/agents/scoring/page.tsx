@@ -4,6 +4,7 @@ import { useState, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
+import { ReasoningEffort } from '@/lib/config/model-presets';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,7 @@ export default function ScoringAgentPage() {
     const [provider, setProvider] = useState<Provider>('openrouter');
     const [model, setModel] = useState('google/gemini-2.5-flash');
     const [customBaseUrl, setCustomBaseUrl] = useState('');
+    const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [maxWorkers, setMaxWorkers] = useState(4);
     const [maxRetries, setMaxRetries] = useState(1);
     const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -110,6 +112,7 @@ export default function ScoringAgentPage() {
                 model,
                 provider: effectiveProvider,
                 maxRetries: Number(maxRetries),
+                reasoningEffort,
                 onProgress: (progressData: any) => {
                     setProgress(progressData);
                 }
@@ -190,6 +193,8 @@ export default function ScoringAgentPage() {
                                 onModelChange={setModel}
                                 customBaseUrl={customBaseUrl}
                                 onCustomBaseUrlChange={setCustomBaseUrl}
+                                reasoningEffort={reasoningEffort}
+                                onReasoningEffortChange={setReasoningEffort}
                             />
 
                             {/* Analysis Settings */}

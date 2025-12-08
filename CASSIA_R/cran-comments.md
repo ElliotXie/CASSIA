@@ -1,6 +1,9 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 4 notes
+
+(Note: Local check shows 1 ERROR and 1 WARNING related to PDF manual creation
+because pdflatex is not installed locally. CRAN servers have LaTeX installed.)
 
 ## First submission
 
@@ -16,13 +19,21 @@ Full tutorials and documentation available at https://docs.cassia.bio
 
 ## Notes explanation
 
+### New submission (NOTE)
+
+This is the first submission of CASSIA to CRAN.
+
 ### Package size (NOTE)
 
-The installed package size is approximately 17 MB. This is because CASSIA bundles a complete Python module in `inst/python/` that provides the LLM-based cell type annotation engine. This Python code is essential for the package's core functionality and is loaded via the reticulate package. The size is necessary to provide a self-contained annotation system that works across platforms.
+The installed package size is approximately 9 MB. This is because CASSIA bundles a complete Python module in `inst/python/` that provides the LLM-based cell type annotation engine. This Python code is essential for the package's core functionality and is loaded via the reticulate package. The size is necessary to provide a self-contained annotation system that works across platforms.
 
 ### Non-standard file at top level (NOTE)
 
 The `cran-comments.md` file is intentionally included for CRAN reviewer communication.
+
+### Unable to verify current time (NOTE)
+
+This is a network/time verification issue on the local system, not a package problem.
 
 ## Package notes
 

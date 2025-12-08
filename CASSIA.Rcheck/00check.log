@@ -58,4 +58,38 @@ Non-standard file/directory found at top level:
 * checking dependencies in R code ... OK
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
-* checking foreign function calls ...
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [68s] NOTE
+File 'CASSIA/R/annotator.R':
+  .onLoad calls:
+    packageStartupMessage("CASSIA Python environment not found. Setting up automatically...")
+    packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+    packageStartupMessage("Initial setup failed, attempting automatic environment setup...")
+    packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+
+See section 'Good practice' in '?.onAttach'.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... [20s] OK
+* checking for unstated dependencies in 'tests' ... OK
+* checking tests ... [16s] OK
+  Running 'testthat.R' [16s]
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without index ... ERROR
+Re-running with no redirection of stdout/stderr.
+* checking HTML version of manual ... OK
+* checking for non-standard things in the check directory ... NOTE
+Found the following files/directories:
+  'CASSIA-manual.tex'
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 1 ERROR, 1 WARNING, 6 NOTEs

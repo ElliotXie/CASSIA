@@ -327,7 +327,7 @@ export function AgentModelSelector({
                     {CUSTOM_PROVIDER_PRESETS[customPreset].models.map((modelName) => (
                       <button
                         key={modelName}
-                        onClick={() => onModelChange(modelName)}
+                        onClick={() => handleModelChange(modelName)}
                         className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
                           model === modelName
                             ? 'border-primary bg-primary/10 text-primary'
@@ -342,7 +342,7 @@ export function AgentModelSelector({
                     type="text"
                     placeholder="Or enter a custom model name..."
                     value={CUSTOM_PROVIDER_PRESETS[customPreset].models.includes(model as any) ? '' : model}
-                    onChange={(e) => onModelChange(e.target.value)}
+                    onChange={(e) => handleModelChange(e.target.value)}
                     className="mt-2"
                   />
                 </div>
@@ -351,7 +351,7 @@ export function AgentModelSelector({
                   type="text"
                   placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
                   value={model}
-                  onChange={(e) => onModelChange(e.target.value)}
+                  onChange={(e) => handleModelChange(e.target.value)}
                 />
               )}
             </div>
@@ -362,7 +362,7 @@ export function AgentModelSelector({
         {provider !== 'custom' && (
           <div className="space-y-2">
             <label className="text-sm font-medium">Model</label>
-            <Select value={model} onValueChange={onModelChange}>
+            <Select value={model} onValueChange={handleModelChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -388,6 +388,36 @@ export function AgentModelSelector({
                 cost={currentModel.cost}
               />
             </div>
+          </div>
+        )}
+
+        {/* Reasoning Effort Selector - shown when model supports reasoning */}
+        {modelSupportsReasoning(provider, model) && onReasoningEffortChange && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              <Brain className="h-3 w-3" />
+              Reasoning Effort
+            </label>
+            <Select
+              value={reasoningEffort || 'none'}
+              onValueChange={(value) => {
+                onReasoningEffortChange(value === 'none' ? null : value as ReasoningEffort)
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {getReasoningEffortOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </CardContent>
