@@ -50,7 +50,7 @@
 </details>
 
 
-## 🏗️ 安装 (R 语言，Python教程请访问[这里](https://github.com/ElliotXie/CASSIA/blob/main/CASSIA_example/CASSIA_python_tutorial.ipynb))
+## 🏗️ 安装
 
 ```R
 # 安装依赖
