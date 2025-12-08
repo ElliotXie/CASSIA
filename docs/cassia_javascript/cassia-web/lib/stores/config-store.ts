@@ -173,6 +173,26 @@ export const useConfigStore = create<ConfigState>()(
       onRehydrateStorage: () => (state) => {
         if (state) {
           console.log('Config storage hydrated successfully')
+          // Migration: Update old peripheral_blood tissue value to large_intestine
+          if (state.tissue === 'peripheral_blood') {
+            console.log('Migrating tissue from peripheral_blood to large_intestine')
+            state.tissue = 'large_intestine'
+            // Force save the updated value
+            if (typeof window !== 'undefined') {
+              const stored = localStorage.getItem('cassia-config')
+              if (stored) {
+                try {
+                  const parsed = JSON.parse(stored)
+                  if (parsed.state && parsed.state.tissue === 'peripheral_blood') {
+                    parsed.state.tissue = 'large_intestine'
+                    localStorage.setItem('cassia-config', JSON.stringify(parsed))
+                  }
+                } catch (e) {
+                  console.error('Error migrating tissue value:', e)
+                }
+              }
+            }
+          }
         }
       },
       storage: {
