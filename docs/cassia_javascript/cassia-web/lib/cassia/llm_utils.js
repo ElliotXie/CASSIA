@@ -352,4 +352,57 @@ export async function callLLM(
     }
 }
 
-export default { callLLM };
+/**
+ * Cheapest models for each provider to use for API key testing.
+ * These models are selected to minimize cost while still validating the API key.
+ */
+const CHEAPEST_MODELS = {
+    openai: 'gpt-4o-mini',
+    anthropic: 'claude-haiku-4-20250514',
+    openrouter: 'google/gemini-2.5-flash',
+    custom: 'deepseek-chat'
+};
+
+/**
+ * Test an API key by sending a minimal request to the provider.
+ * Uses the cheapest model available for each provider to minimize cost.
+ *
+ * @param {string} provider - One of "openai", "anthropic", "openrouter", or "custom"
+ * @param {string} apiKey - The API key to test
+ * @param {string} customBaseUrl - Base URL for custom provider (required if provider is "custom")
+ * @returns {Promise<{success: boolean, error?: string}>} Result of the test
+ */
+export async function testApiKey(provider, apiKey, customBaseUrl = null) {
+    if (!apiKey || !apiKey.trim()) {
+        return { success: false, error: 'API key is required' };
+    }
+
+    try {
+        // Determine the model and provider URL to use
+        const model = CHEAPEST_MODELS[provider] || CHEAPEST_MODELS.custom;
+        const providerUrl = provider === 'custom' ? customBaseUrl : provider;
+
+        if (provider === 'custom' && !customBaseUrl) {
+            return { success: false, error: 'Base URL is required for custom provider' };
+        }
+
+        // Send a minimal test request
+        await callLLM(
+            "say 'a'",      // Simple prompt
+            providerUrl,    // Provider or custom URL
+            model,          // Cheapest model
+            apiKey,         // API key to test
+            0.0,            // Temperature (deterministic)
+            10,             // Minimal max tokens
+            null,           // No system prompt
+            null,           // No additional params
+            null            // No reasoning config
+        );
+
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+export default { callLLM, testApiKey };

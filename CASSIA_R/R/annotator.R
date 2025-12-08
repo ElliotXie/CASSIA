@@ -323,10 +323,32 @@ py_cassia <- NULL
 # Package-level variable to store load status for .onAttach messages
 .cassia_load_status <- new.env(parent = emptyenv())
 
+# Helper function to check if running during R CMD check
+.is_cran_check <- function() {
+  # Multiple ways to detect R CMD check environment
+  if (!identical(Sys.getenv("NOT_CRAN"), "true")) {
+    # Check for common R CMD check indicators
+    if (nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))) return(TRUE)
+    if (nzchar(Sys.getenv("R_TESTS"))) return(TRUE)
+    if (identical(Sys.getenv("R_CMD"), "true")) return(TRUE)
+  }
+  FALSE
+}
+
 .onLoad <- function(libname, pkgname) {
+
   # Initialize load status
   .cassia_load_status$message <- NULL
   .cassia_load_status$success <- FALSE
+  .cassia_load_status$python_available <- FALSE
+
+  # =========================================================================
+  # Skip Python setup during R CMD check (CRAN policy)
+  # =========================================================================
+  if (.is_cran_check()) {
+    .cassia_load_status$message <- "cran_check"
+    return(invisible(NULL))
+  }
 
   # =========================================================================
   # Step 1: Pre-flight checks - Verify Python is available and compatible
@@ -335,14 +357,14 @@ py_cassia <- NULL
   # Check if Python is available
   py_check <- .check_python_available()
   if (!py_check$available) {
-    .show_setup_error("python_not_found", py_check)
+    .cassia_load_status$message <- "python_not_found"
     return(invisible(NULL))
   }
 
   # Check Python version (must be >= 3.9)
   version_check <- .check_python_version("3.9")
   if (!version_check$ok) {
-    .show_setup_error("python_version", version_check)
+    .cassia_load_status$message <- "python_version"
     return(invisible(NULL))
   }
 
@@ -365,7 +387,7 @@ py_cassia <- NULL
       # Check if environment managers are available before trying to create
       env_managers <- .check_env_managers_available()
       if (!env_managers$any_available) {
-        .show_setup_error("no_env_manager")
+        .cassia_load_status$message <- "no_env_manager"
         return(invisible(NULL))
       }
 
@@ -395,6 +417,7 @@ py_cassia <- NULL
 
     # Success!
     .cassia_load_status$success <- TRUE
+    .cassia_load_status$python_available <- TRUE
 
   }, error = function(e) {
     # If setup fails, try to run setup_cassia_env() automatically
@@ -407,35 +430,37 @@ py_cassia <- NULL
 
       # Success after retry!
       .cassia_load_status$success <- TRUE
+      .cassia_load_status$python_available <- TRUE
 
     }, error = function(e2) {
-      # Determine the most likely cause of failure
-      error_msg <- tolower(e2$message)
-
-      if (grepl("virtualenv|conda|venv|environment", error_msg)) {
-        .show_setup_error("env_setup_failed", list(error = e2$message))
-      } else if (grepl("pip|install|package|module", error_msg)) {
-        .show_setup_error("package_install_failed", list(error = e2$message))
-      } else {
-        # Generic error with details
-        .show_setup_error("env_setup_failed", list(error = e2$message))
-      }
+      # Store error but don't show it - package should still load
+      .cassia_load_status$message <- "setup_failed"
+      .cassia_load_status$error <- e2$message
     })
   })
 }
 
 .onAttach <- function(libname, pkgname) {
-  # Display startup messages based on load status
-  if (!is.null(.cassia_load_status$message)) {
-    if (.cassia_load_status$message == "env_setup") {
-      packageStartupMessage("CASSIA Python environment not found. Setting up automatically...")
-    } else if (.cassia_load_status$message == "retry_setup") {
-      packageStartupMessage("Initial setup failed, attempting automatic environment setup...")
-    }
+  # Skip messages during R CMD check
+  if (.is_cran_check()) {
+    return(invisible(NULL))
   }
 
+  # Display startup messages based on load status
   if (.cassia_load_status$success) {
     packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
+  } else if (!is.null(.cassia_load_status$message)) {
+    msg <- switch(.cassia_load_status$message,
+      "python_not_found" = "Note: Python not found. Run setup_cassia_env() to configure.",
+      "python_version" = "Note: Python >= 3.9 required. Run setup_cassia_env() to configure.",
+      "no_env_manager" = "Note: No virtualenv or conda found. Please install one first.",
+      "env_setup" = "Setting up CASSIA Python environment...",
+      "setup_failed" = "Note: Python setup incomplete. Run setup_cassia_env() to configure.",
+      NULL
+    )
+    if (!is.null(msg)) {
+      packageStartupMessage(msg)
+    }
   }
 }
 

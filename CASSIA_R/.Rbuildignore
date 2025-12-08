@@ -8,3 +8,4 @@
 ^\.DS_Store$
 ^\.Rhistory$
 inst/python/CASSIA/\.env$
+^cran-comments\.md$

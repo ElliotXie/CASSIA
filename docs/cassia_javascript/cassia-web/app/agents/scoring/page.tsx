@@ -9,8 +9,9 @@ import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Target, Upload, Download } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
+import { testApiKey } from '@/lib/cassia/llm_utils';
 
 export default function ScoringAgentPage() {
     const globalApiKey = useApiKeyStore((state) => state.getApiKey());
@@ -32,6 +33,9 @@ export default function ScoringAgentPage() {
     const [results, setResults] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState({ completed: 0, total: 0, percentage: 0 });
+    const [isTestingApi, setIsTestingApi] = useState(false);
+    const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [testErrorMessage, setTestErrorMessage] = useState<string>('');
 
     // Initialize with global settings
     useEffect(() => {
@@ -87,6 +91,40 @@ export default function ScoringAgentPage() {
             console.log('Example data loaded successfully');
         } catch (error) {
             setError('Failed to load example data.');
+        }
+    };
+
+    // Test API key
+    const handleTestApiKey = async () => {
+        if (!apiKey.trim()) {
+            setTestStatus('error');
+            setTestErrorMessage('Please enter an API key first');
+            setTimeout(() => setTestStatus('idle'), 3000);
+            return;
+        }
+
+        setIsTestingApi(true);
+        setTestStatus('idle');
+        setTestErrorMessage('');
+
+        try {
+            const baseUrl = provider === 'custom' ? customBaseUrl : null;
+            const result = await testApiKey(provider, apiKey, baseUrl);
+
+            if (result.success) {
+                setTestStatus('success');
+                setTimeout(() => setTestStatus('idle'), 5000);
+            } else {
+                setTestStatus('error');
+                setTestErrorMessage(result.error || 'API test failed');
+                setTimeout(() => setTestStatus('idle'), 5000);
+            }
+        } catch (err: any) {
+            setTestStatus('error');
+            setTestErrorMessage(err.message || 'API test failed');
+            setTimeout(() => setTestStatus('idle'), 5000);
+        } finally {
+            setIsTestingApi(false);
         }
     };
 
@@ -175,13 +213,48 @@ export default function ScoringAgentPage() {
                                 <CardHeader>
                                     <CardTitle className="text-lg">🔑 API Key</CardTitle>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="space-y-3">
                                     <Input
                                         type="password"
                                         value={apiKey}
                                         onChange={(e) => setApiKey(e.target.value)}
                                         placeholder="Enter your API key"
                                     />
+                                    <Button
+                                        onClick={handleTestApiKey}
+                                        disabled={isTestingApi || !apiKey}
+                                        variant={testStatus === 'success' ? 'default' : testStatus === 'error' ? 'destructive' : 'outline'}
+                                        size="sm"
+                                        className="w-full"
+                                    >
+                                        {isTestingApi ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Testing API...
+                                            </>
+                                        ) : testStatus === 'success' ? (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                API Key Valid
+                                            </>
+                                        ) : testStatus === 'error' ? (
+                                            <>
+                                                <AlertCircle className="mr-2 h-4 w-4" />
+                                                Test Failed
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap className="mr-2 h-4 w-4" />
+                                                Test API Key
+                                            </>
+                                        )}
+                                    </Button>
+                                    {testStatus === 'error' && testErrorMessage && (
+                                        <p className="text-xs text-red-600">{testErrorMessage}</p>
+                                    )}
+                                    {testStatus === 'success' && (
+                                        <p className="text-xs text-green-600">API key is valid and working</p>
+                                    )}
                                 </CardContent>
                             </Card>
 

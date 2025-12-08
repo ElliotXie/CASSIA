@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, Key, ExternalLink, CheckCircle, AlertCircle, Download, Loader2, ChevronDown } from 'lucide-react'
+import { Eye, EyeOff, Key, ExternalLink, CheckCircle, AlertCircle, Download, Loader2, ChevronDown, Zap } from 'lucide-react'
+import { testApiKey } from '@/lib/cassia/llm_utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -82,6 +83,9 @@ export function ApiKeyInput() {
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [customPreset, setCustomPreset] = useState<CustomPresetKey>('deepseek')
   const [showPresetDropdown, setShowPresetDropdown] = useState(false)
+  const [isTestingApi, setIsTestingApi] = useState(false)
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [testErrorMessage, setTestErrorMessage] = useState<string>('')
   
   // Get API key data directly from the API key store for proper reactivity
   const {
@@ -231,6 +235,40 @@ export function ApiKeyInput() {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to load API keys')
       setLoadStatus('error')
       setTimeout(() => setLoadStatus('idle'), 5000)
+    }
+  }
+
+  const handleTestApiKey = async () => {
+    if (!apiKey.trim()) {
+      setTestStatus('error')
+      setTestErrorMessage('Please enter an API key first')
+      setTimeout(() => setTestStatus('idle'), 3000)
+      return
+    }
+
+    setIsTestingApi(true)
+    setTestStatus('idle')
+    setTestErrorMessage('')
+
+    try {
+      // For custom provider, use the custom base URL
+      const baseUrl = provider === 'custom' ? customBaseUrl : null
+      const result = await testApiKey(provider, apiKey, baseUrl)
+
+      if (result.success) {
+        setTestStatus('success')
+        setTimeout(() => setTestStatus('idle'), 5000)
+      } else {
+        setTestStatus('error')
+        setTestErrorMessage(result.error || 'API test failed')
+        setTimeout(() => setTestStatus('idle'), 5000)
+      }
+    } catch (error) {
+      setTestStatus('error')
+      setTestErrorMessage(error instanceof Error ? error.message : 'API test failed')
+      setTimeout(() => setTestStatus('idle'), 5000)
+    } finally {
+      setIsTestingApi(false)
     }
   }
 
@@ -411,6 +449,35 @@ export function ApiKeyInput() {
                   )}
                 </Button>
               )}
+              <Button
+                onClick={handleTestApiKey}
+                disabled={isTestingApi || !apiKey}
+                variant={testStatus === 'success' ? 'default' : testStatus === 'error' ? 'destructive' : 'outline'}
+                size="sm"
+                className="text-xs"
+              >
+                {isTestingApi ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Testing...
+                  </>
+                ) : testStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    API OK
+                  </>
+                ) : testStatus === 'error' ? (
+                  <>
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    Failed
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-1 h-3 w-3" />
+                    Test API
+                  </>
+                )}
+              </Button>
               <a
                 href={getHelpUrl()}
                 target="_blank"
@@ -471,6 +538,18 @@ export function ApiKeyInput() {
           {loadStatus === 'success' && (
             <p className="text-xs text-green-600">
               API keys loaded successfully from your account
+            </p>
+          )}
+
+          {testStatus === 'error' && testErrorMessage && (
+            <p className="text-xs text-red-600">
+              API Test Failed: {testErrorMessage}
+            </p>
+          )}
+
+          {testStatus === 'success' && (
+            <p className="text-xs text-green-600">
+              API key is valid and working
             </p>
           )}
         </div>

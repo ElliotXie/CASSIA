@@ -334,7 +334,8 @@ export async function summarizeConversationHistory(
     apiKey,
     provider = "openrouter",
     model = null,
-    temperature = 0.1
+    temperature = 0.1,
+    reasoningEffort = null
 ) {
     try {
         const summarizationPrompt = `You are a specialized scientific summarization agent. Your task is to create a concise summary of a prior cell type annotation analysis that will be used as context for further detailed analysis.
@@ -360,13 +361,10 @@ Please provide a structured summary following the format above:`;
         const summary = await callLLM(
             summarizationPrompt,
             provider,
-            model || "anthropic/claude-3.5-sonnet",
+            model || "google/gemini-2.5-flash", // Match Python's default model
             apiKey,
-            temperature,
-            7000,
-            null, // systemPrompt
-            null, // additionalParams
-            reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
+            temperature
+            // Python doesn't specify max_tokens for this call - uses default
         );
         return summary.trim();
     } catch (error) {
@@ -719,7 +717,8 @@ export async function iterativeMarkerAnalysis(
     additionalTask = null,
     temperature = 0,
     searchStrategy = "breadth",
-    apiKey // Additional parameter for browser version
+    apiKey, // Additional parameter for browser version
+    reasoningEffort = null // Reasoning effort for supported models
 ) {
 
     // Select the appropriate prompt based on search strategy and whether there's an additional task
@@ -749,8 +748,8 @@ export async function iterativeMarkerAnalysis(
     // Iterative process
     for (let iteration = 0; iteration < numIterations; iteration++) {
         try {
-            // Call the LLM with full conversation history
-            // CRITICAL FIX: Always pass the full conversation history for proper context maintenance
+            // Call the LLM
+            // Only include conversation history after first iteration (matching Python implementation)
             console.log(`🔄 Iteration ${iteration + 1}: Sending ${messages.length} messages to LLM for context`);
             const llmResponse = await callLLM(
                 messages[messages.length - 1].content,
@@ -758,10 +757,10 @@ export async function iterativeMarkerAnalysis(
                 model,
                 apiKey,
                 temperature,
-                7000,
+                4096, // Match Python's max_tokens
                 null, // systemPrompt
-                // Always include conversation history to maintain context between iterations
-                { messages: messages },
+                // Only include conversation history if not the first iteration (matching Python)
+                iteration > 0 ? { messages: messages } : null,
                 reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
             );
             
@@ -807,19 +806,21 @@ export async function iterativeMarkerAnalysis(
     }
     
     // Final response if max iterations reached
+    // Encourage the agent to reach a conclusion if not already done
     try {
-        const finalPrompt = "You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response.";
-        conversation += `\nSystem: ${finalPrompt}\n`;
-        
-        messages.push({"role": "user", "content": finalPrompt});
-        
+        const finalUserMessage = "You have reached the maximum number of iterations. Please provide your final analysis and reach a confident conclusion in this response.";
+        conversation += `\nSystem: ${finalUserMessage}\n`;
+
+        messages.push({"role": "user", "content": finalUserMessage});
+
+        // Match Python: use fixed prompt text for the actual LLM call
         const finalResponse = await callLLM(
-            messages[messages.length - 1].content, // Use the latest message content
+            "Please provide your final analysis based on all the information so far.", // Match Python's exact prompt
             provider,
             model,
             apiKey,
             temperature,
-            7000,
+            4096, // Match Python's max_tokens
             null, // systemPrompt
             { messages: messages }, // Include full conversation history
             reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
@@ -847,7 +848,7 @@ export async function iterativeMarkerAnalysis(
  * @param {string} apiKey - API key
  * @returns {Promise<string>} HTML report content
  */
-export async function generateSummaryReport(messages, searchStrategy = "breadth", reportStyle = "per_iteration", provider = "openrouter", model = "anthropic/claude-3.5-sonnet", apiKey) {
+export async function generateSummaryReport(messages, searchStrategy = "breadth", reportStyle = "per_iteration", provider = "openrouter", model = "anthropic/claude-3.5-sonnet", apiKey, reasoningEffort = null) {
     try {
         // Ensure messages is an array
         if (!Array.isArray(messages)) {
@@ -952,10 +953,12 @@ export async function generateSummaryReport(messages, searchStrategy = "breadth"
         <GENES_CHECKED>
         List the specific genes checked in this iteration (comma-separated).
         </GENES_CHECKED>
-        
+
         <KEY_FINDINGS>
-        Concise summary of the key results from gene expression analysis and what was learned.
+        Deatailed summary of the key results from gene expression analysis and what was learned.
+        Format as numbered points (1., 2., 3.) each on a new line. list (Hypothesis_n) at the end of each point to indicate the hypothesis that the key findings correspond to.
         </KEY_FINDINGS>
+
         </ITERATION_1>
         
         # Repeat for each additional iteration (ITERATION_2, ITERATION_3, etc.)
@@ -993,7 +996,7 @@ export async function generateSummaryReport(messages, searchStrategy = "breadth"
             model,
             apiKey,
             0.3, // Low temperature for consistent output
-            4000, // Max tokens
+            4096, // Match Python's max_tokens
             null, // systemPrompt
             null, // additionalParams
             reasoningEffort && reasoningEffort !== 'none' ? { effort: reasoningEffort } : null
@@ -1052,28 +1055,63 @@ function generateBasicConversationReport(messages) {
  */
 function formatSummaryToHTML(summaryText, searchStrategy = "breadth", reportStyle = "per_iteration") {
     try {
-        // Helper function to format hypotheses with better separation
+        // Helper function to format hypotheses with better separation (matching Python implementation)
         function formatHypotheses(text) {
             if (!text || text === "No information available") {
                 return text;
             }
-            
-            // Check if text contains numbered points
-            const numberedPoints = text.match(/(?:^|\s)(\d+\.)\s+([^0-9\.]*?)(?=\s+\d+\.\s+|\s*$)/gs);
-            
-            if (numberedPoints) {
+
+            // Approach 1: Check if text contains numbered points using findall-style matching
+            const numberedPointsRegex = /(?:^|\s)(\d+\.)\s+([^0-9\.].*?)(?=\s+\d+\.\s+|\s*$)/gs;
+            const numberedPoints = [...text.matchAll(numberedPointsRegex)];
+
+            if (numberedPoints.length > 0) {
                 let result = '<div class="hypothesis-list">';
-                for (const point of numberedPoints) {
-                    const match = point.match(/(\d+\.)\s*(.*)/s);
-                    if (match) {
-                        result += `<div class="hypothesis-item"><span class="hypothesis-number">${match[1]}</span> ${match[2].trim()}</div>`;
+                for (const match of numberedPoints) {
+                    result += `<div class="hypothesis-item"><span class="hypothesis-number">${match[1]}</span> ${match[2].trim()}</div>`;
+                }
+                result += '</div>';
+                return result;
+            }
+
+            // Approach 2 (fallback): Look for numbers at beginning of paragraphs/lines
+            const paragraphs = text.split('\n');
+            const hasNumberedParagraphs = paragraphs.some(p => p.trim() && /^\s*\d+[\.\)\-]/.test(p));
+
+            if (hasNumberedParagraphs) {
+                let result = '<div class="hypothesis-list">';
+                for (const para of paragraphs) {
+                    if (!para.trim()) continue;
+
+                    const lineMatch = para.match(/^\s*(\d+[\.\)\-])\s*(.*)/);
+                    if (lineMatch) {
+                        result += `<div class="hypothesis-item"><span class="hypothesis-number">${lineMatch[1]}</span> ${lineMatch[2].trim()}</div>`;
+                    } else {
+                        result += `<div class="hypothesis-item-continued">${para.trim()}</div>`;
                     }
                 }
                 result += '</div>';
                 return result;
             }
-            
-            return text;
+
+            // Approach 3 (fallback): More aggressive split by numbered items
+            const numberedItems = text.split(/(?:^|\s)(\d+[\.\)\-])(?=\s)/);
+            if (numberedItems.length > 2) {
+                let result = '<div class="hypothesis-list">';
+                // Skip the first empty item
+                for (let i = 1; i < numberedItems.length; i += 2) {
+                    if (i + 1 < numberedItems.length) {
+                        const num = numberedItems[i];
+                        const content = numberedItems[i + 1].trim();
+                        result += `<div class="hypothesis-item"><span class="hypothesis-number">${num}</span> ${content}</div>`;
+                    }
+                }
+                result += '</div>';
+                return result;
+            }
+
+            // If no patterns match, return original text with line breaks preserved
+            return text.replace(/\n/g, '<br>');
         }
         
         // Extract sections using regex
@@ -1198,14 +1236,14 @@ function generateGeneFocusedHTML(sections, geneGroups, searchStrategy) {
             .section { margin-bottom: 35px; }
             .section h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 8px; margin-bottom: 20px; font-size: 22px; }
             .section h3 { color: #34495e; margin-bottom: 15px; font-size: 18px; }
-            .overview-box { background: #f8f9fa; border-left: 5px solid #3498db; padding: 20px; border-radius: 5px; }
+            .overview-box { background: #f8f9fa; border-left: 5px solid #3498db; padding: 20px; border-radius: 5px; white-space: pre-line; }
             .gene-group { background: #fff; border: 1px solid #e1e8ed; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
             .gene-group-title { color: #2c3e50; margin: 0 0 15px 0; font-size: 16px; font-weight: 600; }
             .gene-list { background: #f1f8ff; padding: 12px; border-radius: 5px; margin-bottom: 12px; font-family: 'Courier New', monospace; }
-            .gene-findings { line-height: 1.6; color: #2c3e50; }
-            .conclusion-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px; }
-            .insights-box { background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; }
-            .validation-box { background: #d1ecf1; border: 1px solid #bee5eb; padding: 20px; border-radius: 8px; }
+            .gene-findings { line-height: 1.6; color: #2c3e50; white-space: pre-line; }
+            .conclusion-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px; white-space: pre-line; }
+            .insights-box { background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; white-space: pre-line; }
+            .validation-box { background: #d1ecf1; border: 1px solid #bee5eb; padding: 20px; border-radius: 8px; white-space: pre-line; }
             .meta-info { text-align: center; color: #6c757d; font-size: 14px; padding: 20px; background: #f8f9fa; }
         </style>
     </head>
@@ -1304,15 +1342,17 @@ function generatePerIterationHTML(sections, iterations, searchStrategy, formatHy
             .content { padding: 30px; }
             .section { margin-bottom: 35px; }
             .section h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 8px; margin-bottom: 20px; font-size: 22px; }
-            .overview-box { background: #f8f9fa; border-left: 5px solid #3498db; padding: 20px; border-radius: 5px; }
+            .overview-box { background: #f8f9fa; border-left: 5px solid #3498db; padding: 20px; border-radius: 5px; white-space: pre-line; }
             .iteration-section { background: #fff; border: 1px solid #e1e8ed; border-radius: 8px; padding: 25px; margin-bottom: 25px; }
             .iteration-section h3 { color: #2c3e50; margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1; }
             .iteration-content h4 { color: #34495e; margin: 15px 0 8px 0; font-size: 16px; }
-            .hypothesis-content, .genes-content, .findings-content { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-            .hypothesis-list { margin: 0; }
+            .hypothesis-content, .genes-content, .findings-content { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; white-space: pre-line; }
+            .hypothesis-list { margin: 0; white-space: normal; }
             .hypothesis-item { margin-bottom: 12px; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #3498db; }
+            .hypothesis-item-continued { padding-left: 1.5rem; margin-top: -0.3rem; color: #6c757d; }
             .hypothesis-number { font-weight: bold; color: #3498db; margin-right: 8px; }
             .genes-content { font-family: 'Courier New', monospace; background: #f1f8ff; }
+            .conclusion-box, .marker-box, .recommendations-box { white-space: pre-line; }
             .conclusion-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px; }
             .marker-box { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 20px; border-radius: 8px; }
             .recommendations-box { background: #fff3e0; border: 1px solid #ffcc02; padding: 20px; border-radius: 8px; }

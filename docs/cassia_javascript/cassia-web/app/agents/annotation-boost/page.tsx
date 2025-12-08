@@ -11,8 +11,9 @@ import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, RefreshCcw, BookOpen, Database, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
+import { testApiKey } from '@/lib/cassia/llm_utils';
 
 export default function AnnotationBoostPage() {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -69,6 +70,9 @@ export default function AnnotationBoostPage() {
     const [error, setError] = useState<string | null>(null);
     const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
     const [showInstructions, setShowInstructions] = useState(true);
+    const [isTestingApi, setIsTestingApi] = useState(false);
+    const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [testErrorMessage, setTestErrorMessage] = useState<string>('');
 
     // Console output capture
     useEffect(() => {
@@ -195,7 +199,7 @@ export default function AnnotationBoostPage() {
     // Extract conversation for selected cluster
     const extractConversation = async () => {
         if (!conversationData || !selectedCluster || !selectedClusterColumn) return;
-        
+
         try {
             const extracted = await extractConversationForCluster(conversationData, selectedCluster, selectedClusterColumn);
             setExtractedHistory(extracted);
@@ -203,6 +207,20 @@ export default function AnnotationBoostPage() {
             setError(`Failed to extract conversation: ${err.message}`);
         }
     };
+
+    // Auto-load clusters when conversation data or cluster column changes
+    useEffect(() => {
+        if (conversationData && selectedClusterColumn) {
+            loadClusters();
+        }
+    }, [conversationData, selectedClusterColumn]);
+
+    // Auto-extract conversation when cluster is selected (no manual button needed)
+    useEffect(() => {
+        if (conversationData && selectedCluster && selectedClusterColumn) {
+            extractConversation();
+        }
+    }, [selectedCluster, selectedClusterColumn, conversationData]);
 
     // Load example data by simulating file upload
     const loadExampleData = async () => {
@@ -273,6 +291,40 @@ export default function AnnotationBoostPage() {
         console.log('🧹 Console cleared');
     };
 
+    // Test API key
+    const handleTestApiKey = async () => {
+        if (!apiKey.trim()) {
+            setTestStatus('error');
+            setTestErrorMessage('Please enter an API key first');
+            setTimeout(() => setTestStatus('idle'), 3000);
+            return;
+        }
+
+        setIsTestingApi(true);
+        setTestStatus('idle');
+        setTestErrorMessage('');
+
+        try {
+            const baseUrl = provider === 'custom' ? customBaseUrl : null;
+            const result = await testApiKey(provider, apiKey, baseUrl);
+
+            if (result.success) {
+                setTestStatus('success');
+                setTimeout(() => setTestStatus('idle'), 5000);
+            } else {
+                setTestStatus('error');
+                setTestErrorMessage(result.error || 'API test failed');
+                setTimeout(() => setTestStatus('idle'), 5000);
+            }
+        } catch (err: any) {
+            setTestStatus('error');
+            setTestErrorMessage(err.message || 'API test failed');
+            setTimeout(() => setTestStatus('idle'), 5000);
+        } finally {
+            setIsTestingApi(false);
+        }
+    };
+
     // Run iterative analysis
     const handleRunAnalysis = async () => {
         if (!markerData.length || !apiKey) {
@@ -306,16 +358,21 @@ export default function AnnotationBoostPage() {
                 null, // additionalTask
                 0, // temperature
                 searchStrategy as 'breadth' | 'depth',
-                apiKey
+                apiKey,
+                reasoningEffort
             );
 
+            // Skip the first message which contains the prompt (matching Python implementation)
+            const conversationWithoutPrompt = results.messages.length > 1 ? results.messages.slice(1) : results.messages;
+
             const htmlReport = await generateSummaryReport(
-                results.messages,
+                conversationWithoutPrompt,
                 searchStrategy as 'breadth' | 'depth',
                 'per_iteration',
                 effectiveProvider,
                 model,
-                apiKey
+                apiKey,
+                reasoningEffort
             );
             setResultsHtml(htmlReport);
         } catch (err: any) {
@@ -487,13 +544,48 @@ export default function AnnotationBoostPage() {
                                 <CardHeader>
                                     <CardTitle className="text-lg">🔑 API Key</CardTitle>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="space-y-3">
                                     <Input
                                         type="password"
                                         value={apiKey}
                                         onChange={(e) => setApiKey(e.target.value)}
                                         placeholder="Enter your API key"
                                     />
+                                    <Button
+                                        onClick={handleTestApiKey}
+                                        disabled={isTestingApi || !apiKey}
+                                        variant={testStatus === 'success' ? 'default' : testStatus === 'error' ? 'destructive' : 'outline'}
+                                        size="sm"
+                                        className="w-full"
+                                    >
+                                        {isTestingApi ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Testing API...
+                                            </>
+                                        ) : testStatus === 'success' ? (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                API Key Valid
+                                            </>
+                                        ) : testStatus === 'error' ? (
+                                            <>
+                                                <AlertCircle className="mr-2 h-4 w-4" />
+                                                Test Failed
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap className="mr-2 h-4 w-4" />
+                                                Test API Key
+                                            </>
+                                        )}
+                                    </Button>
+                                    {testStatus === 'error' && testErrorMessage && (
+                                        <p className="text-xs text-red-600">{testErrorMessage}</p>
+                                    )}
+                                    {testStatus === 'success' && (
+                                        <p className="text-xs text-green-600">API key is valid and working</p>
+                                    )}
                                 </CardContent>
                             </Card>
 
@@ -656,17 +748,8 @@ export default function AnnotationBoostPage() {
                                                         ))}
                                                     </select>
                                                 </div>
-                                                
-                                                <Button
-                                                    onClick={loadClusters}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="w-full"
-                                                >
-                                                    <RefreshCcw className="h-4 w-4 mr-2" />
-                                                    Load Clusters
-                                                </Button>
 
+                                                {/* Clusters load automatically when conversation file is uploaded */}
                                                 {availableClusters.length > 0 && (
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Select Cluster</label>
@@ -683,17 +766,7 @@ export default function AnnotationBoostPage() {
                                                     </div>
                                                 )}
 
-                                                {selectedCluster && (
-                                                    <Button
-                                                        onClick={extractConversation}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="w-full"
-                                                    >
-                                                        <Upload className="h-4 w-4 mr-2" />
-                                                        Extract Conversation
-                                                    </Button>
-                                                )}
+                                                {/* Conversation is extracted automatically when cluster is selected */}
                                             </>
                                         )}
 
@@ -710,8 +783,11 @@ export default function AnnotationBoostPage() {
                                         )}
 
                                         {extractedHistory && historySource === 'csv' && (
-                                            <div className="glass rounded-lg p-3 border border-white/20">
-                                                <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">Extracted History Preview:</p>
+                                            <div className="glass rounded-lg p-3 border border-green-500/30 bg-green-500/5">
+                                                <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2 flex items-center">
+                                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                                    Conversation Extracted
+                                                </p>
                                                 <p className="text-xs text-gray-600 dark:text-gray-300 max-h-24 overflow-y-auto">
                                                     {extractedHistory.substring(0, 200)}...
                                                 </p>
@@ -865,9 +941,11 @@ export default function AnnotationBoostPage() {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <div 
-                                                className="glass rounded-lg p-4 border border-white/20 min-h-[500px] max-h-[600px] overflow-y-auto prose prose-sm dark:prose-invert max-w-none"
-                                                dangerouslySetInnerHTML={{ __html: resultsHtml }}
+                                            <iframe
+                                                srcDoc={resultsHtml}
+                                                className="w-full min-h-[500px] h-[600px] rounded-lg border border-white/20"
+                                                title="Annotation Boost Results"
+                                                sandbox="allow-same-origin"
                                             />
                                         </CardContent>
                                     </Card>

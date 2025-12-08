@@ -12,10 +12,12 @@ import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
-import { Upload, File, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, X, Zap, Loader2 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { testApiKey } from '@/lib/cassia/llm_utils';
 
 export default function AnnotationMergingPage() {
   const [csvData, setCsvData] = useState(null);
@@ -33,8 +35,20 @@ export default function AnnotationMergingPage() {
   const [model, setModel] = useState('google/gemini-2.5-flash');
   const [customBaseUrl, setCustomBaseUrl] = useState('');
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [isTestingApi, setIsTestingApi] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [testErrorMessage, setTestErrorMessage] = useState<string>('');
 
-  const { apiKey } = useApiKeyStore();
+  // Get global API key for initial value
+  const globalApiKey = useApiKeyStore((state) => state.getApiKey());
+
+  // Initialize with global API key
+  useEffect(() => {
+    if (globalApiKey && !apiKey) {
+      setApiKey(globalApiKey);
+    }
+  }, [globalApiKey]);
 
   // Custom file upload for CASSIA results files
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -93,6 +107,40 @@ export default function AnnotationMergingPage() {
     setResults(null);
     setError('');
     setProgress('');
+  };
+
+  // Test API key
+  const handleTestApiKey = async () => {
+    if (!apiKey.trim()) {
+      setTestStatus('error');
+      setTestErrorMessage('Please enter an API key first');
+      setTimeout(() => setTestStatus('idle'), 3000);
+      return;
+    }
+
+    setIsTestingApi(true);
+    setTestStatus('idle');
+    setTestErrorMessage('');
+
+    try {
+      const baseUrl = provider === 'custom' ? customBaseUrl : null;
+      const result = await testApiKey(provider, apiKey, baseUrl);
+
+      if (result.success) {
+        setTestStatus('success');
+        setTimeout(() => setTestStatus('idle'), 5000);
+      } else {
+        setTestStatus('error');
+        setTestErrorMessage(result.error || 'API test failed');
+        setTimeout(() => setTestStatus('idle'), 5000);
+      }
+    } catch (err: any) {
+      setTestStatus('error');
+      setTestErrorMessage(err.message || 'API test failed');
+      setTimeout(() => setTestStatus('idle'), 5000);
+    } finally {
+      setIsTestingApi(false);
+    }
   };
 
   const handleProcess = async () => {
@@ -314,6 +362,56 @@ export default function AnnotationMergingPage() {
               onReasoningEffortChange={setReasoningEffort}
             />
           </div>
+
+          {/* API Key */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-lg">API Key</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your API key"
+              />
+              <Button
+                onClick={handleTestApiKey}
+                disabled={isTestingApi || !apiKey}
+                variant={testStatus === 'success' ? 'default' : testStatus === 'error' ? 'destructive' : 'outline'}
+                size="sm"
+                className="w-full"
+              >
+                {isTestingApi ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing API...
+                  </>
+                ) : testStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    API Key Valid
+                  </>
+                ) : testStatus === 'error' ? (
+                  <>
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Test Failed
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Test API Key
+                  </>
+                )}
+              </Button>
+              {testStatus === 'error' && testErrorMessage && (
+                <p className="text-xs text-red-600">{testErrorMessage}</p>
+              )}
+              {testStatus === 'success' && (
+                <p className="text-xs text-green-600">API key is valid and working</p>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="mt-4">
             <Label htmlFor="process-all">
