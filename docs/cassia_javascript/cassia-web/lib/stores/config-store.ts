@@ -73,7 +73,7 @@ const defaultConfig = {
     }
   },
   outputName: 'cassia_analysis',
-  tissue: 'peripheral_blood',
+  tissue: 'large_intestine',
   species: 'human',
   scoreThreshold: 75,
   maxWorkers: 4,

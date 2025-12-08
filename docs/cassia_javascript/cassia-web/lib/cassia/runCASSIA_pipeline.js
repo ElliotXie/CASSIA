@@ -85,7 +85,7 @@ export async function runCASSIAPipeline(config) {
     const {
         marker,
         outputName = 'cassia_analysis',
-        tissue = 'peripheral_blood',
+        tissue = 'large_intestine',
         species = 'human',
         models = {
             annotation: { provider: 'openrouter', model: 'meta-llama/llama-3.1-8b-instruct' },

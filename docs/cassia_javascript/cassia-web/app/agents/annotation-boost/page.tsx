@@ -252,7 +252,7 @@ export default function AnnotationBoostPage() {
                 console.log('📝 Static file loading failed, using embedded fallback...');
                 // Fallback: Use a small sample of the conversation data
                 conversationText = `"True Cell Type","Predicted Main Cell Type","Predicted Sub Cell Types","Possible Mixed Cell Types","Marker Number","Marker List","Iterations","Model","Provider","Tissue","Species","Additional Info","Conversation History"
-"monocyte","Monocytes","Classical Monocytes, Intermediate Monocytes","","50","CDH19, NRXN1, PLP1, LGI4, GPM6B, SCN7A, SPARCL1, CRYAB, PMP22, IGFBP7, SPP1, CLU, MYOT, TIMP3, GPX3, CHL1, NRXN3, NCAM1, GPR155, SAMHD1","2","anthropic/claude-3.5-sonnet","openrouter","peripheral_blood","human","Example analysis","Example conversation history for monocyte analysis demonstrating iterative marker analysis workflow."`;
+"plasma cell","Plasma Cell","Plasmablast, Circulating Plasma Cell, Short-lived Plasma Cell","","50","IGLL5, IGLV6-57, JCHAIN, FAM92B, IGLC3, IGLC2, IGHV3-7, IGKC, TNFRSF17, IGHG1, AC026369.3, IGHV3-23, IGKV4-1, IGKV1-5, IGHA1, IGLV3-1, IGLV2-11, MYL2, MZB1, IGHG3","1","anthropic/claude-3.5-sonnet","openrouter","large_intestine","human","Example analysis","Example conversation history for plasma cell analysis demonstrating iterative marker analysis workflow."`;
             }
             
             console.log('🔄 Loading example marker data...');

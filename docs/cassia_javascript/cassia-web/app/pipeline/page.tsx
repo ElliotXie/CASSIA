@@ -194,7 +194,7 @@ export default function PipelinePage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Tissue Type</label>
                     <Input
-                      placeholder="peripheral_blood"
+                      placeholder="large_intestine"
                       value={tissue}
                       onChange={(e) => setAnalysisConfig({ tissue: e.target.value })}
                     />
