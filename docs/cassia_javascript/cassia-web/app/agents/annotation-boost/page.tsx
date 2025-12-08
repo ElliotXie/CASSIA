@@ -392,10 +392,38 @@ export default function AnnotationBoostPage() {
             // Use customBaseUrl as provider for custom endpoints
             const effectiveProvider = provider === 'custom' ? customBaseUrl : provider;
 
+            // Filter marker data by selected cluster if a cluster is selected
+            let filteredMarkerData = markerData;
+            if (selectedCluster && historySource === 'csv') {
+                // Find the cluster column in marker data
+                const clusterColumnOptions = ['cluster', 'Cluster', 'CLUSTER', 'cell_type', 'Cell_type', 'celltype', 'CellType'];
+                let clusterCol = null;
+                for (const col of clusterColumnOptions) {
+                    if (markerData[0] && col in markerData[0]) {
+                        clusterCol = col;
+                        break;
+                    }
+                }
+
+                if (clusterCol) {
+                    filteredMarkerData = markerData.filter(row =>
+                        row[clusterCol]?.toLowerCase().trim() === selectedCluster.toLowerCase().trim()
+                    );
+                    console.log(`📊 Filtered marker data: ${filteredMarkerData.length} markers for cluster "${selectedCluster}"`);
+
+                    if (filteredMarkerData.length === 0) {
+                        console.warn(`⚠️ No markers found for cluster "${selectedCluster}", using all markers`);
+                        filteredMarkerData = markerData;
+                    }
+                } else {
+                    console.log('📊 No cluster column found in marker data, using all markers');
+                }
+            }
+
             const results = await iterativeMarkerAnalysis(
                 majorClusterInfo,
-                markerData,
-                extractTopMarkerGenes(markerData, 20), // Extract top genes as comma-separated string
+                filteredMarkerData,
+                extractTopMarkerGenes(filteredMarkerData, 20), // Extract top genes from filtered data
                 historyToUse,
                 numIterations,
                 effectiveProvider,

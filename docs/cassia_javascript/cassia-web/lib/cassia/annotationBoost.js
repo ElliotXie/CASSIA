@@ -971,11 +971,7 @@ export async function generateSummaryReport(messages, searchStrategy = "breadth"
         <MARKER_SUMMARY>
         List the most important marker genes that defined this cell type, organized by their functional groups.
         </MARKER_SUMMARY>
-        
-        <RECOMMENDATIONS>
-        Any suggested next steps or validation approaches mentioned in the conversation.
-        </RECOMMENDATIONS>
-        
+
         Follow these guidelines:
         1. Maintain scientific precision while making the report accessible
         2. Include exact gene names with proper capitalization
@@ -1113,7 +1109,24 @@ function formatSummaryToHTML(summaryText, searchStrategy = "breadth", reportStyl
             // If no patterns match, return original text with line breaks preserved
             return text.replace(/\n/g, '<br>');
         }
-        
+
+        // Helper function to convert markdown to HTML
+        function markdownToHtml(text) {
+            if (!text || text === "No information available") {
+                return text;
+            }
+
+            return text
+                // Bold: **text** or __text__
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+                // Italic: *text* or _text_ (but not inside words)
+                .replace(/(?<![a-zA-Z])\*([^*]+)\*(?![a-zA-Z])/g, '<em>$1</em>')
+                .replace(/(?<![a-zA-Z])_([^_]+)_(?![a-zA-Z])/g, '<em>$1</em>')
+                // Line breaks
+                .replace(/\n/g, '<br>');
+        }
+
         // Extract sections using regex
         const sections = {};
         
@@ -1161,12 +1174,26 @@ function formatSummaryToHTML(summaryText, searchStrategy = "breadth", reportStyl
                 'initial_assessment': /<INITIAL_ASSESSMENT>\s*([\s\S]*?)\s*<\/INITIAL_ASSESSMENT>/,
                 'final_annotation': /<FINAL_ANNOTATION>\s*([\s\S]*?)\s*<\/FINAL_ANNOTATION>/,
                 'marker_summary': /<MARKER_SUMMARY>\s*([\s\S]*?)\s*<\/MARKER_SUMMARY>/,
-                'recommendations': /<RECOMMENDATIONS>\s*([\s\S]*?)\s*<\/RECOMMENDATIONS>/,
             };
-            
+
             for (const [key, pattern] of Object.entries(sectionPatterns)) {
-                const match = summaryText.match(pattern);
+                let match = summaryText.match(pattern);
+
+                // Fallback: try case-insensitive if exact match fails
+                if (!match) {
+                    const caseInsensitivePattern = new RegExp(pattern.source, 'i');
+                    match = summaryText.match(caseInsensitivePattern);
+                    if (match) {
+                        console.log(`Extracted ${key} using case-insensitive match`);
+                    }
+                }
+
                 sections[key] = match ? match[1].trim() : "No information available";
+            }
+
+            // Warn if critical section missing
+            if (sections.final_annotation === "No information available") {
+                console.warn('⚠️ FINAL_ANNOTATION not found in LLM response');
             }
             
             // Extract iterations
@@ -1193,7 +1220,7 @@ function formatSummaryToHTML(summaryText, searchStrategy = "breadth", reportStyl
             iterations.sort((a, b) => parseInt(a.number) - parseInt(b.number));
             
             // Generate HTML for per-iteration report
-            return generatePerIterationHTML(sections, iterations, searchStrategy, formatHypotheses);
+            return generatePerIterationHTML(sections, iterations, searchStrategy, formatHypotheses, markdownToHtml);
         }
         
     } catch (error) {
@@ -1298,10 +1325,10 @@ function generateGeneFocusedHTML(sections, geneGroups, searchStrategy) {
 /**
  * Generate HTML for per-iteration report
  */
-function generatePerIterationHTML(sections, iterations, searchStrategy, formatHypotheses) {
+function generatePerIterationHTML(sections, iterations, searchStrategy, formatHypotheses, markdownToHtml) {
     const strategyDisplay = searchStrategy.charAt(0).toUpperCase() + searchStrategy.slice(1) + "-First Analysis";
     const now = new Date().toLocaleString();
-    
+
     let iterationsHTML = '';
     for (const iter of iterations) {
         iterationsHTML += `
@@ -1312,15 +1339,15 @@ function generatePerIterationHTML(sections, iterations, searchStrategy, formatHy
                         <h4>Hypotheses Tested:</h4>
                         <div class="hypothesis-content">${formatHypotheses(iter.hypotheses)}</div>
                     </div>
-                    
+
                     <div class="genes-section">
                         <h4>Genes Checked:</h4>
-                        <div class="genes-content">${iter.genes_checked}</div>
+                        <div class="genes-content">${markdownToHtml(iter.genes_checked)}</div>
                     </div>
                     
                     <div class="findings-section">
                         <h4>Key Findings:</h4>
-                        <div class="findings-content">${iter.key_findings}</div>
+                        <div class="findings-content">${markdownToHtml(iter.key_findings)}</div>
                     </div>
                 </div>
             </div>
@@ -1369,32 +1396,27 @@ function generatePerIterationHTML(sections, iterations, searchStrategy, formatHy
             <div class="content">
                 <div class="section">
                     <h2>📋 Overview</h2>
-                    <div class="overview-box">${sections.overview}</div>
+                    <div class="overview-box">${markdownToHtml(sections.overview)}</div>
                 </div>
-                
+
                 <div class="section">
                     <h2>🎯 Initial Assessment</h2>
-                    <div>${sections.initial_assessment}</div>
+                    <div>${markdownToHtml(sections.initial_assessment)}</div>
                 </div>
-                
+
                 <div class="section">
                     <h2>🔄 Iterative Analysis</h2>
                     ${iterationsHTML}
                 </div>
-                
+
                 <div class="section">
                     <h2>✅ Final Annotation</h2>
-                    <div class="conclusion-box">${sections.final_annotation}</div>
+                    <div class="conclusion-box">${markdownToHtml(sections.final_annotation)}</div>
                 </div>
-                
+
                 <div class="section">
                     <h2>🧬 Marker Summary</h2>
-                    <div class="marker-box">${sections.marker_summary}</div>
-                </div>
-                
-                <div class="section">
-                    <h2>📝 Recommendations</h2>
-                    <div class="recommendations-box">${sections.recommendations}</div>
+                    <div class="marker-box">${markdownToHtml(sections.marker_summary)}</div>
                 </div>
             </div>
             
