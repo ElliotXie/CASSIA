@@ -4,6 +4,7 @@ import { useState, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,10 @@ export default function ScoringAgentPage() {
     const globalProvider = useApiKeyStore((state) => state.provider);
     const globalModel = useApiKeyStore((state) => state.model);
     const globalCustomBaseUrl = useApiKeyStore((state) => state.customBaseUrl);
+    const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
+
+    // Auth state
+    const { isAuthenticated, user } = useAuthStore();
 
     // State management
     const [apiKey, setApiKey] = useState('');
@@ -36,6 +41,11 @@ export default function ScoringAgentPage() {
     const [isTestingApi, setIsTestingApi] = useState(false);
     const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [testErrorMessage, setTestErrorMessage] = useState<string>('');
+
+    // Load API key from account state
+    const [isLoadingKeys, setIsLoadingKeys] = useState(false);
+    const [loadKeyStatus, setLoadKeyStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [loadKeyError, setLoadKeyError] = useState('');
 
     // Initialize with global settings
     useEffect(() => {
@@ -91,6 +101,41 @@ export default function ScoringAgentPage() {
             console.log('Example data loaded successfully');
         } catch (error) {
             setError('Failed to load example data.');
+        }
+    };
+
+    // Load API keys from Supabase account
+    const handleLoadApiKeys = async () => {
+        if (!isAuthenticated || !user) {
+            setLoadKeyError('Please sign in to load API keys');
+            setLoadKeyStatus('error');
+            setTimeout(() => setLoadKeyStatus('idle'), 5000);
+            return;
+        }
+
+        setIsLoadingKeys(true);
+        setLoadKeyStatus('idle');
+        setLoadKeyError('');
+
+        try {
+            await loadApiKeys();
+            // Get the loaded key for current provider
+            const loadedKey = useApiKeyStore.getState().apiKeys[provider];
+            if (loadedKey) {
+                setApiKey(loadedKey);
+                setLoadKeyStatus('success');
+                setTimeout(() => setLoadKeyStatus('idle'), 3000);
+            } else {
+                setLoadKeyError('No API key found for this provider');
+                setLoadKeyStatus('error');
+                setTimeout(() => setLoadKeyStatus('idle'), 5000);
+            }
+        } catch (err: any) {
+            setLoadKeyError(err.message || 'Failed to load API keys');
+            setLoadKeyStatus('error');
+            setTimeout(() => setLoadKeyStatus('idle'), 5000);
+        } finally {
+            setIsLoadingKeys(false);
         }
     };
 
@@ -220,6 +265,43 @@ export default function ScoringAgentPage() {
                                         onChange={(e) => setApiKey(e.target.value)}
                                         placeholder="Enter your API key"
                                     />
+                                    {isAuthenticated && (
+                                        <Button
+                                            onClick={handleLoadApiKeys}
+                                            disabled={isLoadingKeys}
+                                            variant={loadKeyStatus === 'success' ? 'default' : loadKeyStatus === 'error' ? 'destructive' : 'outline'}
+                                            size="sm"
+                                            className="w-full"
+                                        >
+                                            {isLoadingKeys ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Loading Keys...
+                                                </>
+                                            ) : loadKeyStatus === 'success' ? (
+                                                <>
+                                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                                    API Key Loaded
+                                                </>
+                                            ) : loadKeyStatus === 'error' ? (
+                                                <>
+                                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                                    Load Failed
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    Load from Account
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+                                    {loadKeyStatus === 'error' && loadKeyError && (
+                                        <p className="text-xs text-red-600">{loadKeyError}</p>
+                                    )}
+                                    {loadKeyStatus === 'success' && (
+                                        <p className="text-xs text-green-600">API key loaded from your account</p>
+                                    )}
                                     <Button
                                         onClick={handleTestApiKey}
                                         disabled={isTestingApi || !apiKey}
