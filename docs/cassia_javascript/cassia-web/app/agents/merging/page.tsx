@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { ProgressTracker } from '@/components/ProgressTracker';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,7 +14,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
-import { Upload, File, CheckCircle, AlertCircle, X, Zap, Loader2, Download } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, X, Zap, Loader2, Download, ArrowLeft } from 'lucide-react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
@@ -117,6 +118,38 @@ export default function AnnotationMergingPage() {
     setResults(null);
     setError('');
     setProgress('');
+  };
+
+  // Load example CASSIA results data
+  const loadExampleData = async () => {
+    setIsUploading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/examples/cassia_analysis_full.csv');
+      if (!response.ok) {
+        throw new Error('Failed to fetch example file');
+      }
+      const text = await response.text();
+      const parsed = parseCSV(text);
+
+      if (parsed.length === 0) {
+        throw new Error('Example CSV file is empty');
+      }
+
+      setCsvData(parsed);
+      const mockFile = new File([text], 'cassia_analysis_full.csv', { type: 'text/csv' });
+      setUploadedFile(mockFile);
+      setResults(null);
+      setProgress(`Loaded ${parsed.length} rows from example CASSIA results`);
+      console.log('Example data loaded successfully');
+    } catch (err: any) {
+      setError(`Error loading example data: ${err.message}`);
+      setCsvData(null);
+      setUploadedFile(null);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Load API keys from Supabase account
@@ -283,9 +316,16 @@ export default function AnnotationMergingPage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300"
+        >
+          <ArrowLeft className="h-4 w-4 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:-translate-x-1 transition-all duration-300" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">Back</span>
+        </Link>
         <h1 className="text-3xl font-bold mb-2">Annotation Merging Agent</h1>
         <p className="text-gray-600">
-          Merge and group cell cluster annotations using AI to create broader cell type categories. 
+          Merge and group cell cluster annotations using AI to create broader cell type categories.
           Upload CASSIA results files (not raw marker data) with existing annotations to group them into hierarchical categories.
         </p>
       </div>

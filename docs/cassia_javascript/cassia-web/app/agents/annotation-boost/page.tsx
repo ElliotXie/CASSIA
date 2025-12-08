@@ -446,12 +446,13 @@ export default function AnnotationBoostPage() {
                 <div className="container mx-auto px-6 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <Button variant="ghost" size="sm" asChild className="glass border-white/30 hover:bg-white/20">
-                                <Link href="/">
-                                    <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Back
-                                </Link>
-                            </Button>
+                            <Link
+                                href="/"
+                                className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300"
+                            >
+                                <ArrowLeft className="h-4 w-4 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:-translate-x-1 transition-all duration-300" />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">Back</span>
+                            </Link>
                             <div className="flex items-center space-x-4">
                                 <div className="relative">
                                     <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
