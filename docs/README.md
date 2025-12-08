@@ -11,7 +11,7 @@
 
 🌐 [CASSIA Web UI (cassia.bio)](https://cassia.bio/) - A web interface supporting most of CASSIA’s functionality
 
-📚 [Complete Documentation/Vignette (docs.cassia.bio)](cassia-delta.vercel.app)
+📚 [Complete Documentation/Vignette (docs.cassia.bio)](https://cassia-delta.vercel.app)
 
 🤖 [LLMs Annotation Benchmark (sc-llm-benchmark.com)](https://sc-llm-benchmark.com/methods/cassia)
 
@@ -20,7 +20,7 @@
 ## 📰 News
 
 > **2025-11-29**
->🎇 **Major update with new features and improvements！**
+>🎇 **Major update with new features and improvements!**
 > - **Python Documentation**: Complete Python docs and vignettes now available
 > - **Annotation Boost Improvements**: Sidebar navigation, better reports, bug fixes
 > - **Better Scanpy Support**: Fixed marker processing, improved R/Python sync
@@ -96,7 +96,7 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
     - [OpenAI API Documentation](https://beta.openai.com/docs/)
     - [Anthropic API Documentation](https://docs.anthropic.com/)
-    - [OpenRouter API documentatioon](https://openrouter.ai/docs/quick-start)
+    - [OpenRouter API documentation](https://openrouter.ai/docs/quick-start)
 
 
 ## 🧬 Example Data
@@ -134,12 +134,12 @@ You can choose any model for annotation and scoring. Some classic models are lis
 - `gpt-4o`: Used in the benchmark
 
 ### OpenRouter
-- `google/gemini-2.5-flash`: One of the best-performed low-cost models, comparable with models like gpt-4o (Recommended)
-- `deepseek/deepseek-chat-v3-0324`: One of the best-performed open-source models, which gives very detailed annotations
-- `x-ai/grok-4-fast` One of the best-performed low-cost models.
+- `google/gemini-2.5-flash`: One of the best-performing low-cost models, comparable with models like gpt-4o (Recommended)
+- `deepseek/deepseek-chat-v3-0324`: One of the best-performing open-source models, which gives very detailed annotations
+- `x-ai/grok-4-fast`: One of the best-performing low-cost models.
 
 ### Anthropic
-- `claude-sonnet-4-5`: The latest best-performed model (Most recommended)
+- `claude-sonnet-4-5`: The latest best-performing model (Most recommended)
 
 ## 📤 Output
 
@@ -171,7 +171,7 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
 
 
 Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](cassia-delta.vercel.app).
+[CASSIA Complete Tutorial](https://cassia-delta.vercel.app).
 
 ## 📖 Citation
 
@@ -187,5 +187,5 @@ bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476
 
 If you have any questions or need help, feel free to email us. We are always happy to help:
 **xie227@wisc.edu**
-If you find this project helpful, please share it with your friend, and give this repo a star ⭐
+If you find this project helpful, please share it with your friends, and give this repo a star ⭐
 Many thanks!
