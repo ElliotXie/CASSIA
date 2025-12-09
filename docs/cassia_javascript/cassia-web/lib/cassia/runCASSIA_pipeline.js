@@ -68,11 +68,13 @@ class PipelineState {
  * @param {Object} config.models - Model configuration for each step
  * @param {Object} config.models.annotation - {provider, model} for annotation
  * @param {Object} config.models.scoring - {provider, model} for scoring
- * @param {Object} config.models.annotationBoost - {provider, model} for boost
+ * @param {Object} config.models.annotationBoost - {provider, model, reasoningEffort} for boost
  * @param {number} config.scoreThreshold - Threshold for low-scoring clusters (default: 75)
  * @param {number} config.maxWorkers - Maximum parallel workers (default: 4)
  * @param {number} config.maxRetries - Maximum retry attempts (default: 1)
  * @param {string} config.additionalInfo - Additional context information
+ * @param {number} config.boostIterations - Number of iterations for annotation boost (default: 5)
+ * @param {string} config.boostSearchStrategy - Search strategy for boost ('breadth' or 'depth', default: 'breadth')
  * @param {string} config.apiKey - API key for authentication
  * @param {Function} config.onProgress - Progress callback function
  * @param {Function} config.onLog - Log callback function
@@ -96,6 +98,8 @@ export async function runCASSIAPipeline(config) {
         maxWorkers = 4,
         maxRetries = 1,
         additionalInfo = '',
+        boostIterations = 5,
+        boostSearchStrategy = 'breadth',
         apiKey,
         customBaseUrl = null, // Custom provider base URL
         onProgress = null,
@@ -242,7 +246,9 @@ export async function runCASSIAPipeline(config) {
                             provider: getEffectiveProvider(models.annotationBoost.provider)
                         },
                         apiKey,
-                        additionalInfo
+                        additionalInfo,
+                        boostIterations,
+                        boostSearchStrategy
                     );
                     
                     boostResults[cluster.cellType] = boostResult;
@@ -430,37 +436,55 @@ function identifyLowScoreClusters(scoringResults, threshold) {
 
 /**
  * Run annotation boost for a specific cluster
+ * @param {Object} cluster - Cluster data with cellType, markers, conversationHistory
+ * @param {Array} marker - Marker data array
+ * @param {Object} annotationResults - Full annotation results
+ * @param {Object} model - Model config {provider, model, reasoningEffort}
+ * @param {string} apiKey - API key
+ * @param {string} additionalInfo - Additional context
+ * @param {number} numIterations - Number of iterations (default: 5)
+ * @param {string} searchStrategy - Search strategy 'breadth' or 'depth' (default: 'breadth')
  */
-async function runAnnotationBoostForCluster(cluster, marker, annotationResults, model, apiKey, additionalInfo) {
+async function runAnnotationBoostForCluster(cluster, marker, annotationResults, model, apiKey, additionalInfo, numIterations = 5, searchStrategy = 'breadth') {
     const majorClusterInfo = `${annotationResults.config?.species || 'unknown'} ${annotationResults.config?.tissue || 'unknown'}`;
     const commaSeparatedGenes = cluster.markers;
     const annotationHistory = cluster.conversationHistory;
-    
-    // Run iterative marker analysis
+
+    // Get reasoningEffort from model config (only applied for models that support it like Claude 4.5)
+    const reasoningEffort = model.reasoningEffort || null;
+
+    // Run iterative marker analysis (matching page implementation)
     const analysisResult = await iterativeMarkerAnalysis(
         majorClusterInfo,
         marker,
         commaSeparatedGenes,
         annotationHistory,
-        5, // numIterations
+        numIterations,
         model.provider,
         model.model,
         null, // additionalTask
         0, // temperature
-        'breadth', // searchStrategy
-        apiKey
+        searchStrategy,
+        apiKey,
+        reasoningEffort // Pass reasoningEffort (null for models that don't support it)
     );
-    
+
+    // Skip the first message which contains the prompt (matching page implementation)
+    const conversationWithoutPrompt = analysisResult.messages.length > 1
+        ? analysisResult.messages.slice(1)
+        : analysisResult.messages;
+
     // Generate summary report
     const summaryReport = await generateSummaryReport(
-        analysisResult.messages,
-        'breadth', // searchStrategy
+        conversationWithoutPrompt,
+        searchStrategy,
         'per_iteration', // reportStyle
         model.provider,
         model.model,
-        apiKey
+        apiKey,
+        reasoningEffort // Pass reasoningEffort (null for models that don't support it)
     );
-    
+
     return {
         conversation: analysisResult.conversation,
         messages: analysisResult.messages,

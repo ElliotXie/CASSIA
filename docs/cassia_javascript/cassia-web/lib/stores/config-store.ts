@@ -16,6 +16,8 @@ export interface PipelineModels {
   annotationBoost: PipelineStepConfig
 }
 
+export type BoostSearchStrategy = 'breadth' | 'depth'
+
 interface ConfigState {
   // Analysis Configuration (API config moved to api-key-store)
   model: string // Legacy single model support
@@ -28,7 +30,10 @@ interface ConfigState {
   mergeAnnotations: boolean
   additionalInfo: string
   maxRetries: number
-  
+  // Annotation Boost options
+  boostIterations: number
+  boostSearchStrategy: BoostSearchStrategy
+
   // Actions
   setModel: (model: string) => void // Legacy single model
   setPipelineModel: (step: keyof PipelineModels, provider: string, model: string) => void
@@ -42,6 +47,8 @@ interface ConfigState {
     mergeAnnotations: boolean
     additionalInfo: string
     maxRetries: number
+    boostIterations: number
+    boostSearchStrategy: BoostSearchStrategy
   }>) => void
   reset: () => void
   
@@ -80,6 +87,9 @@ const defaultConfig = {
   mergeAnnotations: true,
   additionalInfo: '',
   maxRetries: 1,
+  // Annotation Boost options (matching page defaults)
+  boostIterations: 5,
+  boostSearchStrategy: 'breadth' as BoostSearchStrategy,
 }
 
 export const useConfigStore = create<ConfigState>()(
@@ -168,6 +178,8 @@ export const useConfigStore = create<ConfigState>()(
         mergeAnnotations: state.mergeAnnotations,
         additionalInfo: state.additionalInfo,
         maxRetries: state.maxRetries,
+        boostIterations: state.boostIterations,
+        boostSearchStrategy: state.boostSearchStrategy,
       }),
       skipHydration: false,
       onRehydrateStorage: () => (state) => {

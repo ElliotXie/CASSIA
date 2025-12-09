@@ -33,8 +33,16 @@ unlink("C:/Users/ellio/AppData/Local/R/win-library/4.4/00LOCK-CASSIA", recursive
 library(reticulate)
 library(CASSIA)
 
-# Create output directory structure
-output_base <- "results/r"
+# Set working directory to this script's location (important for interactive use)
+# This ensures results are saved in the test folder, not elsewhere
+if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
+  script_dir <- dirname(rstudioapi::getSourceEditorContext()$path)
+  setwd(script_dir)
+  message("Working directory set to: ", script_dir)
+}
+
+# Create output directory structure inside this folder
+output_base <- "results"
 output_dirs <- list(
     pipeline = file.path(output_base, "01_pipeline"),
     batch = file.path(output_base, "02_batch_analysis"),
@@ -72,7 +80,7 @@ We recommend setting up APIs for anthropic and openrouter to use this tutorial
 # Set up API keys from environment variables
 setLLMApiKey(Sys.getenv("OPENAI_API_KEY"), provider = "openai", persist = TRUE)
 setLLMApiKey(Sys.getenv("ANTHROPIC_API_KEY"), provider = "anthropic", persist = TRUE)
-setLLMApiKey("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", provider = "openrouter", persist = TRUE)
+setLLMApiKey("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", provider = "openrouter", persist = TRUE)
 
 print("API keys loaded from environment variables")
 
@@ -110,7 +118,6 @@ runCASSIA_pipeline(
   annotationboost_model = "google/gemini-2.5-flash-lite",
   annotationboost_provider = "openrouter"
 )
-
 
 ```
 

@@ -34,6 +34,8 @@ export default function PipelinePage() {
     mergeAnnotations,
     additionalInfo,
     maxRetries,
+    boostIterations,
+    boostSearchStrategy,
     setAnalysisConfig
   } = useConfigStore()
   
@@ -74,6 +76,8 @@ export default function PipelinePage() {
         maxWorkers,
         maxRetries,
         additionalInfo,
+        boostIterations,
+        boostSearchStrategy,
         apiKey,
         provider,
         customBaseUrl,
@@ -277,6 +281,29 @@ export default function PipelinePage() {
                           onChange={(e) => setAnalysisConfig({ maxRetries: parseInt(e.target.value) || 1 })}
                         />
                         <p className="text-xs text-muted-foreground">Number of retry attempts for failed requests</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Boost Iterations</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={boostIterations}
+                          onChange={(e) => setAnalysisConfig({ boostIterations: parseInt(e.target.value) || 5 })}
+                        />
+                        <p className="text-xs text-muted-foreground">Max iterations for annotation boost analysis</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Boost Search Strategy</label>
+                        <select
+                          value={boostSearchStrategy}
+                          onChange={(e) => setAnalysisConfig({ boostSearchStrategy: e.target.value as 'breadth' | 'depth' })}
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                        >
+                          <option value="breadth">Breadth-First</option>
+                          <option value="depth">Depth-First</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground">Search strategy for marker gene analysis</p>
                       </div>
                     </div>
                   )}

@@ -86,7 +86,7 @@ def setup_api_keys():
     env_path = config_path / "api_keys.env"
 
     if env_path.exists():
-        load_dotenv(env_path)
+        load_dotenv(env_path, override=True)
         return True
 
     return False

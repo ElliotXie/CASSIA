@@ -27,7 +27,7 @@ except ImportError:
 logger = get_logger(__name__)
 
 
-def parse_conversation_history(history_text: str) -> Dict[str, str]:
+def parse_conversation_history(history_text: str) -> Dict[str, Any]:
     """
     Parse conversation history into structured sections.
 
@@ -35,11 +35,12 @@ def parse_conversation_history(history_text: str) -> Dict[str, str]:
         history_text: Raw conversation history text with sections separated by " | "
 
     Returns:
-        Dictionary with keys: 'annotation', 'validator', 'formatting'
+        Dictionary with keys: 'annotations' (list), 'validators' (list), 'formatting', 'scoring'
+        Lists capture all iterations when validation fails and retries.
     """
     result = {
-        'annotation': '',
-        'validator': '',
+        'annotations': [],      # List of all annotation attempts
+        'validators': [],       # List of all validation attempts
         'formatting': '',
         'scoring': ''
     }
@@ -52,9 +53,9 @@ def parse_conversation_history(history_text: str) -> Dict[str, str]:
     for section in sections:
         section = section.strip()
         if section.startswith("Final Annotation Agent:"):
-            result['annotation'] = section.replace("Final Annotation Agent:", "").strip()
+            result['annotations'].append(section.replace("Final Annotation Agent:", "").strip())
         elif section.startswith("Coupling Validator:"):
-            result['validator'] = section.replace("Coupling Validator:", "").strip()
+            result['validators'].append(section.replace("Coupling Validator:", "").strip())
         elif section.startswith("Formatting Agent:"):
             result['formatting'] = section.replace("Formatting Agent:", "").strip()
         elif section.startswith("Scoring Agent:"):
@@ -435,19 +436,37 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
     if pre_formatted_annotation:
         annotation_html = pre_formatted_annotation
     else:
-        annotation_html = format_analysis_text(sections['annotation']) if sections['annotation'] else '<p>No annotation data available.</p>'
+        annotation_html = format_analysis_text(sections['annotations'][-1]) if sections['annotations'] else '<p>No annotation data available.</p>'
 
     validator_html = ''
-    if sections['validator']:
-        is_passed = 'VALIDATION PASSED' in sections['validator'].upper()
+    if sections['validators']:
+        final_validator = sections['validators'][-1]
+        is_passed = 'VALIDATION PASSED' in final_validator.upper()
         status_class = 'passed' if is_passed else 'failed'
         status_text = 'PASSED' if is_passed else 'REVIEW NEEDED'
+
+        # Build collapsed section for failed attempts
+        failed_attempts_html = ''
+        if len(sections['validators']) > 1:
+            failed_count = len(sections['validators']) - 1
+            failed_items = ''.join([
+                f'<div class="failed-attempt"><strong>Attempt {i+1}:</strong><br>{format_analysis_text(v)}</div>'
+                for i, v in enumerate(sections['validators'][:-1])
+            ])
+            failed_attempts_html = f'''
+            <details class="failed-attempts-container">
+                <summary>⚠️ {failed_count} failed validation attempt(s) - click to expand</summary>
+                {failed_items}
+            </details>
+            '''
+
         validator_html = f'''
         <div class="validation-status {status_class}">
             <span class="status-icon">{"&#10004;" if is_passed else "&#10008;"}</span>
             <span class="status-text">Validation {status_text}</span>
         </div>
-        <div class="validator-content">{html.escape(sections['validator'])}</div>
+        {failed_attempts_html}
+        <div class="validator-content">{format_analysis_text(final_validator)}</div>
         '''
     else:
         validator_html = '<p>No validation data available.</p>'
@@ -1276,6 +1295,33 @@ def get_css_styles() -> str:
     .validator-content {
         color: var(--text-secondary);
         font-size: 0.9rem;
+    }
+
+    .failed-attempts-container {
+        margin: 12px 0;
+        padding: 12px;
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+        border-radius: 6px;
+    }
+
+    .failed-attempts-container summary {
+        cursor: pointer;
+        color: #dc2626;
+        font-weight: 600;
+        padding: 4px 0;
+    }
+
+    .failed-attempts-container summary:hover {
+        color: #b91c1c;
+    }
+
+    .failed-attempt {
+        margin: 12px 0;
+        padding: 12px;
+        background-color: #ffffff;
+        border-radius: 6px;
+        border: 1px solid #fecaca;
     }
 
     .json-summary {

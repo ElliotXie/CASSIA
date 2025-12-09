@@ -82,8 +82,9 @@ export function getDefaultReasoningEffort(provider: string, model: string): Reas
         return null;
     }
 
-    // Claude models (direct Anthropic or via OpenRouter) - high
-    if (provider === 'anthropic' || modelLower.includes('claude')) {
+    // Claude Opus only (direct Anthropic or via OpenRouter) - high
+    // Note: Only Opus supports extended thinking/reasoning effort parameter
+    if ((provider === 'anthropic' || modelLower.includes('claude')) && modelLower.includes('opus')) {
         return 'high';
     }
 
