@@ -27,6 +27,8 @@ export default function HomePage() {
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [testMessage, setTestMessage] = useState('')
   const [showApiKey, setShowApiKey] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   // Get current API key
   const apiKey = apiKeys[provider]
@@ -127,10 +129,17 @@ export default function HomePage() {
   }
 
   const handleSaveApiKey = async () => {
+    setIsSaving(true)
     await setApiKey(tempApiKey, tempProvider)
     setProvider(tempProvider)
     setModel(tempModel)
-    setShowApiKeyModal(false)
+    setIsSaving(false)
+    setSaveSuccess(true)
+    // Show success message briefly, then close modal
+    setTimeout(() => {
+      setSaveSuccess(false)
+      setShowApiKeyModal(false)
+    }, 1500)
   }
   
   const handleLoadApiKeysSuccess = () => {
@@ -810,13 +819,31 @@ export default function HomePage() {
               </div>
               
               <div className="flex space-x-3 pt-4">
-                <Button 
-                  onClick={handleSaveApiKey} 
-                  disabled={!tempApiKey.trim()}
-                  className="flex-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all font-semibold py-3"
+                <Button
+                  onClick={handleSaveApiKey}
+                  disabled={!tempApiKey.trim() || isSaving || saveSuccess}
+                  className={`flex-1 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all font-semibold py-3 ${
+                    saveSuccess
+                      ? 'bg-green-600 hover:bg-green-600 text-white'
+                      : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white'
+                  }`}
                 >
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Save Configuration
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : saveSuccess ? (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Configuration Saved!
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
                 </Button>
                 <Button 
                   variant="outline" 
