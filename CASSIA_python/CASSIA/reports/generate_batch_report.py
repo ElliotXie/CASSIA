@@ -27,12 +27,13 @@ except ImportError:
 logger = get_logger(__name__)
 
 
-def parse_conversation_history(history_text: str) -> Dict[str, Any]:
+def parse_conversation_history(history_data) -> Dict[str, Any]:
     """
     Parse conversation history into structured sections.
 
     Args:
-        history_text: Raw conversation history text with sections separated by " | "
+        history_data: Either a structured dict (from generate_batch_html_report_from_data)
+                      or a raw string with sections separated by delimiters (backward compatibility)
 
     Returns:
         Dictionary with keys: 'annotations' (list), 'validators' (list), 'formatting', 'scoring'
@@ -45,10 +46,26 @@ def parse_conversation_history(history_text: str) -> Dict[str, Any]:
         'scoring': ''
     }
 
-    if not history_text:
+    if not history_data:
         return result
 
-    sections = history_text.split(" | ")
+    # If already a dict (new format from tools_function.py), use directly
+    if isinstance(history_data, dict):
+        result['annotations'] = history_data.get('annotations', [])
+        result['validators'] = history_data.get('validations', [])
+        result['formatting'] = history_data.get('formatting', '')
+        result['scoring'] = history_data.get('scoring', '')
+        return result
+
+    # Backward compatibility: parse string format (from old CSV files)
+    history_text = str(history_data)
+    NEW_DELIMITER = " |||SECTION||| "
+    OLD_DELIMITER = " | "
+
+    if NEW_DELIMITER in history_text:
+        sections = history_text.split(NEW_DELIMITER)
+    else:
+        sections = history_text.split(OLD_DELIMITER)
 
     for section in sections:
         section = section.strip()
@@ -422,7 +439,7 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
     """
     true_type = html.escape(str(row.get('Cluster ID', 'Unknown')))
     main_type = html.escape(str(row.get('Predicted General Cell Type', 'Unknown')))
-    conversation = str(row.get('Conversation History', ''))
+    conversation = row.get('Conversation History', {})
     marker_list = html.escape(str(row.get('Marker List', '')))
 
     # Check for pre-formatted annotation HTML (from pipeline extraction)
@@ -448,14 +465,26 @@ def generate_modal_content(row: Dict[str, Any], index: int) -> str:
         # Build collapsed section for failed attempts
         failed_attempts_html = ''
         if len(sections['validators']) > 1:
-            failed_count = len(sections['validators']) - 1
-            failed_items = ''.join([
-                f'<div class="failed-attempt"><strong>Attempt {i+1}:</strong><br>{format_analysis_text(v)}</div>'
-                for i, v in enumerate(sections['validators'][:-1])
-            ])
+            total_attempts = len(sections['validators'])
+            failed_count = total_attempts - 1 if is_passed else total_attempts
+
+            # Different wording based on whether final attempt passed or failed
+            if is_passed:
+                summary_text = f"⚠️ {failed_count} failed validation attempt(s) - click to expand"
+                failed_items = ''.join([
+                    f'<div class="failed-attempt"><strong>Attempt {i+1}:</strong><br>{format_analysis_text(v)}</div>'
+                    for i, v in enumerate(sections['validators'][:-1])
+                ])
+            else:
+                summary_text = f"⚠️ All {total_attempts} validation attempts failed - click to expand previous attempts"
+                failed_items = ''.join([
+                    f'<div class="failed-attempt"><strong>Attempt {i+1}:</strong><br>{format_analysis_text(v)}</div>'
+                    for i, v in enumerate(sections['validators'][:-1])
+                ])
+
             failed_attempts_html = f'''
             <details class="failed-attempts-container">
-                <summary>⚠️ {failed_count} failed validation attempt(s) - click to expand</summary>
+                <summary>{summary_text}</summary>
                 {failed_items}
             </details>
             '''
@@ -1727,7 +1756,7 @@ def generate_batch_html_report(
     Generate an interactive HTML report from CASSIA batch analysis CSV results.
 
     Args:
-        full_csv_path: Path to batch_results_full.csv containing all analysis data
+        full_csv_path: Path to batch results CSV file (e.g., batch_results_summary.csv)
         output_path: Output path for HTML file (default: same directory as CSV)
         report_title: Title displayed in the report header
 
@@ -2117,7 +2146,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: python generate_batch_report.py <path_to_batch_results_full.csv> [output_path] [title]")
+        print("Usage: python generate_batch_report.py <path_to_batch_results_summary.csv> [output_path] [title]")
         sys.exit(1)
 
     csv_path = sys.argv[1]

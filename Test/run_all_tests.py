@@ -6,12 +6,12 @@ Run all CASSIA tests sequentially and generate a summary report.
 Note: Test 16 (manual package test) is skipped by default.
 
 Usage:
-    python run_all_tests.py                 # Run all tests using local development source
-    python CASSIA/Test/run_all_tests.py --install       # pip install CASSIA from PyPI, then run tests
-    python run_all_tests.py --skip 03,04    # Skip specific tests (in addition to default skips)
-    python run_all_tests.py --only 01,02    # Run only specific tests (ignores default skips)
-    python run_all_tests.py --only 16       # Run test 16 explicitly
-    python run_all_tests.py --no-report     # Don't save JSON/HTML reports
+    python D:/CASSIA/Test/run_all_tests.py                 # Run all tests using local development source
+    python D:/CASSIA/Test/run_all_tests.py --install       # pip install CASSIA from PyPI, then run tests
+    python D:/CASSIA/Test/run_all_tests.py --skip 03,04    # Skip specific tests (in addition to default skips)
+    python D:/CASSIA/Test/run_all_tests.py --only 01,02    # Run only specific tests (ignores default skips)
+    python D:/CASSIA/Test/run_all_tests.py --only 16       # Run test 16 explicitly
+    python D:/CASSIA/Test/run_all_tests.py --no-report     # Don't save JSON/HTML reports
 """
 
 import sys

@@ -138,7 +138,7 @@ export default function BatchPage() {
         temperature: 0,
         tissue,
         species,
-        additionalInfo: 'Batch analysis via web interface',
+        additionalInfo: '',
         maxWorkers,
         provider,
         customBaseUrl,  // Custom provider base URL

@@ -150,9 +150,21 @@ runCASSIA_batch(
 ### Output Files
 
 The analysis generates three files:
-1. `my_annotation_full.csv`: Complete conversation history
-2. `my_annotation_summary.csv`: Condensed results summary
-3. `my_annotation_report.html`: An interactive HTML report visualizing the results
+
+1. **`my_annotation_summary.csv`**: Clean CSV with annotation results including:
+   - Cluster ID, Predicted General/Detailed Cell Type, Possible Mixed Cell Types
+   - Marker Number and Marker List
+   - Iterations, Model, Provider, Tissue, Species metadata
+
+2. **`my_annotation_conversations.json`**: Structured JSON file containing complete conversation history for each cluster:
+   - Annotation attempts (all iterations if validation failed)
+   - Validation responses and Formatting agent responses
+   - Useful for debugging and understanding the reasoning process
+
+3. **`my_annotation_report.html`**: Interactive HTML report with:
+   - Summary statistics and visualizations
+   - Expandable conversation history for each cluster
+   - Searchable and filterable results table
 
 ### Add CASSIA Results Back to Seurat Object
 

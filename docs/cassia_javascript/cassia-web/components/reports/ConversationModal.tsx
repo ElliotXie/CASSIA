@@ -13,10 +13,10 @@ import { ScoreBadge } from './ScoreBadge'
 import { cn } from '@/lib/utils'
 
 export interface ConversationSection {
-  annotation?: string
-  validator?: string
-  formatting?: string
-  scoring?: string
+  annotations: string[]    // List of all annotation attempts
+  validators: string[]     // List of all validation attempts
+  formatting: string
+  scoring: string
 }
 
 export interface ClusterData {
@@ -46,11 +46,12 @@ export interface ConversationModalProps {
 
 /**
  * Parse conversation history into structured sections
+ * Collects all annotation and validation attempts (for multi-iteration scenarios)
  */
 function parseConversationHistory(history: string): ConversationSection {
   const result: ConversationSection = {
-    annotation: '',
-    validator: '',
+    annotations: [],
+    validators: [],
     formatting: '',
     scoring: ''
   }
@@ -62,9 +63,9 @@ function parseConversationHistory(history: string): ConversationSection {
   for (const section of sections) {
     const trimmed = section.trim()
     if (trimmed.startsWith('Final Annotation Agent:')) {
-      result.annotation = trimmed.replace('Final Annotation Agent:', '').trim()
+      result.annotations.push(trimmed.replace('Final Annotation Agent:', '').trim())
     } else if (trimmed.startsWith('Coupling Validator:')) {
-      result.validator = trimmed.replace('Coupling Validator:', '').trim()
+      result.validators.push(trimmed.replace('Coupling Validator:', '').trim())
     } else if (trimmed.startsWith('Formatting Agent:')) {
       result.formatting = trimmed.replace('Formatting Agent:', '').trim()
     } else if (trimmed.startsWith('Scoring Agent:')) {
@@ -262,7 +263,8 @@ export function ConversationModal({ open, onOpenChange, data }: ConversationModa
   if (!data) return null
 
   const sections = parseConversationHistory(data.conversationHistory || '')
-  const validationPassed = sections.validator?.toUpperCase().includes('VALIDATION PASSED')
+  const finalValidator = sections.validators.length > 0 ? sections.validators[sections.validators.length - 1] : ''
+  const validationPassed = finalValidator.toUpperCase().includes('VALIDATION PASSED')
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -334,7 +336,7 @@ export function ConversationModal({ open, onOpenChange, data }: ConversationModa
               <h3 className="font-semibold text-teal-800">Annotation Analysis</h3>
             </div>
             <div className="p-4 bg-white">
-              {formatAnalysisText(sections.annotation || '')}
+              {formatAnalysisText(sections.annotations.length > 0 ? sections.annotations[sections.annotations.length - 1] : '')}
             </div>
           </div>
 
@@ -345,8 +347,9 @@ export function ConversationModal({ open, onOpenChange, data }: ConversationModa
               <h3 className="font-semibold text-emerald-800">Validation Check</h3>
             </div>
             <div className="p-4 bg-white">
-              {sections.validator ? (
+              {sections.validators.length > 0 ? (
                 <>
+                  {/* Status badge */}
                   <div className={cn(
                     "inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-3",
                     validationPassed
@@ -358,7 +361,32 @@ export function ConversationModal({ open, onOpenChange, data }: ConversationModa
                       Validation {validationPassed ? 'PASSED' : 'REVIEW NEEDED'}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm">{sections.validator}</p>
+
+                  {/* Failed attempts collapsed */}
+                  {sections.validators.length > 1 && (
+                    <details className="mb-3 p-3 bg-red-50 border-l-4 border-red-400 rounded">
+                      <summary className="cursor-pointer text-red-700 font-semibold">
+                        {validationPassed
+                          ? `⚠️ ${sections.validators.length - 1} failed validation attempt(s) - click to expand`
+                          : `⚠️ All ${sections.validators.length} validation attempts failed - click to expand previous attempts`}
+                      </summary>
+                      <div className="mt-3 space-y-3">
+                        {sections.validators.slice(0, -1).map((v, i) => (
+                          <div key={i} className="p-3 bg-white rounded border border-red-200">
+                            <strong className="text-red-800">Attempt {i + 1}:</strong>
+                            <div className="mt-2 text-sm text-gray-600">
+                              {formatAnalysisText(v)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* Final validation with markdown formatting */}
+                  <div className="text-gray-600 text-sm">
+                    {formatAnalysisText(finalValidator)}
+                  </div>
                 </>
               ) : (
                 <p className="text-gray-500 italic">No validation data available.</p>

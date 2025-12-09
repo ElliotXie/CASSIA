@@ -5,7 +5,7 @@ Tests the runCASSIA_pipeline function, the complete end-to-end cell type
 annotation orchestrator.
 
 Usage:
-    python test_cassia_pipeline.py
+    python D:\CASSIA\Test\15_cassia_pipeline\test_cassia_pipeline.py
 """
 
 import sys

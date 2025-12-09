@@ -7,87 +7,9 @@ report generation.
 """
 
 import os
+import json
 import datetime
 import pandas as pd
-import re
-
-
-def extract_conversation_from_html(html_path):
-    """
-    Extract formatted conversation history from batch HTML report.
-
-    The batch HTML report contains properly formatted annotation analysis
-    with line breaks preserved. This function extracts that content for
-    use in the final pipeline report.
-
-    Args:
-        html_path: Path to the batch HTML report
-
-    Returns:
-        Dictionary mapping cluster_id -> formatted conversation history HTML
-    """
-    if not os.path.exists(html_path):
-        return {}
-
-    with open(html_path, 'r', encoding='utf-8') as f:
-        html_content = f.read()
-
-    conversations = {}
-
-    # Find all modal content sections using regex
-    # Pattern: <div class="modal-content" id="modal-content-X">...</div>
-    modal_pattern = r'<div class="modal-content" id="modal-content-(\d+)">(.*?)</div>\s*</div>\s*</div>\s*</div>'
-
-    # Find cluster IDs from modal titles
-    # Pattern: <h2 class="modal-title">CLUSTER_ID</h2>
-    for match in re.finditer(r'<div class="modal-content" id="modal-content-\d+">', html_content):
-        start_pos = match.start()
-        # Find the end of this modal (look for the next modal or end of modals container)
-
-        # Extract cluster ID from modal title
-        title_match = re.search(r'<h2 class="modal-title">([^<]+)</h2>', html_content[start_pos:start_pos+2000])
-        if not title_match:
-            continue
-        cluster_id = title_match.group(1).strip()
-
-        # Extract annotation section content
-        # Look for: <div class="modal-section annotation-section">...<div class="section-content">CONTENT</div>
-        section_start = html_content.find('<div class="modal-section annotation-section">', start_pos)
-        if section_start == -1 or section_start > start_pos + 50000:
-            continue
-
-        content_start = html_content.find('<div class="section-content">', section_start)
-        if content_start == -1 or content_start > section_start + 5000:
-            continue
-
-        content_start += len('<div class="section-content">')
-
-        # Find the closing </div> for section-content
-        # Need to handle nested divs properly
-        depth = 1
-        pos = content_start
-        while depth > 0 and pos < len(html_content):
-            next_open = html_content.find('<div', pos)
-            next_close = html_content.find('</div>', pos)
-
-            if next_close == -1:
-                break
-
-            if next_open != -1 and next_open < next_close:
-                depth += 1
-                pos = next_open + 4
-            else:
-                depth -= 1
-                if depth == 0:
-                    content_end = next_close
-                else:
-                    pos = next_close + 6
-
-        if depth == 0:
-            annotation_content = html_content[content_start:content_end].strip()
-            conversations[cluster_id] = annotation_content
-
-    return conversations
 
 
 def runCASSIA_pipeline(
@@ -256,9 +178,9 @@ def runCASSIA_pipeline(
 
     # Define derived file names with folder paths (use output_base_name for internal paths)
     # All CSV files go to the csv_folder
-    raw_full_csv = os.path.join(csv_folder, f"{output_base_name}_full.csv")
     raw_summary_csv = os.path.join(csv_folder, f"{output_base_name}_summary.csv")
-    raw_sorted_csv = os.path.join(csv_folder, f"{output_base_name}_sorted_full.csv")
+    raw_conversations_json = os.path.join(csv_folder, f"{output_base_name}_conversations.json")
+    raw_sorted_csv = os.path.join(csv_folder, f"{output_base_name}_sorted_summary.csv")
     score_file_name = os.path.join(csv_folder, f"{output_base_name}_scored.csv")
     merged_annotation_file = os.path.join(csv_folder, f"{output_base_name}_merged.csv")
 
@@ -287,19 +209,18 @@ def runCASSIA_pipeline(
     print("✓ Cell type analysis completed")
 
     # Copy the generated files to the organized folders
-    original_full_csv = annotation_output + "_full.csv"
     original_summary_csv = annotation_output + "_summary.csv"
+    original_conversations_json = annotation_output + "_conversations.json"
 
     # Copy the files if they exist
-    if os.path.exists(original_full_csv):
-        # Read and write instead of just copying to ensure compatibility
-        df_full = pd.read_csv(original_full_csv)
-        df_full.to_csv(raw_full_csv, index=False)
-        print(f"Copied full results to {raw_full_csv}")
     if os.path.exists(original_summary_csv):
         df_summary = pd.read_csv(original_summary_csv)
         df_summary.to_csv(raw_summary_csv, index=False)
         print(f"Copied summary results to {raw_summary_csv}")
+    if os.path.exists(original_conversations_json):
+        import shutil
+        shutil.copy2(original_conversations_json, raw_conversations_json)
+        print(f"Copied conversations JSON to {raw_conversations_json}")
 
     # Merge annotations if requested
     if merge_annotations:
@@ -317,7 +238,7 @@ def runCASSIA_pipeline(
 
             # Sort the CSV file by Cluster ID before merging to ensure consistent order
             print("Sorting CSV by Cluster ID before merging...")
-            df = pd.read_csv(raw_full_csv)
+            df = pd.read_csv(raw_summary_csv)
             df = df.sort_values(by=['Cluster ID'])
             df.to_csv(raw_sorted_csv, index=False)
 
@@ -336,13 +257,14 @@ def runCASSIA_pipeline(
     print("\n=== Starting scoring process ===")
     # Run scoring (generate_report=False because pipeline handles its own report)
     runCASSIA_score_batch(
-        input_file=raw_full_csv,
+        input_file=raw_summary_csv,
         output_file=score_file_name,
         max_workers=max_workers,
         model=score_model,
         provider=score_provider,
         max_retries=max_retries,
-        generate_report=False
+        generate_report=False,
+        conversations_json_path=raw_conversations_json
     )
     print("✓ Scoring process completed")
 
@@ -378,19 +300,21 @@ def runCASSIA_pipeline(
     final_df = pd.read_csv(final_combined_file)
     rows_data = final_df.to_dict('records')
 
-    # Extract formatted conversation history from batch HTML report (preserves line breaks)
-    # The batch HTML report has properly formatted annotation analysis that we want to reuse
-    batch_report = f"{annotation_output}_report.html"
-    formatted_conversations = extract_conversation_from_html(batch_report)
+    # Load conversation history from JSON and add to rows_data
+    if os.path.exists(raw_conversations_json):
+        try:
+            with open(raw_conversations_json, 'r', encoding='utf-8') as f:
+                conversations_data = json.load(f)
+            print(f"Loaded conversation history for {len(conversations_data)} clusters from JSON")
 
-    if formatted_conversations:
-        print(f"Extracted formatted conversation history for {len(formatted_conversations)} clusters from batch report")
-        # Replace conversation history with formatted version from HTML
-        for row in rows_data:
-            cluster_id = str(row.get('Cluster ID', ''))
-            if cluster_id in formatted_conversations:
-                # Store the pre-formatted HTML content
-                row['_formatted_annotation_html'] = formatted_conversations[cluster_id]
+            # Add conversation history to each row (as structured dict for HTML generation)
+            for row in rows_data:
+                cluster_id = str(row.get('Cluster ID', ''))
+                if cluster_id in conversations_data:
+                    # Pass structured dict directly - generate_batch_report handles it
+                    row['Conversation History'] = conversations_data[cluster_id]
+        except Exception as e:
+            print(f"Warning: Could not load conversations JSON: {e}")
 
     # Generate the HTML report (report_base_name already includes reports_folder path)
     report_output_path = f"{report_base_name}_report.html"
@@ -402,7 +326,7 @@ def runCASSIA_pipeline(
     print(f"✓ Generated report: {report_output_path}")
 
     # Clean up the batch HTML report (generated by runCASSIA_batch in current directory)
-    # Now safe to delete since we've extracted the formatted content
+    batch_report = f"{annotation_output}_report.html"
     if os.path.exists(batch_report):
         try:
             os.remove(batch_report)
@@ -448,9 +372,8 @@ def runCASSIA_pipeline(
                 major_cluster_info = f"{species} {tissue}"
 
                 # Run annotation boost - use original cluster name for data lookup, but sanitized name for output file
-                # NOTE: Using the raw_full_csv path to ensure the CSV can be found
                 runCASSIA_annotationboost(
-                    full_result_path=raw_full_csv,  # This is in the annotation_results_folder
+                    full_result_path=raw_summary_csv,
                     marker=marker,
                     cluster_name=original_cluster_name,
                     major_cluster_info=major_cluster_info,
@@ -460,7 +383,8 @@ def runCASSIA_pipeline(
                     provider=annotationboost_provider,
                     temperature=0,
                     conversation_history_mode=conversation_history_mode,
-                    report_style=report_style
+                    report_style=report_style,
+                    conversations_json_path=raw_conversations_json
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")
@@ -471,7 +395,7 @@ def runCASSIA_pipeline(
 
     # Try to clean up the original files in the root directory
     try:
-        for file_to_remove in [original_full_csv, original_summary_csv, annotation_output + "_sorted_full.csv"]:
+        for file_to_remove in [original_summary_csv, original_conversations_json, annotation_output + "_report.html"]:
             if os.path.exists(file_to_remove):
                 os.remove(file_to_remove)
                 print(f"Removed original file: {file_to_remove}")

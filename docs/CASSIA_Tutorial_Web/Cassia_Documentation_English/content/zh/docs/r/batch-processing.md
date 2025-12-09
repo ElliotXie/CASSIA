@@ -160,9 +160,21 @@ runCASSIA_batch(
 ### 输出文件
 
 分析会生成三个文件：
-1. `my_annotation_full.csv`：完整对话历史
-2. `my_annotation_summary.csv`：简明结果摘要
-3. `my_annotation_report.html`：可视化结果的交互式HTML报告
+
+1. **`my_annotation_summary.csv`**：包含注释结果的清洁 CSV 文件：
+   - 聚类 ID、预测的一般/详细细胞类型、可能的混合细胞类型
+   - 标记数量和标记列表
+   - 迭代次数、模型、提供商、组织、物种元数据
+
+2. **`my_annotation_conversations.json`**：包含每个聚类完整对话历史的结构化 JSON 文件：
+   - 注释尝试（如果验证失败，包含所有迭代）
+   - 验证响应和格式化代理响应
+   - 用于调试和理解推理过程
+
+3. **`my_annotation_report.html`**：交互式 HTML 报告：
+   - 摘要统计和可视化
+   - 每个聚类的可展开对话历史
+   - 可搜索和可过滤的结果表格
 
 ### 将 CASSIA 结果添加回 Seurat 对象
 

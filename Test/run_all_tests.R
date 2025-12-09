@@ -8,7 +8,7 @@
 #     Rscript run_all_tests.R --skip 03,04
 #     Rscript run_all_tests.R --only 01,02
 #     & "C:\Program Files\R\R-4.4.1\bin\Rscript.exe" "c:\Users\ellio\OneDrive - UW-Madison\CASSIA_enjoy\CASSIA\Test\run_all_tests.R" --install
-
+# & "C:\Program Files\R\R-4.4.1\bin\Rscript.exe" "c:\Users\ellio\OneDrive - UW-Madison\CASSIA_enjoy\CASSIA\Test\run_all_tests.R" 
 library(jsonlite)
 
 # Get script directory (works with Rscript)

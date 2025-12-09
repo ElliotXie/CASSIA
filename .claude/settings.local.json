@@ -5,7 +5,8 @@
       "Bash(rg:*)",
       "Bash(find:*)",
       "Bash(python:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pip show:*)"
     ],
     "deny": []
   }

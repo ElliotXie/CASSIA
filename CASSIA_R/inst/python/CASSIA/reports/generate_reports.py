@@ -532,7 +532,15 @@ def generate_analysis_html_report(analysis_text):
     import json
 
     # Split the text into sections based on agents
-    sections = analysis_text.split(" | ")
+    # Use new delimiter with backward compatibility for old format
+    NEW_DELIMITER = " |||SECTION||| "
+    OLD_DELIMITER = " | "
+
+    if NEW_DELIMITER in analysis_text:
+        sections = analysis_text.split(NEW_DELIMITER)
+    else:
+        # Backward compatibility for old format
+        sections = analysis_text.split(OLD_DELIMITER)
 
     # HTML template with CSS styling - note the double curly braces for CSS
     html_template = """

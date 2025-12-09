@@ -5,7 +5,7 @@ Tests the uncertainty quantification functions for running multiple analyses
 and calculating consensus/similarity scores.
 
 Usage:
-    python test_uncertainty_quantification.py
+    python D:/CASSIA/Test/08_uncertainty_quantification/test_uncertainty_quantification.py
 
 Functions tested:
 - runCASSIA_n_times_similarity_score(): Run n single analyses with similarity score
@@ -207,18 +207,18 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
                 validator_involvement=config.get('validator', {}).get('default', 'v1')
             )
 
-            # Check that output files were created
+            # Check that output files were created (new format: summary CSV + conversations JSON)
             expected_files = [
-                f"{batch_output_name}_1_full.csv",
                 f"{batch_output_name}_1_summary.csv",
-                f"{batch_output_name}_2_full.csv",
+                f"{batch_output_name}_1_conversations.json",
                 f"{batch_output_name}_2_summary.csv",
-                f"{batch_output_name}_3_full.csv",
+                f"{batch_output_name}_2_conversations.json",
                 f"{batch_output_name}_3_summary.csv",
-                f"{batch_output_name}_4_full.csv",
+                f"{batch_output_name}_3_conversations.json",
                 f"{batch_output_name}_4_summary.csv",
-                f"{batch_output_name}_5_full.csv",
-                f"{batch_output_name}_5_summary.csv"
+                f"{batch_output_name}_4_conversations.json",
+                f"{batch_output_name}_5_summary.csv",
+                f"{batch_output_name}_5_conversations.json"
             ]
 
             files_found = []
@@ -255,11 +255,18 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
                 import shutil
                 data_folder.mkdir(exist_ok=True)
                 for i in range(1, 6):
-                    src_file = f"{batch_output_name}_{i}_full.csv"
-                    if os.path.exists(src_file):
-                        dst_file = data_folder / f"batch_results_{i}_full.csv"
-                        shutil.copy2(src_file, dst_file)
-                        print(f"  Copied to data folder: batch_results_{i}_full.csv")
+                    # Copy summary CSV
+                    src_csv = f"{batch_output_name}_{i}_summary.csv"
+                    if os.path.exists(src_csv):
+                        dst_csv = data_folder / f"batch_results_{i}_summary.csv"
+                        shutil.copy2(src_csv, dst_csv)
+                        print(f"  Copied to data folder: batch_results_{i}_summary.csv")
+                    # Copy conversations JSON
+                    src_json = f"{batch_output_name}_{i}_conversations.json"
+                    if os.path.exists(src_json):
+                        dst_json = data_folder / f"batch_results_{i}_conversations.json"
+                        shutil.copy2(src_json, dst_json)
+                        print(f"  Copied to data folder: batch_results_{i}_conversations.json")
             else:
                 batch_status = "failed"
                 errors.append(f"Batch test: Expected at least 2 output files, found {len(files_found)}")
@@ -276,8 +283,8 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
         print(f"\n--- Skipping Test: runCASSIA_batch_n_times (using pre-existing data) ---")
         batch_output_name = str(data_folder / "batch_results")
 
-        # Check for pre-existing files
-        expected_files = [f"batch_results_{i}_full.csv" for i in range(1, 6)]
+        # Check for pre-existing files (new format: summary CSV)
+        expected_files = [f"batch_results_{i}_summary.csv" for i in range(1, 6)]
         for f in expected_files:
             if (data_folder / f).exists():
                 files_found.append(f)
@@ -287,7 +294,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
             print(f"  Found {len(files_found)} pre-existing batch result files in data folder")
         else:
             print(f"  Warning: Only found {len(files_found)} batch files in {data_folder}")
-            print(f"  Expected files: batch_results_1_full.csv through batch_results_5_full.csv")
+            print(f"  Expected files: batch_results_1_summary.csv through batch_results_5_summary.csv")
             batch_status = "skipped"
 
         batch_results = {
@@ -313,7 +320,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
 
             runCASSIA_similarity_score_batch(
                 marker=test_markers,
-                file_pattern=f"{batch_output_name}_*_full.csv",
+                file_pattern=f"{batch_output_name}_*_summary.csv",
                 output_name=similarity_output_name,
                 celltype_column='Broad.cell.type',
                 max_workers=3,

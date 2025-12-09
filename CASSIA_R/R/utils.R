@@ -1,5 +1,105 @@
 # Add any additional utility functions here
 
+#' Validate API Keys
+#'
+#' Validate API keys by making a minimal test call to the provider(s).
+#' Uses intelligent caching to avoid redundant API calls. Each unique key is
+#' only tested once per session unless the key changes or force_revalidate=TRUE.
+#'
+#' The validation makes a minimal test call using the cheapest model for each
+#' provider (costing ~$0.000001 per validation):
+#' \itemize{
+#'   \item OpenAI: gpt-4o-mini
+#'   \item Anthropic: claude-3-haiku-20240307
+#'   \item OpenRouter: openai/gpt-4o-mini
+#' }
+#'
+#' @param provider Specific provider to validate ('openai', 'anthropic', 'openrouter').
+#'   If NULL, validates all providers with keys set in environment variables.
+#' @param api_key Specific API key to validate. If NULL, reads from environment variables.
+#' @param force_revalidate Force revalidation even if key was previously validated. Default: FALSE.
+#' @param verbose Print validation status and results. Default: TRUE.
+#'
+#' @return If provider specified: logical (TRUE if valid, FALSE if invalid).
+#'   If provider=NULL: named list mapping provider names to logical values.
+#'
+#' @examples
+#' \dontrun{
+#' # Validate all configured providers
+#' validate_api_keys()
+#'
+#' # Validate specific provider
+#' validate_api_keys("openai")
+#'
+#' # Validate a specific key without setting it
+#' validate_api_keys("openai", api_key = "sk-test...")
+#'
+#' # Force revalidation (skip cache)
+#' validate_api_keys("openai", force_revalidate = TRUE)
+#' }
+#'
+#' @export
+validate_api_keys <- function(provider = NULL, api_key = NULL,
+                              force_revalidate = FALSE, verbose = TRUE) {
+  # Import CASSIA Python module
+  cassia <- tryCatch({
+    reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
+  }, error = function(e) {
+    stop("Failed to import CASSIA Python module: ", e$message)
+  })
+
+  # Call the Python validate_api_keys function
+  result <- cassia$validate_api_keys(
+    provider = provider,
+    api_key = api_key,
+    force_revalidate = force_revalidate,
+    verbose = verbose
+  )
+
+  # Convert Python dict to R named list if needed
+  if (is.null(provider) && inherits(result, "python.builtin.dict")) {
+    result <- reticulate::py_to_r(result)
+  }
+
+  return(result)
+}
+
+#' Clear API Key Validation Cache
+#'
+#' Clear the API key validation cache. This can be useful if:
+#' \itemize{
+#'   \item You've rotated your API keys and want to force revalidation
+#'   \item You suspect the cache is stale
+#'   \item You're debugging validation issues
+#' }
+#'
+#' @param provider Specific provider to clear from cache. If NULL, clears
+#'   entire cache for all providers.
+#'
+#' @examples
+#' \dontrun{
+#' # Clear cache for specific provider
+#' clear_validation_cache("openai")
+#'
+#' # Clear entire cache
+#' clear_validation_cache()
+#' }
+#'
+#' @export
+clear_validation_cache <- function(provider = NULL) {
+  # Import CASSIA Python module
+  cassia <- tryCatch({
+    reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
+  }, error = function(e) {
+    stop("Failed to import CASSIA Python module: ", e$message)
+  })
+
+  # Call the Python clear_validation_cache function
+  cassia$clear_validation_cache(provider = provider)
+
+  invisible(NULL)
+}
+
 #' Check Python Environment
 #'
 #' @return TRUE if the Python environment is set up correctly, FALSE otherwise.

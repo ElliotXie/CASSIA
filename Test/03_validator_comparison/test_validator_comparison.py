@@ -98,12 +98,12 @@ def run_validator_comparison_test():
             )
 
             # Load results
-            full_csv = Path(f"{output_name}_full.csv")
-            if full_csv.exists():
-                df = pd.read_csv(full_csv)
+            summary_csv = Path(f"{output_name}_summary.csv")
+            if summary_csv.exists():
+                df = pd.read_csv(summary_csv)
                 validator_results[validator] = {
                     "clusters_annotated": len(df),
-                    "results_file": str(full_csv)
+                    "results_file": str(summary_csv)
                 }
                 print(f"  Annotated {len(df)} clusters")
             else:

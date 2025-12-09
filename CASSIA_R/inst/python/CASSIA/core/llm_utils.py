@@ -208,35 +208,31 @@ def call_llm(
                 raise
 
         # Standard Chat Completions API (no reasoning)
+        # GPT-5 models require max_completion_tokens instead of max_tokens
+        model_lower = model.lower() if model else ""
+        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=api_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                **params_copy
-            )
+            if uses_max_completion_tokens:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=api_messages,
+                    temperature=temperature,
+                    max_completion_tokens=max_tokens,
+                    **params_copy
+                )
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=api_messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **params_copy
+                )
             return response.choices[0].message.content
         except Exception as e:
-            # Handle newer models that require max_completion_tokens instead of max_tokens
-            error_str = str(e).lower()
-            if "max_completion_tokens" in error_str and "max_tokens" in error_str:
-                logger.info(f"Retrying with max_completion_tokens for model {model}")
-                try:
-                    response = client.chat.completions.create(
-                        model=model,
-                        messages=api_messages,
-                        temperature=temperature,
-                        max_completion_tokens=max_tokens,
-                        **params_copy
-                    )
-                    return response.choices[0].message.content
-                except Exception as retry_error:
-                    _handle_api_error(retry_error, provider, model)
-                    raise
-            else:
-                _handle_api_error(e, provider, model)
-                raise
+            _handle_api_error(e, provider, model)
+            raise
     
     # Custom OpenAI-compatible API call (base_url as provider)
     elif provider.startswith("http"):
@@ -384,13 +380,22 @@ def call_llm(
             if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
                 api_messages.insert(0, {"role": "system", "content": system_prompt})
 
+        # GPT-5 and reasoning models require max_completion_tokens instead of max_tokens
+        model_lower = model.lower() if model else ""
+        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+
         data = {
             **params_copy,
             "model": model,
             "messages": api_messages,
             "temperature": temperature,
-            "max_tokens": max_tokens,
         }
+
+        # Use appropriate token parameter based on model
+        if uses_max_completion_tokens:
+            data["max_completion_tokens"] = max_tokens
+        else:
+            data["max_tokens"] = max_tokens
 
         # Add reasoning configuration if provided (for models that support it)
         if reasoning:
@@ -401,21 +406,6 @@ def call_llm(
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
         except Exception as e:
-            # Handle newer models that require max_completion_tokens instead of max_tokens
-            error_str = str(e).lower()
-            if response.status_code == 400:
-                try:
-                    error_detail = response.json()
-                    if "max_completion_tokens" in str(error_detail).lower():
-                        logger.info(f"Retrying OpenRouter with max_completion_tokens for model {model}")
-                        data_retry = data.copy()
-                        data_retry.pop("max_tokens", None)
-                        data_retry["max_completion_tokens"] = max_tokens
-                        response = requests.post(url, headers=headers, data=json.dumps(data_retry))
-                        response.raise_for_status()
-                        return response.json()["choices"][0]["message"]["content"]
-                except:
-                    pass  # Fall through to original error handling
             _handle_api_error(e, provider, model)
             raise
 

@@ -64,7 +64,7 @@ run_quality_scoring_test <- function() {
   input_file <- NULL
 
   if (!is.null(batch_results_dir)) {
-    potential_file <- file.path(batch_results_dir, "batch_results_full.csv")
+    potential_file <- file.path(batch_results_dir, "batch_results_summary.csv")
     if (file.exists(potential_file)) {
       input_file <- potential_file
       log_msg("Using existing batch results:", input_file)
@@ -89,7 +89,7 @@ run_quality_scoring_test <- function() {
       provider = llm_config$provider %||% "openrouter",
       validator_involvement = config$validator$default %||% "v1"
     )
-    input_file <- paste0(batch_output, "_full.csv")
+    input_file <- paste0(batch_output, "_summary.csv")
   }
 
   # Run quality scoring

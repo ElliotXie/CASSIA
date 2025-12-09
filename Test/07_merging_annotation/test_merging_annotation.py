@@ -75,7 +75,7 @@ def run_merging_annotation_test():
     batch_results_file = None
 
     if batch_results_dir:
-        potential_file = batch_results_dir / "batch_results_full.csv"
+        potential_file = batch_results_dir / "batch_results_summary.csv"
         if potential_file.exists():
             batch_results_file = str(potential_file)
             print(f"\nUsing existing batch results: {batch_results_file}")
@@ -98,7 +98,7 @@ def run_merging_annotation_test():
             provider=llm_config.get('provider', 'openrouter'),
             validator_involvement=config.get('validator', {}).get('default', 'v1')
         )
-        batch_results_file = f"{batch_output}_full.csv"
+        batch_results_file = f"{batch_output}_summary.csv"
 
     # Run merging tests
     start_time = time.time()

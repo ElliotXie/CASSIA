@@ -117,10 +117,22 @@ CASSIA.runCASSIA_batch(
 
 ### Output Files
 
-The analysis generates the following files:
-1. `{output_name}_full.csv`: Complete conversation history and reasoning.
-2. `{output_name}_summary.csv`: Condensed results summary.
-3. `{output_name}_report.html`: An interactive HTML report visualizing the results (generated separately).
+The analysis generates three files:
+
+1. **`{output_name}_summary.csv`**: Clean CSV with annotation results including:
+   - Cluster ID, Predicted General/Detailed Cell Type, Possible Mixed Cell Types
+   - Marker Number and Marker List
+   - Iterations, Model, Provider, Tissue, Species metadata
+
+2. **`{output_name}_conversations.json`**: Structured JSON file containing complete conversation history for each cluster:
+   - Annotation attempts (all iterations if validation failed)
+   - Validation responses and Formatting agent responses
+   - Useful for debugging and understanding the reasoning process
+
+3. **`{output_name}_report.html`**: Interactive HTML report with:
+   - Summary statistics and visualizations
+   - Expandable conversation history for each cluster
+   - Searchable and filterable results table
 
 ### Tips for Optimal Results
 

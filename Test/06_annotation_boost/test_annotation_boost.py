@@ -81,7 +81,7 @@ def run_annotation_boost_test():
     batch_results_file = None
 
     if batch_results_dir:
-        potential_file = batch_results_dir / "batch_results_full.csv"
+        potential_file = batch_results_dir / "batch_results_summary.csv"
         if potential_file.exists():
             batch_results_file = str(potential_file)
             print(f"\nUsing existing batch results: {batch_results_file}")
@@ -104,7 +104,7 @@ def run_annotation_boost_test():
             provider=llm_config.get('provider', 'openrouter'),
             validator_involvement=config.get('validator', {}).get('default', 'v1')
         )
-        batch_results_file = f"{batch_output}_full.csv"
+        batch_results_file = f"{batch_output}_summary.csv"
 
     # Load the batch results to get cluster names
     batch_df = pd.read_csv(batch_results_file)

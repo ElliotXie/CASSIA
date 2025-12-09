@@ -95,21 +95,29 @@ def run_batch_annotation_test():
             validator_involvement=config.get('validator', {}).get('default', 'v1')
         )
 
-        # Check output files
-        full_csv = Path(f"{output_name}_full.csv")
+        # Check output files (new format: summary CSV, conversations JSON, HTML report)
         summary_csv = Path(f"{output_name}_summary.csv")
+        conversations_json = Path(f"{output_name}_conversations.json")
+        html_report = Path(f"{output_name}_report.html")
 
-        if full_csv.exists():
+        if summary_csv.exists():
             import pandas as pd
-            results_df = pd.read_csv(full_csv)
+            import json
+            results_df = pd.read_csv(summary_csv)
             clusters_annotated = len(results_df)
 
             print(f"\nBatch Results:")
             print(f"  Clusters annotated: {clusters_annotated}/{len(test_clusters)}")
             print(f"  Output files created:")
-            print(f"    - {full_csv.name}")
-            if summary_csv.exists():
-                print(f"    - {summary_csv.name}")
+            print(f"    - {summary_csv.name}")
+            if conversations_json.exists():
+                print(f"    - {conversations_json.name}")
+                # Verify JSON structure
+                with open(conversations_json, 'r', encoding='utf-8') as f:
+                    conv_data = json.load(f)
+                print(f"      (contains {len(conv_data)} cluster conversations)")
+            if html_report.exists():
+                print(f"    - {html_report.name}")
 
             if clusters_annotated == len(test_clusters):
                 status = "passed"
@@ -118,7 +126,7 @@ def run_batch_annotation_test():
                 errors.append(f"Only {clusters_annotated}/{len(test_clusters)} clusters annotated")
         else:
             status = "failed"
-            errors.append("Output file not created")
+            errors.append("Summary CSV not created")
 
     except Exception as e:
         errors.append(str(e))

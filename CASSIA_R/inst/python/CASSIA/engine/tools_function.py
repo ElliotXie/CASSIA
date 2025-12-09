@@ -124,12 +124,12 @@ except ImportError:
         from progress_tracker import BatchProgressTracker
 
 try:
-    from CASSIA.core.utils import safe_get, natural_sort_key, clean_conversation_history, write_csv
+    from CASSIA.core.utils import safe_get, natural_sort_key, write_csv
 except ImportError:
     try:
-        from ..core.utils import safe_get, natural_sort_key, clean_conversation_history, write_csv
+        from ..core.utils import safe_get, natural_sort_key, write_csv
     except ImportError:
-        from utils import safe_get, natural_sort_key, clean_conversation_history, write_csv
+        from utils import safe_get, natural_sort_key, write_csv
 
 try:
     from CASSIA.core.marker_utils import split_markers, get_top_markers, _validate_ranking_parameters, _prepare_ranking_column, _get_sort_direction
@@ -668,11 +668,11 @@ def runCASSIA_batch(
 
     print(f"All analyses completed. Results saved to '{output_name}'.")
 
-    # Prepare data for both CSV files and HTML report
+    # Prepare data for CSV, JSON conversation history, and HTML report
 
-    full_data = []
     full_data_for_html = []  # Keep raw conversation history with newlines for HTML
     summary_data = []
+    conversation_history_json = {}  # Structured conversation history for JSON file
 
     for true_cell_type, details in results.items():
         main_cell_type = safe_get(details, 'analysis_result', 'main_cell_type')
@@ -687,11 +687,26 @@ def runCASSIA_batch(
         ref_used = "Yes" if ref_info.get('reference_used') else "No"
         complexity_score = ref_info.get('complexity_score', '')
 
-        # Process conversation history - keep raw version for HTML
-        raw_conversation_history = ' | '.join([f"{entry[0]}: {entry[1]}" for entry in safe_get(details, 'conversation_history') or []])
-        conversation_history = clean_conversation_history(raw_conversation_history)  # Clean for CSV storage
+        # Build structured conversation history (single source of truth for JSON and HTML)
+        conversation_entries = safe_get(details, 'conversation_history') or []
+        cluster_conversations = {
+            'annotations': [],
+            'validations': [],
+            'formatting': '',
+            'scoring': ''
+        }
+        for agent_name, content in conversation_entries:
+            if 'Annotation' in agent_name:
+                cluster_conversations['annotations'].append(content)
+            elif 'Validator' in agent_name:
+                cluster_conversations['validations'].append(content)
+            elif 'Formatting' in agent_name:
+                cluster_conversations['formatting'] = content
+            elif 'Scoring' in agent_name:
+                cluster_conversations['scoring'] = content
+        conversation_history_json[true_cell_type] = cluster_conversations
 
-        # Data for HTML report (with raw conversation history preserving newlines)
+        # Data for HTML report (uses structured conversation history)
         html_row = {
             'Cluster ID': true_cell_type,
             'Predicted General Cell Type': main_cell_type,
@@ -705,32 +720,12 @@ def runCASSIA_batch(
             'Tissue': tissue,
             'Species': species,
             'Additional Info': additional_info or "N/A",
-            'Conversation History': raw_conversation_history  # Raw with newlines
+            'Conversation History': cluster_conversations  # Structured dict
         }
         if use_reference:
             html_row['Reference Used'] = ref_used
             html_row['Complexity Score'] = complexity_score
         full_data_for_html.append(html_row)
-
-        # Build full data row
-        full_row = [
-            true_cell_type,
-            main_cell_type,
-            sub_cell_types,
-            possible_mixed_cell_types,
-            marker_number,
-            marker_list,
-            iterations,
-            model,
-            provider,
-            tissue,
-            species,
-            additional_info or "N/A",
-            conversation_history  # Cleaned for CSV
-        ]
-        if use_reference:
-            full_row.extend([ref_used, complexity_score])
-        full_data.append(full_row)
 
         # Build summary data row
         summary_row = [
@@ -738,6 +733,7 @@ def runCASSIA_batch(
             main_cell_type,
             sub_cell_types,
             possible_mixed_cell_types,
+            marker_number,
             marker_list,
             iterations,
             model,
@@ -751,38 +747,36 @@ def runCASSIA_batch(
 
     # Generate output filenames based on input JSON filename
     base_name = os.path.splitext(output_name)[0]
-    full_csv_name = f"{base_name}_full.csv"
     summary_csv_name = f"{base_name}_summary.csv"
+    conversations_json_name = f"{base_name}_conversations.json"
+    html_report_name = f"{base_name}_report.html"
 
     # Make sure the output directory exists
-    output_dir = os.path.dirname(full_csv_name)
+    output_dir = os.path.dirname(summary_csv_name)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
     # Sort the data by Cluster ID with natural/numeric ordering
     # This ensures "cluster 1", "cluster 2", "cluster 10" (not "cluster 1", "cluster 10", "cluster 2")
-    full_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (Cluster ID) numerically
     summary_data.sort(key=lambda x: natural_sort_key(x[0]))  # Sort by first column (Cluster ID) numerically
 
-    # Build headers (with optional reference columns)
-    full_headers = ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
-                    'Possible Mixed Cell Types', 'Marker Number', 'Marker List', 'Iterations',
-                    'Model', 'Provider', 'Tissue', 'Species', 'Additional Info', 'Conversation History']
+    # Build headers for summary CSV (with optional reference columns)
     summary_headers = ['Cluster ID', 'Predicted General Cell Type', 'Predicted Detailed Cell Type',
-                       'Possible Mixed Cell Types', 'Marker List', 'Iterations', 'Model', 'Provider',
+                       'Possible Mixed Cell Types', 'Marker Number', 'Marker List', 'Iterations', 'Model', 'Provider',
                        'Tissue', 'Species']
     if use_reference:
-        full_headers.extend(['Reference Used', 'Complexity Score'])
         summary_headers.append('Reference Used')
-
-    # Write the full data CSV
-    write_csv(full_csv_name, full_headers, full_data)
 
     # Write the summary data CSV
     write_csv(summary_csv_name, summary_headers, summary_data)
 
+    # Write the conversation history JSON file
+    # Sort by cluster ID for consistent ordering
+    sorted_conversations = {k: conversation_history_json[k] for k in sorted(conversation_history_json.keys(), key=natural_sort_key)}
+    with open(conversations_json_name, 'w', encoding='utf-8') as f:
+        json.dump(sorted_conversations, f, indent=2, ensure_ascii=False)
+
     # Generate HTML report with raw conversation history (preserving newlines)
-    html_report_name = f"{base_name}_report.html"
     try:
         # Try relative import first (when used as package), fall back to absolute
         try:
@@ -796,14 +790,14 @@ def runCASSIA_batch(
         full_data_for_html.sort(key=lambda x: natural_sort_key(x['Cluster ID']))
         generate_batch_html_report_from_data(full_data_for_html, html_report_name)
         print(f"Three files have been created:")
-        print(f"1. {full_csv_name} (full data CSV)")
-        print(f"2. {summary_csv_name} (summary data CSV)")
+        print(f"1. {summary_csv_name} (summary CSV)")
+        print(f"2. {conversations_json_name} (conversation history JSON)")
         print(f"3. {html_report_name} (interactive HTML report)")
     except Exception as e:
         print(f"Warning: Could not generate HTML report: {e}")
-        print(f"Two CSV files have been created:")
-        print(f"1. {full_csv_name} (full data)")
-        print(f"2. {summary_csv_name} (summary data)")
+        print(f"Two files have been created:")
+        print(f"1. {summary_csv_name} (summary CSV)")
+        print(f"2. {conversations_json_name} (conversation history JSON)")
 
 
 def runCASSIA_batch_with_reference(*args, **kwargs):

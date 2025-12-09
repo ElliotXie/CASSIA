@@ -1149,12 +1149,12 @@ def validate_findallmarkers_format(marker_df: pd.DataFrame, source_path: str = N
         )
 
 
-def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
+def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None, conversations_json_path: str = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
 
     Args:
-        full_result_path: Path to the full results CSV file
+        full_result_path: Path to the results CSV file (summary CSV)
         marker_path: Path to the marker genes CSV file (must be in FindAllMarkers format)
         cluster_name: Name of the cluster to analyze
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
@@ -1163,6 +1163,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
             - "none": Don't include any conversation history
         provider: LLM provider to use for summarization (when mode is "final")
         model: Specific model to use for summarization (when mode is "final")
+        conversations_json_path: Path to the conversations JSON file (new format)
 
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
@@ -1226,40 +1227,40 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         top_markers_string = "CD14, CD11B, CD68, CSF1R, CX3CR1, CD163, MSR1, ITGAM, FCGR1A, CCR2"
         print(f"Warning: No marker list found for {cluster_name}, using default markers")
     
-    # Extract conversation history if available
+    # Extract final annotation from JSON file (only the last annotation response)
     annotation_history = ""
-    if 'Conversation History' in cluster_data.columns and conversation_history_mode != "none":
-        try:
-            # Get the conversation history from the first row (should be the same for all rows of this cluster)
-            if not cluster_data['Conversation History'].empty and not pd.isna(cluster_data['Conversation History'].iloc[0]):
-                full_history = cluster_data['Conversation History'].iloc[0]
-                
-                # Process the conversation history based on the selected mode
-                if conversation_history_mode == "full":
-                    annotation_history = full_history
-                elif conversation_history_mode == "final":
-                    # Use summarization agent to create a concise summary
-                    print(f"Using summarization agent to process conversation history for cluster {cluster_name}")
-                    annotation_history = summarize_conversation_history(
-                        full_history=full_history,
-                        provider=provider,
-                        model=model,
-                        temperature=0.1  # Low temperature for consistent summarization
-                    )
+
+    if conversation_history_mode != "none":
+        if conversations_json_path and os.path.exists(conversations_json_path):
+            try:
+                import json
+                with open(conversations_json_path, 'r', encoding='utf-8') as f:
+                    conversations_data = json.load(f)
+
+                if cluster_name in conversations_data:
+                    cluster_conv = conversations_data[cluster_name]
+                    # Get only the last (final) annotation - this is what annotation boost needs
+                    annotations = cluster_conv.get('annotations', [])
+                    if annotations:
+                        # Use the last annotation (final result after any validation retries)
+                        annotation_history = annotations[-1]
+                        print(f"Loaded final annotation from JSON for cluster {cluster_name}")
+                    else:
+                        print(f"No annotations found in JSON for cluster {cluster_name}")
                 else:
-                    # For any unrecognized mode, default to full history
-                    annotation_history = full_history
-                
-                print(f"Using conversation history for cluster {cluster_name} (mode: {conversation_history_mode}, {len(annotation_history)} characters)")
-            else:
-                print(f"Conversation History column exists but is empty for cluster {cluster_name}")
-        except Exception as e:
-            print(f"Error extracting conversation history: {str(e)}")
-    else:
-        if conversation_history_mode == "none":
-            print(f"Note: Conversation history extraction disabled (mode: none)")
+                    print(f"Cluster {cluster_name} not found in conversations JSON")
+            except Exception as e:
+                print(f"Error reading conversations JSON: {str(e)}")
         else:
-            print(f"Note: 'Conversation History' column not found in the results file")
+            if conversations_json_path:
+                print(f"Conversations JSON file not found: {conversations_json_path}")
+            else:
+                print(f"Note: No conversations JSON path provided")
+
+        if annotation_history:
+            print(f"Using final annotation for cluster {cluster_name} ({len(annotation_history)} characters)")
+    else:
+        print(f"Note: Conversation history extraction disabled (mode: none)")
     
     return full_results, marker, top_markers_string, annotation_history
 
@@ -1513,13 +1514,14 @@ def runCASSIA_annotationboost(
     conversation_history_mode: str = "final",
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
-    validator_involvement: str = "v1"
+    validator_involvement: str = "v1",
+    conversations_json_path: str = None
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
-    
+
     Args:
-        full_result_path: Path to the full results CSV file
+        full_result_path: Path to the results CSV file (summary CSV)
         marker: Path to marker genes CSV file or DataFrame with marker data
         cluster_name: Name of the cluster to analyze
         major_cluster_info: General information about the dataset (e.g., "Human PBMC")
@@ -1531,21 +1533,22 @@ def runCASSIA_annotationboost(
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
-    
+        conversations_json_path: Path to the conversations JSON file for conversation history
+
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
     try:
         import time
         start_time = time.time()
-        
+
         # Validate provider input
         if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
             raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
-        
+
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode, provider, model
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path
         )
         
         # Run the iterative marker analysis
@@ -1628,13 +1631,14 @@ def runCASSIA_annotationboost_additional_task(
     conversation_history_mode: str = "final",
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
-    validator_involvement: str = "v1"
+    validator_involvement: str = "v1",
+    conversations_json_path: str = None
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.
-    
+
     Args:
-        full_result_path: Path to the full results CSV file
+        full_result_path: Path to the results CSV file (summary CSV)
         marker: Path to marker genes CSV file or DataFrame with marker data
         cluster_name: Name of the cluster to analyze
         major_cluster_info: General information about the dataset (e.g., "Human PBMC")
@@ -1647,21 +1651,22 @@ def runCASSIA_annotationboost_additional_task(
         conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
-    
+        conversations_json_path: Path to the conversations JSON file for conversation history
+
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
     try:
         import time
         start_time = time.time()
-        
+
         # Validate provider input
         if provider.lower() not in ['openai', 'anthropic', 'openrouter'] and not provider.lower().startswith('http'):
             raise ValueError("Provider must be 'openai', 'anthropic', 'openrouter', or a custom base URL (http...)")
-        
+
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode, provider, model
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path
         )
         
         # Run the iterative marker analysis with additional task

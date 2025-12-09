@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSIA Test Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .header .meta { opacity: 0.9; font-size: 0.9em; }
+        .summary {
+            background: white;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .stat {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .stat-value { font-size: 2em; font-weight: bold; }
+        .stat-label { font-size: 0.85em; color: #666; text-transform: uppercase; }
+        .stat.passed { background: #d4edda; color: #155724; }
+        .stat.failed { background: #f8d7da; color: #721c24; }
+        .stat.errors { background: #fff3cd; color: #856404; }
+        .stat.skipped { background: #e2e3e5; color: #383d41; }
+        .stat.total { background: #cce5ff; color: #004085; }
+        .status-banner {
+            background: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .results {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+        .result-item {
+            padding: 15px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .result-item:last-child { border-bottom: none; }
+        .result-item:hover { background: #f8f9fa; }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 70px;
+            text-align: center;
+        }
+        .status-passed { background: #28a745; color: white; }
+        .status-failed { background: #dc3545; color: white; }
+        .status-error { background: #ffc107; color: #212529; }
+        .status-timeout { background: #fd7e14; color: white; }
+        .status-skipped { background: #6c757d; color: white; }
+        .test-name { flex: 1; font-weight: 500; }
+        .test-duration { color: #666; font-size: 0.9em; }
+        .error-details {
+            background: #f8f9fa;
+            padding: 15px 25px 15px 100px;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            color: #721c24;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .info-section {
+            background: white;
+            margin-top: 20px;
+            padding: 20px 25px;
+            border-radius: 10px;
+        }
+        .info-section h3 { margin-bottom: 10px; color: #333; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        .info-label { color: #666; }
+        .info-value { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CASSIA Test Report</h1>
+            <div class="meta">
+                2025-12-09 02:22:30 | Mode: development | Version: 0.3.14
+            </div>
+        </div>
+        <div class="summary">
+            <div class="stat total">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat passed">
+                <div class="stat-value">9</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat failed">
+                <div class="stat-value">9</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat errors">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat skipped">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Skipped</div>
+            </div>
+        </div>
+        <div class="status-banner">9 FAILED</div>
+        <div class="results">
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">01_single_annotation</span>
+                <span class="test-duration">12.6s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">02_batch_annotation</span>
+                <span class="test-duration">39.8s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">03_validator_comparison</span>
+                <span class="test-duration">51.1s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">04_quality_scoring</span>
+                <span class="test-duration">28.7s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">05_model_settings</span>
+                <span class="test-duration">4.9s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">06_annotation_boost</span>
+                <span class="test-duration">18.8s</span>
+            </div>
+            <div class="error-details">\pandas\io\parsers\readers.py", line 948, in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda3\Lib\site-packages\pandas\io\parsers\readers.py", line 611, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda3\Lib\site-packages\pandas\io\parsers\readers.py", line 1448, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda3\Lib\site-packages\pandas\io\parsers\readers.py", line 1705, in _make_engine
+    self.handles = get_handle(
+                   ^^^^^^^^^^^
+  File "D:\anaconda3\Lib\site-packages\pandas\io\common.py", line 863, in get_handle
+    handle = open(
+             ^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\CASSIA\\Test\\06_annotation_boost\\results\\python\\development\\20251209_021438\\outputs\\batch_for_boost_full.csv'
+</div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">07_merging_annotation</span>
+                <span class="test-duration">26.6s</span>
+            </div>
+            <div class="error-details">andle(
+                   ^^^^^^^^^^^
+  File "D:\anaconda3\Lib\site-packages\pandas\io\common.py", line 863, in get_handle
+    handle = open(
+             ^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\CASSIA\\Test\\07_merging_annotation\\results\\python\\development\\20251209_021457\\outputs\\batch_for_merge_full.csv'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\CASSIA\Test\07_merging_annotation\test_merging_annotation.py", line 114, in run_merging_annotation_test
+    result_broad = merge_annotations(
+                   ^^^^^^^^^^^^^^^^^^
+  File "D:\CASSIA\CASSIA_python\CASSIA\agents\merging\merging_annotation.py", line 65, in merge_annotations
+    raise ValueError(f"Error reading CSV file: {str(e)}")
+ValueError: Error reading CSV file: [Errno 2] No such file or directory: 'D:\\CASSIA\\Test\\07_merging_annotation\\results\\python\\development\\20251209_021457\\outputs\\batch_for_merge_full.csv'
+</div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">08_uncertainty_quantification</span>
+                <span class="test-duration">34.5s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">09_subclustering</span>
+                <span class="test-duration">12.5s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">10_symphony_compare</span>
+                <span class="test-duration">37.9s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">11_report_generation</span>
+                <span class="test-duration">4.8s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">12_batch_with_reference</span>
+                <span class="test-duration">15.5s</span>
+            </div>
+            <div class="error-details">D:\CASSIA\Test\12_batch_with_reference\test_batch_with_reference.py:62: DeprecationWarning: runCASSIA_batch_with_reference is deprecated. Use runCASSIA_batch(use_reference=True) instead.
+  runCASSIA_batch_with_reference(
+</div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">12_scanpy_format</span>
+                <span class="test-duration">88.7s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">13_call_llm</span>
+                <span class="test-duration">8.1s</span>
+            </div>
+            <div class="error-details">[CASSIA ERROR] Insufficient API credits for anthropic. Please check your account balance and billing settings.
+ERROR:CASSIA.CASSIA.core.llm_utils:Insufficient API credits for anthropic. Please check your account balance and billing settings.
+Traceback (most recent call last):
+  File "D:\CASSIA\Test\13_call_llm\test_call_llm.py", line 202, in &lt;module&gt;
+    success = run_call_llm_test()
+              ^^^^^^^^^^^^^^^^^^^
+  File "D:\CASSIA\Test\13_call_llm\test_call_llm.py", line 191, in run_call_llm_test
+    save_test_metadata(results_dir, metadata)
+  File "D:\CASSIA\Test\shared\python\result_manager.py", line 227, in save_test_metadata
+    metadata_path = results_dir / "test_metadata.json"
+                    ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for /: 'dict' and 'str'
+</div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">14_input_validation</span>
+                <span class="test-duration">5.5s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-passed">PASSED</span>
+                <span class="test-name">15_cassia_pipeline</span>
+                <span class="test-duration">73.7s</span>
+            </div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">17_api_validation</span>
+                <span class="test-duration">13.4s</span>
+            </div>
+            <div class="error-details">'max_completion_tokens'
+[CASSIA INFO] Retrying with max_completion_tokens for model gpt-5-nano
+INFO:CASSIA.CASSIA.core.llm_utils:Retrying with max_completion_tokens for model gpt-5-nano
+[CASSIA ERROR] API call to openai failed with model 'gpt-5-nano'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+ERROR:CASSIA.CASSIA.core.llm_utils:API call to openai failed with model 'gpt-5-nano'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+[CASSIA INFO] Retrying with max_completion_tokens for model gpt-5-nano
+INFO:CASSIA.CASSIA.core.llm_utils:Retrying with max_completion_tokens for model gpt-5-nano
+[CASSIA ERROR] API call to openai failed with model 'gpt-5-nano'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+ERROR:CASSIA.CASSIA.core.llm_utils:API call to openai failed with model 'gpt-5-nano'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+</div>
+            <div class="result-item">
+                <span class="status-badge status-failed">FAILED</span>
+                <span class="test-name">18_reasoning_effort</span>
+                <span class="test-duration">135.6s</span>
+            </div>
+            <div class="error-details">rror: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+[CASSIA INFO] Retrying with max_completion_tokens for model gpt-5.1
+INFO:CASSIA.CASSIA.core.llm_utils:Retrying with max_completion_tokens for model gpt-5.1
+[CASSIA ERROR] API call to openai failed with model 'gpt-5.1'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+ERROR:CASSIA.CASSIA.core.llm_utils:API call to openai failed with model 'gpt-5.1'. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+[CASSIA ERROR] All 2 attempts failed for cluster 'plasma cell'. Consider using a different model or reducing max_workers. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+ERROR:CASSIA.CASSIA.core.llm_utils:All 2 attempts failed for cluster 'plasma cell'. Consider using a different model or reducing max_workers. Error: Completions.create() got an unexpected keyword argument 'max_completion_tokens'
+</div>
+        </div>
+        <div class="info-section">
+            <h3>Test Environment</h3>
+            <div class="info-grid">
+                <span class="info-label">Mode:</span>
+                <span class="info-value">development</span>
+                <span class="info-label">Version:</span>
+                <span class="info-value">0.3.14</span>
+                <span class="info-label">Location:</span>
+                <span class="info-value">D:\CASSIA\CASSIA_python\CASSIA</span>
+                <span class="info-label">Total Duration:</span>
+                <span class="info-value">612.7s</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

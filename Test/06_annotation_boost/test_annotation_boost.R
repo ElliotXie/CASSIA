@@ -64,7 +64,7 @@ run_annotation_boost_test <- function() {
   batch_results_file <- NULL
 
   if (!is.null(batch_results_dir)) {
-    potential_file <- file.path(batch_results_dir, "batch_results_full.csv")
+    potential_file <- file.path(batch_results_dir, "batch_results_summary.csv")
     if (file.exists(potential_file)) {
       batch_results_file <- potential_file
       log_msg("\nUsing existing batch results:", batch_results_file)
@@ -89,7 +89,7 @@ run_annotation_boost_test <- function() {
       provider = llm_config$provider %||% "openrouter",
       validator_involvement = config$validator$default %||% "v1"
     )
-    batch_results_file <- paste0(batch_output, "_full.csv")
+    batch_results_file <- paste0(batch_output, "_summary.csv")
   }
 
   # Load batch results to get cluster names

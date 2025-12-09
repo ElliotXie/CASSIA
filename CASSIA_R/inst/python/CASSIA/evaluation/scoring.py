@@ -6,6 +6,8 @@ annotation results using LLM-based quality assessment.
 """
 
 import re
+import os
+import json
 import threading
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -34,6 +36,40 @@ except ImportError:
         from ..core.utils import get_column_value, MARKER_COLUMN_OPTIONS, HISTORY_COLUMN_OPTIONS, CLUSTER_ID_COLUMN_OPTIONS
     except ImportError:
         from utils import get_column_value, MARKER_COLUMN_OPTIONS, HISTORY_COLUMN_OPTIONS, CLUSTER_ID_COLUMN_OPTIONS
+
+
+def get_conversation_history_from_json(conversations_data, cluster_name):
+    """
+    Get conversation history for a cluster from the JSON conversations data.
+
+    Args:
+        conversations_data (dict): Loaded JSON data with cluster conversations
+        cluster_name (str): The cluster ID to look up
+
+    Returns:
+        str: Formatted conversation history string for scoring
+    """
+    if not conversations_data or cluster_name not in conversations_data:
+        return ""
+
+    cluster_conv = conversations_data[cluster_name]
+    history_parts = []
+
+    # Get annotations and validations
+    annotations = cluster_conv.get('annotations', [])
+    validations = cluster_conv.get('validations', [])
+
+    # Interleave annotations and validations
+    for i, ann in enumerate(annotations):
+        history_parts.append(f"=== Annotation Attempt {i+1} ===\n{ann}")
+        if i < len(validations):
+            history_parts.append(f"=== Validation {i+1} ===\n{validations[i]}")
+
+    # Add formatting if present
+    if cluster_conv.get('formatting'):
+        history_parts.append(f"=== Formatting ===\n{cluster_conv['formatting']}")
+
+    return "\n\n".join(history_parts)
 
 
 def prompt_creator_score(major_cluster_info, marker, annotation_history):
@@ -203,7 +239,7 @@ def _get_task_name(row):
     return f"Row {row.name + 1}"
 
 
-def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
+def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", conversations_data=None):
     """
     Process a single row of data for scoring.
 
@@ -211,6 +247,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         row_data (tuple): (idx, row) containing index and row data
         model (str): Model to use
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
+        conversations_data (dict): Loaded JSON conversations data (optional)
 
     Returns:
         tuple: (idx, score, reasoning)
@@ -223,8 +260,13 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         # Get marker using helper function
         marker = get_column_value(row, MARKER_COLUMN_OPTIONS)
 
-        # Get annotation history using helper function
-        annotation_history = get_column_value(row, HISTORY_COLUMN_OPTIONS)
+        # Get annotation history - prefer JSON if available
+        cluster_name = get_column_value(row, CLUSTER_ID_COLUMN_OPTIONS, default=None)
+        if conversations_data and cluster_name:
+            annotation_history = get_conversation_history_from_json(conversations_data, str(cluster_name))
+        else:
+            # Fallback to CSV column for backward compatibility
+            annotation_history = get_column_value(row, HISTORY_COLUMN_OPTIONS, default="")
 
         # Try up to 3 times for a valid score if we get None
         score, reasoning = None, None
@@ -251,7 +293,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         return (idx, None, f"Error: {str(e)}")
 
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None):
     """
     Run scoring on a batch of cell type annotations with progress tracking.
 
@@ -263,6 +305,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
         max_retries (int): Maximum number of retries for failed analyses
         generate_report (bool): Whether to generate HTML report (default True, set False when called from pipeline)
+        conversations_json_path (str, optional): Path to JSON file with conversation histories
 
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -273,6 +316,16 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
     if output_file and not output_file.lower().endswith('.csv'):
         output_file = output_file + '.csv'
+
+    # Load conversations from JSON if provided
+    conversations_data = None
+    if conversations_json_path and os.path.exists(conversations_json_path):
+        try:
+            with open(conversations_json_path, 'r', encoding='utf-8') as f:
+                conversations_data = json.load(f)
+            print(f"Loaded conversation histories from {conversations_json_path}")
+        except Exception as e:
+            print(f"Warning: Could not load conversations JSON: {e}")
 
     print(f"Starting scoring process with {max_workers} workers using {provider} ({model})...")
 
@@ -318,7 +371,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
             for attempt in range(max_retries + 1):
                 try:
-                    result = process_single_row(row_data, model=model, provider=provider)
+                    result = process_single_row(row_data, model=model, provider=provider, conversations_data=conversations_data)
                     tracker.complete_task(task_name)
                     return result
                 except Exception as exc:

@@ -91,12 +91,12 @@ run_validator_comparison_test <- function() {
       )
 
       # Load results
-      full_csv <- paste0(output_name, "_full.csv")
-      if (file.exists(full_csv)) {
-        df <- read.csv(full_csv)
+      summary_csv <- paste0(output_name, "_summary.csv")
+      if (file.exists(summary_csv)) {
+        df <- read.csv(summary_csv)
         validator_results[[validator]] <- list(
           clusters_annotated = nrow(df),
-          results_file = full_csv
+          results_file = summary_csv
         )
         log_msg("  Annotated", nrow(df), "clusters")
       } else {

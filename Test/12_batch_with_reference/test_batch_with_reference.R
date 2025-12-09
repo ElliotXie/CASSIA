@@ -98,10 +98,10 @@ run_batch_with_reference_test <- function() {
     )
 
     # Check output files
-    full_csv <- paste0(output_name, "_full.csv")
+    summary_csv <- paste0(output_name, "_summary.csv")
 
-    if (file.exists(full_csv)) {
-      results_df <- read.csv(full_csv, stringsAsFactors = FALSE)
+    if (file.exists(summary_csv)) {
+      results_df <- read.csv(summary_csv, stringsAsFactors = FALSE)
       clusters_annotated <- nrow(results_df)
 
       # Verify reference columns exist
@@ -121,7 +121,7 @@ run_batch_with_reference_test <- function() {
         clusters_annotated = clusters_annotated,
         total_clusters = length(all_clusters),
         has_reference_column = has_ref_column,
-        output_file = full_csv
+        output_file = summary_csv
       )
 
       if (clusters_annotated == length(all_clusters) && has_ref_column) {

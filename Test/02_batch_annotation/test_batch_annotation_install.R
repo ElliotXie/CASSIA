@@ -95,20 +95,16 @@ run_batch_annotation_test <- function() {
     )
 
     # Check output files
-    full_csv <- paste0(output_name, "_full.csv")
     summary_csv <- paste0(output_name, "_summary.csv")
 
-    if (file.exists(full_csv)) {
-      results_df <- read.csv(full_csv)
+    if (file.exists(summary_csv)) {
+      results_df <- read.csv(summary_csv)
       clusters_annotated <- nrow(results_df)
 
       log_msg("Batch Results:")
       log_msg("  Clusters annotated:", clusters_annotated, "/", length(all_clusters))
       log_msg("  Output files created:")
-      log_msg("    -", basename(full_csv))
-      if (file.exists(summary_csv)) {
-        log_msg("    -", basename(summary_csv))
-      }
+      log_msg("    -", basename(summary_csv))
 
       if (clusters_annotated == length(all_clusters)) {
         status <- "passed"

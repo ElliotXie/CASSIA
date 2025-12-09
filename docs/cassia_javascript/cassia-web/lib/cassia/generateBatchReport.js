@@ -43,13 +43,14 @@ function truncateText(text, maxLength = 100) {
 /**
  * Parse conversation history into structured sections
  * Handles both JSON format (from web version) and pipe-separated format (from Python)
+ * Collects all annotation and validation attempts (for multi-iteration scenarios)
  * @param {string} historyText - Raw conversation history (JSON or pipe-separated text)
- * @returns {Object} Dictionary with keys: 'annotation', 'validator', 'formatting', 'scoring'
+ * @returns {Object} Dictionary with keys: 'annotations' (array), 'validators' (array), 'formatting', 'scoring'
  */
 function parseConversationHistory(historyText) {
     const result = {
-        annotation: '',
-        validator: '',
+        annotations: [],
+        validators: [],
         formatting: '',
         scoring: ''
     };
@@ -68,20 +69,13 @@ function parseConversationHistory(historyText) {
                     // Get the last annotation entry (the final response)
                     const lastAnnotation = iter.annotation[iter.annotation.length - 1];
                     if (Array.isArray(lastAnnotation) && lastAnnotation.length >= 2) {
-                        // Append to annotation (in case of multiple iterations)
-                        if (result.annotation) {
-                            result.annotation += '\n\n--- Iteration ' + iter.iteration + ' ---\n\n';
-                        }
-                        result.annotation += String(lastAnnotation[1] || '');
+                        result.annotations.push(String(lastAnnotation[1] || ''));
                     }
                 }
 
                 // Handle validation result
                 if (iter.validation_result) {
-                    if (result.validator) {
-                        result.validator += '\n\n';
-                    }
-                    result.validator += String(iter.validation_result);
+                    result.validators.push(String(iter.validation_result));
                 }
 
                 // Handle Formatting Agent entry (has role and content instead of annotation array)
@@ -102,14 +96,20 @@ function parseConversationHistory(historyText) {
     }
 
     // Fall back to pipe-separated format (Python version format)
-    const sections = historyText.split(' | ');
+    // Use new delimiter with backward compatibility for old format
+    const NEW_DELIMITER = ' |||SECTION||| ';
+    const OLD_DELIMITER = ' | ';
+
+    const sections = historyText.includes(NEW_DELIMITER)
+        ? historyText.split(NEW_DELIMITER)
+        : historyText.split(OLD_DELIMITER);
 
     for (const section of sections) {
         const trimmed = section.trim();
         if (trimmed.startsWith('Final Annotation Agent:')) {
-            result.annotation = trimmed.replace('Final Annotation Agent:', '').trim();
+            result.annotations.push(trimmed.replace('Final Annotation Agent:', '').trim());
         } else if (trimmed.startsWith('Coupling Validator:')) {
-            result.validator = trimmed.replace('Coupling Validator:', '').trim();
+            result.validators.push(trimmed.replace('Coupling Validator:', '').trim());
         } else if (trimmed.startsWith('Formatting Agent:')) {
             result.formatting = trimmed.replace('Formatting Agent:', '').trim();
         } else if (trimmed.startsWith('Scoring Agent:')) {
@@ -477,27 +477,54 @@ function generateModalContent(row, index) {
     // Parse conversation history
     const sections = parseConversationHistory(conversation);
 
-    // Format each section
+    // Format each section - use last annotation from list
     let annotationHtml;
     if (preFormattedAnnotation) {
         annotationHtml = preFormattedAnnotation;
     } else {
-        annotationHtml = sections.annotation
-            ? formatAnalysisText(sections.annotation)
+        const lastAnnotation = sections.annotations.length > 0
+            ? sections.annotations[sections.annotations.length - 1]
+            : '';
+        annotationHtml = lastAnnotation
+            ? formatAnalysisText(lastAnnotation)
             : '<p>No annotation data available.</p>';
     }
 
+    // Validator section with collapsed failed attempts
     let validatorHtml = '';
-    if (sections.validator) {
-        const isPassed = sections.validator.toUpperCase().includes('VALIDATION PASSED');
+    if (sections.validators.length > 0) {
+        const finalValidator = sections.validators[sections.validators.length - 1];
+        const isPassed = finalValidator.toUpperCase().includes('VALIDATION PASSED');
         const statusClass = isPassed ? 'passed' : 'failed';
         const statusText = isPassed ? 'PASSED' : 'REVIEW NEEDED';
+
+        // Build collapsed section for failed attempts
+        let failedAttemptsHtml = '';
+        if (sections.validators.length > 1) {
+            const totalAttempts = sections.validators.length;
+            const summaryText = isPassed
+                ? `⚠️ ${totalAttempts - 1} failed validation attempt(s) - click to expand`
+                : `⚠️ All ${totalAttempts} validation attempts failed - click to expand previous attempts`;
+
+            const failedItems = sections.validators.slice(0, -1).map((v, i) =>
+                `<div class="failed-attempt"><strong>Attempt ${i + 1}:</strong><br>${formatAnalysisText(v)}</div>`
+            ).join('');
+
+            failedAttemptsHtml = `
+            <details class="failed-attempts-container">
+                <summary>${summaryText}</summary>
+                ${failedItems}
+            </details>
+            `;
+        }
+
         validatorHtml = `
         <div class="validation-status ${statusClass}">
             <span class="status-icon">${isPassed ? '&#10004;' : '&#10008;'}</span>
             <span class="status-text">Validation ${statusText}</span>
         </div>
-        <div class="validator-content">${escapeHtml(sections.validator)}</div>
+        ${failedAttemptsHtml}
+        <div class="validator-content">${formatAnalysisText(finalValidator)}</div>
         `;
     } else {
         validatorHtml = '<p>No validation data available.</p>';
@@ -1333,6 +1360,33 @@ function getCssStyles() {
     .validator-content {
         color: var(--text-secondary);
         font-size: 0.9rem;
+    }
+
+    .failed-attempts-container {
+        margin: 12px 0;
+        padding: 12px;
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+        border-radius: 6px;
+    }
+
+    .failed-attempts-container summary {
+        cursor: pointer;
+        color: #dc2626;
+        font-weight: 600;
+        padding: 4px 0;
+    }
+
+    .failed-attempts-container summary:hover {
+        color: #b91c1c;
+    }
+
+    .failed-attempt {
+        margin: 12px 0;
+        padding: 12px;
+        background-color: #ffffff;
+        border-radius: 6px;
+        border: 1px solid #fecaca;
     }
 
     .json-summary {
