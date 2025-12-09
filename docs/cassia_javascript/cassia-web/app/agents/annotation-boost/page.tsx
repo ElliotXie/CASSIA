@@ -7,7 +7,7 @@ import Papa from 'papaparse';
 import { iterativeMarkerAnalysis, generateSummaryReport, extractConversationForCluster, getAvailableClusters, extractTopMarkerGenes } from '@/lib/cassia/annotationBoost';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { ReasoningEffort } from '@/lib/config/model-presets';
+import { ReasoningEffort, getDefaultReasoningEffort } from '@/lib/config/model-presets';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,6 +123,11 @@ export default function AnnotationBoostPage() {
                 if (savedModel && savedModel !== model) {
                     setModel(savedModel);
                 }
+                // Set default reasoning effort based on current model
+                const currentModel = savedModel || model;
+                const currentProvider = globalProvider || provider;
+                const defaultEffort = getDefaultReasoningEffort(currentProvider, currentModel);
+                setReasoningEffort(defaultEffort);
                 setIsInitialized(true);
             }
         } catch (error) {
@@ -286,7 +291,10 @@ export default function AnnotationBoostPage() {
             // Simulate the exact file drop process
             onConversationDrop([conversationFile]);
             onMarkerDrop([markerFile]);
-            
+
+            // Set the sample context to match the example data
+            setMajorClusterInfo('Human Large Intestine');
+
             console.log('🎉 Example data loaded successfully!');
             
         } catch (err: any) {
