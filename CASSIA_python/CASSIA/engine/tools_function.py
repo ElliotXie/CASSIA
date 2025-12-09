@@ -67,6 +67,7 @@ try:
         validate_runCASSIA_with_reference_inputs
     )
     from CASSIA.core.exceptions import CASSIAValidationError
+    from CASSIA.core.api_validation import _validate_single_provider
 except ImportError:
     try:
         from ..core.validation import (
@@ -75,6 +76,7 @@ except ImportError:
             validate_runCASSIA_with_reference_inputs
         )
         from ..core.exceptions import CASSIAValidationError
+        from ..core.api_validation import _validate_single_provider
     except ImportError:
         from validation import (
             validate_runCASSIA_inputs,
@@ -82,6 +84,7 @@ except ImportError:
             validate_runCASSIA_with_reference_inputs
         )
         from exceptions import CASSIAValidationError
+        from api_validation import _validate_single_provider
 
 try:
     from CASSIA.agents.merging.merging_annotation import *
@@ -421,6 +424,52 @@ def runCASSIA_with_reference(*args, **kwargs):
     return runCASSIA(*args, **kwargs)
 
 
+class _AuthErrorTracker:
+    """
+    Track authentication errors across parallel workers to enable fail-fast behavior.
+
+    When multiple workers hit the same authentication error (e.g., invalid API key),
+    this tracker detects the pattern and signals remaining workers to abort early,
+    preventing repetitive error messages and wasted processing time.
+    """
+
+    def __init__(self, threshold=2):
+        """
+        Initialize the tracker.
+
+        Args:
+            threshold: Number of auth errors before triggering abort (default: 2)
+        """
+        self.count = 0
+        self.lock = threading.Lock()
+        self.threshold = threshold
+        self.should_abort = False
+        self.logged_abort = False
+        self.first_error = None
+
+    def record_auth_error(self, error_msg: str = None):
+        """Record an authentication error and check if we should abort."""
+        with self.lock:
+            self.count += 1
+            if self.first_error is None and error_msg:
+                self.first_error = error_msg
+            if self.count >= self.threshold:
+                self.should_abort = True
+            return self.should_abort
+
+    def check_abort(self):
+        """Check if processing should be aborted."""
+        with self.lock:
+            return self.should_abort
+
+    def mark_logged(self):
+        """Mark that the abort message has been logged (to prevent duplicates)."""
+        with self.lock:
+            was_logged = self.logged_abort
+            self.logged_abort = True
+            return was_logged  # Return True if already logged
+
+
 def runCASSIA_batch(
     marker,
     output_name="cell_type_analysis_results.json",
@@ -442,7 +491,9 @@ def runCASSIA_batch(
     # Reference parameters (NEW)
     use_reference=False,
     reference_model=None,
-    verbose=True
+    verbose=True,
+    # API validation parameters
+    validate_api_key_before_start=True
 ):
     """
     Run cell type analysis on multiple clusters in parallel.
@@ -474,12 +525,17 @@ def runCASSIA_batch(
         use_reference (bool): Whether to use intelligent reference retrieval per cluster (default: False)
         reference_model (str): Model for reference complexity assessment (default: fast model)
         verbose (bool): Print progress information (default: True)
+        validate_api_key_before_start (bool): Validate API key before starting batch processing.
+            If True (default), makes a minimal test API call to verify the key works before
+            processing any clusters. This prevents confusing error spam when the key is invalid.
+            Set to False to skip validation (e.g., for custom HTTP endpoints or performance).
 
     Returns:
         dict: Results dictionary containing analysis results for each cell type
 
     Raises:
         CASSIAValidationError: If input validation fails
+        ValueError: If API key validation fails (when validate_api_key_before_start=True)
     """
     # Normalize reasoning parameter (accept string or dict)
     reasoning = _normalize_reasoning(reasoning)
@@ -516,6 +572,25 @@ def runCASSIA_batch(
     # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.1")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=True)
+
+    # Pre-validate API key before starting batch processing
+    if validate_api_key_before_start and not provider.lower().startswith("http"):
+        if verbose:
+            print("Validating API key...")
+        is_valid, error_msg = _validate_single_provider(provider, api_key=None, force_revalidate=False, verbose=False)
+        if not is_valid:
+            raise ValueError(
+                f"\n{'='*60}\n"
+                f"API KEY VALIDATION FAILED\n"
+                f"{'='*60}\n"
+                f"Provider: {provider}\n"
+                f"Error: {error_msg}\n\n"
+                f"How to fix:\n"
+                f"  CASSIA.set_api_key('{provider}', 'your-api-key')\n"
+                f"{'='*60}"
+            )
+        if verbose:
+            print(f"API key validated successfully for {provider}\n")
 
     # Load the dataframe
     if isinstance(marker, pd.DataFrame):
@@ -559,7 +634,16 @@ def runCASSIA_batch(
     reference_stats = {'used': 0, 'not_needed': 0, 'errors': 0}
     stats_lock = threading.Lock()
 
+    # Initialize auth error tracker for fail-fast behavior
+    auth_tracker = _AuthErrorTracker(threshold=2)
+
     def analyze_cell_type(cell_type, marker_list):
+        # Check if we should abort due to repeated auth errors
+        if auth_tracker.check_abort():
+            tracker.start_task(cell_type)
+            tracker.complete_task(cell_type)
+            return cell_type, None, None, None  # Skip this task
+
         tracker.start_task(cell_type)
         for attempt in range(max_retries + 1):
             try:
@@ -592,15 +676,26 @@ def runCASSIA_batch(
                 tracker.complete_task(cell_type)
                 return cell_type, result, conversation_history, ref_info
             except Exception as exc:
-                # Don't retry authentication errors
-                if "401" in str(exc) or "API key" in str(exc) or "authentication" in str(exc).lower():
+                # Don't retry authentication errors - use fail-fast
+                error_str = str(exc).lower()
+                if "401" in str(exc) or "api key" in error_str or "authentication" in error_str or "unauthorized" in error_str:
                     tracker.complete_task(cell_type)  # Remove from active even on failure
-                    logger.error(
-                        f"Authentication failed for cluster '{cell_type}'. "
-                        f"Please check your API key is valid. "
-                        f"Set it with: CASSIA.set_api_key(provider, 'your-key'). "
-                        f"Error: {exc}"
-                    )
+
+                    # Record error and check if we should trigger fail-fast
+                    should_abort = auth_tracker.record_auth_error(str(exc))
+
+                    # Only log ONCE when we hit the abort threshold (not for every cluster)
+                    if should_abort and not auth_tracker.mark_logged():
+                        print(
+                            f"\n{'='*60}\n"
+                            f"AUTHENTICATION ERROR - Stopping batch processing\n"
+                            f"{'='*60}\n"
+                            f"Multiple clusters failed with authentication errors.\n"
+                            f"Remaining clusters will be skipped.\n\n"
+                            f"How to fix:\n"
+                            f"  CASSIA.set_api_key('{provider}', 'your-api-key')\n"
+                            f"{'='*60}\n"
+                        )
                     raise exc
 
                 # For other errors, retry if attempts remain
@@ -650,12 +745,36 @@ def runCASSIA_batch(
     # Finalize progress display
     tracker.finish()
 
-    # Report any failures
+    # Report any failures with categorization
     if failed_analyses:
-        print(f"\nWarning: {len(failed_analyses)} analysis/analyses failed:")
+        # Categorize errors
+        auth_errors = []
+        other_errors = []
         for cell_type, error in failed_analyses:
-            print(f"  - {cell_type}: {error[:100]}{'...' if len(error) > 100 else ''}")
-        print()
+            error_lower = error.lower()
+            if "401" in error or "unauthorized" in error_lower or "api key" in error_lower or "authentication" in error_lower:
+                auth_errors.append((cell_type, error))
+            else:
+                other_errors.append((cell_type, error))
+
+        # Show consolidated auth error message (not individual cluster errors)
+        if auth_errors:
+            print(f"\n{'='*60}")
+            print(f"AUTHENTICATION ERROR - {len(auth_errors)} cluster(s) failed")
+            print(f"{'='*60}")
+            print(f"Your API key appears to be invalid or not set.")
+            print(f"\nHow to fix:")
+            print(f"  CASSIA.set_api_key('{provider}', 'your-api-key')")
+            print(f"{'='*60}\n")
+
+        # Show other errors with details (limit to 5)
+        if other_errors:
+            print(f"\nWarning: {len(other_errors)} other error(s):")
+            for cell_type, error in other_errors[:5]:
+                print(f"  - {cell_type}: {error[:80]}{'...' if len(error) > 80 else ''}")
+            if len(other_errors) > 5:
+                print(f"  ... and {len(other_errors) - 5} more")
+            print()
 
     # Report reference statistics if reference was used
     if use_reference and verbose:

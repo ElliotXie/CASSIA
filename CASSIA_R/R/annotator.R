@@ -955,6 +955,9 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param ranking_method Method used to rank marker genes: "avg_log2FC" (default), "p_val_adj", "pct_diff", or "Score".
 #' @param ascending Logical value indicating sort direction. If NULL (default), uses method-specific default.
 #' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
+#' @param validate_api_key_before_start Logical. If TRUE (default), validates the API key before starting
+#'   batch processing. This prevents confusing error messages when the key is invalid.
+#'   Set to FALSE for custom HTTP endpoints or to skip validation.
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -964,7 +967,8 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           celltype_column = NULL, gene_column_name = NULL,
                           max_workers = 10, provider = "openrouter", n_genes = 50,
                           max_retries = 1, validator_involvement = "v1",
-                          ranking_method = "avg_log2FC", ascending = NULL, reasoning = NULL) {
+                          ranking_method = "avg_log2FC", ascending = NULL, reasoning = NULL,
+                          validate_api_key_before_start = TRUE) {
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -999,7 +1003,8 @@ if (is.data.frame(marker)) {
       validator_involvement = validator_involvement,
       ranking_method = ranking_method,
       ascending = ascending,
-      reasoning = reasoning
+      reasoning = reasoning,
+      validate_api_key_before_start = validate_api_key_before_start
     )
   })
   
