@@ -1243,8 +1243,21 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                     annotations = cluster_conv.get('annotations', [])
                     if annotations:
                         # Use the last annotation (final result after any validation retries)
-                        annotation_history = annotations[-1]
+                        raw_annotation = annotations[-1]
                         print(f"Loaded final annotation from JSON for cluster {cluster_name}")
+
+                        # Apply summarization based on mode
+                        if conversation_history_mode == "final" and len(raw_annotation) > 500:
+                            # Summarize the conversation history for concise context
+                            print(f"Summarizing conversation history ({len(raw_annotation)} chars)...")
+                            annotation_history = summarize_conversation_history(
+                                raw_annotation,
+                                provider=provider,
+                                model=model
+                            )
+                        else:
+                            # Use full history (mode="full" or short annotation)
+                            annotation_history = raw_annotation
                     else:
                         print(f"No annotations found in JSON for cluster {cluster_name}")
                 else:
@@ -1538,6 +1551,27 @@ def runCASSIA_annotationboost(
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
+    # Import and call validation function (fail-fast)
+    try:
+        from CASSIA.core.validation import validate_runCASSIA_annotationboost_inputs
+    except ImportError:
+        try:
+            from ...core.validation import validate_runCASSIA_annotationboost_inputs
+        except ImportError:
+            # Skip validation if import fails (legacy fallback)
+            validate_runCASSIA_annotationboost_inputs = None
+
+    if validate_runCASSIA_annotationboost_inputs is not None:
+        validate_runCASSIA_annotationboost_inputs(
+            full_result_path=full_result_path,
+            marker=marker,
+            cluster_name=cluster_name,
+            num_iterations=num_iterations,
+            temperature=temperature,
+            conversation_history_mode=conversation_history_mode,
+            report_style=report_style
+        )
+
     try:
         import time
         start_time = time.time()

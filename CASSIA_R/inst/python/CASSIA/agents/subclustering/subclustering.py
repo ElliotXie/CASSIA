@@ -334,20 +334,22 @@ def write_results_to_csv(results, output_name='subcluster_results'):
                 print(f"Results have been written to {output_name} (without reasons)")
                 return df
     
-    # If we get here, we couldn't process the results
-    print(f"Warning: Could not extract results in expected format. Results type: {type(results)}")
-    print(f"Saving raw results to {output_name}.txt for inspection")
-    
+    # If we get here, we couldn't process the results - fail instead of creating useless file
     # Save raw results for debugging
-    with open(f"{output_name}.txt", "w") as f:
+    raw_output_file = f"{output_name}.txt"
+    with open(raw_output_file, "w") as f:
         f.write(str(results))
-    
-    # Create a minimal DataFrame to avoid errors
-    df = pd.DataFrame([["1", "Unknown", "Unknown", "Could not parse results"]], 
-                     columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
-    df.to_csv(output_name, index=False)
-    
-    return df
+
+    raise RuntimeError(
+        f"\n{'='*60}\n"
+        f"SUBCLUSTERING FAILED - Could not parse LLM results\n"
+        f"{'='*60}\n"
+        f"Results type: {type(results)}\n"
+        f"Raw output saved to: {raw_output_file}\n"
+        f"\nThis may indicate an issue with the LLM response format.\n"
+        f"Check the raw output file for details.\n"
+        f"{'='*60}"
+    )
 
 
 
@@ -476,9 +478,11 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
             if rows:
                 df = pd.DataFrame(rows, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
             else:
-                # Fallback if we couldn't extract structured data
-                df = pd.DataFrame([[str(i+1), "Unknown", "Unknown"] for i in range(len(results))], 
-                                 columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
+                # Fail if we couldn't extract any structured data
+                raise RuntimeError(
+                    f"Iteration {i+1}: Could not extract cell types from structured LLM response. "
+                    f"Results contained {len(results)} items but none could be parsed."
+                )
         else:
             # Use regex to extract the results (original method)
             pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
@@ -488,9 +492,11 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 # Convert matches to a DataFrame
                 df = pd.DataFrame(matches, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
             else:
-                # Fallback if regex didn't match
-                df = pd.DataFrame([[str(i+1), "Unknown", "Unknown"]], 
-                                 columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
+                # Fail if regex didn't match - don't create misleading "Unknown" files
+                raise RuntimeError(
+                    f"Iteration {i+1}: Could not parse LLM response using regex. "
+                    f"Response format not recognized. Response preview: {str(results)[:200]}"
+                )
 
         try:
             # Try to get top markers, but handle the case where required columns are missing
@@ -529,6 +535,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         
         return indexed_csv_file_path
 
+    failed_iterations = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(run_single_analysis, i): i for i in range(n)}
         result_files = []
@@ -540,6 +547,26 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 result_files.append(result_file)
             except Exception as exc:
                 print(f"Iteration {i+1} generated an exception: {exc}")
+                failed_iterations.append((i+1, str(exc)))
+
+    # Check if ALL iterations failed - this is a total failure
+    if len(result_files) == 0 and len(failed_iterations) > 0:
+        error_sample = failed_iterations[0][1][:200] if failed_iterations else "Unknown"
+        raise RuntimeError(
+            f"\n{'='*60}\n"
+            f"SUBCLUSTERING BATCH FAILED - All {n} iterations failed\n"
+            f"{'='*60}\n"
+            f"Sample error: {error_sample}\n"
+            f"{'='*60}"
+        )
+
+    # Warn about partial failures
+    if failed_iterations:
+        print(f"\nWarning: {len(failed_iterations)} of {n} iterations failed:")
+        for iter_num, err in failed_iterations[:5]:
+            print(f"  - Iteration {iter_num}: {err[:80]}...")
+        if len(failed_iterations) > 5:
+            print(f"  ... and {len(failed_iterations) - 5} more")
 
     # --- Generate HTML reports for all batch CSVs ---
     try:

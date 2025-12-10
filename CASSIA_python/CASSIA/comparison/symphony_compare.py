@@ -17,10 +17,23 @@ import os
 import requests
 import re
 import json
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Tuple, Optional, Union, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from collections import Counter
+
+# Import validation modules for fail-fast error handling
+try:
+    from CASSIA.core.api_validation import _validate_single_provider
+    from CASSIA.core.validation import validate_symphony_compare_inputs
+except ImportError:
+    try:
+        from ..core.api_validation import _validate_single_provider
+        from ..core.validation import validate_symphony_compare_inputs
+    except ImportError:
+        # Fallback for standalone usage - validation will be skipped
+        _validate_single_provider = None
+        validate_symphony_compare_inputs = None
 
 
 def symphonyCompare(

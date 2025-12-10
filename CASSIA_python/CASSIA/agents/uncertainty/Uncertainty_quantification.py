@@ -84,6 +84,19 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
     Returns:
         None: Results are saved to files
     """
+    # Import and call validation function (fail-fast)
+    try:
+        from CASSIA.core.validation import validate_runCASSIA_uncertainty_inputs
+    except ImportError:
+        try:
+            from ...core.validation import validate_runCASSIA_uncertainty_inputs
+        except ImportError:
+            # Skip validation if import fails (legacy fallback)
+            validate_runCASSIA_uncertainty_inputs = None
+
+    if validate_runCASSIA_uncertainty_inputs is not None:
+        validate_runCASSIA_uncertainty_inputs(n=n)
+
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i+1}.json"
         print(f"Starting batch run {i+1}/{n}")
@@ -180,6 +193,19 @@ def runCASSIA_n_times(n, tissue, species, additional_info, temperature, marker_l
     Returns:
         dict: Dictionary of analysis results indexed by iteration number (each result is a 3-tuple)
     """
+    # Import and call validation function (fail-fast)
+    try:
+        from CASSIA.core.validation import validate_runCASSIA_uncertainty_inputs
+    except ImportError:
+        try:
+            from ...core.validation import validate_runCASSIA_uncertainty_inputs
+        except ImportError:
+            # Skip validation if import fails (legacy fallback)
+            validate_runCASSIA_uncertainty_inputs = None
+
+    if validate_runCASSIA_uncertainty_inputs is not None:
+        validate_runCASSIA_uncertainty_inputs(n=n, marker_list=marker_list)
+
     print(f"Starting {n} parallel analyses")
     start_time = time.time()
 
@@ -1146,13 +1172,16 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     # Create a list to store the data for each row
     data = []
     
-    # Check if processed_results is empty
+    # Check if processed_results is empty - fail instead of creating empty file
     if not processed_results:
-        # Create an empty DataFrame with minimal columns
-        df = pd.DataFrame(columns=['Cell Type', 'Status'])
-        df.to_csv(output_csv, index=False)
-        print(f"Empty results saved to {output_csv}")
-        return df
+        raise RuntimeError(
+            f"\n{'='*60}\n"
+            f"UNCERTAINTY QUANTIFICATION FAILED\n"
+            f"{'='*60}\n"
+            f"No results were processed. Cannot create output file.\n"
+            f"Check that your input data and file patterns are correct.\n"
+            f"{'='*60}"
+        )
     
     for celltype, result in processed_results.items():
         row_data = {
@@ -1189,12 +1218,16 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     # Create the DataFrame
     df = pd.DataFrame(data)
 
-    # Check if DataFrame is empty
+    # Check if DataFrame is empty - fail instead of creating empty file
     if df.empty:
-        df.to_csv(output_csv, index=False)
-        print(f"Empty results saved to {output_csv}")
-        return df
-        
+        raise RuntimeError(
+            f"\n{'='*60}\n"
+            f"UNCERTAINTY QUANTIFICATION FAILED\n"
+            f"{'='*60}\n"
+            f"All cell types failed to process. Cannot create output file.\n"
+            f"{'='*60}"
+        )
+
     # Define expected columns
     fixed_columns = ['Cell Type', 
                      'General Cell Type LLM', 'Sub Cell Type LLM', 'Mixed Cell Types LLM',

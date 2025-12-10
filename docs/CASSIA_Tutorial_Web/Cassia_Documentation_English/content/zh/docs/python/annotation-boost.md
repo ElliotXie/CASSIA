@@ -27,27 +27,34 @@ title: 注释增强（可选）
 ```python
 # 对高线粒体含量聚类运行增强验证
 CASSIA.runCASSIA_annotationboost(
-    full_result_path = output_name + "_full.csv",
+    full_result_path = output_name + "_summary.csv",
     marker = unprocessed_markers,
     output_name = "monocyte_annotationboost",
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
     model = "anthropic/claude-sonnet-4.5",
-    provider = "openrouter"
+    provider = "openrouter",
+    conversations_json_path = output_name + "_conversations.json",  # 使用先前的对话历史
+    conversation_history_mode = "full"  # "full"、"final"（摘要）或 "none"
 )
 ```
 
 ### 参数详情
 
-- **`full_result_path`**: 原始 CASSIA 结果 CSV 文件的路径。
+- **`full_result_path`**: CASSIA 结果 CSV 文件的路径（`_summary.csv`）。
 - **`marker`**: 标记基因数据（数据帧或路径）。**重要**：使用与初始分析相同的标记数据（不要过滤）。
 - **`cluster_name`**: 要验证的目标聚类的确切名称。
-- **`major_cluster_info`**: 关于数据集的背景信息（例如，“人类 PBMC”，“小鼠脑”）。
+- **`major_cluster_info`**: 关于数据集的背景信息（例如，"人类 PBMC"，"小鼠脑"）。
 - **`output_name`**: 输出验证报告的基本名称。
 - **`num_iterations`**: 验证轮数（默认：5）。
 - **`model`**: 用于验证的 LLM 模型。
 - **`provider`**: 模型的 API 提供商。
+- **`conversations_json_path`**: 批量注释的对话 JSON 文件路径（`_conversations.json`）。这为深入分析提供了先前的注释上下文。
+- **`conversation_history_mode`**: 如何使用先前的对话历史：
+  - `"full"`（默认）：使用完整的先前对话历史作为上下文。
+  - `"final"`：在使用之前先用 LLM 对历史进行摘要。
+  - `"none"`：不使用任何先前的对话历史。
 - **`search_strategy`**: 探索假设的策略（"breadth" 或 "depth"）。
 - **`report_style`**: 最终报告的格式（"per_iteration" 或 "total_summary"）。
 - **`validator_involvement`**: 验证严格程度（"v1" 或 "v0"）。

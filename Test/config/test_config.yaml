@@ -23,3 +23,9 @@ results:
 # Validator Settings
 validator:
   default: "v1"  # v0 = strict, v1 = moderate
+
+# Annotation Boost Settings
+annotation_boost:
+  conversation_history_mode: "full"  # "final" = summarize first, "full" = no summarization, "none" = no history
+  num_iterations: 3
+  search_strategy: "breadth"  # "breadth" or "depth"

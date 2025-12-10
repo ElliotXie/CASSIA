@@ -32,6 +32,18 @@ CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # 推荐
 - 将 `"your-key"` 替换为您的实际 API 密钥。
 - 根据您的提供商，将 `provider` 设置为 `"openai"`、`"anthropic"` 或 `"openrouter"`。
 
+## 验证 API 密钥
+
+您可以在运行分析之前验证 API 密钥是否正常工作：
+
+```python
+# 验证所有已配置的提供商
+CASSIA.validate_api_keys(force_revalidate=True)
+
+# 验证特定提供商
+CASSIA.validate_api_keys("openai", force_revalidate=True)
+```
+
 ## 如何选择模型和提供商
 
 有三个提供商可供选择：`openrouter`、`openai` 和 `anthropic`。每个提供商都有自己的模型和定价。

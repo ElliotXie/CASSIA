@@ -776,6 +776,31 @@ def runCASSIA_batch(
                 print(f"  ... and {len(other_errors) - 5} more")
             print()
 
+    # Check if ALL clusters failed - total failure means no output files
+    successful_results = [r for r in results.values() if r is not None]
+    if len(successful_results) == 0 and len(failed_analyses) > 0:
+        # Categorize for error message
+        auth_errors = [e for e in failed_analyses if "401" in e[1] or "unauthorized" in e[1].lower() or "api key" in e[1].lower() or "authentication" in e[1].lower()]
+
+        if auth_errors:
+            raise RuntimeError(
+                f"\n{'='*60}\n"
+                f"BATCH PROCESSING FAILED - All {len(failed_analyses)} clusters failed\n"
+                f"{'='*60}\n"
+                f"Cause: Authentication error\n"
+                f"Fix: CASSIA.set_api_key('{provider}', 'your-api-key')\n"
+                f"{'='*60}"
+            )
+        else:
+            error_sample = failed_analyses[0][1][:200] if failed_analyses else "Unknown"
+            raise RuntimeError(
+                f"\n{'='*60}\n"
+                f"BATCH PROCESSING FAILED - All {len(failed_analyses)} clusters failed\n"
+                f"{'='*60}\n"
+                f"Sample error: {error_sample}\n"
+                f"{'='*60}"
+            )
+
     # Report reference statistics if reference was used
     if use_reference and verbose:
         print(f"\nReference retrieval statistics:")

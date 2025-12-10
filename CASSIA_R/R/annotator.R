@@ -1388,6 +1388,8 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param ascending Sort direction (NULL uses default for each method) (default: NULL)
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param output_dir Directory where the output folder will be created. If NULL, uses current working directory. (default: NULL)
+#' @param validate_api_keys_before_start Logical. If TRUE (default), validates the API key before starting.
+#'   Fails fast with clear error message if the key is invalid.
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -1415,7 +1417,8 @@ runCASSIA_pipeline <- function(
     ranking_method = "avg_log2FC",
     ascending = NULL,
     validator_involvement = "v1",
-    output_dir = NULL
+    output_dir = NULL,
+    validate_api_keys_before_start = TRUE
 ) {
   # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
@@ -1462,7 +1465,8 @@ runCASSIA_pipeline <- function(
       ascending = ascending,
       report_style = report_style,
       validator_involvement = validator_involvement,
-      output_dir = output_dir
+      output_dir = output_dir,
+      validate_api_keys_before_start = validate_api_keys_before_start
     )
     
     invisible(NULL)

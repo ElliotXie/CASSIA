@@ -32,6 +32,18 @@ CASSIA.set_api_key("your-openrouter-key", provider="openrouter")  # Recommended
 - Replace `"your-key"` with your actual API key.
 - Set `provider` to `"openai"`, `"anthropic"`, or `"openrouter"` depending on your provider.
 
+## Validating API Keys
+
+You can verify that your API keys are working correctly before running analyses:
+
+```python
+# Validate all configured providers
+CASSIA.validate_api_keys(force_revalidate=True)
+
+# Validate a specific provider
+CASSIA.validate_api_keys("openai", force_revalidate=True)
+```
+
 ## How to Select Models and Providers
 
 There are three providers to choose from: `openrouter`, `openai`, and `anthropic`. Each provider has its own models and pricing.

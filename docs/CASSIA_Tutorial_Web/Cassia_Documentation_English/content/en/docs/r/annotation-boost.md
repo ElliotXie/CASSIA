@@ -39,17 +39,21 @@ target_cluster = "CD4+ T cell"
 # Run validation
 runCASSIA_annotationboost(
     # Required parameters
-    full_result_path = "cell_type_analysis_results.csv",
+    full_result_path = "batch_results_summary.csv",
     marker = marker_data,
     cluster_name = target_cluster,
     major_cluster_info = cluster_info,
     output_name = "Cluster1_report",
-    
+
     # Optional parameters
     num_iterations = 5,             # Number of validation rounds
     model = validation_config$model,
     provider = validation_config$provider,
-    
+
+    # Conversation history (from batch annotation)
+    conversations_json_path = "batch_results_conversations.json",
+    conversation_history_mode = "full",  # "full", "final" (summarize), or "none"
+
     # Advanced options
     search_strategy = "breadth",    # "breadth" or "depth"
     report_style = "per_iteration", # "per_iteration" or "total_summary"
@@ -59,7 +63,7 @@ runCASSIA_annotationboost(
 
 ### Parameter Details
 
-- **`full_result_path`**: Path to the original CASSIA results CSV file.
+- **`full_result_path`**: Path to the CASSIA results CSV file (`_summary.csv`).
 - **`marker`**: Marker gene data (data frame or path). **Important**: Use the same marker data as the initial analysis (do not filter).
 - **`cluster_name`**: Exact name of the target cluster to validate.
 - **`major_cluster_info`**: Context about the dataset (e.g., "Human PBMC", "Mouse Brain").
@@ -67,6 +71,11 @@ runCASSIA_annotationboost(
 - **`num_iterations`**: Number of validation rounds (default: 5).
 - **`model`**: LLM model to use for validation.
 - **`provider`**: API provider for the model.
+- **`conversations_json_path`**: Path to the conversations JSON file from batch annotation (`_conversations.json`). This provides the prior annotation context for deeper analysis.
+- **`conversation_history_mode`**: How to use prior conversation history.
+    - `"full"` (default): Use the complete prior conversation history as context.
+    - `"final"`: Summarize the history using an LLM before using it as context.
+    - `"none"`: Don't use any prior conversation history.
 - **`search_strategy`**: Strategy for exploring hypotheses.
     - `"breadth"` (default): Tests multiple hypotheses in parallel.
     - `"depth"`: Focuses deeply on verifying a single hypothesis.

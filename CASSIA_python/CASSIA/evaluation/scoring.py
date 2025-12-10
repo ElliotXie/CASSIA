@@ -425,6 +425,17 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
                 print(f"  - {task_name}: {error[:100]}{'...' if len(error) > 100 else ''}")
             print()
 
+        # Check if ALL scoring failed - total failure means no useful output
+        if len(failed_analyses) > 0 and len(failed_analyses) == total_to_score:
+            error_sample = failed_analyses[0][1][:200] if failed_analyses else "Unknown"
+            raise RuntimeError(
+                f"\n{'='*60}\n"
+                f"SCORING FAILED - All {len(failed_analyses)} clusters failed to score\n"
+                f"{'='*60}\n"
+                f"Sample error: {error_sample}\n"
+                f"{'='*60}"
+            )
+
         # Print summary statistics
         total_rows = len(results)
         scored_rows = results['Score'].notna().sum()

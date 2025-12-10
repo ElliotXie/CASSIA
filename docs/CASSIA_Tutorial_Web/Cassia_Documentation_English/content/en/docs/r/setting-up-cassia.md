@@ -56,7 +56,17 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 - Set `provider` to `"openai"`, `"anthropic"`, or `"openrouter"` depending on your provider.
 - Setting `persist = TRUE` saves the key in your `.Renviron` file for future sessions.
 
+## Validating API Keys
 
+You can verify that your API keys are working correctly before running analyses:
+
+```r
+# Validate all configured providers
+validate_api_keys(force_revalidate = TRUE)
+
+# Validate a specific provider
+validate_api_keys("openai", force_revalidate = TRUE)
+```
 
 ## How to Select Models and Providers
 

@@ -77,7 +77,8 @@ def run_annotation_boost_test(results_dir):
     batch_results_file = None
 
     if batch_results_dir:
-        potential_file = batch_results_dir / "batch_results_full.csv"
+        # Results are in the outputs subfolder
+        potential_file = batch_results_dir / "outputs" / "batch_results_summary.csv"
         if potential_file.exists():
             batch_results_file = str(potential_file)
             print(f"\nUsing existing batch results: {batch_results_file}")
@@ -107,6 +108,15 @@ def run_annotation_boost_test(results_dir):
     cluster_col = 'Cluster ID' if 'Cluster ID' in batch_df.columns else ('True Cell Type' if 'True Cell Type' in batch_df.columns else batch_df.columns[0])
     available_clusters = batch_df[cluster_col].tolist()
 
+    # Derive conversations JSON path from batch results file
+    # batch_results_full.csv -> batch_results_conversations.json
+    conversations_json_path = batch_results_file.replace('_full.csv', '_conversations.json').replace('_summary.csv', '_conversations.json')
+    if not Path(conversations_json_path).exists():
+        print(f"Warning: Conversations JSON not found at {conversations_json_path}")
+        conversations_json_path = None
+    else:
+        print(f"Using conversations JSON: {conversations_json_path}")
+
     # Test cluster for annotation boost
     test_cluster = "plasma cell"
     if test_cluster not in available_clusters:
@@ -126,11 +136,19 @@ def run_annotation_boost_test(results_dir):
     output_name = str(results_dir['outputs'] / f"boost_{test_cluster.replace(' ', '_')}")
 
     try:
+        # Get annotation boost settings from config
+        boost_config = config.get('annotation_boost', {})
+        conversation_history_mode = boost_config.get('conversation_history_mode', 'full')
+        num_iterations = boost_config.get('num_iterations', 3)
+        search_strategy = boost_config.get('search_strategy', 'breadth')
+
         print(f"\nRunning annotation boost (pip install mode)...")
         print(f"  Cluster: {test_cluster}")
         print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
-        print(f"  Max iterations: 3 (reduced for testing)")
+        print(f"  Search strategy: {search_strategy}")
+        print(f"  Max iterations: {num_iterations}")
+        print(f"  Conversation history mode: {conversation_history_mode}")
 
         result = CASSIA.runCASSIA_annotationboost(
             full_result_path=batch_results_file,
@@ -138,13 +156,14 @@ def run_annotation_boost_test(results_dir):
             cluster_name=test_cluster,
             major_cluster_info=f"{data_config.get('species', 'human')} {data_config.get('tissue', 'large intestine')}",
             output_name=output_name,
-            num_iterations=3,
+            num_iterations=num_iterations,
             model=llm_config.get('model', 'google/gemini-2.5-flash'),
             provider=llm_config.get('provider', 'openrouter'),
             temperature=llm_config.get('temperature', 0.3),
-            conversation_history_mode="final",
-            search_strategy="breadth",
-            report_style="per_iteration"
+            conversation_history_mode=conversation_history_mode,
+            search_strategy=search_strategy,
+            report_style="per_iteration",
+            conversations_json_path=conversations_json_path
         )
 
         # Check result

@@ -36,7 +36,7 @@ def runCASSIA_pipeline(
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
     output_dir: str = None,
-    validate_api_keys_before_start: bool = False
+    validate_api_keys_before_start: bool = True
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -65,8 +65,8 @@ def runCASSIA_pipeline(
         report_style (str): Style of report generation ("per_iteration" or "total_summary")
         validator_involvement (str): Validator involvement level
         output_dir (str): Directory where the output folder will be created. If None, uses current working directory.
-        validate_api_keys_before_start (bool): If True, validates all required API keys before starting the pipeline.
-            Fails fast with clear error messages if any keys are invalid. Default: False.
+        validate_api_keys_before_start (bool): If True, validates the API key before starting.
+            Fails fast with clear error message if the key is invalid. Default: True.
     """
     # Import dependencies here to avoid circular imports
     try:
@@ -86,52 +86,30 @@ def runCASSIA_pipeline(
             from generate_batch_report import generate_batch_html_report_from_data
             from annotation_boost import runCASSIA_annotationboost
 
-    # Validate API keys before starting pipeline (if requested)
-    if validate_api_keys_before_start:
+    # Import validation function
+    try:
+        from CASSIA.core.validation import validate_runCASSIA_pipeline_inputs
+    except ImportError:
         try:
-            from CASSIA.core.api_validation import validate_api_keys
+            from ..core.validation import validate_runCASSIA_pipeline_inputs
         except ImportError:
-            try:
-                from ..core.api_validation import validate_api_keys
-            except ImportError:
-                from api_validation import validate_api_keys
+            from validation import validate_runCASSIA_pipeline_inputs
 
-        print("\n=== Validating API Keys ===")
+    # Validate all inputs early (fail-fast)
+    validate_runCASSIA_pipeline_inputs(
+        output_file_name=output_file_name,
+        tissue=tissue,
+        species=species,
+        marker=marker,
+        max_workers=max_workers,
+        max_retries=max_retries,
+        score_threshold=score_threshold,
+        conversation_history_mode=conversation_history_mode,
+        report_style=report_style
+    )
 
-        # Collect all providers that will be used
-        providers_to_check = set()
-        if annotation_provider:
-            providers_to_check.add(annotation_provider)
-        if score_provider:
-            providers_to_check.add(score_provider)
-        if annotationboost_provider:
-            providers_to_check.add(annotationboost_provider)
-        if merge_annotations and merge_provider:
-            providers_to_check.add(merge_provider)
-
-        # Remove None values
-        providers_to_check.discard(None)
-
-        # Validate each provider
-        validation_failed = False
-        for provider in providers_to_check:
-            # Skip custom HTTP URLs (can't validate easily)
-            if provider.startswith("http"):
-                print(f"Skipping validation for custom provider: {provider}")
-                continue
-
-            is_valid = validate_api_keys(provider, verbose=True)
-            if not is_valid:
-                validation_failed = True
-
-        if validation_failed:
-            raise ValueError(
-                "API key validation failed for one or more providers. "
-                "Please check the error messages above and fix your API keys. "
-                "You can set API keys with: CASSIA.set_api_key(provider, 'your-key')"
-            )
-
-        print("✓ All API keys validated successfully\n")
+    # Note: API key validation is handled by runCASSIA_batch (called first)
+    # via the validate_api_key_before_start parameter
 
     # Determine base directory for output
     if output_dir is not None:
@@ -192,6 +170,7 @@ def runCASSIA_pipeline(
 
     print("\n=== Starting cell type analysis ===")
     # Run initial cell type analysis
+    # API key validation happens here via validate_api_key_before_start
     runCASSIA_batch(
         marker=marker,
         output_name=annotation_output,
@@ -204,7 +183,8 @@ def runCASSIA_pipeline(
         max_retries=max_retries,
         ranking_method=ranking_method,
         ascending=ascending,
-        validator_involvement=validator_involvement
+        validator_involvement=validator_involvement,
+        validate_api_key_before_start=validate_api_keys_before_start
     )
     print("✓ Cell type analysis completed")
 
@@ -221,6 +201,22 @@ def runCASSIA_pipeline(
         import shutil
         shutil.copy2(original_conversations_json, raw_conversations_json)
         print(f"Copied conversations JSON to {raw_conversations_json}")
+
+    # Verify batch output was created before proceeding
+    if not os.path.exists(raw_summary_csv):
+        raise RuntimeError(
+            f"Batch annotation failed to create output file: {raw_summary_csv}\n"
+            "Cannot proceed with scoring."
+        )
+
+    # Check if file has actual data (not just headers)
+    df_check = pd.read_csv(raw_summary_csv)
+    if len(df_check) == 0:
+        raise RuntimeError(
+            f"Batch annotation produced empty results in: {raw_summary_csv}\n"
+            "Cannot proceed with scoring."
+        )
+    print(f"Verified batch output: {len(df_check)} clusters annotated")
 
     # Merge annotations if requested
     if merge_annotations:
@@ -252,7 +248,8 @@ def runCASSIA_pipeline(
             )
             print(f"✓ Annotations merged and saved to {merged_annotation_file}")
         except Exception as e:
-            print(f"! Error during annotation merging: {str(e)}")
+            print(f"Warning: Annotation merging failed: {str(e)}")
+            print("Continuing without merged annotations (this is an optional feature)...")
 
     print("\n=== Starting scoring process ===")
     # Run scoring (generate_report=False because pipeline handles its own report)
@@ -292,8 +289,7 @@ def runCASSIA_pipeline(
         print(f"✓ Final combined results saved to {final_combined_file}")
 
     except Exception as e:
-        print(f"Warning: Could not create final combined results: {str(e)}")
-        final_combined_file = score_file_name  # Fallback to scored file
+        raise RuntimeError(f"Failed to create final combined results: {str(e)}")
 
     print("\n=== Generating main reports ===")
     # Read final combined CSV (includes merged groupings) and convert to list of dicts

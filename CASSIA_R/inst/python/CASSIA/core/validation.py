@@ -546,6 +546,14 @@ def validate_marker_dataframe(
                 parameter=parameter_name,
                 received_value="empty DataFrame"
             )
+        # Check minimum columns (need at least cluster and gene columns)
+        if len(marker.columns) < 2:
+            raise BatchParameterValidationError(
+                f"Marker DataFrame must have at least 2 columns (cluster and gene). "
+                f"Got {len(marker.columns)} column(s): {list(marker.columns)}",
+                parameter=parameter_name,
+                received_value=f"{len(marker.columns)} columns"
+            )
         return marker
 
     # Case 2: File path
@@ -561,6 +569,35 @@ def validate_marker_dataframe(
             raise BatchParameterValidationError(
                 f"Marker file not found: '{marker}'. "
                 "Please check the file path.",
+                parameter=parameter_name,
+                received_value=marker
+            )
+
+        # Validate file content
+        try:
+            test_df = pd.read_csv(marker, nrows=5)  # Read only first 5 rows for validation
+            if test_df.empty:
+                raise BatchParameterValidationError(
+                    f"Marker file is empty: '{marker}'",
+                    parameter=parameter_name,
+                    received_value=marker
+                )
+            if len(test_df.columns) < 2:
+                raise BatchParameterValidationError(
+                    f"Marker file must have at least 2 columns (cluster and gene). "
+                    f"Got {len(test_df.columns)} column(s): {list(test_df.columns)}",
+                    parameter=parameter_name,
+                    received_value=f"{len(test_df.columns)} columns in {marker}"
+                )
+        except pd.errors.EmptyDataError:
+            raise BatchParameterValidationError(
+                f"Marker file is empty or has no data: '{marker}'",
+                parameter=parameter_name,
+                received_value=marker
+            )
+        except pd.errors.ParserError as e:
+            raise BatchParameterValidationError(
+                f"Could not parse marker file as CSV: '{marker}'. Error: {str(e)}",
                 parameter=parameter_name,
                 received_value=marker
             )
@@ -868,5 +905,273 @@ def validate_runCASSIA_with_reference_inputs(
                 parameter="reference_threshold",
                 received_value=reference_threshold
             )
+
+    return validated
+
+
+def validate_runCASSIA_pipeline_inputs(
+    output_file_name: Any,
+    tissue: Any,
+    species: Any,
+    marker: Any,
+    max_workers: Any,
+    max_retries: Any,
+    score_threshold: Any,
+    conversation_history_mode: Any,
+    report_style: Any,
+    **kwargs
+) -> dict:
+    """
+    Validate all inputs for runCASSIA_pipeline function.
+
+    Args:
+        output_file_name: Base name for output files
+        tissue: Tissue type being analyzed
+        species: Species being analyzed
+        marker: Marker data (DataFrame or file path)
+        max_workers: Maximum number of concurrent workers
+        max_retries: Maximum number of retries for failed analyses
+        score_threshold: Threshold for identifying low-scoring clusters (0-100)
+        conversation_history_mode: Mode for extracting conversation history
+        report_style: Style of report generation
+
+    Returns:
+        dict: Dictionary of validated parameters
+
+    Raises:
+        CASSIAValidationError: If any validation fails
+    """
+    validated = {}
+
+    # Validate marker (reuse existing)
+    validated['marker'] = validate_marker_dataframe(marker)
+
+    # Validate tissue and species (reuse existing)
+    validated['tissue'] = validate_tissue(tissue)
+    validated['species'] = validate_species(species)
+
+    # Validate output_file_name
+    if not output_file_name or not isinstance(output_file_name, str):
+        raise BatchParameterValidationError(
+            f"'output_file_name' must be a non-empty string.\n"
+            f"Got: {repr(output_file_name)}",
+            parameter="output_file_name",
+            received_value=output_file_name
+        )
+    validated['output_file_name'] = output_file_name
+
+    # Validate max_workers and max_retries (reuse existing)
+    validated['max_workers'] = validate_positive_int(max_workers, "max_workers")
+    validated['max_retries'] = validate_positive_int(max_retries, "max_retries", allow_zero=True)
+
+    # Validate score_threshold
+    if not isinstance(score_threshold, (int, float)) or score_threshold < 0 or score_threshold > 100:
+        raise BatchParameterValidationError(
+            f"'score_threshold' must be a number between 0 and 100.\n"
+            f"Got: {score_threshold}",
+            parameter="score_threshold",
+            received_value=score_threshold
+        )
+    validated['score_threshold'] = score_threshold
+
+    # Validate conversation_history_mode
+    valid_modes = ["full", "final", "none"]
+    if conversation_history_mode not in valid_modes:
+        raise BatchParameterValidationError(
+            f"'conversation_history_mode' must be one of: {valid_modes}\n"
+            f"Got: {repr(conversation_history_mode)}",
+            parameter="conversation_history_mode",
+            received_value=conversation_history_mode
+        )
+    validated['conversation_history_mode'] = conversation_history_mode
+
+    # Validate report_style
+    valid_styles = ["per_iteration", "total_summary"]
+    if report_style not in valid_styles:
+        raise BatchParameterValidationError(
+            f"'report_style' must be one of: {valid_styles}\n"
+            f"Got: {repr(report_style)}",
+            parameter="report_style",
+            received_value=report_style
+        )
+    validated['report_style'] = report_style
+
+    return validated
+
+
+def validate_runCASSIA_annotationboost_inputs(
+    full_result_path: Any,
+    marker: Any,
+    cluster_name: Any,
+    num_iterations: Any,
+    temperature: Any,
+    conversation_history_mode: Any,
+    report_style: Any,
+    **kwargs
+) -> dict:
+    """
+    Validate all inputs for runCASSIA_annotationboost function.
+
+    Args:
+        full_result_path: Path to the CASSIA batch results CSV
+        marker: Marker data (DataFrame or file path)
+        cluster_name: Name of the cluster to boost
+        num_iterations: Number of boosting iterations
+        temperature: LLM temperature setting
+        conversation_history_mode: Mode for extracting conversation history
+        report_style: Style of report generation
+
+    Returns:
+        dict: Dictionary of validated parameters
+
+    Raises:
+        CASSIAValidationError: If any validation fails
+    """
+    validated = {}
+
+    # Validate full_result_path exists
+    if not isinstance(full_result_path, str) or not full_result_path.strip():
+        raise BatchParameterValidationError(
+            f"'full_result_path' must be a non-empty string path.",
+            parameter="full_result_path",
+            received_value=full_result_path
+        )
+    if not os.path.exists(full_result_path):
+        raise BatchParameterValidationError(
+            f"Result file not found: '{full_result_path}'\n"
+            f"Please provide a valid path to your CASSIA batch results CSV.",
+            parameter="full_result_path",
+            received_value=full_result_path
+        )
+    validated['full_result_path'] = full_result_path
+
+    # Validate marker (reuse existing)
+    validated['marker'] = validate_marker_dataframe(marker)
+
+    # Validate cluster_name exists in results
+    results_df = pd.read_csv(full_result_path)
+    if 'Cluster ID' not in results_df.columns:
+        raise BatchParameterValidationError(
+            f"Results file missing 'Cluster ID' column.\n"
+            f"Available columns: {list(results_df.columns)}",
+            parameter="full_result_path",
+            received_value=full_result_path
+        )
+
+    available_clusters = results_df['Cluster ID'].unique().tolist()
+    if cluster_name not in available_clusters:
+        raise BatchParameterValidationError(
+            f"Cluster '{cluster_name}' not found in results file.\n"
+            f"Available clusters: {available_clusters}",
+            parameter="cluster_name",
+            received_value=cluster_name
+        )
+    validated['cluster_name'] = cluster_name
+
+    # Validate num_iterations
+    if not isinstance(num_iterations, int) or num_iterations < 1:
+        raise BatchParameterValidationError(
+            f"'num_iterations' must be a positive integer (>= 1).\n"
+            f"Got: {num_iterations}",
+            parameter="num_iterations",
+            received_value=num_iterations
+        )
+    validated['num_iterations'] = num_iterations
+
+    # Validate temperature (reuse existing)
+    validated['temperature'] = validate_temperature(temperature)
+
+    # Validate conversation_history_mode
+    valid_modes = ["full", "final", "none"]
+    if conversation_history_mode not in valid_modes:
+        raise BatchParameterValidationError(
+            f"'conversation_history_mode' must be one of: {valid_modes}\n"
+            f"Got: {repr(conversation_history_mode)}",
+            parameter="conversation_history_mode",
+            received_value=conversation_history_mode
+        )
+    validated['conversation_history_mode'] = conversation_history_mode
+
+    # Validate report_style
+    valid_styles = ["per_iteration", "total_summary"]
+    if report_style not in valid_styles:
+        raise BatchParameterValidationError(
+            f"'report_style' must be one of: {valid_styles}\n"
+            f"Got: {repr(report_style)}",
+            parameter="report_style",
+            received_value=report_style
+        )
+    validated['report_style'] = report_style
+
+    return validated
+
+
+def validate_runCASSIA_uncertainty_inputs(
+    n: Any,
+    weights: Any = None,
+    marker_list: Any = None,
+    **kwargs
+) -> dict:
+    """
+    Validate all inputs for runCASSIA_uncertainty function.
+
+    Args:
+        n: Number of iterations
+        weights: Optional dictionary of metric weights (0-1)
+        marker_list: Optional list of marker gene names
+
+    Returns:
+        dict: Dictionary of validated parameters
+
+    Raises:
+        CASSIAValidationError: If any validation fails
+    """
+    validated = {}
+
+    # Validate n (number of iterations)
+    if not isinstance(n, int) or n < 1:
+        raise BatchParameterValidationError(
+            f"'n' (number of iterations) must be a positive integer (>= 1).\n"
+            f"Got: {n}",
+            parameter="n",
+            received_value=n
+        )
+    validated['n'] = n
+
+    # Validate weights if provided
+    if weights is not None:
+        if not isinstance(weights, dict):
+            raise BatchParameterValidationError(
+                f"'weights' must be a dictionary mapping metric names to weights.\n"
+                f"Got: {type(weights).__name__}",
+                parameter="weights",
+                received_value=type(weights).__name__
+            )
+        for key, value in weights.items():
+            if not isinstance(value, (int, float)) or value < 0 or value > 1:
+                raise BatchParameterValidationError(
+                    f"Weight values must be numbers between 0 and 1.\n"
+                    f"Got weights['{key}'] = {value}",
+                    parameter="weights",
+                    received_value=weights
+                )
+    validated['weights'] = weights
+
+    # Validate marker_list if provided
+    if marker_list is not None:
+        if not isinstance(marker_list, list):
+            raise BatchParameterValidationError(
+                f"'marker_list' must be a list of marker gene names.\n"
+                f"Got: {type(marker_list).__name__}",
+                parameter="marker_list",
+                received_value=type(marker_list).__name__
+            )
+        if len(marker_list) == 0:
+            raise BatchParameterValidationError(
+                f"'marker_list' cannot be empty. Provide at least one marker gene.",
+                parameter="marker_list",
+                received_value=marker_list
+            )
+    validated['marker_list'] = marker_list
 
     return validated

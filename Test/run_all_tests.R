@@ -120,9 +120,18 @@ run_r_test <- function(test_folder, install_mode = FALSE) {
     if (exit_code != 0) {
       res$stderr <- stderr_content
       res$reason <- if (nchar(stderr_content) > 0) {
-        # Extract last meaningful line as reason
+        # Extract last meaningful line as reason, filtering out harmless warnings
         lines <- strsplit(stderr_content, "\n")[[1]]
         lines <- lines[nchar(trimws(lines)) > 0]
+        # Filter out known harmless R warnings (version mismatch, etc.)
+        harmless_patterns <- c(
+          "was built under R version",
+          "namespace .* is not available",
+          "closing unused connection"
+        )
+        lines <- lines[!sapply(lines, function(l) {
+          any(sapply(harmless_patterns, function(p) grepl(p, l, ignore.case = TRUE)))
+        })]
         if (length(lines) > 0) tail(lines, 1) else paste("Exit code:", exit_code)
       } else {
         paste("Exit code:", exit_code)

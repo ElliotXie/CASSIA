@@ -65,7 +65,8 @@ run_annotation_boost_test <- function() {
   batch_results_file <- NULL
 
   if (!is.null(batch_results_dir)) {
-    potential_file <- file.path(batch_results_dir, "batch_results_summary.csv")
+    # Results are in the outputs subfolder
+    potential_file <- file.path(batch_results_dir, "outputs", "batch_results_summary.csv")
     if (file.exists(potential_file)) {
       batch_results_file <- potential_file
       log_msg("\nUsing existing batch results:", batch_results_file)
@@ -98,6 +99,16 @@ run_annotation_boost_test <- function() {
   cluster_col <- if ("True.Cell.Type" %in% names(batch_df)) "True.Cell.Type" else names(batch_df)[1]
   available_clusters <- batch_df[[cluster_col]]
 
+  # Derive conversations JSON path from batch results file
+  # batch_results_summary.csv -> batch_results_conversations.json
+  conversations_json_path <- gsub("_summary\\.csv$", "_conversations.json", batch_results_file)
+  if (!file.exists(conversations_json_path)) {
+    log_msg("Warning: Conversations JSON not found at", conversations_json_path)
+    conversations_json_path <- NULL
+  } else {
+    log_msg("Using conversations JSON:", conversations_json_path)
+  }
+
   # Test cluster for annotation boost
   test_cluster <- "plasma cell"
   if (!(test_cluster %in% available_clusters)) {
@@ -119,12 +130,19 @@ run_annotation_boost_test <- function() {
   output_name <- file.path(results_dirs$outputs, paste0("boost_", gsub(" ", "_", test_cluster)))
 
   tryCatch({
+    # Get annotation boost settings from config
+    boost_config <- config$annotation_boost %||% list()
+    conversation_history_mode <- boost_config$conversation_history_mode %||% "full"
+    num_iterations <- boost_config$num_iterations %||% 3
+    search_strategy <- boost_config$search_strategy %||% "breadth"
+
     log_msg("\nRunning annotation boost (install mode)...")
     log_msg("  Cluster:", test_cluster)
     log_msg("  Model:", llm_config$model %||% "google/gemini-2.5-flash")
     log_msg("  Provider:", llm_config$provider %||% "openrouter")
-    log_msg("  Search strategy: breadth")
-    log_msg("  Max iterations: 3 (reduced for testing)")
+    log_msg("  Search strategy:", search_strategy)
+    log_msg("  Max iterations:", num_iterations)
+    log_msg("  Conversation history mode:", conversation_history_mode)
 
     # Run annotation boost (returns NULL, outputs are files)
     CASSIA::runCASSIA_annotationboost(
@@ -134,13 +152,14 @@ run_annotation_boost_test <- function() {
       major_cluster_info = paste(data_config$species %||% "human",
                                   data_config$tissue %||% "large intestine"),
       output_name = output_name,
-      num_iterations = 3,  # Reduced for faster testing
+      num_iterations = num_iterations,
       model = llm_config$model %||% "google/gemini-2.5-flash",
       provider = llm_config$provider %||% "openrouter",
       temperature = llm_config$temperature %||% 0.3,
-      conversation_history_mode = "final",
-      search_strategy = "breadth",
-      report_style = "per_iteration"
+      conversation_history_mode = conversation_history_mode,
+      search_strategy = search_strategy,
+      report_style = "per_iteration",
+      conversations_json_path = conversations_json_path
     )
 
     # Check output files exist (function outputs files, not return values)

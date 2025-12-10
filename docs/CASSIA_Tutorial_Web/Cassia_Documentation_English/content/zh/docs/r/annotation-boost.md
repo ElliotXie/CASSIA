@@ -39,17 +39,21 @@ target_cluster = "CD4+ T cell"
 # 运行验证
 runCASSIA_annotationboost(
     # 必需参数
-    full_result_path = "cell_type_analysis_results.csv",
+    full_result_path = "batch_results_summary.csv",
     marker = marker_data,
     cluster_name = target_cluster,
     major_cluster_info = cluster_info,
     output_name = "Cluster1_report",
-    
+
     # 可选参数
     num_iterations = 5,             # 验证轮数
     model = validation_config$model,
     provider = validation_config$provider,
-    
+
+    # 对话历史（来自批量注释）
+    conversations_json_path = "batch_results_conversations.json",
+    conversation_history_mode = "full",  # "full"、"final"（摘要）或 "none"
+
     # 高级选项
     search_strategy = "breadth",    # "breadth"（广度）或 "depth"（深度）
     report_style = "per_iteration", # "per_iteration"（每次迭代）或 "total_summary"（总体摘要）
@@ -59,14 +63,19 @@ runCASSIA_annotationboost(
 
 ### 参数详情
 
-- **`full_result_path`**: 原始 CASSIA 结果 CSV 文件的路径。
+- **`full_result_path`**: CASSIA 结果 CSV 文件的路径（`_summary.csv`）。
 - **`marker`**: 标记基因数据（数据框或路径）。**重要**：请使用与初始分析相同的标记数据（不要过滤）。
 - **`cluster_name`**: 要验证的目标簇的确切名称。
-- **`major_cluster_info`**: 数据集的上下文信息（例如，“Human PBMC”, “Mouse Brain”）。
+- **`major_cluster_info`**: 数据集的上下文信息（例如，"Human PBMC", "Mouse Brain"）。
 - **`output_name`**: 输出验证报告的基本名称。
 - **`num_iterations`**: 验证轮数（默认：5）。
 - **`model`**: 用于验证的 LLM 模型。
 - **`provider`**: 模型的 API 提供商。
+- **`conversations_json_path`**: 批量注释的对话 JSON 文件路径（`_conversations.json`）。这为深入分析提供了先前的注释上下文。
+- **`conversation_history_mode`**: 如何使用先前的对话历史。
+    - `"full"`（默认）：使用完整的先前对话历史作为上下文。
+    - `"final"`：在使用之前先用 LLM 对历史进行摘要。
+    - `"none"`：不使用任何先前的对话历史。
 - **`search_strategy`**: 探索假设的策略。
     - `"breadth"`（默认）：并行测试多个假设。
     - `"depth"`：深入关注验证单个假设。
