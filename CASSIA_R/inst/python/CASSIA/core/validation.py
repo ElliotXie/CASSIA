@@ -1175,3 +1175,113 @@ def validate_runCASSIA_uncertainty_inputs(
     validated['marker_list'] = marker_list
 
     return validated
+
+
+def validate_symphony_compare_inputs(
+    tissue: Any,
+    celltypes: Any,
+    marker_set: Any,
+    species: Any,
+    model_preset: Any,
+    consensus_threshold: Any,
+    max_discussion_rounds: Any,
+    custom_models: Any = None,
+    **kwargs
+) -> dict:
+    """
+    Validate all inputs for symphonyCompare function.
+
+    Args:
+        tissue: Tissue type being analyzed
+        celltypes: List of 2-4 cell types to compare
+        marker_set: Comma-separated string of gene markers
+        species: Species being analyzed
+        model_preset: Preset model configuration ('budget', 'premium', 'custom')
+        consensus_threshold: Fraction of models that must agree (0-1)
+        max_discussion_rounds: Maximum number of discussion rounds
+        custom_models: Custom list of models (required when model_preset='custom')
+
+    Returns:
+        dict: Dictionary of validated parameters
+
+    Raises:
+        CASSIAValidationError: If any validation fails
+    """
+    validated = {}
+
+    # Validate celltypes (2-4 non-empty strings)
+    if not celltypes or not isinstance(celltypes, (list, tuple)):
+        raise CASSIAValidationError(
+            "celltypes must be a list of 2-4 cell type names",
+            parameter="celltypes",
+            received_value=celltypes
+        )
+    if len(celltypes) < 2 or len(celltypes) > 4:
+        raise CASSIAValidationError(
+            f"Please provide 2-4 cell types to compare (received {len(celltypes)})",
+            parameter="celltypes",
+            received_value=celltypes
+        )
+    for ct in celltypes:
+        if not ct or not isinstance(ct, str) or not ct.strip():
+            raise CASSIAValidationError(
+                "Each cell type must be a non-empty string",
+                parameter="celltypes",
+                received_value=ct
+            )
+    validated['celltypes'] = [ct.strip() for ct in celltypes]
+
+    # Validate tissue (reuse existing)
+    validated['tissue'] = validate_tissue(tissue)
+
+    # Validate species (reuse existing)
+    validated['species'] = validate_species(species)
+
+    # Validate marker_set (non-empty string)
+    if not marker_set or not isinstance(marker_set, str) or not marker_set.strip():
+        raise CASSIAValidationError(
+            "marker_set must be a non-empty string of comma-separated gene markers",
+            parameter="marker_set",
+            received_value=marker_set
+        )
+    validated['marker_set'] = marker_set.strip()
+
+    # Validate model_preset
+    valid_presets = ["budget", "premium", "custom"]
+    if model_preset not in valid_presets:
+        raise CASSIAValidationError(
+            f"model_preset must be one of: {', '.join(valid_presets)}",
+            parameter="model_preset",
+            received_value=model_preset
+        )
+    validated['model_preset'] = model_preset
+
+    # Validate custom_models if preset is "custom"
+    if model_preset == "custom":
+        if not custom_models or not isinstance(custom_models, list) or len(custom_models) == 0:
+            raise CASSIAValidationError(
+                "custom_models must be a non-empty list when model_preset='custom'",
+                parameter="custom_models",
+                received_value=custom_models
+            )
+    validated['custom_models'] = custom_models
+
+    # Validate consensus_threshold (0-1)
+    if not isinstance(consensus_threshold, (int, float)) or consensus_threshold < 0 or consensus_threshold > 1:
+        raise CASSIAValidationError(
+            "consensus_threshold must be a number between 0 and 1",
+            parameter="consensus_threshold",
+            received_value=consensus_threshold
+        )
+    validated['consensus_threshold'] = float(consensus_threshold)
+
+    # Validate max_discussion_rounds (non-negative integer)
+    if not isinstance(max_discussion_rounds, int) or max_discussion_rounds < 0:
+        raise CASSIAValidationError(
+            "max_discussion_rounds must be a non-negative integer",
+            parameter="max_discussion_rounds",
+            received_value=max_discussion_rounds
+        )
+    validated['max_discussion_rounds'] = max_discussion_rounds
+
+    return validated

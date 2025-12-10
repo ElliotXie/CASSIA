@@ -17,10 +17,23 @@ import os
 import requests
 import re
 import json
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Tuple, Optional, Union, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from collections import Counter
+
+# Import validation modules for fail-fast error handling
+try:
+    from CASSIA.core.api_validation import _validate_single_provider
+    from CASSIA.core.validation import validate_symphony_compare_inputs
+except ImportError:
+    try:
+        from ..core.api_validation import _validate_single_provider
+        from ..core.validation import validate_symphony_compare_inputs
+    except ImportError:
+        # Fallback for standalone usage - validation will be skipped
+        _validate_single_provider = None
+        validate_symphony_compare_inputs = None
 
 
 def symphonyCompare(
@@ -37,7 +50,8 @@ def symphonyCompare(
     consensus_threshold: float = 2/3,
     generate_report: bool = True,
     api_key: Optional[str] = None,
-    verbose: bool = True
+    verbose: bool = True,
+    validate_api_key_before_start: bool = True
 ) -> Dict:
     """
     Symphony Compare - Orchestrate multiple AI models to compare cell types with consensus building.
@@ -64,7 +78,10 @@ def symphonyCompare(
         generate_report (bool): Generate interactive HTML report (default: True)
         api_key (str): OpenRouter API key (uses environment variable if None)
         verbose (bool): Print progress messages (default: True)
-    
+        validate_api_key_before_start (bool): Validate API key before starting.
+            If True (default), makes a minimal test API call to verify the key works
+            before processing. This prevents confusing errors when the key is invalid.
+
     Returns:
         Dict containing:
             - 'results': List of all model responses and scores
@@ -120,22 +137,97 @@ def symphonyCompare(
                 _call_model
             )
     
-    # Get API key
+    # ========================================================================
+    # STEP 1: Validate all inputs early (fail-fast)
+    # ========================================================================
+    if validate_symphony_compare_inputs is not None:
+        validated = validate_symphony_compare_inputs(
+            tissue=tissue,
+            celltypes=celltypes,
+            marker_set=marker_set,
+            species=species,
+            model_preset=model_preset,
+            consensus_threshold=consensus_threshold,
+            max_discussion_rounds=max_discussion_rounds,
+            custom_models=custom_models
+        )
+        # Use validated values
+        celltypes = validated['celltypes']
+        tissue = validated['tissue']
+        species = validated['species']
+        marker_set = validated['marker_set']
+        model_preset = validated['model_preset']
+        custom_models = validated['custom_models']
+        consensus_threshold = validated['consensus_threshold']
+        max_discussion_rounds = validated['max_discussion_rounds']
+    else:
+        # Fallback validation if module not available
+        if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
+            raise ValueError("Please provide 2-4 cell types to compare")
+
+    # ========================================================================
+    # STEP 2: Get and validate API key (fail-fast)
+    # ========================================================================
     if api_key is None:
         api_key = os.environ.get('OPENROUTER_API_KEY')
-    if not api_key:
-        raise ValueError(
-            "OPENROUTER_API_KEY not found.\n"
-            "Symphony Compare uses models from multiple providers (OpenAI, Anthropic, Google, etc.),\n"
-            "so an OpenRouter API key is required to access all models through a unified endpoint.\n"
-            "Get your API key at: https://openrouter.ai/keys\n"
-            "Then set it as an environment variable: export OPENROUTER_API_KEY='your-key'\n"
-            "Or pass it directly: symphonyCompare(..., api_key='your-key')"
-        )
-    
-    # Input validation
-    if not celltypes or len(celltypes) < 2 or len(celltypes) > 4:
-        raise ValueError("Please provide 2-4 cell types to compare")
+
+    if validate_api_key_before_start:
+        # Check if API key exists
+        if not api_key:
+            raise ValueError(
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] API KEY NOT FOUND\n"
+                f"{'='*60}\n"
+                f"OPENROUTER_API_KEY environment variable is not set.\n\n"
+                f"How to fix:\n"
+                f"  1. Get your API key at: https://openrouter.ai/keys\n"
+                f"  2. Set environment variable:\n"
+                f"     export OPENROUTER_API_KEY='your-key'\n"
+                f"  3. Or pass directly:\n"
+                f"     symphonyCompare(..., api_key='your-key')\n"
+                f"{'='*60}"
+            )
+
+        # Validate the API key actually works
+        if _validate_single_provider is not None:
+            if verbose:
+                print("Validating API key...")
+
+            is_valid, error_msg = _validate_single_provider(
+                "openrouter", api_key, force_revalidate=False, verbose=False
+            )
+
+            if not is_valid:
+                raise ValueError(
+                    f"\n{'='*60}\n"
+                    f"[CASSIA Error] API KEY VALIDATION FAILED\n"
+                    f"{'='*60}\n"
+                    f"Provider: OpenRouter\n"
+                    f"Error: {error_msg}\n\n"
+                    f"How to fix:\n"
+                    f"  1. Check your API key is valid at: https://openrouter.ai/keys\n"
+                    f"  2. Ensure you have credits in your account\n"
+                    f"  3. Set a new key:\n"
+                    f"     export OPENROUTER_API_KEY='your-new-key'\n"
+                    f"{'='*60}"
+                )
+
+            if verbose:
+                print("API key validated successfully for OpenRouter\n")
+    else:
+        # Even without pre-validation, we still need an API key
+        if not api_key:
+            raise ValueError(
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] API KEY NOT FOUND\n"
+                f"{'='*60}\n"
+                f"OPENROUTER_API_KEY environment variable is not set.\n\n"
+                f"How to fix:\n"
+                f"  Get your API key at: https://openrouter.ai/keys\n"
+                f"  Then set it: export OPENROUTER_API_KEY='your-key'\n"
+                f"  Or pass directly: symphonyCompare(..., api_key='your-key')\n"
+                f"{'='*60}"
+            )
     
     # Set up output directory and filenames
     if output_dir is None:
@@ -252,7 +344,7 @@ Ranked marker set: {marker_set}"""
     
     with ThreadPoolExecutor(max_workers=len(model_list)) as executor:
         future_to_model = {
-            executor.submit(_call_model, model, initial_prompt, tissue, species, celltypes, 'initial', api_key, is_discussion_round=False): model 
+            executor.submit(_call_model, model, initial_prompt, tissue, species, celltypes, 'initial', api_key, is_discussion_round=False): model
             for model in model_list
         }
         for future in as_completed(future_to_model):
@@ -260,7 +352,28 @@ Ranked marker set: {marker_set}"""
             result['researcher'] = model_to_persona.get(result['model'], result['model'])
             current_results.append(result)
             all_results.append(result)
-    
+
+    # ========================================================================
+    # Check for auth errors - raise exception if all models failed with auth
+    # ========================================================================
+    auth_errors = [r for r in current_results if r.get('error_type') == 'auth']
+    if auth_errors and len(auth_errors) == len(model_list):
+        # All models failed with auth errors - raise exception
+        raise ValueError(
+            f"\n{'='*60}\n"
+            f"[CASSIA Error] ALL MODELS FAILED - AUTHENTICATION ERROR\n"
+            f"{'='*60}\n"
+            f"All {len(model_list)} models failed with authentication errors.\n\n"
+            f"How to fix:\n"
+            f"  1. Check your OpenRouter API key is valid\n"
+            f"  2. Get a new key at: https://openrouter.ai/keys\n"
+            f"  3. Ensure you have credits in your account\n"
+            f"{'='*60}"
+        )
+    elif auth_errors and verbose:
+        # Some models failed with auth - warn but continue
+        print(f"\n⚠️  Warning: {len(auth_errors)}/{len(model_list)} models had authentication errors")
+
     # Check for initial consensus
     winners = []
     valid_results = [r for r in current_results if r['status'] == 'success' and r['extracted_scores']]

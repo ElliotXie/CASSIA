@@ -585,7 +585,7 @@ def generate_comparison_html_report(all_results: List[Dict], output_file: str = 
 
 
 def _call_model(model: str, prompt: str, tissue: str, species: str, celltypes: List[str], round_name: str, api_key: str, is_discussion_round: bool = False) -> Dict:
-    """Helper function to make a single API call to a model."""
+    """Helper function to make a single API call to a model with comprehensive error handling."""
     try:
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
@@ -598,14 +598,15 @@ def _call_model(model: str, prompt: str, tissue: str, species: str, celltypes: L
             json={
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}]
-            }
+            },
+            timeout=120  # Add timeout to prevent hanging
         )
 
         if response.status_code == 200:
             response_data = response.json()
             model_response = response_data['choices'][0]['message']['content']
             extracted_scores = extract_celltype_scores(model_response, celltypes)
-            
+
             discussion = None
             if is_discussion_round:
                 discussion = extract_discussion(model_response)
@@ -620,19 +621,153 @@ def _call_model(model: str, prompt: str, tissue: str, species: str, celltypes: L
             if discussion:
                 result_dict['discussion'] = discussion
             return result_dict
+
+        # ================================================================
+        # Categorized error handling with actionable guidance
+        # ================================================================
+        elif response.status_code == 401:
+            error_msg = (
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] AUTHENTICATION FAILED\n"
+                f"{'='*60}\n"
+                f"Model: {model}\n"
+                f"Status: 401 Unauthorized\n\n"
+                f"How to fix:\n"
+                f"  Check your OpenRouter API key is valid\n"
+                f"  Get a new key at: https://openrouter.ai/keys\n"
+                f"{'='*60}"
+            )
+            print(error_msg)
+            return {
+                'model': model, 'tissue': tissue, 'species': species,
+                'cell_types': ', '.join(celltypes),
+                'response': "Error: Authentication failed (401)",
+                'extracted_scores': {}, 'status': 'auth_error', 'round': round_name,
+                'error_type': 'auth', 'error_message': error_msg
+            }
+
+        elif response.status_code == 429:
+            error_msg = (
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] RATE LIMIT EXCEEDED\n"
+                f"{'='*60}\n"
+                f"Model: {model}\n"
+                f"Status: 429 Too Many Requests\n\n"
+                f"How to fix:\n"
+                f"  Wait a moment and try again\n"
+                f"  Consider using fewer parallel models\n"
+                f"{'='*60}"
+            )
+            print(error_msg)
+            return {
+                'model': model, 'tissue': tissue, 'species': species,
+                'cell_types': ', '.join(celltypes),
+                'response': "Error: Rate limit exceeded (429)",
+                'extracted_scores': {}, 'status': 'error', 'round': round_name,
+                'error_type': 'rate_limit', 'error_message': error_msg
+            }
+
+        elif response.status_code == 402:
+            error_msg = (
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] INSUFFICIENT CREDITS\n"
+                f"{'='*60}\n"
+                f"Model: {model}\n"
+                f"Status: 402 Payment Required\n\n"
+                f"How to fix:\n"
+                f"  Add credits to your OpenRouter account\n"
+                f"  Visit: https://openrouter.ai/credits\n"
+                f"{'='*60}"
+            )
+            print(error_msg)
+            return {
+                'model': model, 'tissue': tissue, 'species': species,
+                'cell_types': ', '.join(celltypes),
+                'response': "Error: Insufficient credits (402)",
+                'extracted_scores': {}, 'status': 'error', 'round': round_name,
+                'error_type': 'credits', 'error_message': error_msg
+            }
+
+        elif response.status_code == 404:
+            error_msg = (
+                f"\n{'='*60}\n"
+                f"[CASSIA Error] MODEL NOT FOUND\n"
+                f"{'='*60}\n"
+                f"Model: {model}\n"
+                f"Status: 404 Not Found\n\n"
+                f"How to fix:\n"
+                f"  Check the model name is correct\n"
+                f"  Use model_preset='budget' or 'premium'\n"
+                f"  See available models at: https://openrouter.ai/models\n"
+                f"{'='*60}"
+            )
+            print(error_msg)
+            return {
+                'model': model, 'tissue': tissue, 'species': species,
+                'cell_types': ', '.join(celltypes),
+                'response': f"Error: Model not found (404)",
+                'extracted_scores': {}, 'status': 'error', 'round': round_name,
+                'error_type': 'model_not_found', 'error_message': error_msg
+            }
+
         else:
+            # Generic error for other status codes
             print(f"Model ({round_name}): {model} [ERROR {response.status_code}]")
             return {
                 'model': model, 'tissue': tissue, 'species': species,
-                'cell_types': ', '.join(celltypes), 'response': f"Error: {response.status_code}",
+                'cell_types': ', '.join(celltypes),
+                'response': f"Error: {response.status_code}",
                 'extracted_scores': {}, 'status': 'error', 'round': round_name
             }
-    except Exception as e:
-        print(f"Model ({round_name}): {model} [EXCEPTION]")
+
+    except requests.exceptions.Timeout:
+        error_msg = (
+            f"\n{'='*60}\n"
+            f"[CASSIA Error] REQUEST TIMEOUT\n"
+            f"{'='*60}\n"
+            f"Model: {model}\n\n"
+            f"How to fix:\n"
+            f"  The model took too long to respond\n"
+            f"  Try a faster model (e.g., model_preset='budget')\n"
+            f"{'='*60}"
+        )
+        print(error_msg)
         return {
             'model': model, 'tissue': tissue, 'species': species,
-            'cell_types': ', '.join(celltypes), 'response': f"Exception: {str(e)}",
-            'extracted_scores': {}, 'status': 'error', 'round': round_name
+            'cell_types': ', '.join(celltypes),
+            'response': "Error: Request timeout",
+            'extracted_scores': {}, 'status': 'error', 'round': round_name,
+            'error_type': 'timeout', 'error_message': error_msg
+        }
+
+    except requests.exceptions.ConnectionError:
+        error_msg = (
+            f"\n{'='*60}\n"
+            f"[CASSIA Error] CONNECTION FAILED\n"
+            f"{'='*60}\n"
+            f"Model: {model}\n\n"
+            f"How to fix:\n"
+            f"  Check your internet connection\n"
+            f"  Verify https://openrouter.ai is accessible\n"
+            f"{'='*60}"
+        )
+        print(error_msg)
+        return {
+            'model': model, 'tissue': tissue, 'species': species,
+            'cell_types': ', '.join(celltypes),
+            'response': "Error: Connection failed",
+            'extracted_scores': {}, 'status': 'error', 'round': round_name,
+            'error_type': 'connection', 'error_message': error_msg
+        }
+
+    except Exception as e:
+        print(f"Model ({round_name}): {model} [EXCEPTION: {str(e)[:50]}]")
+        return {
+            'model': model, 'tissue': tissue, 'species': species,
+            'cell_types': ', '.join(celltypes),
+            'response': f"Exception: {str(e)}",
+            'extracted_scores': {}, 'status': 'error', 'round': round_name,
+            'error_type': 'exception'
         }
 
 

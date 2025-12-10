@@ -6,7 +6,8 @@
       "Bash(find:*)",
       "Bash(python:*)",
       "Bash(curl:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\CASSIA_python\\sync_python_files.py\")"
     ],
     "deny": []
   }
