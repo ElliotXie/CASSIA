@@ -138,8 +138,9 @@ runCASSIA_pipeline(
 - `gpt-4o`: 用于文章的基准测试
 
 ### OpenRouter
+- `openai/gpt-5.1`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）
+- `anthropic/claude-sonnet-4.5`: OpenRouter 上表现最好的模型
 - `google/gemini-2.5-flash`: 最好的低费率大模型之一，性能可与gpt-4o媲美（推荐）
-- `deepseek/deepseek-chat-v3-0324`: 最好的开源大模型之一，经常给出非常详细的注释
 - `x-ai/grok-4-fast`: 最好的低费率大模型之一
 
 ### Anthropic

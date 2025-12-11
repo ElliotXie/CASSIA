@@ -145,8 +145,9 @@ Some classic models are listed below. OpenRouter supports most popular models â€
 - `gpt-4o`: Used in the benchmark
 
 ### OpenRouter
+- `openai/gpt-5.1`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API)
+- `anthropic/claude-sonnet-4.5`: Best-performing model via OpenRouter
 - `google/gemini-2.5-flash`: One of the best-performing low-cost models, comparable with models like gpt-4o (Recommended)
-- `deepseek/deepseek-chat-v3-0324`: One of the best-performing open-source models, which gives very detailed annotations
 - `x-ai/grok-4-fast`: One of the best-performing low-cost models.
 
 ### Anthropic
