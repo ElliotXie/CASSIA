@@ -19,25 +19,26 @@ CASSIA支持批量处理，可同时分析多个簇。本篇我们将介绍如�
     - 模型ID：`"deepseek/deepseek-chat-v3-0324:free"`
 
 ### 准备标记数据
-您有四种提供标记数据的选项：
+您有三种提供标记数据的选项：
 
-1. 创建包含簇和标记基因的数据框或CSV文件
-2. 直接使用Seurat的`FindAllMarkers`函数输出
-3. 使用Scanpy的`rank_genes_groups`输出（Python/导出的CSV）
-4. 使用CASSIA的示例标记数据
+1. 直接使用 Seurat 的 `FindAllMarkers` 函数输出（推荐）
+2. 使用 Scanpy 的 `rank_genes_groups` 输出（导出为 CSV）
+3. 使用简化格式，包含簇 ID 和逗号分隔的标记基因
+
+您也可以使用 CASSIA 的示例标记数据进行测试。
 
 ```R
-# 选项1：加载您自己的标记数据
-markers <- read.csv("path/to/your/markers.csv")
-
-# 选项2：直接使用Seurat的FindAllMarkers输出
-#（假设您已经有一个Seurat对象）
+# 选项1：直接使用 Seurat 的 FindAllMarkers 输出（推荐）
+#（假设您已经有一个 Seurat 对象）
 markers <- FindAllMarkers(seurat_obj)
 
-# 选项3：加载Scanpy rank_genes_groups输出（导出为CSV）
+# 选项2：加载 Scanpy rank_genes_groups 输出（导出为 CSV）
 markers <- read.csv("scanpy_markers.csv")
 
-# 选项4：加载示例标记数据
+# 选项3：加载您自己的简化格式标记数据
+markers <- read.csv("path/to/your/markers.csv")
+
+# 加载示例标记数据进行测试
 markers <- loadExampleMarkers()
 
 # 预览数据

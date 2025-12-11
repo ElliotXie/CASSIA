@@ -9,25 +9,26 @@ CASSIA supports batch processing to analyze multiple clusters simultaneously. Th
 For detailed information on model settings and recommendations, please refer to the **[How to Select Models and Providers](setting-up-cassia.md#how-to-select-models-and-providers)** section.
 
 ### Preparing Marker Data
-You have four options for providing marker data:
+You have three options for providing marker data:
 
-1. Create a data frame or CSV file containing your clusters and marker genes
-2. Use Seurat's `FindAllMarkers` function output directly
-3. Use Scanpy's `rank_genes_groups` output (Python/exported CSV)
-4. Use CASSIA's example marker data
+1. Use Seurat's `FindAllMarkers` function output directly (Recommended)
+2. Use Scanpy's `rank_genes_groups` output (exported CSV)
+3. Use a simplified format with cluster ID and comma-separated marker genes
+
+You can also use CASSIA's example marker data for testing.
 
 ```R
-# Option 1: Load your own marker data
-markers <- read.csv("path/to/your/markers.csv")
-
-# Option 2: Use Seurat's FindAllMarkers output directly
+# Option 1: Use Seurat's FindAllMarkers output directly (Recommended)
 # (assuming you already have a Seurat object)
 markers <- FindAllMarkers(seurat_obj)
 
-# Option 3: Load Scanpy rank_genes_groups output (exported as CSV)
+# Option 2: Load Scanpy rank_genes_groups output (exported as CSV)
 markers <- read.csv("scanpy_markers.csv")
 
-# Option 4: Load example marker data
+# Option 3: Load your own simplified marker data
+markers <- read.csv("path/to/your/markers.csv")
+
+# Load example marker data for testing
 markers <- loadExampleMarkers()
 
 # Preview the data

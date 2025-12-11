@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ModelComparisonChart } from "@/components/model-comparison-chart"
 import { ModelRankingChart } from "@/components/model-ranking-chart"
 import { TissueSelector } from "@/components/tissue-selector"
-import { Database, FileText, BarChart2, Beaker, Medal } from "lucide-react"
+import { Database, FileText, BarChart2, Beaker, Medal, Info } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function CassiaPage() {
   const [selectedTissue, setSelectedTissue] = useState("All Tissues")
@@ -18,6 +19,13 @@ export default function CassiaPage() {
           Performance comparison of different LLMs using the CASSIA method for single-cell annotation
         </p>
       </div>
+
+      <Alert className="border-amber-200 bg-amber-50">
+        <Info className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-amber-800">
+          Benchmarks for new models will be updated soon. Stay tuned for the latest performance comparisons!
+        </AlertDescription>
+      </Alert>
 
       <Card className="card-hover border-0 shadow-lg overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
@@ -91,19 +99,19 @@ export default function CassiaPage() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
                 GitHub Repository
               </a>
-              <a 
-                href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href="https://www.nature.com/articles/s41467-025-67084-x"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-md transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
-                View Preprint
+                View Paper
               </a>
-              <a 
-                href="https://documentationeng.vercel.app/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href="https://docs.cassia.bio"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-md transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>

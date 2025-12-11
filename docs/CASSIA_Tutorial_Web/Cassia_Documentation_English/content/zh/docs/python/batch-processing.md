@@ -6,29 +6,30 @@ CASSIA 支持批量处理以同时分析多个聚类。本指南说明如何高�
 
 ### 准备标记数据
 
-您有四种提供标记数据的选项：
+您有三种提供标记数据的选项：
 
-1. 创建包含簇和标记基因的 DataFrame 或 CSV 文件
-2. 使用 Seurat 的 `FindAllMarkers` 输出（导出为 CSV）
-3. 直接使用 Scanpy 的 `rank_genes_groups` 输出
-4. 使用 CASSIA 的示例标记数据
+1. 使用 Seurat 的 `FindAllMarkers` 输出（导出为 CSV）
+2. 直接使用 Scanpy 的 `rank_genes_groups` 输出（Python 推荐）
+3. 使用简化格式，包含簇 ID 和逗号分隔的标记基因
+
+您也可以使用 CASSIA 的示例标记数据进行测试。
 
 ```python
 import CASSIA
 import scanpy as sc
 import pandas as pd
 
-# 选项1：加载您自己的标记数据
-markers = pd.read_csv("path/to/your/markers.csv")
-
-# 选项2：加载 Seurat FindAllMarkers 输出（导出为 CSV）
+# 选项1：加载 Seurat FindAllMarkers 输出（导出为 CSV）
 markers = pd.read_csv("seurat_markers.csv")
 
-# 选项3：直接使用 Scanpy rank_genes_groups 输出
+# 选项2：直接使用 Scanpy rank_genes_groups 输出（Python 推荐）
 #（假设您已经有一个计算了 rank_genes_groups 的 AnnData 对象）
 markers = sc.get.rank_genes_groups_df(adata, group=None)  # 获取所有组
 
-# 选项4：加载示例标记数据
+# 选项3：加载您自己的简化格式标记数据
+markers = pd.read_csv("path/to/your/markers.csv")
+
+# 加载示例标记数据进行测试
 markers = CASSIA.loadmarker(marker_type="unprocessed")
 
 # 预览数据
