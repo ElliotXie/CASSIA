@@ -1,9 +1,27 @@
-cff-version: 1.1.0
+cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: Xie
     given-names: Elliot
     orcid: https://orcid.org/0009-0003-3280-2569
-title: ElliotXie/CASSIA: CASSIA 1.2.0
+  - family-names: Cheng
+    given-names: Lingxin
+  - family-names: Shireman
+    given-names: Jack
+  - family-names: Cai
+    given-names: Yujia
+  - family-names: Liu
+    given-names: Jihua
+  - family-names: Mohanty
+    given-names: Chitrasen
+  - family-names: Dey
+    given-names: Mahua
+  - family-names: Kendziorski
+    given-names: Christina
+title: "CASSIA: a multi-agent large language model for automated and interpretable cell annotation"
 version: v1.2.0
-date-released: 2025-10-03
+date-released: 2025-01-01
+journal: Nature Communications
+year: 2025
+doi: 10.1038/s41467-025-67084-x
+url: https://doi.org/10.1038/s41467-025-67084-x

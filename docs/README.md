@@ -175,13 +175,9 @@ Note: This README covers only basic CASSIA functionality. For a complete tutoria
 
 ## 📖 Citation
 
-📖 [Read our preprint (v2, latest)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2)
- 
-📖 [Original preprint (v1, historical)](https://www.biorxiv.org/content/10.1101/2024.12.04.626476v1)
+📖 [Read our paper in Nature Communications](https://doi.org/10.1038/s41467-025-67084-x)
 
-CASSIA: a multi-agent large language model for reference-free, interpretable, and automated cell annotation of single-cell RNA-sequencing data  
-Elliot Xie, Lingxin Cheng, Jack Shireman, Yujia Cai, Jihua Liu, Chitrasen Mohanty, Mahua Dey, Christina Kendziorski  
-bioRxiv 2024.12.04.626476; doi: https://doi.org/10.1101/2024.12.04.626476
+Xie, E., Cheng, L., Shireman, J. et al. CASSIA: a multi-agent large language model for automated and interpretable cell annotation. Nat Commun (2025). https://doi.org/10.1038/s41467-025-67084-x
 
 ## 📬 Contact
 

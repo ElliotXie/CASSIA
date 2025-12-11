@@ -29,7 +29,7 @@ export function Outline() {
   const t = useTranslations("outline")
   const tTheme = useTranslations("theme")
   const githubRepoUrl = "https://github.com/ElliotXie/CASSIA"
-  const biorxivUrl = "https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2"
+  const paperUrl = "https://doi.org/10.1038/s41467-025-67084-x"
 
   // Check if we're on a large screen (lg breakpoint = 1024px)
   useEffect(() => {
@@ -112,7 +112,7 @@ export function Outline() {
       <div className="fixed right-8 top-20 w-56 flex flex-col max-h-[calc(100vh-100px)]">
         <div className="mb-4 flex items-center justify-start gap-2 flex-shrink-0">
           <LanguageSwitcher />
-          <Link href={biorxivUrl} target="_blank" rel="noopener noreferrer">
+          <Link href={paperUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="icon" aria-label="bioRxiv Paper">
               <FileText className="h-[1.2rem] w-[1.2rem]" />
             </Button>

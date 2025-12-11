@@ -603,9 +603,9 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://www.biorxiv.org/content/10.1101/2024.12.04.626476v2" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                <Link href="https://doi.org/10.1038/s41467-025-67084-x" target="_blank" rel="noopener noreferrer" className="flex items-center">
                   <span className="w-6 text-center flex-shrink-0">📄</span>
-                  <span className="ml-2">BioRxiv Preprint</span>
+                  <span className="ml-2">Nature Communications Paper</span>
                 </Link>
               </Button>
             </CardContent>
