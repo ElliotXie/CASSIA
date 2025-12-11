@@ -8,7 +8,7 @@
 
 **CASSIA** 是一个基于multi-agent多智能体的大型语言模型工具，用于快速，准确，简单地进行单细胞的可解释分群注释。
 
-🌐 [体验 CASSIA 网页界面 (cassia.bio)](https://cassia.bio/) - 支持大部分CASSIA功能
+🌐 [体验 CASSIA 网页界面 (cassia.bio)](https://cassia.bio/) - 在线体验 CASSIA 核心功能。如需使用全部高级功能，请安装我们的 R 或 Python 包。
 
 📚 [完整文档及示例/中英文版 (docs.cassia.bio)](https://docs.cassia.bio/zh)
 
