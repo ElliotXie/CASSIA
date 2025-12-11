@@ -95,6 +95,7 @@ setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 ```
 
 > **Custom APIs**: CASSIA supports any OpenAI-compatible API endpoint. Simply use the base URL as the provider parameter.
+
 > **Local LLMs**: For data privacy and zero API costs, use local LLMs like Ollama or LM Studio. No API key required for localhost URLs.
 
 
