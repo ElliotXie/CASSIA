@@ -90,14 +90,13 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 # For custom OpenAI-compatible APIs (e.g., DeepSeek)
 setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
 
-# For local LLMs - no API key needed
-setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)  # Ollama
-setLLMApiKey(provider = "http://localhost:1234/v1", persist = TRUE)   # LM Studio
+# For local LLMs - no API key needed (e.g., Ollama)
+setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 ```
 
+> **Custom APIs**: CASSIA supports any OpenAI-compatible API endpoint. Simply use the base URL as the provider parameter.
 > **Local LLMs**: For data privacy and zero API costs, use local LLMs like Ollama or LM Studio. No API key required for localhost URLs.
 
-> **Custom APIs**: CASSIA supports any OpenAI-compatible API endpoint. Simply use the base URL as the provider parameter.
 
 - **API Provider Guides:**
 	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
