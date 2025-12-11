@@ -57,7 +57,8 @@ runCASSIA_annotationboost(
     # Advanced options
     search_strategy = "breadth",    # "breadth" or "depth"
     report_style = "per_iteration", # "per_iteration" or "total_summary"
-    validator_involvement = "v1"    # "v0" (high) or "v1" (moderate)
+    validator_involvement = "v1",   # "v0" (high) or "v1" (moderate)
+    reasoning = "low"               # Optional: "low", "medium", "high"
 )
 ```
 
@@ -85,6 +86,7 @@ runCASSIA_annotationboost(
 - **`validator_involvement`**: Level of validation strictness.
     - `"v1"` (default): Moderate involvement.
     - `"v0"`: High involvement (stricter checks).
+- **`reasoning`** (character string, optional): Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
 
 ### Output Files
 

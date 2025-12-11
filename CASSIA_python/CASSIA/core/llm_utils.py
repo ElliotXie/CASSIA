@@ -130,8 +130,8 @@ def call_llm(
             # Use the resolved model (provider should stay the same)
             model = resolved_model
         except Exception as e:
-            # If resolution fails, continue with original names
-            pass
+            # If resolution fails, warn and continue with original model name
+            print(f"Warning: Model resolution failed for '{model}': {str(e)}. Using original name.")
     
     # Default models for each provider if not specified
     default_models = {
@@ -408,7 +408,7 @@ def call_llm(
             data["reasoning"] = reasoning
 
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response = requests.post(url, headers=headers, data=json.dumps(data), timeout=180)
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
         except Exception as e:

@@ -21,16 +21,17 @@ except ImportError:
     except ImportError:
         from gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
 
-def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1) -> str:
+def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1, reasoning: Optional[str] = None) -> str:
     """
     Use an LLM to summarize the conversation history for use as context in annotation boost.
-    
+
     Args:
         full_history: The full conversation history text
         provider: LLM provider to use for summarization
         model: Specific model to use (if None, uses provider default)
         temperature: Temperature for summarization (low for consistency)
-        
+        reasoning: Reasoning effort level ("low", "medium", "high")
+
     Returns:
         str: Summarized conversation history
     """
@@ -57,12 +58,18 @@ Here is the prior annotation analysis to summarize:
 
 Please provide a structured summary following the format above:"""
 
+        # Normalize reasoning to dict format if provided as string
+        reasoning_param = None
+        if reasoning:
+            reasoning_param = {"effort": reasoning} if isinstance(reasoning, str) else reasoning
+
         # Call the LLM to generate the summary
         summary = call_llm(
             prompt=summarization_prompt,
             provider=provider,
             model=model if model else "google/gemini-2.5-flash",  # Default model for summarization
-            temperature=temperature
+            temperature=temperature,
+            reasoning=reasoning_param
         )
         
         print(f"Conversation history summarized using {provider} ({len(full_history)} -> {len(summary)} characters)")
@@ -876,20 +883,21 @@ def extract_genes_from_conversation(conversation: str) -> List[str]:
     return unique_genes
 
 def iterative_marker_analysis(
-    major_cluster_info: str, 
-    marker: Union[pd.DataFrame, Any], 
-    comma_separated_genes: str, 
-    annotation_history: str, 
-    num_iterations: int = 2, 
+    major_cluster_info: str,
+    marker: Union[pd.DataFrame, Any],
+    comma_separated_genes: str,
+    annotation_history: str,
+    num_iterations: int = 2,
     provider: str = "openrouter",
     model: Optional[str] = None,
     additional_task: Optional[str] = None,
     temperature: float = 0,
-    search_strategy: str = "breadth"
+    search_strategy: str = "breadth",
+    reasoning: Optional[str] = None
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Perform iterative marker analysis using the specified LLM provider.
-    
+
     Args:
         major_cluster_info: Information about the cluster
         marker: DataFrame or other structure containing marker gene expression data
@@ -901,7 +909,8 @@ def iterative_marker_analysis(
         additional_task: Optional additional task to perform during analysis
         temperature: Sampling temperature (0-1)
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
-        
+        reasoning: Reasoning effort level ("low", "medium", "high")
+
     Returns:
         tuple: (final_response_text, messages)
     """
@@ -939,7 +948,12 @@ def iterative_marker_analysis(
     
     # Initialize the conversation history
     messages = [{"role": "user", "content": prompt}]
-    
+
+    # Normalize reasoning to dict format if provided as string
+    reasoning_param = None
+    if reasoning:
+        reasoning_param = {"effort": reasoning} if isinstance(reasoning, str) else reasoning
+
     # Iterative process
     for iteration in range(num_iterations):
         try:
@@ -951,7 +965,8 @@ def iterative_marker_analysis(
                 temperature=temperature,
                 max_tokens=4096,
                 # If not the first message, include conversation history
-                additional_params={"messages": messages} if iteration > 0 else {}
+                additional_params={"messages": messages} if iteration > 0 else {},
+                reasoning=reasoning_param
             )
             
             # Check if the analysis is complete
@@ -1016,12 +1031,13 @@ def iterative_marker_analysis(
             model=model,
             temperature=temperature,
             max_tokens=4096,
-            additional_params={"messages": messages}
+            additional_params={"messages": messages},
+            reasoning=reasoning_param
         )
-        
+
         messages.append({"role": "assistant", "content": final_response})
         return final_response, messages
-            
+
     except Exception as e:
         print(f"Error in final response: {str(e)}")
         import traceback
@@ -1157,7 +1173,7 @@ def validate_findallmarkers_format(marker_df: pd.DataFrame, source_path: str = N
         )
 
 
-def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None, conversations_json_path: str = None, species: str = "human", auto_convert_ids: bool = True) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
+def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None, conversations_json_path: str = None, species: str = "human", auto_convert_ids: bool = True, reasoning: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
 
@@ -1174,6 +1190,7 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         conversations_json_path: Path to the conversations JSON file (new format)
         species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
         auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
+        reasoning: Reasoning effort level ("low", "medium", "high")
 
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
@@ -1281,7 +1298,8 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                             annotation_history = summarize_conversation_history(
                                 raw_annotation,
                                 provider=provider,
-                                model=model
+                                model=model,
+                                reasoning=reasoning
                             )
                         else:
                             # Use full history (mode="full" or short annotation)
@@ -1366,7 +1384,7 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
         return filename
 
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
-    validator_involvement: str = "v1", model: str = "google/gemini-2.5-flash", provider: str = "openrouter") -> str:
+    validator_involvement: str = "v1", model: str = "google/gemini-2.5-flash", provider: str = "openrouter", reasoning: Optional[str] = None) -> str:
     """
     Generate a summarized report from the raw conversation history.
 
@@ -1377,7 +1395,8 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         model: LLM model to use for generating the summary
         provider: LLM provider to use
         report_style: Style of report ("per_iteration" or "total_summary")
-        
+        reasoning: Reasoning effort level ("low", "medium", "high")
+
     Returns:
         str: Path to the saved HTML report
     """
@@ -1518,15 +1537,21 @@ def generate_summary_report(conversation_history: List[Dict[str, str]], output_f
         {full_conversation}
         """
         
+        # Normalize reasoning to dict format if provided as string
+        reasoning_param = None
+        if reasoning:
+            reasoning_param = {"effort": reasoning} if isinstance(reasoning, str) else reasoning
+
         # Use the call_llm function to generate the summary
         summary = call_llm(
             prompt=prompt,
             provider=provider,
             model=model,
             temperature=0.3,
-            max_tokens=4096
+            max_tokens=4096,
+            reasoning=reasoning_param
         )
-        
+
         # Convert to HTML and save
         html_path = format_summary_to_html(summary, output_filename, search_strategy, report_style, gene_stats=gene_stats)
         print(f"Summary report saved to {html_path}")
@@ -1558,7 +1583,8 @@ def runCASSIA_annotationboost(
     validator_involvement: str = "v1",
     conversations_json_path: str = None,
     species: str = "human",
-    auto_convert_ids: bool = True
+    auto_convert_ids: bool = True,
+    reasoning: Optional[str] = None
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
@@ -1579,6 +1605,7 @@ def runCASSIA_annotationboost(
         conversations_json_path: Path to the conversations JSON file for conversation history
         species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
         auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
+        reasoning: Reasoning effort level ("low", "medium", "high")
 
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1615,7 +1642,7 @@ def runCASSIA_annotationboost(
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
             full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path,
-            species=species, auto_convert_ids=auto_convert_ids
+            species=species, auto_convert_ids=auto_convert_ids, reasoning=reasoning
         )
 
         # Run the iterative marker analysis
@@ -1628,7 +1655,8 @@ def runCASSIA_annotationboost(
             provider=provider,
             model=model,
             temperature=temperature,
-            search_strategy=search_strategy
+            search_strategy=search_strategy,
+            reasoning=reasoning
         )
         
         # Generate paths for reports - only summary HTML and raw conversation text
@@ -1651,7 +1679,7 @@ def runCASSIA_annotationboost(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider, reasoning=reasoning)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")
@@ -1701,7 +1729,8 @@ def runCASSIA_annotationboost_additional_task(
     validator_involvement: str = "v1",
     conversations_json_path: str = None,
     species: str = "human",
-    auto_convert_ids: bool = True
+    auto_convert_ids: bool = True,
+    reasoning: Optional[str] = None
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.
@@ -1723,6 +1752,7 @@ def runCASSIA_annotationboost_additional_task(
         conversations_json_path: Path to the conversations JSON file for conversation history
         species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
         auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
+        reasoning: Reasoning effort level ("low", "medium", "high")
 
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1738,7 +1768,7 @@ def runCASSIA_annotationboost_additional_task(
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
             full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path,
-            species=species, auto_convert_ids=auto_convert_ids
+            species=species, auto_convert_ids=auto_convert_ids, reasoning=reasoning
         )
 
         # Run the iterative marker analysis with additional task
@@ -1752,7 +1782,8 @@ def runCASSIA_annotationboost_additional_task(
             model=model,
             additional_task=additional_task,
             temperature=temperature,
-            search_strategy=search_strategy
+            search_strategy=search_strategy,
+            reasoning=reasoning
         )
         
         # Generate paths for reports - only summary HTML and raw conversation text
@@ -1775,7 +1806,7 @@ def runCASSIA_annotationboost_additional_task(
             print(f"Raw conversation text saved to {raw_text_path}")
             
             # Generate the summary report
-            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider)
+            summary_report_path = generate_summary_report(conversation_without_prompt, summary_report_path, search_strategy, report_style, model=model, provider=provider, reasoning=reasoning)
             print(f"Summary report saved to {summary_report_path}")
         except Exception as e:
             print(f"Warning: Could not generate reports: {str(e)}")

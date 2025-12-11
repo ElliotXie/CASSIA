@@ -57,7 +57,8 @@ runCASSIA_annotationboost(
     # 高级选项
     search_strategy = "breadth",    # "breadth"（广度）或 "depth"（深度）
     report_style = "per_iteration", # "per_iteration"（每次迭代）或 "total_summary"（总体摘要）
-    validator_involvement = "v1"    # "v0"（高）或 "v1"（中等）
+    validator_involvement = "v1",   # "v0"（高）或 "v1"（中等）
+    reasoning = "low"               # 可选: "low", "medium", "high"
 )
 ```
 
@@ -85,6 +86,7 @@ runCASSIA_annotationboost(
 - **`validator_involvement`**: 验证严格程度级别。
     - `"v1"`（默认）：中等参与度。
     - `"v0"`：高参与度（更严格的检查）。
+- **`reasoning`** (字符串, 可选): 推理深度级别（"low"、"medium"、"high"）。控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
 
 ### 输出文件
 

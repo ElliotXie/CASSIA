@@ -25,11 +25,12 @@ def merge_annotations(
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
     batch_size: int = 20,
-    detail_level: str = "broad"  # New parameter for controlling grouping granularity
+    detail_level: str = "broad",  # Parameter for controlling grouping granularity
+    reasoning: Optional[str] = None  # Reasoning effort level
 ) -> pd.DataFrame:
     """
     Agent function that reads a CSV file with cell cluster annotations and merges/groups them.
-    
+
     Args:
         csv_path: Path to the CSV file containing cluster annotations
         output_path: Path to save the results (if None, returns DataFrame without saving)
@@ -42,7 +43,8 @@ def merge_annotations(
                      - "broad": More general cell categories (e.g., "Myeloid cells" for macrophages and dendritic cells)
                      - "detailed": More specific groupings that still consolidate very specific clusters
                      - "very_detailed": Most specific groupings with normalized and consistent naming
-        
+        reasoning: Reasoning effort level ("low", "medium", "high")
+
     Returns:
         DataFrame with original annotations and suggested cell groupings
     """
@@ -111,6 +113,11 @@ def merge_annotations(
         
         # Call LLM to get suggested groupings
         try:
+            # Normalize reasoning to dict format if provided as string
+            reasoning_param = None
+            if reasoning:
+                reasoning_param = {"effort": reasoning} if isinstance(reasoning, str) else reasoning
+
             response = call_llm(
                 prompt=prompt,
                 provider=provider,
@@ -118,16 +125,17 @@ def merge_annotations(
                 api_key=api_key,
                 temperature=0.3,  # Lower temperature for more consistent results
                 max_tokens=4096,
-                system_prompt="You are an expert cell biologist specializing in single-cell analysis. Your task is to analyze cluster annotations and suggest general cell groupings."
+                system_prompt="You are an expert cell biologist specializing in single-cell analysis. Your task is to analyze cluster annotations and suggest general cell groupings.",
+                reasoning=reasoning_param
             )
-            
+
             # Parse LLM response and update DataFrame
             groupings = _parse_llm_response(response, batch.index)
             for idx, grouping in groupings.items():
                 working_df.at[idx, result_column] = grouping
         except Exception as e:
-            # Silently continue - errors will be visible from incomplete results
-            pass
+            # Log the error but continue - partial results are better than none
+            print(f"Warning: Merging batch failed for {detail_level}: {str(e)}")
     
     # Add the result column to the original DataFrame
     df[result_column] = working_df[result_column]
@@ -305,11 +313,12 @@ def merge_annotations_all(
     model: Optional[str] = None,
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
-    batch_size: int = 20
+    batch_size: int = 20,
+    reasoning: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Process all three detail levels in parallel and return a combined DataFrame.
-    
+
     Args:
         csv_path: Path to the CSV file containing cluster annotations
         output_path: Path to save the results (if None, returns DataFrame without saving)
@@ -318,7 +327,8 @@ def merge_annotations_all(
         api_key: API key for the provider (if None, gets from environment)
         additional_context: Optional domain-specific context to help with annotation
         batch_size: Number of clusters to process in each LLM call (for efficiency)
-        
+        reasoning: Reasoning effort level ("low", "medium", "high")
+
     Returns:
         DataFrame with original annotations and all three levels of suggested cell groupings
     """
@@ -337,7 +347,8 @@ def merge_annotations_all(
         model=model,
         api_key=api_key,
         additional_context=additional_context,
-        batch_size=batch_size
+        batch_size=batch_size,
+        reasoning=reasoning
     )
 
     # Use ThreadPoolExecutor to run in parallel with 3 threads (instead of ProcessPoolExecutor)

@@ -14,7 +14,8 @@ runCASSIA_score_batch(
     output_file = "my_annotation_scored.csv",
     max_workers = 4,
     model = "openai/gpt-5.1", # Recommended for accurate scoring
-    provider = "openrouter"
+    provider = "openrouter",
+    reasoning = "low"  # Optional: "low", "medium", "high"
 )
 ```
 
@@ -25,6 +26,7 @@ runCASSIA_score_batch(
 - **`max_workers`** (integer): Number of parallel scoring threads.
 - **`model`** (character string): The LLM used for quality scoring. `openai/gpt-5.1` or `anthropic/claude-sonnet-4.5` is highly recommended for best accuracy.
 - **`provider`** (character string): The API provider for the model (e.g., "openrouter").
+- **`reasoning`** (character string, optional): Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
 
 ### Output Format
 The scored output file contains:

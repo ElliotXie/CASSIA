@@ -16,14 +16,16 @@ CASSIA.runCASSIA_pipeline(
     max_workers = 6,  # Matches the number of clusters in dataset
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
-    annotation_reasoning = "medium",  # Optional: reasoning for annotation step
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     score_threshold = 75,
     annotationboost_model="anthropic/claude-sonnet-4.5",
     annotationboost_provider="openrouter",
     merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter"
+    merge_provider = "openrouter",
+    # Optional: Reasoning effort parameters
+    overall_reasoning = "low",  # Applies to all stages
+    annotation_reasoning = "medium",  # Override for annotation step only
 )
 ```
 
@@ -36,7 +38,6 @@ CASSIA.runCASSIA_pipeline(
 - **`max_workers`**: Number of parallel processes to use.
 - **`annotation_model`**: Model used for the initial cell type annotation step.
 - **`annotation_provider`**: Provider for the annotation model.
-- **`annotation_reasoning`**: (Optional) Controls reasoning depth for annotation ("high", "medium", "low"). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter).
 - **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
 - **`score_provider`**: Provider for the score model.
 - **`score_threshold`**: Annotations with a quality score below this threshold (0-100) will trigger the Annotation Boost process. Default is 75.
@@ -47,6 +48,18 @@ CASSIA.runCASSIA_pipeline(
 - **`merge_provider`**: Provider for the merge model.
 - **`additional_info`**: Optional experimental context (e.g., "treated with drug X").
 - **`validator_involvement`**: Controls validation strictness ("v1" = moderate, "v0" = high).
+
+#### Reasoning Effort Parameters
+
+These parameters control how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
+
+- **`overall_reasoning`**: (Optional) Reasoning effort level that applies to all pipeline stages ("low", "medium", "high"). Default: None (no extended reasoning).
+- **`annotation_reasoning`**: (Optional) Override reasoning level for annotation stage only.
+- **`score_reasoning`**: (Optional) Override reasoning level for scoring stage only.
+- **`annotationboost_reasoning`**: (Optional) Override reasoning level for annotation boost stage only.
+- **`merge_reasoning`**: (Optional) Override reasoning level for merging stage only.
+
+**Resolution priority**: Stage-specific reasoning > overall_reasoning > None
 
 ### Key Features Explanation
 

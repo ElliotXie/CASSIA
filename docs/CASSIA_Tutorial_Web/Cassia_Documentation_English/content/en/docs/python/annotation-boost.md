@@ -36,7 +36,8 @@ CASSIA.runCASSIA_annotationboost(
     model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter",
     conversations_json_path = output_name + "_conversations.json",  # Use prior conversation history
-    conversation_history_mode = "full"  # "full", "final" (summarize), or "none"
+    conversation_history_mode = "full",  # "full", "final" (summarize), or "none"
+    reasoning = "low"  # Optional: "low", "medium", "high"
 )
 ```
 
@@ -58,6 +59,7 @@ CASSIA.runCASSIA_annotationboost(
 - **`search_strategy`**: Strategy for exploring hypotheses ("breadth" or "depth").
 - **`report_style`**: Format of the final report ("per_iteration" or "total_summary").
 - **`validator_involvement`**: Level of validation strictness ("v1" or "v0").
+- **`reasoning`**: (Optional) Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
 
 ### Output Files
 

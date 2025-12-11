@@ -39,7 +39,13 @@ def runCASSIA_pipeline(
     validator_involvement: str = "v1",
     output_dir: str = None,
     validate_api_keys_before_start: bool = True,
-    auto_convert_ids: bool = True
+    auto_convert_ids: bool = True,
+    # Reasoning parameters
+    overall_reasoning: Optional[str] = None,
+    annotation_reasoning: Optional[str] = None,
+    score_reasoning: Optional[str] = None,
+    annotationboost_reasoning: Optional[str] = None,
+    merge_reasoning: Optional[str] = None
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -76,6 +82,14 @@ def runCASSIA_pipeline(
         auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
             If True (default), detects and converts IDs in the marker data before processing.
             Requires the 'mygene' package to be installed for conversion.
+        overall_reasoning (str, optional): Reasoning effort level that applies to all stages.
+            One of "low", "medium", or "high". Controls how much the model "thinks" before
+            responding. Only supported by certain models (e.g., OpenAI GPT-5, Anthropic Claude
+            Opus 4.5). Default: None (no extended reasoning).
+        annotation_reasoning (str, optional): Override reasoning level for annotation stage only.
+        score_reasoning (str, optional): Override reasoning level for scoring stage only.
+        annotationboost_reasoning (str, optional): Override reasoning level for annotation boost only.
+        merge_reasoning (str, optional): Override reasoning level for merging stage only.
 
     Examples:
         Simple usage with provider defaults:
@@ -135,16 +149,31 @@ def runCASSIA_pipeline(
     merge_model, merge_provider = _resolve_stage("merge", merge_model, merge_provider)
     annotationboost_model, annotationboost_provider = _resolve_stage("annotationboost", annotationboost_model, annotationboost_provider)
 
+    # ===== Resolve reasoning effort for each stage =====
+    def _resolve_reasoning(reasoning_override, overall_reasoning):
+        """Resolve reasoning effort for a pipeline stage."""
+        if reasoning_override is not None:
+            return reasoning_override
+        return overall_reasoning
+
+    # Resolve reasoning for all stages
+    eff_annotation_reasoning = _resolve_reasoning(annotation_reasoning, overall_reasoning)
+    eff_score_reasoning = _resolve_reasoning(score_reasoning, overall_reasoning)
+    eff_merge_reasoning = _resolve_reasoning(merge_reasoning, overall_reasoning)
+    eff_annotationboost_reasoning = _resolve_reasoning(annotationboost_reasoning, overall_reasoning)
+
     # Print resolved configuration for user visibility
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print("CASSIA Pipeline Configuration")
-    print("=" * 50)
+    print("=" * 60)
     print(f"Overall Provider: {overall_provider}")
-    print(f"  Annotation:       {annotation_model} ({annotation_provider})")
-    print(f"  Scoring:          {score_model} ({score_provider})")
-    print(f"  Merging:          {merge_model} ({merge_provider})")
-    print(f"  Annotation Boost: {annotationboost_model} ({annotationboost_provider})")
-    print("=" * 50 + "\n")
+    print(f"Overall Reasoning: {overall_reasoning or 'None'}")
+    print("-" * 60)
+    print(f"  Annotation:       {annotation_model} ({annotation_provider}) reasoning={eff_annotation_reasoning or 'None'}")
+    print(f"  Scoring:          {score_model} ({score_provider}) reasoning={eff_score_reasoning or 'None'}")
+    print(f"  Merging:          {merge_model} ({merge_provider}) reasoning={eff_merge_reasoning or 'None'}")
+    print(f"  Annotation Boost: {annotationboost_model} ({annotationboost_provider}) reasoning={eff_annotationboost_reasoning or 'None'}")
+    print("=" * 60 + "\n")
 
     # Validate all inputs early (fail-fast)
     validate_runCASSIA_pipeline_inputs(
@@ -236,7 +265,8 @@ def runCASSIA_pipeline(
         ascending=ascending,
         validator_involvement=validator_involvement,
         validate_api_key_before_start=validate_api_keys_before_start,
-        auto_convert_ids=auto_convert_ids
+        auto_convert_ids=auto_convert_ids,
+        reasoning=eff_annotation_reasoning
     )
     print("✓ Cell type analysis completed")
 
@@ -296,7 +326,8 @@ def runCASSIA_pipeline(
                 output_path=merged_annotation_file,
                 provider=merge_provider,
                 model=merge_model,
-                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}"
+                additional_context=f"These are cell clusters from {species} {tissue}. {additional_info}",
+                reasoning=eff_merge_reasoning
             )
             print(f"✓ Annotations merged and saved to {merged_annotation_file}")
         except Exception as e:
@@ -313,7 +344,8 @@ def runCASSIA_pipeline(
         provider=score_provider,
         max_retries=max_retries,
         generate_report=False,
-        conversations_json_path=raw_conversations_json
+        conversations_json_path=raw_conversations_json,
+        reasoning=eff_score_reasoning
     )
     print("✓ Scoring process completed")
 
@@ -434,7 +466,8 @@ def runCASSIA_pipeline(
                     report_style=report_style,
                     conversations_json_path=raw_conversations_json,
                     species=species,
-                    auto_convert_ids=auto_convert_ids
+                    auto_convert_ids=auto_convert_ids,
+                    reasoning=eff_annotationboost_reasoning
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")

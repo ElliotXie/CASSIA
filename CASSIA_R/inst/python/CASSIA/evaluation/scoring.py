@@ -195,7 +195,7 @@ def extract_score_and_reasoning(text):
         return None, None
 
 
-def score_single_analysis(major_cluster_info, marker, annotation_history, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
+def score_single_analysis(major_cluster_info, marker, annotation_history, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", reasoning=None):
     """
     Score a single cell type annotation analysis.
 
@@ -205,22 +205,30 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         annotation_history (str): History of annotation conversation
         model (str): Model to use (e.g., "gpt-4" for OpenAI or "claude-3-5-sonnet-20241022" for Anthropic)
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
+        reasoning (str, optional): Reasoning effort level ("low", "medium", "high").
+            Controls how much the model "thinks" before responding.
 
     Returns:
         tuple: (score, reasoning) where score is int and reasoning is str
     """
     prompt = prompt_creator_score(major_cluster_info, marker, annotation_history)
 
+    # Normalize reasoning to dict format if provided as string
+    reasoning_param = None
+    if reasoning:
+        reasoning_param = {"effort": reasoning} if isinstance(reasoning, str) else reasoning
+
     # Add explicit max_tokens to ensure responses aren't truncated
     response = call_llm(
         prompt=prompt,
         provider=provider,
         model=model,
-        max_tokens=4096  # Maximum tokens allowed for most models
+        max_tokens=4096,  # Maximum tokens allowed for most models
+        reasoning=reasoning_param
     )
 
-    score, reasoning = extract_score_and_reasoning(response)
-    return score, reasoning
+    score, reasoning_text = extract_score_and_reasoning(response)
+    return score, reasoning_text
 
 
 def _get_task_name(row):
@@ -239,7 +247,7 @@ def _get_task_name(row):
     return f"Row {row.name + 1}"
 
 
-def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", conversations_data=None):
+def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", conversations_data=None, reasoning=None):
     """
     Process a single row of data for scoring.
 
@@ -248,6 +256,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         model (str): Model to use
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
         conversations_data (dict): Loaded JSON conversations data (optional)
+        reasoning (str, optional): Reasoning effort level ("low", "medium", "high").
 
     Returns:
         tuple: (idx, score, reasoning)
@@ -269,17 +278,18 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
             annotation_history = get_column_value(row, HISTORY_COLUMN_OPTIONS, default="")
 
         # Try up to 3 times for a valid score if we get None
-        score, reasoning = None, None
+        score, reasoning_text = None, None
         max_retries_for_none = 3
         retry_count = 0
 
         while score is None and retry_count < max_retries_for_none:
-            score, reasoning = score_single_analysis(
+            score, reasoning_text = score_single_analysis(
                 major_cluster_info,
                 marker,
                 annotation_history,
                 model=model,
-                provider=provider
+                provider=provider,
+                reasoning=reasoning
             )
 
             if score is not None:
@@ -287,13 +297,13 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
 
             retry_count += 1
 
-        return (idx, score, reasoning)
+        return (idx, score, reasoning_text)
 
     except Exception as e:
         return (idx, None, f"Error: {str(e)}")
 
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None, reasoning=None):
     """
     Run scoring on a batch of cell type annotations with progress tracking.
 
@@ -306,6 +316,8 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         max_retries (int): Maximum number of retries for failed analyses
         generate_report (bool): Whether to generate HTML report (default True, set False when called from pipeline)
         conversations_json_path (str, optional): Path to JSON file with conversation histories
+        reasoning (str, optional): Reasoning effort level ("low", "medium", "high").
+            Controls how much the model "thinks" before responding.
 
     Returns:
         pd.DataFrame: Results DataFrame with scores
@@ -371,7 +383,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
             for attempt in range(max_retries + 1):
                 try:
-                    result = process_single_row(row_data, model=model, provider=provider, conversations_data=conversations_data)
+                    result = process_single_row(row_data, model=model, provider=provider, conversations_data=conversations_data, reasoning=reasoning)
                     tracker.complete_task(task_name)
                     return result
                 except Exception as exc:

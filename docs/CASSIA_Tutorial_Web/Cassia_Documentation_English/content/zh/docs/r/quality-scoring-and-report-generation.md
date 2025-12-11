@@ -14,7 +14,8 @@ runCASSIA_score_batch(
     output_file = "my_annotation_scored.csv",
     max_workers = 4,
     model = "openai/gpt-5.1", # 推荐用于精确评分
-    provider = "openrouter"
+    provider = "openrouter",
+    reasoning = "low"  # 可选: "low", "medium", "high"
 )
 ```
 
@@ -25,6 +26,7 @@ runCASSIA_score_batch(
 - **`max_workers`** (整数): 并行评分线程数。
 - **`model`** (字符串): 用于质量评分的 LLM。强烈推荐使用 `openai/gpt-5.1` 或 `anthropic/claude-4.5-sonnet` 以获得最佳准确性。
 - **`provider`** (字符串): 模型的 API 提供商（例如 "openrouter"）。
+- **`reasoning`** (字符串, 可选): 推理深度级别（"low"、"medium"、"high"）。控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
 
 ### 输出格式
 评分输出文件包含：

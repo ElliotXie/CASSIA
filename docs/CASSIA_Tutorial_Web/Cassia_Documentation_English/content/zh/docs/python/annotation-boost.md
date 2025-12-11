@@ -36,7 +36,8 @@ CASSIA.runCASSIA_annotationboost(
     model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter",
     conversations_json_path = output_name + "_conversations.json",  # 使用先前的对话历史
-    conversation_history_mode = "full"  # "full"、"final"（摘要）或 "none"
+    conversation_history_mode = "full",  # "full"、"final"（摘要）或 "none"
+    reasoning = "low"  # 可选: "low", "medium", "high"
 )
 ```
 
@@ -58,6 +59,7 @@ CASSIA.runCASSIA_annotationboost(
 - **`search_strategy`**: 探索假设的策略（"breadth" 或 "depth"）。
 - **`report_style`**: 最终报告的格式（"per_iteration" 或 "total_summary"）。
 - **`validator_involvement`**: 验证严格程度（"v1" 或 "v0"）。
+- **`reasoning`**: （可选）推理深度级别（"low"、"medium"、"high"）。控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
 
 ### 输出文件
 

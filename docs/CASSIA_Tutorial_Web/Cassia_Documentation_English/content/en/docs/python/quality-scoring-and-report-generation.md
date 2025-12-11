@@ -14,7 +14,8 @@ CASSIA.runCASSIA_score_batch(
     max_workers = 6,
     model = "openai/gpt-5.1",
     provider = "openrouter",
-    generate_report = True  # Default, generates HTML report automatically
+    generate_report = True,  # Default, generates HTML report automatically
+    reasoning = "low"  # Optional: "low", "medium", "high"
 )
 ```
 
@@ -26,6 +27,7 @@ CASSIA.runCASSIA_score_batch(
 - **`model`**: The LLM used for quality scoring. High-capability models like `claude-sonnet-4.5` or `gpt-4o` are recommended for accurate scoring.
 - **`provider`**: The API provider for the model (e.g., "openrouter").
 - **`generate_report`**: Whether to automatically generate an HTML report (default: `True`). The report is saved as `{output_file}_report.html`.
+- **`reasoning`**: (Optional) Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
 
 ### Interpreting Scores
 

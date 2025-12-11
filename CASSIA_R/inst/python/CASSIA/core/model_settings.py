@@ -359,15 +359,18 @@ class ModelSettings:
         return fallbacks.get(provider.lower(), fallbacks["openrouter"])
 
 
-# Global instance
+# Global instance with thread-safe initialization
 _model_settings = None
+_model_settings_lock = __import__('threading').Lock()
 
 
 def get_model_settings() -> ModelSettings:
-    """Get the global ModelSettings instance."""
+    """Get the global ModelSettings instance (thread-safe)."""
     global _model_settings
     if _model_settings is None:
-        _model_settings = ModelSettings()
+        with _model_settings_lock:
+            if _model_settings is None:  # Double-check after acquiring lock
+                _model_settings = ModelSettings()
     return _model_settings
 
 

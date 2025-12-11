@@ -52,7 +52,8 @@ result_df = merge_annotations_all(
     output_path="merged_all.csv",
     provider="openrouter",
     model="google/gemini-2.5-flash",
-    batch_size=10
+    batch_size=10,
+    reasoning="low"  # 可选: "low", "medium", "high"
 )
 
 # 结果包含所有三个分组列
@@ -67,6 +68,7 @@ print(result_df[['main_cell_type', 'Merged_Grouping_1', 'Merged_Grouping_2', 'Me
 - **`model`**: 用于分组决策的 LLM 模型。
 - **`detail_level`**: 分组级别（"broad"、"detailed"、"very_detailed"）- 仅适用于 `merge_annotations()`。
 - **`batch_size`**: 每次 LLM 调用处理的细胞类型数量（默认：10）。
+- **`reasoning`**: （可选）推理深度级别（"low"、"medium"、"high"）。控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
 
 ### 输出示例
 

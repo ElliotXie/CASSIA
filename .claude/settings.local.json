@@ -17,7 +17,9 @@
       "Bash(move:*)",
       "Bash(cmd /c move:*)",
       "Bash(cmd /c rmdir \"d:\\CASSIA\\Test\\provider_defaults\")",
-      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m pytest \"d:\\CASSIA\\Test\\16_cassia_pipeline\\test_provider_defaults.py\" -v)"
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m pytest \"d:\\CASSIA\\Test\\16_cassia_pipeline\\test_provider_defaults.py\" -v)",
+      "Bash(cmd /c \"dir d:\\CASSIA\\Test\\17* && ren d:\\CASSIA\\Test\\17_provider_defaults 21_provider_defaults\")",
+      "Bash(cmd /c \"dir /b d:\\CASSIA\\Test\")"
     ],
     "deny": []
   }

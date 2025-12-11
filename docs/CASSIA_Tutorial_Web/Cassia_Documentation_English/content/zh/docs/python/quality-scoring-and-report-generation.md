@@ -14,7 +14,8 @@ CASSIA.runCASSIA_score_batch(
     max_workers = 6,
     model = "openai/gpt-5.1",
     provider = "openrouter",
-    generate_report = True  # 默认值，自动生成 HTML 报告
+    generate_report = True,  # 默认值，自动生成 HTML 报告
+    reasoning = "low"  # 可选: "low", "medium", "high"
 )
 ```
 
@@ -26,6 +27,7 @@ CASSIA.runCASSIA_score_batch(
 - **`model`**: 用于质量评分的 LLM。建议使用 `claude-4.5-sonnet` 或 `gpt-4o` 等高能力模型以获得准确评分。
 - **`provider`**: 模型的 API 提供商（例如，"openrouter"）。
 - **`generate_report`**: 是否自动生成 HTML 报告（默认：`True`）。报告保存为 `{output_file}_report.html`。
+- **`reasoning`**: （可选）推理深度级别（"low"、"medium"、"high"）。控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
 
 ### 解读评分
 

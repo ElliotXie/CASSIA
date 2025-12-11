@@ -39,28 +39,31 @@ runCASSIA_pipeline(
     tissue,
     species,
     marker,
-    
+
     # 带默认值的可选参数
     max_workers = 4,
-    
+
     # 模型配置
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
-    annotation_reasoning = "medium",  # 可选: "high", "medium", "low"
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     annotationboost_model="anthropic/claude-sonnet-4.5",
     annotationboost_provider="openrouter",
-    
+
     # 合并参数
     do_merge_annotations = TRUE,
     merge_model = "google/gemini-2.5-flash",
     merge_provider = "openrouter",
-    
+
     # 分析参数
     score_threshold = 75,
     additional_info = NULL,
-    validator_involvement = "v1"
+    validator_involvement = "v1",
+
+    # 可选: 推理深度参数
+    overall_reasoning = "low",  # 应用于所有阶段
+    annotation_reasoning = "medium"  # 仅覆盖注释步骤
 )
 ```
 
@@ -72,14 +75,25 @@ runCASSIA_pipeline(
 - **`marker`**: 标记基因数据（数据框或 CSV 路径）。
 - **`max_workers`**: 并行处理的工作进程数。
 - **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
-- **`annotation_reasoning`**: （可选）控制注释的推理深度（"high"、"medium"、"low"）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 - **`score_model`**: 用于质量评分的模型。**推荐**：使用像 `claude-4.5-sonnet` 这样高性能的模型以获得准确的评分。
 - **`annotationboost_model`**: 用于优化低置信度注释的模型。
 - **`do_merge_annotations`**: 逻辑值。如果为 `TRUE`，将详细的细胞类型合并为更广泛的类别。
 - **`merge_model`**: 用于合并步骤的模型。
 - **`score_threshold`**: 质量分数低于此阈值（0-100）的注释将触发注释增强过程。默认为 75。
-- **`additional_info`**: 可选的实验上下文信息（例如，“药物 X 处理”）。
+- **`additional_info`**: 可选的实验上下文信息（例如，"药物 X 处理"）。
 - **`validator_involvement`**: 控制验证严格程度（"v1" = 中等，"v0" = 高）。
+
+#### 推理深度参数
+
+这些参数控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
+
+- **`overall_reasoning`**: （可选）应用于所有流程阶段的推理深度级别（"low"、"medium"、"high"）。默认：NULL（无扩展推理）。
+- **`annotation_reasoning`**: （可选）仅覆盖注释阶段的推理级别。
+- **`score_reasoning`**: （可选）仅覆盖评分阶段的推理级别。
+- **`annotationboost_reasoning`**: （可选）仅覆盖注释增强阶段的推理级别。
+- **`merge_reasoning`**: （可选）仅覆盖合并阶段的推理级别。
+
+**优先级规则**: 阶段特定推理 > overall_reasoning > NULL
 
 ### 主要功能说明
 

@@ -16,14 +16,16 @@ CASSIA.runCASSIA_pipeline(
     max_workers = 6,  # 与数据集中的聚类数匹配
     annotation_model = "anthropic/claude-sonnet-4.5",
     annotation_provider = "openrouter",
-    annotation_reasoning = "medium",  # 可选: 注释步骤的推理深度
     score_model = "openai/gpt-5.1",
     score_provider = "openrouter",
     score_threshold = 75,
     annotationboost_model="anthropic/claude-sonnet-4.5",
     annotationboost_provider="openrouter",
     merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter"
+    merge_provider = "openrouter",
+    # 可选: 推理深度参数
+    overall_reasoning = "low",  # 应用于所有阶段
+    annotation_reasoning = "medium",  # 仅覆盖注释步骤
 )
 ```
 
@@ -36,7 +38,6 @@ CASSIA.runCASSIA_pipeline(
 - **`max_workers`**: 使用的并行进程数。
 - **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
 - **`annotation_provider`**: 注释模型的提供商。
-- **`annotation_reasoning`**: （可选）控制注释的推理深度（"high"、"medium"、"low"）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 - **`score_model`**: 用于质量评分的模型。**建议**：使用像 `claude-4.5-sonnet` 这样的高能力模型以获得准确的评分。
 - **`score_provider`**: 评分模型的提供商。
 - **`score_threshold`**: 质量评分低于此阈值 (0-100) 的注释将触发注释增强过程。默认值为 75。
@@ -45,8 +46,20 @@ CASSIA.runCASSIA_pipeline(
 - **`do_merge_annotations`**: 逻辑值。如果为 `True`，则将详细的细胞类型合并为更广泛的类别。
 - **`merge_model`**: 用于合并步骤的模型。
 - **`merge_provider`**: 合并模型的提供商。
-- **`additional_info`**: 可选的实验背景（例如，“用药物 X 处理”）。
+- **`additional_info`**: 可选的实验背景（例如，"用药物 X 处理"）。
 - **`validator_involvement`**: 控制验证的严格程度（"v1" = 中等，"v0" = 高）。
+
+#### 推理深度参数
+
+这些参数控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
+
+- **`overall_reasoning`**: （可选）应用于所有流程阶段的推理深度级别（"low"、"medium"、"high"）。默认：None（无扩展推理）。
+- **`annotation_reasoning`**: （可选）仅覆盖注释阶段的推理级别。
+- **`score_reasoning`**: （可选）仅覆盖评分阶段的推理级别。
+- **`annotationboost_reasoning`**: （可选）仅覆盖注释增强阶段的推理级别。
+- **`merge_reasoning`**: （可选）仅覆盖合并阶段的推理级别。
+
+**优先级规则**: 阶段特定推理 > overall_reasoning > None
 
 ### 主要功能说明
 
