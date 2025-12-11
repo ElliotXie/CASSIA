@@ -13,7 +13,11 @@
       "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\Test\\13_scanpy_format\\test_scanpy_format.py\")",
       "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\Test\\09_subclustering\\test_subclustering.py\")",
       "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"D:\\CASSIA\\Test\\19_reasoning_effort\\test_reasoning_effort.py\")",
-      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"D:\\CASSIA\\Features_plan\\build_dashboard.py\")"
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"D:\\CASSIA\\Features_plan\\build_dashboard.py\")",
+      "Bash(move:*)",
+      "Bash(cmd /c move:*)",
+      "Bash(cmd /c rmdir \"d:\\CASSIA\\Test\\provider_defaults\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m pytest \"d:\\CASSIA\\Test\\16_cassia_pipeline\\test_provider_defaults.py\" -v)"
     ],
     "deny": []
   }

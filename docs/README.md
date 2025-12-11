@@ -105,7 +105,9 @@ setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
     - [OpenAI API Documentation](https://beta.openai.com/docs/)
     - [Anthropic API Documentation](https://docs.anthropic.com/)
-    - [OpenRouter API documentation](https://openrouter.ai/docs/quick-start)
+    - [OpenRouter API Documentation](https://openrouter.ai/docs/quick-start)
+    - [DeepSeek API Documentation](https://api-docs.deepseek.com/)
+    - [Ollama API Documentation](https://docs.ollama.com/api/introduction)
 
 
 ## ðŸ§¬ Example Data
@@ -126,6 +128,8 @@ runCASSIA_batch(
     output_name = "cassia_results",              # Output file name
     tissue = "Large Intestine",                  # Tissue type
     species = "Human",                           # Species
+    model = "anthropic/claude-sonnet-4.5",       # Model to use
+    provider = "openrouter",                     # API provider
     max_workers = 4                              # Number of parallel workers
 )
 ```
@@ -145,9 +149,9 @@ Some classic models are listed below. OpenRouter supports most popular models â€
 - `gpt-4o`: Used in the benchmark
 
 ### OpenRouter
-- `openai/gpt-5.1`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API)
-- `anthropic/claude-sonnet-4.5`: Best-performing model via OpenRouter
-- `google/gemini-2.5-flash`: One of the best-performing low-cost models, comparable with models like gpt-4o (Recommended)
+- `openai/gpt-5.1`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API) (Recommended)
+- `anthropic/claude-sonnet-4.5`: Best-performing model via OpenRouter (Recommended)
+- `google/gemini-2.5-flash`: One of the best-performing low-cost models
 - `x-ai/grok-4-fast`: One of the best-performing low-cost models.
 
 ### Anthropic

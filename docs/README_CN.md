@@ -96,9 +96,10 @@ setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 > **本地 LLM**：为了数据隐私和零 API 费用，可使用 Ollama 或 LM Studio 等本地 LLM。本地 URL 无需 API 密钥。
 
 - **API 提供商指南:**
-
 	- [如何获取 OpenRouter API 密钥](https://openrouter.ai/settings/keys)
- 	- [如何充值OpenRouter](https://zhuanlan.zhihu.com/p/1898753591528908109)
+	- [如何充值 OpenRouter](https://zhuanlan.zhihu.com/p/1898753591528908109)
+	- [DeepSeek API 文档](https://api-docs.deepseek.com/)
+	- [Ollama API 文档](https://docs.ollama.com/api/introduction)
 
 
 
@@ -120,6 +121,8 @@ runCASSIA_batch(
     output_name = "cassia_results",              # 输出文件名
     tissue = "Large Intestine",                  # 组织类型
     species = "Human",                           # 物种
+    model = "anthropic/claude-sonnet-4.5",       # 使用的模型
+    provider = "openrouter",                     # API 提供商
     max_workers = 4                              # 并行工作线程数
 )
 ```
@@ -139,9 +142,9 @@ runCASSIA_batch(
 - `gpt-4o`: 用于文章的基准测试
 
 ### OpenRouter
-- `openai/gpt-5.1`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）
-- `anthropic/claude-sonnet-4.5`: OpenRouter 上表现最好的模型
-- `google/gemini-2.5-flash`: 最好的低费率大模型之一，性能可与gpt-4o媲美（推荐）
+- `openai/gpt-5.1`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）（推荐）
+- `anthropic/claude-sonnet-4.5`: OpenRouter 上表现最好的模型（推荐）
+- `google/gemini-2.5-flash`: 最好的低费率大模型之一
 - `x-ai/grok-4-fast`: 最好的低费率大模型之一
 
 ### Anthropic
