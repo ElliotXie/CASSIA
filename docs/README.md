@@ -89,7 +89,13 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
 # For custom OpenAI-compatible APIs (e.g., DeepSeek)
 setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
+
+# For local LLMs - no API key needed
+setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)  # Ollama
+setLLMApiKey(provider = "http://localhost:1234/v1", persist = TRUE)   # LM Studio
 ```
+
+> **Local LLMs**: For data privacy and zero API costs, use local LLMs like Ollama or LM Studio. No API key required for localhost URLs.
 
 > **Custom APIs**: CASSIA supports any OpenAI-compatible API endpoint. Simply use the base URL as the provider parameter.
 
@@ -151,30 +157,9 @@ The pipeline generates four key files:
 2. Annotation Summary HTML Report
 3. Annotation Boost Agent Report for Low Quality Annotation
 
-## 🧰 Troubleshooting
+## 📚 Need Help?
 
-### Authentication (Error 401)
-```R
-# Check if API key is set correctly
-key <- Sys.getenv("ANTHROPIC_API_KEY")
-print(key)  # Should not be empty
-
-# Reset API key if needed
-setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
-```
-
-### File Errors
-- Use absolute paths when necessary
-- Check file permissions
-- Ensure files aren't open in other programs
-
-### Best Practices
-- Keep API keys secure
-- Maintain sufficient API credits
-
-
-Note: This README covers only basic CASSIA functionality. For a complete tutorial including advanced features and detailed examples, please visit:
-[CASSIA Complete Tutorial](https://docs.cassia.bio/en).
+This README covers basic CASSIA functionality. For advanced features, troubleshooting, and detailed examples, visit our [complete documentation](https://docs.cassia.bio/en).
 
 ## 📖 Citation
 

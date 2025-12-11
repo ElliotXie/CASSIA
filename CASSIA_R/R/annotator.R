@@ -627,24 +627,36 @@ setup_cassia_env <- function(conda_env = NULL, python_version = "3.10",
 
 #' Set API Key for LLM Provider
 #'
-#' @param api_key Character string containing the API key
-#' @param provider Character string specifying the provider ('openai', 'anthropic', or 'openrouter')
+#' @param api_key Character string containing the API key. Optional for localhost URLs (local LLMs like Ollama).
+#' @param provider Character string specifying the provider ('openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints)
 #' @param persist Logical indicating whether to save the key to .Renviron (default: FALSE)
 #' @return Invisible NULL. Called for side effects.
 #' @export
-setLLMApiKey <- function(api_key, provider = "anthropic", persist = FALSE) {
+setLLMApiKey <- function(api_key = NULL, provider = "anthropic", persist = FALSE) {
   # Set environment variable based on provider
   if (provider == "openai") {
+    if (is.null(api_key)) stop("API key is required for OpenAI provider")
     Sys.setenv(OPENAI_API_KEY = api_key)
     env_var_name <- "OPENAI_API_KEY"
   } else if (provider == "anthropic") {
+    if (is.null(api_key)) stop("API key is required for Anthropic provider")
     Sys.setenv(ANTHROPIC_API_KEY = api_key)
     env_var_name <- "ANTHROPIC_API_KEY"
   } else if (provider == "openrouter") {
+    if (is.null(api_key)) stop("API key is required for OpenRouter provider")
     Sys.setenv(OPENROUTER_API_KEY = api_key)
     env_var_name <- "OPENROUTER_API_KEY"
   } else if (startsWith(provider, "http")) {
     # Handle custom HTTP endpoints
+    # For localhost URLs, API key is optional (local LLMs like Ollama don't need auth)
+    is_localhost <- grepl("localhost|127\\.0\\.0\\.1", provider, ignore.case = TRUE)
+    if (is.null(api_key) || api_key == "") {
+      if (is_localhost) {
+        api_key <- "ollama"  # Placeholder for local LLMs
+      } else {
+        stop("API key is required for remote custom endpoints")
+      }
+    }
     Sys.setenv(CUSTOMIZED_API_KEY = api_key)
     env_var_name <- "CUSTOMIZED_API_KEY"
   } else {

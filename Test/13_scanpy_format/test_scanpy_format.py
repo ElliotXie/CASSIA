@@ -351,7 +351,7 @@ def test_get_top_markers_with_scanpy_df():
     return len(errors) == 0, errors, result
 
 
-def test_runCASSIA_batch_with_scanpy_df(marker_df):
+def test_runCASSIA_batch_with_scanpy_df(marker_df, results):
     """Test runCASSIA_batch with scanpy_df-derived markers."""
     print("\n--- Testing runCASSIA_batch() with scanpy_df-derived markers ---")
 
@@ -369,9 +369,8 @@ def test_runCASSIA_batch_with_scanpy_df(marker_df):
     print(f"  Shape: {marker_df.shape}")
     print(f"  Clusters: {marker_df['cluster'].tolist()}")
 
-    # Create results directory
-    results = create_results_dir("13_scanpy_format", get_test_mode())
-    logging_ctx = setup_logging(results["logs"])
+    # Use provided results directory
+    logging_ctx = setup_logging(results["logs"], "scanpy_df_batch_log.txt")
     output_name = str(Path(results["outputs"]) / "scanpy_df_batch_results")
     print(f"\nResults will be saved to: {results['base']}")
 
@@ -433,10 +432,10 @@ def test_runCASSIA_batch_with_scanpy_df(marker_df):
     print(f"\nDuration: {duration:.2f}s")
 
     cleanup_logging(logging_ctx)
-    return len(errors) == 0, errors, results
+    return len(errors) == 0, errors
 
 
-def test_runCASSIA_batch_with_scanpy(marker_df):
+def test_runCASSIA_batch_with_scanpy(marker_df, results):
     """Test runCASSIA_batch with Scanpy-derived markers."""
     print("\n--- Testing runCASSIA_batch() with Scanpy-derived markers ---")
 
@@ -454,9 +453,8 @@ def test_runCASSIA_batch_with_scanpy(marker_df):
     print(f"  Shape: {marker_df.shape}")
     print(f"  Clusters: {marker_df['cluster'].tolist()}")
 
-    # Create results directory
-    results = create_results_dir("13_scanpy_format", get_test_mode())
-    logging_ctx = setup_logging(results["logs"])
+    # Use provided results directory
+    logging_ctx = setup_logging(results["logs"], "scanpy_batch_log.txt")
     output_name = str(Path(results["outputs"]) / "scanpy_batch_results")
     print(f"\nResults will be saved to: {results['base']}")
 
@@ -518,7 +516,7 @@ def test_runCASSIA_batch_with_scanpy(marker_df):
     print(f"\nDuration: {duration:.2f}s")
 
     cleanup_logging(logging_ctx)
-    return len(errors) == 0, errors, results
+    return len(errors) == 0, errors
 
 
 def run_scanpy_format_tests():
@@ -531,6 +529,10 @@ def run_scanpy_format_tests():
 
     # Setup API keys
     setup_api_keys()
+
+    # Create a single results directory for all tests in this run
+    results = create_results_dir("13_scanpy_format", get_test_mode())
+    print(f"\nResults will be saved to: {results['base']}")
 
     all_tests_passed = True
     all_errors = []
@@ -577,12 +579,11 @@ def run_scanpy_format_tests():
     print(f"\nResult: {'PASSED' if passed else 'FAILED'}")
 
     # Test 4: runCASSIA_batch with Scanpy-derived markers
-    results = None
     if marker_df is not None and len(marker_df) > 0:
         print("\n" + "=" * 60)
         print("Test 4: runCASSIA_batch() with Structured Array Markers")
         print("=" * 60)
-        passed, errors, results = test_runCASSIA_batch_with_scanpy(marker_df)
+        passed, errors = test_runCASSIA_batch_with_scanpy(marker_df, results)
         all_tests_passed = all_tests_passed and passed
         all_errors.extend(errors)
         print(f"\nResult: {'PASSED' if passed else 'FAILED'}")
@@ -638,7 +639,7 @@ def run_scanpy_format_tests():
             print("\n" + "=" * 60)
             print("Test 8: runCASSIA_batch() with scanpy_df Markers")
             print("=" * 60)
-            passed, errors, results = test_runCASSIA_batch_with_scanpy_df(marker_df_scanpy_df)
+            passed, errors = test_runCASSIA_batch_with_scanpy_df(marker_df_scanpy_df, results)
             all_tests_passed = all_tests_passed and passed
             all_errors.extend(errors)
             print(f"\nResult: {'PASSED' if passed else 'FAILED'}")
@@ -655,9 +656,7 @@ def run_scanpy_format_tests():
 
     duration = time.time() - start_time
 
-    # Save metadata (reuse results from last test if available, otherwise create new)
-    if results is None:
-        results = create_results_dir("13_scanpy_format", get_test_mode())
+    # Save metadata to the results directory created at the start
     rank_genes_dict, cluster_info = load_scanpy_data()
     metadata = create_test_metadata(
         test_name="scanpy_format",

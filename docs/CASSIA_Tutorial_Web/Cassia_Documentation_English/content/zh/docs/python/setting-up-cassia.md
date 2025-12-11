@@ -185,5 +185,36 @@ CASSIA.runCASSIA_pipeline(
 
 任何遵循 OpenAI 聊天补全格式的 API 都可以使用，包括：
 - DeepSeek (`https://api.deepseek.com`) - **推荐中国用户使用**
-- 本地 LLM 服务器（如 Ollama、vLLM）
+- 本地 LLM 服务器（如 Ollama、LM Studio、vLLM）
 - 其他兼容 OpenAI 的服务
+
+### 本地 LLM（Ollama、LM Studio）
+
+为了完全的数据隐私和零 API 费用，您可以在本地运行 LLM。CASSIA 支持任何兼容 OpenAI 的本地服务器。
+
+**本地 URL 无需 API 密钥。**
+
+#### Ollama 设置
+
+1. 从 [ollama.ai](https://ollama.ai) 安装 Ollama
+2. 拉取模型：`ollama pull gpt-oss:20b`
+3. Ollama 自动运行在 `http://localhost:11434`
+
+#### 使用方法
+
+```python
+CASSIA.runCASSIA_batch(
+    marker=markers,
+    output_name="results",
+    provider="http://localhost:11434/v1",
+    model="gpt-oss:20b",
+    tissue="brain",
+    species="human"
+)
+```
+
+#### LM Studio 设置
+
+1. 从 [lmstudio.ai](https://lmstudio.ai) 下载 LM Studio
+2. 加载模型并启动本地服务器
+3. 默认端口：`http://localhost:1234/v1`

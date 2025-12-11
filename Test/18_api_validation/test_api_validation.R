@@ -1,4 +1,4 @@
-# CASSIA Test 17: API Key Validation Testing (R)
+# CASSIA Test 18: API Key Validation Testing (R)
 # ================================================
 # Tests the validate_api_keys() function for different LLM providers.
 #
@@ -33,7 +33,7 @@ source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
 source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
 run_api_validation_test <- function() {
-  print_test_header("17 - API Key Validation Testing (R)")
+  print_test_header("18 - API Key Validation Testing (R)")
 
   # Load configuration
   config <- load_config()
@@ -61,7 +61,7 @@ run_api_validation_test <- function() {
   })
 
   # Create results directory
-  results_dir <- create_results_dir("17_api_validation")
+  results_dir <- create_results_dir("18_api_validation")
   message(sprintf("Results will be saved to: %s", results_dir))
 
   start_time <- Sys.time()

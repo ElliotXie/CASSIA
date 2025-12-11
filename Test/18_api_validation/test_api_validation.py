@@ -1,5 +1,5 @@
 """
-CASSIA Test 17: API Key Validation Testing
+CASSIA Test 18: API Key Validation Testing
 ==========================================
 Tests the validate_api_keys() function for different LLM providers.
 
@@ -378,7 +378,7 @@ def test_thread_safety():
 
 def run_api_validation_test():
     """Run all API validation tests."""
-    print_test_header("17 - API Key Validation Testing")
+    print_test_header("18 - API Key Validation Testing")
 
     # Load configuration
     config = load_config()
@@ -388,7 +388,7 @@ def run_api_validation_test():
     setup_api_keys()
 
     # Create results directory
-    results_dir_dict = create_results_dir("17_api_validation")
+    results_dir_dict = create_results_dir("18_api_validation")
     results_dir = results_dir_dict['base']  # Extract the base path
     print(f"\nResults will be saved to: {results_dir}")
 

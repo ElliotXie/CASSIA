@@ -86,9 +86,15 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
 # 自定义 OpenAI 兼容 API（如 DeepSeek）
 setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
+
+# 本地 LLM - 无需 API 密钥
+setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)  # Ollama
+setLLMApiKey(provider = "http://localhost:1234/v1", persist = TRUE)   # LM Studio
 ```
 
-> **自定义 API**：CASSIA 支持任何 OpenAI 兼容的 API 端点，只需将 API 的基础 URL 作为 provider 参数即可。
+> **本地 LLM**：为了数据隐私和零 API 费用，可使用 Ollama 或 LM Studio 等本地 LLM。本地 URL 无需 API 密钥。
+
+> **自定义 API**：CASSIA 支持任何 OpenAI 兼容的 API 端点。只需将 API 的基础 URL 作为 provider 参数即可。
 
 - **API 提供商指南:**
 
@@ -145,30 +151,9 @@ runCASSIA_pipeline(
 2. 注释摘要网页报告
 3. 注释增强智能体报告
 
-## 🧰 故障排除
+## 📚 需要帮助？
 
-### 身份验证（错误 401）
-```R
-# 检查 API 密钥是否正确设置
-key <- Sys.getenv("ANTHROPIC_API_KEY")
-print(key)  # 输出结果不应该为空
-
-# 如果需要，重置 API 密钥
-setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)
-```
-
-### 文件错误
-- 必要时使用绝对路径
-- 检查文件权限
-- 确保文件未在其他程序中打开
-
-### 最佳实践
-- 保持API密钥安全
-- 维持足够的API额度
-
-
-注意：此 README 仅涵盖了基本的 CASSIA 功能。有关包括高级功能和详细示例在内的完整教程，请访问：
-[CASSIA 完整教程](https://docs.cassia.bio/zh)。
+本 README 仅涵盖 CASSIA 基本功能。如需高级功能、故障排除及详细示例，请访问[完整文档](https://docs.cassia.bio/zh)。
 
 ## 📖 引用
 

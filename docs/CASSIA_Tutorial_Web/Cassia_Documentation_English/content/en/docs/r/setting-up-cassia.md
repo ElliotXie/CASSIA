@@ -203,5 +203,36 @@ runCASSIA_pipeline(
 
 Any API that follows the OpenAI chat completions format can be used, including:
 - DeepSeek (`https://api.deepseek.com`)
-- Local LLM servers (e.g., Ollama, vLLM)
+- Local LLM servers (e.g., Ollama, LM Studio, vLLM)
 - Other OpenAI-compatible services
+
+### Local LLMs (Ollama, LM Studio)
+
+For complete data privacy and zero API costs, you can run LLMs locally. CASSIA supports any OpenAI-compatible local server.
+
+**No API key required for localhost URLs.**
+
+#### Ollama Setup
+
+1. Install Ollama from [ollama.ai](https://ollama.ai)
+2. Pull a model: `ollama pull gpt-oss:20b`
+3. Ollama runs automatically on `http://localhost:11434`
+
+#### Usage
+
+```r
+runCASSIA_batch(
+    marker = markers,
+    output_name = "results",
+    provider = "http://localhost:11434/v1",
+    model = "gpt-oss:20b",
+    tissue = "brain",
+    species = "human"
+)
+```
+
+#### LM Studio Setup
+
+1. Download LM Studio from [lmstudio.ai](https://lmstudio.ai)
+2. Load a model and start the local server
+3. Default port: `http://localhost:1234/v1`

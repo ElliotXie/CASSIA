@@ -232,8 +232,13 @@ def _run_core_analysis(model, temperature, marker_list, tissue, species, additio
         return run_cell_type_analysis_openrouter(model, temperature, marker_list, tissue, species, additional_info, validator_involvement, reasoning=reasoning)
     elif provider.lower().startswith("http"):
         api_key = os.environ.get("CUSTOMIZED_API_KEY")
+        # For localhost URLs, API key is optional (local LLMs like Ollama don't need auth)
+        is_localhost = any(x in provider.lower() for x in ["localhost", "127.0.0.1"])
         if not api_key:
-            raise ValueError("CUSTOMIZED_API_KEY environment variable is not set. Please call set_api_key with your API key and provider (base URL).")
+            if is_localhost:
+                api_key = "ollama"  # Placeholder for local LLMs
+            else:
+                raise ValueError("CUSTOMIZED_API_KEY environment variable is not set. Please call set_api_key with your API key and provider (base URL).")
         return run_cell_type_analysis_custom(
             base_url=provider,
             api_key=api_key,
