@@ -70,9 +70,9 @@ setup_cassia_env()
 
 ### 🔑 设置 API 密钥
 
-获取API密钥大约需要3分钟时间。
+获取 API 密钥大约需要 3 分钟时间。
 
-针对国内用户，我们强烈推荐使用 OpenRouter ，因为OpenAI和Anthropic都对国内访问有限制，使用OpenRouter可以通过单个 API 密钥访问大多数模型。
+**您只需要一个 API 密钥即可使用 CASSIA。** 我们推荐使用 OpenRouter，因为它通过单个 API 密钥即可访问大多数模型（OpenAI、Anthropic、Google 等），无需注册多个服务商。针对国内用户尤其推荐，因为 OpenAI 和 Anthropic 都对国内访问有限制。
 
 ```R
 # 对于 OpenRouter

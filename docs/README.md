@@ -71,11 +71,11 @@ setup_cassia_env()
 
 
 
-### 🔑 Set Up API Keys
+### 🔑 Set Up API Key
 
 It should take about 3 minutes to get your API key.
 
-We recommend starting with OpenRouter since it provides access to most models through a single API key.
+**You only need ONE API key to use CASSIA.** We recommend OpenRouter since it provides access to most models (OpenAI, Anthropic, Google, etc.) through a single API key — no need to sign up for multiple providers.
 
 ```R
 # For OpenRouter
