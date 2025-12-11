@@ -20,7 +20,7 @@ class TestPipelineDefaults:
         defaults = get_pipeline_defaults("openai")
 
         assert defaults["annotation"] == "gpt-5.1"
-        assert defaults["score"] == "gpt-5-mini"
+        assert defaults["score"] == "gpt-5.1"
         assert defaults["merge"] == "gpt-5-mini"
         assert defaults["annotationboost"] == "gpt-5.1"
 

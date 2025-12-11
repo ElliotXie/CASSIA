@@ -113,7 +113,7 @@
   "pipeline_defaults": {
     "openai": {
       "annotation": "gpt-5.1",
-      "score": "gpt-5-mini",
+      "score": "gpt-5.1",
       "merge": "gpt-5-mini",
       "annotationboost": "gpt-5.1"
     },

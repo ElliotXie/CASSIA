@@ -320,7 +320,7 @@ class ModelSettings:
 
         Examples:
             >>> get_pipeline_defaults("openai")
-            {'annotation': 'gpt-5.1', 'score': 'gpt-5-mini', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+            {'annotation': 'gpt-5.1', 'score': 'gpt-5.1', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
             >>> get_pipeline_defaults("anthropic")
             {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
         """
@@ -339,7 +339,7 @@ class ModelSettings:
         fallbacks = {
             "openai": {
                 "annotation": "gpt-5.1",
-                "score": "gpt-5-mini",
+                "score": "gpt-5.1",
                 "merge": "gpt-5-mini",
                 "annotationboost": "gpt-5.1"
             },
@@ -455,7 +455,7 @@ def get_pipeline_defaults(provider: str) -> Dict[str, str]:
 
     Examples:
         >>> get_pipeline_defaults("openai")
-        {'annotation': 'gpt-5.1', 'score': 'gpt-5-mini', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+        {'annotation': 'gpt-5.1', 'score': 'gpt-5.1', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
         >>> get_pipeline_defaults("anthropic")
         {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
     """

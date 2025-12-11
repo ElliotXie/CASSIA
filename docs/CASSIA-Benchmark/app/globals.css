@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.75rem;
+}
+
+body {
+  background-color: #f8fafc;
+  color: hsl(var(--foreground));
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.hero-section {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23dbeafe' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-position: center;
+}
+
+.method-title {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.cassia-title {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.chart-container {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.navbar {
+  background: linear-gradient(90deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.tissue-selector {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius);
+}
+
+.benchmark-card {
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(226, 232, 240, 1);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.benchmark-card:hover {
+  border-color: rgba(191, 219, 254, 1);
+}
+
+.benchmark-header {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: rgba(226, 232, 240, 1);
+  padding: 1.25rem;
+}
+
+.benchmark-content {
+  padding: 1.25rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.125rem 0.625rem;
+  background-color: rgba(243, 244, 246, 1);
+  color: rgba(107, 114, 128, 1);
+}
+
+.badge-blue {
+  background-color: rgba(219, 234, 254, 1);
+  color: rgba(37, 99, 235, 1);
+}
+
+.badge-green {
+  background-color: rgba(209, 250, 229, 1);
+  color: rgba(5, 150, 105, 1);
+}
+
+.badge-amber {
+  background-color: rgba(254, 243, 199, 1);
+  color: rgba(217, 119, 6, 1);
+}
+
+.badge-violet {
+  background-color: rgba(237, 233, 254, 1);
+  color: rgba(124, 58, 237, 1);
+}
+
+.badge-pink {
+  background-color: rgba(252, 231, 243, 1);
+  color: rgba(219, 39, 119, 1);
+}
+
+.badge-indigo {
+  background-color: rgba(224, 231, 255, 1);
+  color: rgba(79, 70, 229, 1);
+}
+
+.badge-sky {
+  background-color: rgba(224, 242, 254, 1);
+  color: rgba(14, 165, 233, 1);
+}
+
+.badge-purple {
+  background-color: rgba(243, 232, 255, 1);
+  color: rgba(168, 85, 247, 1);
+}
+
+.badge-yellow {
+  background-color: rgba(254, 249, 195, 1);
+  color: rgba(202, 138, 4, 1);
+}
+
+.badge-teal {
+  background-color: rgba(204, 251, 241, 1);
+  color: rgba(20, 184, 166, 1);
+}
