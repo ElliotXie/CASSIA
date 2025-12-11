@@ -19,7 +19,13 @@
       "Bash(cmd /c rmdir \"d:\\CASSIA\\Test\\provider_defaults\")",
       "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m pytest \"d:\\CASSIA\\Test\\16_cassia_pipeline\\test_provider_defaults.py\" -v)",
       "Bash(cmd /c \"dir d:\\CASSIA\\Test\\17* && ren d:\\CASSIA\\Test\\17_provider_defaults 21_provider_defaults\")",
-      "Bash(cmd /c \"dir /b d:\\CASSIA\\Test\")"
+      "Bash(cmd /c \"dir /b d:\\CASSIA\\Test\")",
+      "Bash(cmd /c \"dir /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r\")",
+      "Bash(cmd /c \"dir /b /s d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r\\*.md 2>nul\")",
+      "Bash(cmd /c \"dir /s /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r\")",
+      "Bash(cmd /c \"dir d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\")",
+      "Bash(cmd /c \"dir /s /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content 2>nul | findstr /i \".md$\"\")",
+      "Bash(cmd /c \"if exist d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r (echo Path exists) else (echo Path does not exist)\")"
     ],
     "deny": []
   }

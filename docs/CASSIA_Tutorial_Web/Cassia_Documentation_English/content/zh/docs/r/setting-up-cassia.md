@@ -72,6 +72,8 @@ validate_api_keys("openai", force_revalidate = TRUE)
 有三个提供商可供选择：`openrouter`、`openai`和`anthropic`。每个提供商都有自己的模型和定价。
 请注意，模型名称必须完全按照下面所示设置，否则将找不到模型。
 
+> **中国大陆用户注意**：OpenAI 和 Anthropic 在中国大陆无法直接访问。建议使用 **OpenRouter**（可访问所有主流模型）、**DeepSeek**、**智谱 GLM**、**Moonshot Kimi** 等国内可访问的提供商，或使用 **本地 LLM**（如 Ollama）。详见下方 [其他提供商](#其他提供商) 和 [本地 LLM](#本地-llm) 部分。
+
 ### OpenRouter
 
 OpenRouter是一个平台，提供对主要提供商支持的几乎所有模型的访问。建议使用OpenRouter，因为它具有更高的速率限制，并且可以访问包括开源选项在内的各种模型。
@@ -100,11 +102,11 @@ OpenRouter是一个平台，提供对主要提供商支持的几乎所有模型�
 
 - `gpt-oss:20b`: 可通过 Ollama 在本地运行。适合大批量分析，准确率可接受。设置方法请参阅 **[本地 LLM](#本地-llmollama-lm-studio)**。
 
-## 智能模型设置 (Smart Model Settings)
+## 智能模型设置
 
-CASSIA包含一个智能模型选择系统，允许您使用简单的别名或"层级"（tiers）而不是记住确切的模型版本字符串。
+CASSIA包含一个智能模型选择系统，允许您使用简单的别名或"层级"而不是记住确切的模型版本字符串。
 
-### 层级快捷方式 (Tier Shortcuts)
+### 层级快捷方式
 您可以将这些快捷方式与任何提供商一起使用，以获得适合您需求的模型：
 
 - `"best"`: 选择性能最高的模型（例如，`gpt-5.1`，`claude-opus-4.5`）
@@ -117,7 +119,7 @@ CASSIA包含一个智能模型选择系统，允许您使用简单的别名或"�
 runCASSIA_pipeline(..., model = "best", provider = "openai")
 ```
 
-### 模糊匹配和别名 (Fuzzy Matching & Aliases)
+### 模糊匹配和别名
 您还可以使用通用名称，CASSIA会将它们解析为正确的版本：
 
 - `"gpt"` -> 解析为 `gpt-5.1` (对于OpenAI)

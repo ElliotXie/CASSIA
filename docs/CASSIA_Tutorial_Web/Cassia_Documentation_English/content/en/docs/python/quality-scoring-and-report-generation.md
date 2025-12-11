@@ -15,7 +15,7 @@ CASSIA.runCASSIA_score_batch(
     model = "openai/gpt-5.1",
     provider = "openrouter",
     generate_report = True,  # Default, generates HTML report automatically
-    reasoning = "low"  # Optional: "low", "medium", "high"
+    reasoning = "medium"  # Optional: "low", "medium", "high"
 )
 ```
 

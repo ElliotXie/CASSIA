@@ -15,7 +15,7 @@ CASSIA.runCASSIA_score_batch(
     model = "openai/gpt-5.1",
     provider = "openrouter",
     generate_report = True,  # 默认值，自动生成 HTML 报告
-    reasoning = "low"  # 可选: "low", "medium", "high"
+    reasoning = "medium"  # 可选: "low", "medium", "high"
 )
 ```
 

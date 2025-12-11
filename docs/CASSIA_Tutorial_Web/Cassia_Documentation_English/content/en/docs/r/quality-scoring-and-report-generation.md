@@ -15,7 +15,7 @@ runCASSIA_score_batch(
     max_workers = 4,
     model = "openai/gpt-5.1", # Recommended for accurate scoring
     provider = "openrouter",
-    reasoning = "low"  # Optional: "low", "medium", "high"
+    reasoning = "medium"  # Optional: "low", "medium", "high"
 )
 ```
 

@@ -49,6 +49,8 @@ CASSIA.validate_api_keys("openai", force_revalidate=True)
 有三个提供商可供选择：`openrouter`、`openai` 和 `anthropic`。每个提供商都有自己的模型和定价。
 **注意，模型名称必须完全按照下面所示设置，否则将找不到模型。**
 
+> **中国大陆用户注意**：OpenAI 和 Anthropic 在中国大陆无法直接访问。建议使用 **OpenRouter**（可访问所有主流模型）、**DeepSeek**、**智谱 GLM**、**Moonshot Kimi** 等国内可访问的提供商，或使用 **本地 LLM**（如 Ollama）。详见下方 [其他提供商](#其他提供商) 和 [本地 LLM](#本地-llm) 部分。
+
 ### OpenRouter
 
 OpenRouter 是一个平台，提供对主要提供商支持的几乎所有模型的访问。建议使用 OpenRouter，因为它具有更高的速率限制，并且可以访问包括开源选项在内的各种模型。
