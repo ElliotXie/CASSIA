@@ -1386,18 +1386,21 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param species Species being analyzed
 #' @param marker Marker data (data frame or file path)
 #' @param max_workers Maximum number of concurrent workers (default: 4)
-#' @param annotation_model Model to use for initial annotation (default: "google/gemini-2.5-flash-preview")
-#' @param annotation_provider Provider for initial annotation (default: "openrouter")
-#' @param score_model Model to use for scoring (default: "deepseek/deepseek-chat-v3-0324")
-#' @param score_provider Provider for scoring (default: "openrouter")
-#' @param annotationboost_model Model to use for boosting low-scoring annotations (default: "google/gemini-2.5-flash-preview")
-#' @param annotationboost_provider Provider for boosting low-scoring annotations (default: "openrouter")
+#' @param overall_provider Main provider for all pipeline stages. One of "openai",
+#'   "anthropic", or "openrouter". Sets default models for all stages.
+#'   Individual model parameters can override specific stages. (default: "openrouter")
+#' @param annotation_model Override annotation model. If NULL, uses overall_provider's default.
+#' @param annotation_provider Override provider for annotation only.
+#' @param score_model Override scoring model. If NULL, uses overall_provider's default.
+#' @param score_provider Override provider for scoring only.
+#' @param annotationboost_model Override boost model. If NULL, uses overall_provider's default.
+#' @param annotationboost_provider Override provider for boost only.
 #' @param score_threshold Threshold for identifying low-scoring clusters (default: 75)
 #' @param additional_info Additional information for analysis (default: NULL)
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #' @param do_merge_annotations Whether to run the merging annotations step (default: TRUE)
-#' @param merge_model Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")
-#' @param merge_provider Provider to use for merging annotations (default: "openrouter")
+#' @param merge_model Override merge model. If NULL, uses overall_provider's default.
+#' @param merge_provider Override provider for merging only.
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "final")
 #' @param search_strategy Search strategy for annotation boost - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report for annotation boost ("per_iteration" or "total_summary") (default: "per_iteration")
@@ -1416,18 +1419,19 @@ runCASSIA_pipeline <- function(
     species,
     marker,
     max_workers = 4,
-    annotation_model = "google/gemini-2.5-flash",
-    annotation_provider = "openrouter",
-    score_model = "google/gemini-2.5-flash",
-    score_provider = "openrouter",
-    annotationboost_model = "google/gemini-2.5-flash",
-    annotationboost_provider = "openrouter",
+    overall_provider = "openrouter",
+    annotation_model = NULL,
+    annotation_provider = NULL,
+    score_model = NULL,
+    score_provider = NULL,
+    annotationboost_model = NULL,
+    annotationboost_provider = NULL,
     score_threshold = 75,
     additional_info = NULL,
     max_retries = 1,
     do_merge_annotations = TRUE,
-    merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter",
+    merge_model = NULL,
+    merge_provider = NULL,
     conversation_history_mode = "final",
     search_strategy = "breadth",
     report_style = "per_iteration",
@@ -1465,6 +1469,7 @@ runCASSIA_pipeline <- function(
       species = species,
       marker = marker,
       max_workers = as.integer(max_workers),
+      overall_provider = overall_provider,
       annotation_model = annotation_model,
       annotation_provider = annotation_provider,
       score_model = score_model,

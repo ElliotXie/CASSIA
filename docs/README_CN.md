@@ -114,7 +114,7 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式
 ## ⚙️ 快速开始
 
 ```R
-# 核心注释功能 - 这是我们论文中用于基准测试的函数
+# 核心注释功能
 runCASSIA_batch(
     marker = markers_unprocessed,                # FindAllMarkers 输出的标记基因数据
     output_name = "cassia_results",              # 输出文件名
@@ -146,10 +146,6 @@ runCASSIA_batch(
 
 ### Anthropic
 - `claude-sonnet-4-5`: 最新的高性能模型（最推荐）
-
-## 📚 需要帮助？
-
-本 README 仅涵盖 CASSIA 基本功能。如需高级功能、故障排除及详细示例，请访问[完整文档](https://docs.cassia.bio/zh)。
 
 ## 📖 引用
 

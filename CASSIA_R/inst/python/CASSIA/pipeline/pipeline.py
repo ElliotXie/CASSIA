@@ -10,6 +10,7 @@ import os
 import json
 import datetime
 import pandas as pd
+from typing import Optional
 
 
 def runCASSIA_pipeline(
@@ -18,18 +19,19 @@ def runCASSIA_pipeline(
     species: str,
     marker,  # Can be DataFrame or file path string
     max_workers: int = 4,
-    annotation_model: str = "meta-llama/llama-4-maverick",
-    annotation_provider: str = "openrouter",
-    score_model: str = "google/gemini-2.5-pro-preview-03-25",
-    score_provider: str = "openrouter",
-    annotationboost_model: str = "google/gemini-2.5-flash-preview",
-    annotationboost_provider: str = "openrouter",
+    overall_provider: str = "openrouter",
+    annotation_model: Optional[str] = None,
+    annotation_provider: Optional[str] = None,
+    score_model: Optional[str] = None,
+    score_provider: Optional[str] = None,
+    annotationboost_model: Optional[str] = None,
+    annotationboost_provider: Optional[str] = None,
     score_threshold: float = 75,
     additional_info: str = "None",
     max_retries: int = 1,
     merge_annotations: bool = True,
-    merge_model: str = "deepseek/deepseek-chat-v3-0324",
-    merge_provider: str = "openrouter",
+    merge_model: Optional[str] = None,
+    merge_provider: Optional[str] = None,
     conversation_history_mode: str = "final",
     ranking_method: str = "avg_log2FC",
     ascending: bool = None,
@@ -48,18 +50,21 @@ def runCASSIA_pipeline(
         species (str): Species being analyzed
         marker: Marker data (pandas DataFrame or path to CSV file)
         max_workers (int): Maximum number of concurrent workers
-        annotation_model (str): Model to use for initial annotation
-        annotation_provider (str): Provider for initial annotation
-        score_model (str): Model to use for scoring
-        score_provider (str): Provider for scoring
-        annotationboost_model (str): Model to use for boosting low-scoring annotations
-        annotationboost_provider (str): Provider for boosting low-scoring annotations
+        overall_provider (str): Main provider for all pipeline stages. One of "openai",
+            "anthropic", or "openrouter". Sets default models for all stages.
+            Individual model parameters can override specific stages. Default: "openrouter"
+        annotation_model (str, optional): Override annotation model. If None, uses overall_provider's default.
+        annotation_provider (str, optional): Override provider for annotation only.
+        score_model (str, optional): Override scoring model. If None, uses overall_provider's default.
+        score_provider (str, optional): Override provider for scoring only.
+        annotationboost_model (str, optional): Override boost model. If None, uses overall_provider's default.
+        annotationboost_provider (str, optional): Override provider for boost only.
         score_threshold (float): Threshold for identifying low-scoring clusters
         additional_info (str): Additional information for analysis
         max_retries (int): Maximum number of retries for failed analyses
         merge_annotations (bool): Whether to merge annotations from LLM
-        merge_model (str): Model to use for merging annotations
-        merge_provider (str): Provider to use for merging annotations
+        merge_model (str, optional): Override merge model. If None, uses overall_provider's default.
+        merge_provider (str, optional): Override provider for merging only.
         conversation_history_mode (str): Mode for extracting conversation history ("full", "final", or "none")
         ranking_method (str): Method to rank genes ('avg_log2FC', 'p_val_adj', 'pct_diff', 'Score')
         ascending (bool): Sort direction (None uses default for each method)
@@ -71,6 +76,14 @@ def runCASSIA_pipeline(
         auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
             If True (default), detects and converts IDs in the marker data before processing.
             Requires the 'mygene' package to be installed for conversion.
+
+    Examples:
+        Simple usage with provider defaults:
+            >>> runCASSIA_pipeline(..., overall_provider="openai")  # Uses all OpenAI defaults
+            >>> runCASSIA_pipeline(..., overall_provider="anthropic")  # Uses all Anthropic defaults
+
+        Override specific models:
+            >>> runCASSIA_pipeline(..., overall_provider="openai", merge_model="gpt-4o")
     """
     # Import dependencies here to avoid circular imports
     try:
@@ -78,17 +91,20 @@ def runCASSIA_pipeline(
         from CASSIA.evaluation.scoring import runCASSIA_score_batch
         from CASSIA.reports.generate_batch_report import generate_batch_html_report_from_data
         from CASSIA.agents.annotation_boost.annotation_boost import runCASSIA_annotationboost
+        from CASSIA.core.model_settings import get_pipeline_defaults
     except ImportError:
         try:
             from ..engine.tools_function import runCASSIA_batch
             from ..evaluation.scoring import runCASSIA_score_batch
             from ..reports.generate_batch_report import generate_batch_html_report_from_data
             from ..agents.annotation_boost.annotation_boost import runCASSIA_annotationboost
+            from ..core.model_settings import get_pipeline_defaults
         except ImportError:
             from tools_function import runCASSIA_batch
             from scoring import runCASSIA_score_batch
             from generate_batch_report import generate_batch_html_report_from_data
             from annotation_boost import runCASSIA_annotationboost
+            from model_settings import get_pipeline_defaults
 
     # Import validation function
     try:
@@ -98,6 +114,37 @@ def runCASSIA_pipeline(
             from ..core.validation import validate_runCASSIA_pipeline_inputs
         except ImportError:
             from validation import validate_runCASSIA_pipeline_inputs
+
+    # ===== Resolve model defaults based on overall_provider =====
+    # Get defaults for the main provider
+    defaults = get_pipeline_defaults(overall_provider)
+
+    # Helper function to resolve stage model and provider
+    def _resolve_stage(stage_name, model_override, provider_override):
+        """Resolve model and provider for a pipeline stage."""
+        eff_provider = provider_override if provider_override else overall_provider
+        if model_override is not None:
+            return model_override, eff_provider
+        # Get default for this stage from effective provider's defaults
+        stage_defaults = get_pipeline_defaults(eff_provider)
+        return stage_defaults.get(stage_name), eff_provider
+
+    # Resolve all models
+    annotation_model, annotation_provider = _resolve_stage("annotation", annotation_model, annotation_provider)
+    score_model, score_provider = _resolve_stage("score", score_model, score_provider)
+    merge_model, merge_provider = _resolve_stage("merge", merge_model, merge_provider)
+    annotationboost_model, annotationboost_provider = _resolve_stage("annotationboost", annotationboost_model, annotationboost_provider)
+
+    # Print resolved configuration for user visibility
+    print("\n" + "=" * 50)
+    print("CASSIA Pipeline Configuration")
+    print("=" * 50)
+    print(f"Overall Provider: {overall_provider}")
+    print(f"  Annotation:       {annotation_model} ({annotation_provider})")
+    print(f"  Scoring:          {score_model} ({score_provider})")
+    print(f"  Merging:          {merge_model} ({merge_provider})")
+    print(f"  Annotation Boost: {annotationboost_model} ({annotationboost_provider})")
+    print("=" * 50 + "\n")
 
     # Validate all inputs early (fail-fast)
     validate_runCASSIA_pipeline_inputs(

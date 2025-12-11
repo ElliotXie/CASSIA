@@ -120,7 +120,7 @@ markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 ## ⚙️ Quick Start
 
 ```R
-# Core annotation - this is the function benchmarked in our paper
+# Core annotation
 runCASSIA_batch(
     marker = markers_unprocessed,                # Marker data from FindAllMarkers
     output_name = "cassia_results",              # Output file name
@@ -152,10 +152,6 @@ Some classic models are listed below. OpenRouter supports most popular models �
 
 ### Anthropic
 - `claude-sonnet-4-5`: The latest best-performing model (Most recommended)
-
-## 📚 Need Help?
-
-This README covers basic CASSIA functionality. For advanced features, troubleshooting, and detailed examples, visit our [complete documentation](https://docs.cassia.bio/en).
 
 ## 📖 Citation
 

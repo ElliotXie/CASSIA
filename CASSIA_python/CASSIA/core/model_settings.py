@@ -304,6 +304,60 @@ class ModelSettings:
             print(f"    {alias:15} -> {model}")
         print()
 
+    def get_pipeline_defaults(self, provider: str) -> Dict[str, str]:
+        """
+        Get default models for each pipeline stage for a given provider.
+
+        Args:
+            provider: Provider name ("openai", "anthropic", "openrouter")
+
+        Returns:
+            Dict mapping stage names to model names:
+            - annotation: Model for annotation stage
+            - score: Model for scoring stage
+            - merge: Model for merging stage
+            - annotationboost: Model for annotation boost stage
+
+        Examples:
+            >>> get_pipeline_defaults("openai")
+            {'annotation': 'gpt-5.1', 'score': 'gpt-5-mini', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+            >>> get_pipeline_defaults("anthropic")
+            {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
+        """
+        provider_lower = provider.lower().strip()
+        defaults = self.settings.get("pipeline_defaults", {})
+        provider_defaults = defaults.get(provider_lower, {})
+
+        if not provider_defaults:
+            # Fallback to hardcoded defaults if not in JSON
+            return self._get_fallback_pipeline_defaults(provider_lower)
+
+        return provider_defaults
+
+    def _get_fallback_pipeline_defaults(self, provider: str) -> Dict[str, str]:
+        """Fallback pipeline defaults if not in JSON config."""
+        fallbacks = {
+            "openai": {
+                "annotation": "gpt-5.1",
+                "score": "gpt-5-mini",
+                "merge": "gpt-5-mini",
+                "annotationboost": "gpt-5.1"
+            },
+            "anthropic": {
+                "annotation": "claude-sonnet-4-5",
+                "score": "claude-sonnet-4-5",
+                "merge": "claude-haiku-4-5",
+                "annotationboost": "claude-sonnet-4-5"
+            },
+            "openrouter": {
+                "annotation": "openai/gpt-5.1",
+                "score": "anthropic/claude-sonnet-4.5",
+                "merge": "google/gemini-2.5-flash",
+                "annotationboost": "anthropic/claude-sonnet-4.5"
+            }
+        }
+        return fallbacks.get(provider.lower(), fallbacks["openrouter"])
+
 
 # Global instance
 _model_settings = None
@@ -383,3 +437,26 @@ def print_available_models():
 def print_available_aliases():
     """Print all available aliases."""
     get_model_settings().print_available_aliases()
+
+
+def get_pipeline_defaults(provider: str) -> Dict[str, str]:
+    """
+    Get default models for each pipeline stage for a given provider.
+
+    Args:
+        provider: Provider name ("openai", "anthropic", "openrouter")
+
+    Returns:
+        Dict mapping stage names to model names:
+        - annotation: Model for annotation stage
+        - score: Model for scoring stage
+        - merge: Model for merging stage
+        - annotationboost: Model for annotation boost stage
+
+    Examples:
+        >>> get_pipeline_defaults("openai")
+        {'annotation': 'gpt-5.1', 'score': 'gpt-5-mini', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+        >>> get_pipeline_defaults("anthropic")
+        {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
+    """
+    return get_model_settings().get_pipeline_defaults(provider)

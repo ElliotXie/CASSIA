@@ -109,5 +109,25 @@
       "opus": "claude-opus-4-5",
       "haiku": "claude-haiku-4-5"
     }
+  },
+  "pipeline_defaults": {
+    "openai": {
+      "annotation": "gpt-5.1",
+      "score": "gpt-5-mini",
+      "merge": "gpt-5-mini",
+      "annotationboost": "gpt-5.1"
+    },
+    "anthropic": {
+      "annotation": "claude-sonnet-4-5",
+      "score": "claude-sonnet-4-5",
+      "merge": "claude-haiku-4-5",
+      "annotationboost": "claude-sonnet-4-5"
+    },
+    "openrouter": {
+      "annotation": "openai/gpt-5.1",
+      "score": "anthropic/claude-sonnet-4.5",
+      "merge": "google/gemini-2.5-flash",
+      "annotationboost": "anthropic/claude-sonnet-4.5"
+    }
   }
 }
