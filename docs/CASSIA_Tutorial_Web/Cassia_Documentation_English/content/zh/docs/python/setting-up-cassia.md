@@ -20,7 +20,7 @@ import CASSIA
 
 **注意：您必须设置至少一个 API 密钥才能使用 CASSIA。**
 
-**您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。
+**您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。您也可以使用**[自定义 API 提供商](#自定义-api-提供商)**，如 DeepSeek 或本地 LLM。
 
 ```python
 # 设置 API 密钥（选择一个提供商）
@@ -65,6 +65,18 @@ OpenRouter 是一个平台，提供对主要提供商支持的几乎所有模型
 
 - `claude-sonnet-4.5`: 高性能模型。
 
+### 其他提供商
+
+这些模型可以通过其自有 API 使用。设置方法请参阅 **[自定义 API 提供商](#自定义-api-提供商)**。
+
+- `deepseek-chat` (DeepSeek v3.2): 高性能，价格实惠。提供商：`https://api.deepseek.com`
+- `glm-4.6` (GLM 4.6): 快速且经济实惠。提供商：`https://api.z.ai/api/paas/v4/`
+- `kimi-k2` (Kimi K2): 强大的推理能力。提供商：`https://api.moonshot.cn/v1`
+
+### 本地 LLM
+
+- `gpt-oss:20b`: 可通过 Ollama 在本地运行。适合大批量分析，准确率可接受。设置方法请参阅 **[本地 LLM](#本地-llmollama-lm-studio)**。
+
 ## 智能模型设置（推荐）
 
 CASSIA 包含一个智能模型选择系统，允许您使用简单的别名或“层级”代替记住确切的模型版本字符串。这使您的代码对模型版本更新更具鲁棒性。
@@ -89,7 +101,79 @@ CASSIA.runCASSIA_pipeline(..., model = "best", provider = "openai")
 - `"claude"` -> 解析为 `claude-sonnet-4.5` (用于 Anthropic)
 - `"gemini"` -> 解析为 `google/gemini-2.5-flash` (用于 OpenRouter)
 
+## 自定义 API 提供商
+
+CASSIA 支持任何兼容 OpenAI 的 API 端点，让您可以使用自定义提供商，如 DeepSeek、本地 LLM 服务器或其他第三方服务。
+
+> **中国大陆用户推荐**：由于 Claude 和 GPT 等模型在中国大陆可能存在访问限制，我们推荐使用 **DeepSeek**。DeepSeek 是中国公司开发的高性能大语言模型，性能与 GPT-4o 相当，价格实惠，访问稳定。
+
+### 设置自定义提供商
+
+使用自定义 API 提供商时，将完整的基础 URL 作为 `provider` 参数：
+
+```python
+# 为自定义提供商设置 API 密钥
+CASSIA.set_api_key("your-api-key", provider="https://api.your-provider.com")
+
+# 在分析中使用
+CASSIA.runCASSIA_batch(
+    marker=markers,
+    output_name="results",
+    provider="https://api.your-provider.com",
+    model="your-model-name",
+    tissue="brain",
+    species="human"
+)
+```
+
+### DeepSeek 使用示例（推荐）
+
+DeepSeek 提供高性能模型，价格实惠，特别适合中国用户：
+
+1. 从 [DeepSeek 开放平台](https://platform.deepseek.com/) 获取 API 密钥
+2. 在 CASSIA 中配置：
+
+```python
+CASSIA.set_api_key("your-deepseek-key", provider="https://api.deepseek.com")
+
+CASSIA.runCASSIA_pipeline(
+    output_file_name="analysis",
+    marker=markers,
+    annotation_provider="https://api.deepseek.com",
+    annotation_model="deepseek-chat",
+    tissue="brain",
+    species="human"
+)
+```
+
+### 本地 LLM（Ollama、LM Studio）
+
+为了完全的数据隐私和零 API 费用，您可以在本地运行 LLM。CASSIA 支持任何兼容 OpenAI 的本地服务器。
+
+**本地 URL 无需 API 密钥。**
+
+#### Ollama 设置
+
+1. 从 [ollama.ai](https://ollama.ai) 安装 Ollama
+2. 拉取模型：`ollama pull gpt-oss:20b`
+3. Ollama 自动运行在 `http://localhost:11434`
+
+#### 使用方法
+
+```python
+CASSIA.runCASSIA_batch(
+    marker=markers,
+    output_name="results",
+    provider="http://localhost:11434/v1",
+    model="gpt-oss:20b",
+    tissue="brain",
+    species="human"
+)
+```
+
 ## 推理深度参数
+
+**注意：** 此参数仅对 OpenAI GPT-5 系列模型（如 `gpt-5.1`）有效。推荐通过 OpenRouter 使用，或作为已验证的 OpenAI 用户使用。
 
 `reasoning` 参数控制兼容模型的推理深度。
 
@@ -135,86 +219,3 @@ CASSIA.runCASSIA_batch(
     species="human"
 )
 ```
-
-## 自定义 API 提供商
-
-CASSIA 支持任何兼容 OpenAI 的 API 端点，让您可以使用自定义提供商，如 DeepSeek、本地 LLM 服务器或其他第三方服务。
-
-> **中国大陆用户推荐**：由于 Claude 和 GPT 等模型在中国大陆可能存在访问限制，我们推荐使用 **DeepSeek**。DeepSeek 是中国公司开发的高性能大语言模型，性能与 GPT-4o 相当，价格实惠，访问稳定。
-
-### 设置自定义提供商
-
-使用自定义 API 提供商时，将完整 URL 作为 `provider` 参数：
-
-```python
-# 为自定义提供商设置 API 密钥
-CASSIA.set_api_key("your-api-key", provider="https://api.deepseek.com")
-
-# 在分析中使用
-CASSIA.runCASSIA_batch(
-    marker=markers,
-    output_name="results",
-    provider="https://api.deepseek.com",
-    model="deepseek-chat",
-    tissue="brain",
-    species="human"
-)
-```
-
-### DeepSeek 使用示例（推荐）
-
-DeepSeek 提供高性能模型，价格实惠，特别适合中国用户：
-
-1. 从 [DeepSeek 开放平台](https://platform.deepseek.com/) 获取 API 密钥
-2. 在 CASSIA 中配置：
-
-```python
-CASSIA.set_api_key("your-deepseek-key", provider="https://api.deepseek.com")
-
-CASSIA.runCASSIA_pipeline(
-    output_file_name="analysis",
-    marker=markers,
-    annotation_provider="https://api.deepseek.com",
-    annotation_model="deepseek-chat",
-    tissue="brain",
-    species="human"
-)
-```
-
-### 兼容的提供商
-
-任何遵循 OpenAI 聊天补全格式的 API 都可以使用，包括：
-- DeepSeek (`https://api.deepseek.com`) - **推荐中国用户使用**
-- 本地 LLM 服务器（如 Ollama、LM Studio、vLLM）
-- 其他兼容 OpenAI 的服务
-
-### 本地 LLM（Ollama、LM Studio）
-
-为了完全的数据隐私和零 API 费用，您可以在本地运行 LLM。CASSIA 支持任何兼容 OpenAI 的本地服务器。
-
-**本地 URL 无需 API 密钥。**
-
-#### Ollama 设置
-
-1. 从 [ollama.ai](https://ollama.ai) 安装 Ollama
-2. 拉取模型：`ollama pull gpt-oss:20b`
-3. Ollama 自动运行在 `http://localhost:11434`
-
-#### 使用方法
-
-```python
-CASSIA.runCASSIA_batch(
-    marker=markers,
-    output_name="results",
-    provider="http://localhost:11434/v1",
-    model="gpt-oss:20b",
-    tissue="brain",
-    species="human"
-)
-```
-
-#### LM Studio 设置
-
-1. 从 [lmstudio.ai](https://lmstudio.ai) 下载 LM Studio
-2. 加载模型并启动本地服务器
-3. 默认端口：`http://localhost:1234/v1`

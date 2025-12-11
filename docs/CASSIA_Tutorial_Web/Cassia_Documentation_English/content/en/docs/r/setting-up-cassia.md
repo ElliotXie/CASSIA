@@ -38,7 +38,7 @@ This function will:
 
 To use LLMs like OpenAI's GPT-4, Anthropic's Claude, or models via OpenRouter, you will first need to get your API keys from the provider and then set your API keys using the `setLLMApiKey()` function. Normally it will take about 3 minutes to get the API key from the provider. We recommend starting with OpenRouter, as it offers access to a variety of models including open source options.
 
-**Note: You must set at least one API key to use CASSIA.**
+**Note: You must set at least one API key to use CASSIA.** You can also use **[custom API providers](#custom-api-providers)** like DeepSeek or local LLMs.
 
 ```r
 
@@ -89,6 +89,18 @@ OpenRouter is a platform that offers access to almost all the models supported b
 
 - `claude-sonnet-4.5`: High-performance model.
 
+### Other Providers
+
+These models can be used via their own APIs. See **[Custom API Providers](#custom-api-providers)** for setup.
+
+- `deepseek-chat` (DeepSeek v3.2): High performance, very affordable. Provider: `https://api.deepseek.com`
+- `glm-4.6` (GLM 4.6): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
+- `kimi-k2` (Kimi K2): Strong reasoning capabilities. Provider: `https://api.moonshot.cn/v1`
+
+### Local LLMs
+
+- `gpt-oss:20b`: Can run locally via Ollama. Good for large bulk analysis with acceptable accuracy. See **[Local LLMs](#local-llms-ollama-lm-studio)** for setup.
+
 ## Smart Model Settings
 
 CASSIA includes a smart model selection system that allows you to use simple aliases or "tiers" instead of remembering exact model version strings.
@@ -115,7 +127,77 @@ You can also use common names, and CASSIA will resolve them to the correct versi
 
 This makes your code more robust to model version updates.
 
+## Custom API Providers
+
+CASSIA supports any OpenAI-compatible API endpoint, allowing you to use custom providers like DeepSeek, local LLM servers, or other third-party services.
+
+### Setting Up Custom Providers
+
+To use a custom API provider, specify the full base URL as the `provider` parameter:
+
+```r
+# Set API key for custom provider
+setLLMApiKey("your-api-key", provider = "https://api.your-provider.com", persist = TRUE)
+
+# Use in analysis
+runCASSIA_batch(
+    marker = markers,
+    output_name = "results",
+    provider = "https://api.your-provider.com",
+    model = "your-model-name",
+    tissue = "brain",
+    species = "human"
+)
+```
+
+### DeepSeek Example
+
+DeepSeek offers high-performance models at competitive prices:
+
+1. Get your API key from [DeepSeek Platform](https://platform.deepseek.com/)
+2. Set up in CASSIA:
+
+```r
+setLLMApiKey("your-deepseek-key", provider = "https://api.deepseek.com", persist = TRUE)
+
+runCASSIA_pipeline(
+    output_file_name = "analysis",
+    marker = markers,
+    annotation_provider = "https://api.deepseek.com",
+    annotation_model = "deepseek-chat",
+    tissue = "brain",
+    species = "human"
+)
+```
+
+### Local LLMs (Ollama, LM Studio)
+
+For complete data privacy and zero API costs, you can run LLMs locally. CASSIA supports any OpenAI-compatible local server.
+
+**No API key required for localhost URLs.**
+
+#### Ollama Setup
+
+1. Install Ollama from [ollama.ai](https://ollama.ai)
+2. Pull a model: `ollama pull gpt-oss:20b`
+3. Ollama runs automatically on `http://localhost:11434`
+
+#### Usage
+
+```r
+runCASSIA_batch(
+    marker = markers,
+    output_name = "results",
+    provider = "http://localhost:11434/v1",
+    model = "gpt-oss:20b",
+    tissue = "brain",
+    species = "human"
+)
+```
+
 ## Reasoning Effort Parameter
+
+**Note:** This parameter is only meaningful for OpenAI GPT-5 series models (e.g., `gpt-5.1`). Use via OpenRouter (recommended) or as a verified OpenAI user.
 
 The `reasoning` parameter controls the model's reasoning depth for compatible models.
 
@@ -155,84 +237,3 @@ runCASSIA_batch(
     species = "human"
 )
 ```
-
-## Custom API Providers
-
-CASSIA supports any OpenAI-compatible API endpoint, allowing you to use custom providers like DeepSeek, local LLM servers, or other third-party services.
-
-### Setting Up Custom Providers
-
-To use a custom API provider, specify the full URL as the `provider` parameter:
-
-```r
-# Set API key for custom provider
-setLLMApiKey("your-api-key", provider = "https://api.deepseek.com", persist = TRUE)
-
-# Use in analysis
-runCASSIA_batch(
-    marker = markers,
-    output_name = "results",
-    provider = "https://api.deepseek.com",
-    model = "deepseek-chat",
-    tissue = "brain",
-    species = "human"
-)
-```
-
-### DeepSeek Example
-
-DeepSeek offers high-performance models at competitive prices:
-
-1. Get your API key from [DeepSeek Platform](https://platform.deepseek.com/)
-2. Set up in CASSIA:
-
-```r
-setLLMApiKey("your-deepseek-key", provider = "https://api.deepseek.com", persist = TRUE)
-
-runCASSIA_pipeline(
-    output_file_name = "analysis",
-    marker = markers,
-    annotation_provider = "https://api.deepseek.com",
-    annotation_model = "deepseek-chat",
-    tissue = "brain",
-    species = "human"
-)
-```
-
-### Compatible Providers
-
-Any API that follows the OpenAI chat completions format can be used, including:
-- DeepSeek (`https://api.deepseek.com`)
-- Local LLM servers (e.g., Ollama, LM Studio, vLLM)
-- Other OpenAI-compatible services
-
-### Local LLMs (Ollama, LM Studio)
-
-For complete data privacy and zero API costs, you can run LLMs locally. CASSIA supports any OpenAI-compatible local server.
-
-**No API key required for localhost URLs.**
-
-#### Ollama Setup
-
-1. Install Ollama from [ollama.ai](https://ollama.ai)
-2. Pull a model: `ollama pull gpt-oss:20b`
-3. Ollama runs automatically on `http://localhost:11434`
-
-#### Usage
-
-```r
-runCASSIA_batch(
-    marker = markers,
-    output_name = "results",
-    provider = "http://localhost:11434/v1",
-    model = "gpt-oss:20b",
-    tissue = "brain",
-    species = "human"
-)
-```
-
-#### LM Studio Setup
-
-1. Download LM Studio from [lmstudio.ai](https://lmstudio.ai)
-2. Load a model and start the local server
-3. Default port: `http://localhost:1234/v1`

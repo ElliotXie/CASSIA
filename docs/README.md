@@ -157,6 +157,15 @@ Some classic models are listed below. OpenRouter supports most popular models �
 ### Anthropic
 - `claude-sonnet-4-5`: The latest best-performing model (Most recommended)
 
+### Other Providers
+These models can be used via their own APIs. See [Custom API Providers](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#custom-api-providers) for setup.
+- `deepseek-chat` (DeepSeek v3.2): High performance, very affordable. Provider: `https://api.deepseek.com`
+- `glm-4.6` (GLM 4.6): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
+- `kimi-k2` (Kimi K2): Strong reasoning capabilities. Provider: `https://api.moonshot.cn/v1`
+
+### Local LLMs
+- `gpt-oss:20b`: Can run locally via Ollama. Good for large bulk analysis with acceptable accuracy. See [Local LLMs](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#local-llms-ollama-lm-studio) for setup.
+
 ## 📖 Citation
 
 📖 [Read our paper in Nature Communications](https://doi.org/10.1038/s41467-025-67084-x)

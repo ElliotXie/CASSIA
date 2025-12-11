@@ -150,6 +150,15 @@ runCASSIA_batch(
 ### Anthropic
 - `claude-sonnet-4-5`: 最新的高性能模型（最推荐）
 
+### 其他提供商
+这些模型可以通过其自有 API 使用。设置方法请参阅 [自定义 API 提供商](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#自定义-api-提供商)。
+- `deepseek-chat` (DeepSeek v3.2): 高性能，价格实惠。提供商：`https://api.deepseek.com`
+- `glm-4.6` (GLM 4.6): 快速且经济实惠。提供商：`https://api.z.ai/api/paas/v4/`
+- `kimi-k2` (Kimi K2): 强大的推理能力。提供商：`https://api.moonshot.cn/v1`
+
+### 本地 LLM
+- `gpt-oss:20b`: 可通过 Ollama 在本地运行。适合大批量分析，准确率可接受。设置方法请参阅 [本地 LLM](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#本地-llmollama-lm-studio)。
+
 ## 📖 引用
 
 📖 [阅读我们在 Nature Communications 上的论文](https://doi.org/10.1038/s41467-025-67084-x)
