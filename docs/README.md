@@ -87,8 +87,11 @@ setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
 # For Anthropic
 setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 
+# For custom OpenAI-compatible APIs (e.g., DeepSeek)
+setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
 ```
 
+> **Custom APIs**: CASSIA supports any OpenAI-compatible API endpoint. Simply use the base URL as the provider parameter.
 
 - **API Provider Guides:**
 	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)

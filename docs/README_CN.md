@@ -83,8 +83,12 @@ setLLMApiKey("your_openai_api_key", provider = "openai", persist = TRUE)
 
 # 对于 Anthropic
 setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
+
+# 自定义 OpenAI 兼容 API（如 DeepSeek）
+setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
 ```
 
+> **自定义 API**：CASSIA 支持任何 OpenAI 兼容的 API 端点，只需将 API 的基础 URL 作为 provider 参数即可。
 
 - **API 提供商指南:**
 
