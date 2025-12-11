@@ -111,19 +111,20 @@ markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Seurat findallma
 markers_processed <- loadExampleMarkers(processed = TRUE)     # 处理后格式
 ```
 
-## ⚙️ 流程使用
+## ⚙️ 快速开始
 
 ```R
-# 默认提供商设置为OpenRouter
-
-runCASSIA_pipeline(
-    output_file_name = "cassia_test",            # Base name for output files
-    tissue = "Large Intestine",                   # Tissue type (e.g., "brain")
-    species = "Human",              		 # Species (e.g., "human")
-    marker = markers_unprocessed,               # Marker data from findallmarker
-    max_workers = 4                              # Number of parallel workers
+# 核心注释功能 - 这是我们论文中用于基准测试的函数
+runCASSIA_batch(
+    marker = markers_unprocessed,                # FindAllMarkers 输出的标记基因数据
+    output_name = "cassia_results",              # 输出文件名
+    tissue = "Large Intestine",                  # 组织类型
+    species = "Human",                           # 物种
+    max_workers = 4                              # 并行工作线程数
 )
 ```
+
+> **想要更好的结果？** 使用 `runCASSIA_pipeline()`，它会自动添加质量评分和 AnnotationBoost 智能体来处理困难的聚类。详见[完整文档](https://docs.cassia.bio/zh)。
 
 ## 🤖 支持的模型
 

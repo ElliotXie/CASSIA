@@ -75,7 +75,7 @@ setup_cassia_env()
 
 It should take about 3 minutes to get your API key.
 
-**You only need ONE API key to use CASSIA.** We recommend OpenRouter since it provides access to most models (OpenAI, Anthropic, Google, etc.) through a single API key — no need to sign up for multiple providers.
+**You only need one API key to use CASSIA.** We recommend OpenRouter since it provides access to most models (OpenAI, Anthropic, Google, etc.) through a single API key — no need to sign up for multiple providers.
 
 ```R
 # For OpenRouter
@@ -117,20 +117,20 @@ markers_unprocessed <- loadExampleMarkers(processed = FALSE)  # Direct Seurat ou
 markers_processed <- loadExampleMarkers(processed = TRUE)     # Processed format
 ```
 
-## ⚙️ Pipeline Usage
-
+## ⚙️ Quick Start
 
 ```R
-# The default provider is set to OpenRouter.
-
-runCASSIA_pipeline(
-    output_file_name = "cassia_test",            # Base name for output files
-    tissue = "Large Intestine",                   # Tissue type (e.g., "brain")
-    species = "Human",              		 # Species (e.g., "human")
-    marker = markers_unprocessed,               # Marker data from findallmarker
+# Core annotation - this is the function benchmarked in our paper
+runCASSIA_batch(
+    marker = markers_unprocessed,                # Marker data from FindAllMarkers
+    output_name = "cassia_results",              # Output file name
+    tissue = "Large Intestine",                  # Tissue type
+    species = "Human",                           # Species
     max_workers = 4                              # Number of parallel workers
 )
 ```
+
+> **Want even better results?** Use `runCASSIA_pipeline()` which adds automatic quality scoring and the AnnotationBoost agent for difficult clusters. See [complete documentation](https://docs.cassia.bio/en) for details.
 
 ## 🤖 Supported Models
 
