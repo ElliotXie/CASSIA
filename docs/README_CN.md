@@ -87,14 +87,12 @@ setLLMApiKey("your_anthropic_api_key", provider = "anthropic", persist = TRUE)
 # 自定义 OpenAI 兼容 API（如 DeepSeek）
 setLLMApiKey("your_deepseek_api_key", provider = "https://api.deepseek.com", persist = TRUE)
 
-# 本地 LLM - 无需 API 密钥
-setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)  # Ollama
-setLLMApiKey(provider = "http://localhost:1234/v1", persist = TRUE)   # LM Studio
+# 本地 LLM - 无需 API 密钥（如 Ollama）
+setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 ```
 
-> **本地 LLM**：为了数据隐私和零 API 费用，可使用 Ollama 或 LM Studio 等本地 LLM。本地 URL 无需 API 密钥。
-
 > **自定义 API**：CASSIA 支持任何 OpenAI 兼容的 API 端点。只需将 API 的基础 URL 作为 provider 参数即可。
+> **本地 LLM**：为了数据隐私和零 API 费用，可使用 Ollama 或 LM Studio 等本地 LLM。本地 URL 无需 API 密钥。
 
 - **API 提供商指南:**
 
@@ -128,7 +126,9 @@ runCASSIA_pipeline(
 
 ## 🤖 支持的模型
 
-您可以为注释和评分选择任何模型。下面列出了一些经典模型。OpenRouter支持当前大多数流行的模型，尽管有些模型在CASSIA论文中尚未进行全面基准测试 — 欢迎尝试。
+您可以为注释和评分选择任何模型。CASSIA 还支持自定义提供商（如 DeepSeek）和本地开源模型（如通过 Ollama 运行的 `gpt-oss:20b`）。
+
+下面列出了一些经典模型。OpenRouter 支持大多数流行模型 — 欢迎尝试。
 
 
 
@@ -143,13 +143,6 @@ runCASSIA_pipeline(
 
 ### Anthropic
 - `claude-sonnet-4-5`: 最新的高性能模型（最推荐）
-
-## 📤 输出
-
-流程生成四个关键文件：
-1. 完整注释结果表格
-2. 注释摘要网页报告
-3. 注释增强智能体报告
 
 ## 📚 需要帮助？
 

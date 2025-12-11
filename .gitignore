@@ -46,6 +46,9 @@ Test/reports/
 # Social media content folder
 Social/
 
+# Feature planning (private)
+Features_plan/
+
 # Manual package test folder
 Test/16_manual_package_Test/
 

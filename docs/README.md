@@ -133,7 +133,9 @@ runCASSIA_pipeline(
 
 ## 🤖 Supported Models
 
-You can choose any model for annotation and scoring. Some classic models are listed below. OpenRouter supports most of the current popular models, although some have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.
+You can choose any model for annotation and scoring. CASSIA also supports custom providers (e.g., DeepSeek) and local open-source models (e.g., `gpt-oss:20b` via Ollama).
+
+Some classic models are listed below. OpenRouter supports most popular models — feel free to experiment.
 
 
 
@@ -148,13 +150,6 @@ You can choose any model for annotation and scoring. Some classic models are lis
 
 ### Anthropic
 - `claude-sonnet-4-5`: The latest best-performing model (Most recommended)
-
-## 📤 Output
-
-The pipeline generates four key files:
-1. Complete Annotation Results CSV File
-2. Annotation Summary HTML Report
-3. Annotation Boost Agent Report for Low Quality Annotation
 
 ## 📚 Need Help?
 
