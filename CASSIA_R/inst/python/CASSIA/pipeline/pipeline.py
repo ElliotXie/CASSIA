@@ -36,7 +36,8 @@ def runCASSIA_pipeline(
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
     output_dir: str = None,
-    validate_api_keys_before_start: bool = True
+    validate_api_keys_before_start: bool = True,
+    auto_convert_ids: bool = True
 ):
     """
     Run the complete cell analysis pipeline including annotation, scoring, and report generation.
@@ -67,6 +68,9 @@ def runCASSIA_pipeline(
         output_dir (str): Directory where the output folder will be created. If None, uses current working directory.
         validate_api_keys_before_start (bool): If True, validates the API key before starting.
             Fails fast with clear error message if the key is invalid. Default: True.
+        auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
+            If True (default), detects and converts IDs in the marker data before processing.
+            Requires the 'mygene' package to be installed for conversion.
     """
     # Import dependencies here to avoid circular imports
     try:
@@ -184,7 +188,8 @@ def runCASSIA_pipeline(
         ranking_method=ranking_method,
         ascending=ascending,
         validator_involvement=validator_involvement,
-        validate_api_key_before_start=validate_api_keys_before_start
+        validate_api_key_before_start=validate_api_keys_before_start,
+        auto_convert_ids=auto_convert_ids
     )
     print("✓ Cell type analysis completed")
 
@@ -380,7 +385,9 @@ def runCASSIA_pipeline(
                     temperature=0,
                     conversation_history_mode=conversation_history_mode,
                     report_style=report_style,
-                    conversations_json_path=raw_conversations_json
+                    conversations_json_path=raw_conversations_json,
+                    species=species,
+                    auto_convert_ids=auto_convert_ids
                 )
             except IndexError:
                 print(f"Error in pipeline: No data found for cluster: {original_cluster_name}")

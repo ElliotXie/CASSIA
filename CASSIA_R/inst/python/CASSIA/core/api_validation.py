@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 VALIDATION_MODELS = {
     "openai": "gpt-5-nano",
     "anthropic": "claude-3-haiku-20240307",
-    "openrouter": "openai/gpt-4o-mini"
+    "openrouter": "google/gemini-2.5-flash-lite"
 }
 
 # Test prompt configuration
@@ -173,7 +173,7 @@ def _validate_single_provider(
 
         model = _get_validation_model(provider)
 
-        # Special handling for gpt-5-nano which only supports temperature=1
+        # gpt-5-nano only supports temperature=1.0
         test_temperature = 1.0 if "gpt-5-nano" in model.lower() else VALIDATION_TEMPERATURE
 
         # Make minimal test call

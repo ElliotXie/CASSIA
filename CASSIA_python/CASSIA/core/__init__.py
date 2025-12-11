@@ -11,6 +11,11 @@ from .validation import (
     validate_runCASSIA_batch_inputs,
     validate_runCASSIA_with_reference_inputs
 )
+from .gene_id_converter import (
+    convert_gene_ids,
+    convert_dataframe_gene_ids,
+    is_mygene_available
+)
 from .llm_utils import call_llm
 from .model_settings import ModelSettings, resolve_model_name, get_recommended_model
 from .progress_tracker import BatchProgressTracker
@@ -35,6 +40,10 @@ __all__ = [
     'validate_runCASSIA_inputs',
     'validate_runCASSIA_batch_inputs',
     'validate_runCASSIA_with_reference_inputs',
+    # Gene ID conversion
+    'convert_gene_ids',
+    'convert_dataframe_gene_ids',
+    'is_mygene_available',
     # LLM utilities
     'call_llm',
     # Model settings

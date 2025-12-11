@@ -7,7 +7,12 @@
       "Bash(python:*)",
       "Bash(curl:*)",
       "Bash(pip show:*)",
-      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\CASSIA_python\\sync_python_files.py\")"
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\CASSIA_python\\sync_python_files.py\")",
+      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e \"install.packages(''testthat'', type=''source'', repos=''https://cloud.r-project.org'')\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\Test\\18_api_validation\\test_api_validation.py\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\Test\\13_scanpy_format\\test_scanpy_format.py\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\Test\\09_subclustering\\test_subclustering.py\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"D:\\CASSIA\\Test\\19_reasoning_effort\\test_reasoning_effort.py\")"
     ],
     "deny": []
   }

@@ -142,6 +142,14 @@ except ImportError:
     except ImportError:
         from marker_utils import split_markers, get_top_markers, _validate_ranking_parameters, _prepare_ranking_column, _get_sort_direction
 
+try:
+    from CASSIA.core.gene_id_converter import convert_dataframe_gene_ids
+except ImportError:
+    try:
+        from ..core.gene_id_converter import convert_dataframe_gene_ids
+    except ImportError:
+        from gene_id_converter import convert_dataframe_gene_ids
+
 
 def _normalize_reasoning(reasoning):
     """
@@ -493,7 +501,9 @@ def runCASSIA_batch(
     reference_model=None,
     verbose=True,
     # API validation parameters
-    validate_api_key_before_start=True
+    validate_api_key_before_start=True,
+    # Gene ID conversion
+    auto_convert_ids=True
 ):
     """
     Run cell type analysis on multiple clusters in parallel.
@@ -529,6 +539,9 @@ def runCASSIA_batch(
             If True (default), makes a minimal test API call to verify the key works before
             processing any clusters. This prevents confusing error spam when the key is invalid.
             Set to False to skip validation (e.g., for custom HTTP endpoints or performance).
+        auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
+            If True (default), detects and converts IDs in the marker data before processing.
+            Requires the 'mygene' package to be installed for conversion.
 
     Returns:
         dict: Results dictionary containing analysis results for each cell type
@@ -615,6 +628,15 @@ def runCASSIA_batch(
     if gene_column_name is None:
         gene_column_name = df.columns[1]
 
+    # Auto-convert Ensembl/Entrez IDs to gene symbols if enabled
+    if auto_convert_ids:
+        df, conversion_info = convert_dataframe_gene_ids(
+            df,
+            gene_column=gene_column_name,
+            species=species,
+            auto_convert=True,
+            verbose=verbose
+        )
 
     # Check if reference agent is available when requested
     if use_reference and ReferenceAgent is None:

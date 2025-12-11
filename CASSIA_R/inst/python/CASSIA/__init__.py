@@ -1,7 +1,7 @@
 # CASSIA - Cell Annotation with Semantic Similarity for Intelligent Analysis
 # Root module with backward-compatible exports from reorganized submodules
 
-__version__ = "0.3.13"
+__version__ = "0.3.14"
 
 # =============================================================================
 # BACKWARD COMPATIBILITY LAYER
@@ -87,6 +87,15 @@ from .core.validation import (
     validate_runCASSIA_inputs,
     validate_runCASSIA_batch_inputs,
     validate_runCASSIA_with_reference_inputs
+)
+
+# -----------------------------------------------------------------------------
+# GENE ID CONVERSION (Ensembl/Entrez to symbols)
+# -----------------------------------------------------------------------------
+from .core.gene_id_converter import (
+    convert_gene_ids,
+    convert_dataframe_gene_ids,
+    is_mygene_available
 )
 
 # -----------------------------------------------------------------------------

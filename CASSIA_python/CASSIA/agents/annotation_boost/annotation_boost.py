@@ -13,6 +13,14 @@ except ImportError:
     except ImportError:
         from llm_utils import call_llm
 
+try:
+    from CASSIA.core.gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
+except ImportError:
+    try:
+        from ...core.gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
+    except ImportError:
+        from gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
+
 def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1) -> str:
     """
     Use an LLM to summarize the conversation history for use as context in annotation boost.
@@ -1149,7 +1157,7 @@ def validate_findallmarkers_format(marker_df: pd.DataFrame, source_path: str = N
         )
 
 
-def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None, conversations_json_path: str = None) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
+def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name: str, conversation_history_mode: str = "final", provider: str = "openrouter", model: Optional[str] = None, conversations_json_path: str = None, species: str = "human", auto_convert_ids: bool = True) -> Tuple[pd.DataFrame, pd.DataFrame, str, str]:
     """
     Load and prepare data for marker analysis.
 
@@ -1164,6 +1172,8 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         provider: LLM provider to use for summarization (when mode is "final")
         model: Specific model to use for summarization (when mode is "final")
         conversations_json_path: Path to the conversations JSON file (new format)
+        species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
+        auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
 
     Returns:
         tuple: (full_results, marker_data, top_markers_string, annotation_history)
@@ -1198,6 +1208,16 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
     }
     marker = marker.rename(columns=scanpy_to_seurat_mapping)
 
+    # Auto-convert Ensembl/Entrez IDs to gene symbols if enabled
+    if auto_convert_ids and 'gene' in marker.columns:
+        marker, conversion_info = convert_dataframe_gene_ids(
+            marker,
+            gene_column='gene',
+            species=species,
+            auto_convert=True,
+            verbose=True
+        )
+
     # Validate that the marker file is in FindAllMarkers format
     validate_findallmarkers_format(marker, source_path)
     
@@ -1226,7 +1246,15 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
         # This is a fallback in case markers aren't in the CSV
         top_markers_string = "CD14, CD11B, CD68, CSF1R, CX3CR1, CD163, MSR1, ITGAM, FCGR1A, CCR2"
         print(f"Warning: No marker list found for {cluster_name}, using default markers")
-    
+
+    # Auto-convert Ensembl/Entrez IDs in top_markers_string to gene symbols
+    if auto_convert_ids and top_markers_string:
+        # Parse comma-separated string into list
+        markers_list = [m.strip() for m in top_markers_string.split(',') if m.strip()]
+        if markers_list:
+            converted_markers, _ = convert_gene_ids(markers_list, species=species, auto_convert=True)
+            top_markers_string = ', '.join(converted_markers)
+
     # Extract final annotation from JSON file (only the last annotation response)
     annotation_history = ""
 
@@ -1528,7 +1556,9 @@ def runCASSIA_annotationboost(
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
-    conversations_json_path: str = None
+    conversations_json_path: str = None,
+    species: str = "human",
+    auto_convert_ids: bool = True
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis for a given cluster.
@@ -1547,6 +1577,8 @@ def runCASSIA_annotationboost(
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
         conversations_json_path: Path to the conversations JSON file for conversation history
+        species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
+        auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
 
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1582,9 +1614,10 @@ def runCASSIA_annotationboost(
 
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path,
+            species=species, auto_convert_ids=auto_convert_ids
         )
-        
+
         # Run the iterative marker analysis
         analysis_text, messages = iterative_marker_analysis(
             major_cluster_info=major_cluster_info,
@@ -1666,7 +1699,9 @@ def runCASSIA_annotationboost_additional_task(
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
-    conversations_json_path: str = None
+    conversations_json_path: str = None,
+    species: str = "human",
+    auto_convert_ids: bool = True
 ) -> Union[Tuple[str, List[Dict[str, str]]], Dict[str, Any]]:
     """
     Run annotation boost analysis with an additional task for a given cluster.
@@ -1686,6 +1721,8 @@ def runCASSIA_annotationboost_additional_task(
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
         conversations_json_path: Path to the conversations JSON file for conversation history
+        species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
+        auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
 
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
@@ -1700,9 +1737,10 @@ def runCASSIA_annotationboost_additional_task(
 
         # Prepare the data
         _, marker_data, top_markers_string, annotation_history = prepare_analysis_data(
-            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path
+            full_result_path, marker, cluster_name, conversation_history_mode, provider, model, conversations_json_path,
+            species=species, auto_convert_ids=auto_convert_ids
         )
-        
+
         # Run the iterative marker analysis with additional task
         analysis_text, messages = iterative_marker_analysis(
             major_cluster_info=major_cluster_info,

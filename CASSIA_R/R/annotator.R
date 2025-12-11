@@ -1158,15 +1158,16 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param conversations_json_path Path to the conversations JSON file from batch annotation (default: NULL)
 #' @param ... Additional arguments passed to the Python function
 #'
 #' @return None. This function generates output files.
 #' @export
-runCASSIA_annotationboost <- function(full_result_path, 
-                                     marker, 
-                                     cluster_name, 
-                                     major_cluster_info, 
-                                     output_name, 
+runCASSIA_annotationboost <- function(full_result_path,
+                                     marker,
+                                     cluster_name,
+                                     major_cluster_info,
+                                     output_name,
                                      num_iterations = 5,
                                      model = "google/gemini-2.5-flash-preview",
                                      provider = "openrouter",
@@ -1175,6 +1176,7 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      search_strategy = "breadth",
                                      report_style = "per_iteration",
                                      validator_involvement = "v1",
+                                     conversations_json_path = NULL,
                                      ...) {
 
   if (is.data.frame(marker)) {
@@ -1188,7 +1190,7 @@ runCASSIA_annotationboost <- function(full_result_path,
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
   }
-                                                      
+
   tryCatch({
     py_cassia$runCASSIA_annotationboost(
       full_result_path = full_result_path,
@@ -1202,7 +1204,8 @@ runCASSIA_annotationboost <- function(full_result_path,
       temperature = as.numeric(temperature),
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
-      report_style = report_style
+      report_style = report_style,
+      conversations_json_path = conversations_json_path
     )
 
     invisible(NULL)
@@ -1232,15 +1235,16 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
+#' @param conversations_json_path Path to the conversations JSON file from batch annotation (default: NULL)
 #' @param ... Additional parameters for future compatibility
-#' 
+#'
 #' @return None. This function generates output files.
 #' @export
-runCASSIA_annotationboost_additional_task <- function(full_result_path, 
-                                                     marker, 
-                                                     cluster_name, 
-                                                     major_cluster_info, 
-                                                     output_name, 
+runCASSIA_annotationboost_additional_task <- function(full_result_path,
+                                                     marker,
+                                                     cluster_name,
+                                                     major_cluster_info,
+                                                     output_name,
                                                      num_iterations = 5,
                                                      model = "google/gemini-2.5-flash-preview",
                                                      provider = "openrouter",
@@ -1250,6 +1254,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      search_strategy = "breadth",
                                                      report_style = "per_iteration",
                                                      validator_involvement = "v1",
+                                                     conversations_json_path = NULL,
                                                      ...) {
 
   if (is.data.frame(marker)) {
@@ -1263,7 +1268,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
   } else if (!is.character(marker)) {
     stop("marker must be either a data frame or a character vector")
   }
-                                                      
+
   tryCatch({
     py_cassia$runCASSIA_annotationboost_additional_task(
       full_result_path = full_result_path,
@@ -1280,11 +1285,11 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
       search_strategy = search_strategy,
       report_style = report_style,
       validator_involvement = validator_involvement,
-      ...
+      conversations_json_path = conversations_json_path
     )
-    
+
     invisible(NULL)
-    
+
   }, error = function(e) {
     error_msg <- paste("Error in runCASSIA_annotationboost_additional_task:", e$message)
     stop(error_msg)

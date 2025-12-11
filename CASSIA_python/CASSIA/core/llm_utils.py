@@ -208,7 +208,7 @@ def call_llm(
                 raise
 
         # Standard Chat Completions API (no reasoning)
-        # GPT-5 models require max_completion_tokens instead of max_tokens
+        # GPT-5 models and o-series require max_completion_tokens instead of max_tokens
         model_lower = model.lower() if model else ""
         uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
 

@@ -39,6 +39,13 @@ CASSIA/CASSIA_python/CASSIA/test_results/
 # Test results folders (all results/ directories under Test/)
 Test/**/results/
 
+# Test reports folders (all reports/ directories under Test/)
+Test/**/reports/
+Test/reports/
+
+# Social media content folder
+Social/
+
 # Manual package test folder
 Test/16_manual_package_Test/
 
@@ -59,3 +66,6 @@ Test/16_manual_package_Test/CASSIA_python_tutorial.ipynb
  dev_docs/ 
 CLAUDE.md
 dev_docs/quick_install_dev.py
+
+# Manual package test folder (new location)
+Test/17_manual_package_Test/

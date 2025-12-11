@@ -1,9 +1,0 @@
-Hmm ... looks like a package
-Converting parsed Rd's to LaTeX ....
-Creating pdf output from LaTeX ...
-Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
-  pdflatex is not available
-Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
-  pdflatex is not available
-Error in running tools::texi2pdf()
-You may want to clean up by 'rm -Rf C:/Users/ellio/AppData/Local/Temp/RtmpofKf8l/Rd2pdfb9d4c9fff7e'

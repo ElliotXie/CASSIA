@@ -90,6 +90,15 @@ from .core.validation import (
 )
 
 # -----------------------------------------------------------------------------
+# GENE ID CONVERSION (Ensembl/Entrez to symbols)
+# -----------------------------------------------------------------------------
+from .core.gene_id_converter import (
+    convert_gene_ids,
+    convert_dataframe_gene_ids,
+    is_mygene_available
+)
+
+# -----------------------------------------------------------------------------
 # SCORING AND EVALUATION
 # -----------------------------------------------------------------------------
 from .evaluation.scoring import (

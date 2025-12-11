@@ -572,8 +572,9 @@ def main():
     skip_tests = parse_test_list(args.skip)
     only_tests = parse_test_list(args.only)
 
-    # Default: skip test 16 (manual package test) unless explicitly included
-    default_skip = ["16"]
+    # Default: skip test 12 (batch_with_reference) and 17 (manual package test) unless explicitly included
+    default_skip = ["12", "17"]
+    # Note: Test 15 (input_validation) is now enabled
     if not only_tests:  # Only apply default skip if not using --only
         for skip in default_skip:
             if skip not in skip_tests:

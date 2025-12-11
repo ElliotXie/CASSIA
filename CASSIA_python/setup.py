@@ -16,6 +16,7 @@ setup(
         "requests>=2.25.0",
         "matplotlib>=3.3.0",
         "seaborn>=0.11.0",
+        "mygene>=3.2.0",
     ],
     author="Elliot Yixuan Xie",
     author_email="xie227@wisc.edu",

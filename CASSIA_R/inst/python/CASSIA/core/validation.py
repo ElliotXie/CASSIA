@@ -3,12 +3,15 @@ Centralized input validation for CASSIA.
 
 This module provides validation functions for all CASSIA public API parameters.
 All validation happens early (fail-fast) with clear, actionable error messages.
+
+Supports automatic conversion of Ensembl/Entrez IDs to gene symbols when the
+'mygene' package is installed.
 """
 
 import os
 import re
 import warnings
-from typing import List, Union, Any, Optional
+from typing import List, Union, Any, Optional, Tuple, Dict
 
 import pandas as pd
 
@@ -22,6 +25,11 @@ try:
         TissueSpeciesValidationError,
         BatchParameterValidationError
     )
+    from .gene_id_converter import (
+        convert_gene_ids,
+        classify_markers,
+        is_mygene_available
+    )
 except ImportError:
     from exceptions import (
         CASSIAValidationError,
@@ -31,6 +39,11 @@ except ImportError:
         ModelValidationError,
         TissueSpeciesValidationError,
         BatchParameterValidationError
+    )
+    from gene_id_converter import (
+        convert_gene_ids,
+        classify_markers,
+        is_mygene_available
     )
 
 # Valid values for enumerated parameters
@@ -61,7 +74,9 @@ def validate_marker_list(
     parameter_name: str = "marker_list",
     min_markers: int = 1,
     max_markers: int = MAX_MARKERS,
-    check_gene_format: bool = True
+    check_gene_format: bool = True,
+    auto_convert_ids: bool = True,
+    species: str = "human"
 ) -> List[str]:
     """
     Validate and normalize marker_list input.
@@ -77,9 +92,11 @@ def validate_marker_list(
         min_markers: Minimum number of markers required (default: 1)
         max_markers: Maximum number of markers allowed (default: 500)
         check_gene_format: Whether to check for Ensembl/Entrez IDs (default: True)
+        auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to symbols (default: True)
+        species: Species for ID conversion ('human' or 'mouse', default: 'human')
 
     Returns:
-        List[str]: Normalized list of marker gene names
+        List[str]: Normalized list of marker gene names (with IDs converted to symbols if applicable)
 
     Raises:
         MarkerValidationError: If validation fails
@@ -132,9 +149,23 @@ def validate_marker_list(
             UserWarning
         )
 
-    # Check for invalid gene ID formats
+    # Check for and optionally convert Ensembl/Entrez IDs
     if check_gene_format:
-        _validate_gene_symbols(markers, parameter_name)
+        if auto_convert_ids:
+            # Try to auto-convert Ensembl/Entrez IDs to gene symbols
+            markers, conversion_info = convert_gene_ids(markers, species=species)
+
+            # If conversion failed for some IDs and mygene is available, warn
+            if conversion_info['failed_count'] > 0 and is_mygene_available():
+                warnings.warn(
+                    f"Could not convert {conversion_info['failed_count']} ID(s) to gene symbols: "
+                    f"{', '.join(conversion_info['failed_ids'][:3])}{'...' if len(conversion_info['failed_ids']) > 3 else ''}. "
+                    "These will be used as-is.",
+                    UserWarning
+                )
+        else:
+            # Original behavior: validate and raise errors for non-symbol IDs
+            _validate_gene_symbols(markers, parameter_name)
 
     return markers
 
@@ -752,13 +783,15 @@ def validate_runCASSIA_inputs(
     species: Any,
     provider: Any,
     additional_info: Any = None,
-    validator_involvement: str = "v1"
+    validator_involvement: str = "v1",
+    auto_convert_ids: bool = True
 ) -> dict:
     """
     Validate all inputs for runCASSIA function.
 
     Args:
         All parameters from runCASSIA
+        auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to symbols
 
     Returns:
         dict: Dictionary of validated parameters
@@ -768,11 +801,18 @@ def validate_runCASSIA_inputs(
     """
     validated = {}
 
-    # Validate in order of likelihood to fail
-    validated['marker_list'] = validate_marker_list(marker_list)
+    # Validate species first (needed for marker conversion)
+    validated['species'] = validate_species(species)
+
+    # Validate markers with species info for ID conversion
+    validated['marker_list'] = validate_marker_list(
+        marker_list,
+        auto_convert_ids=auto_convert_ids,
+        species=validated['species'] if validated['species'] else 'human'
+    )
     validated['temperature'] = validate_temperature(temperature)
     validated['tissue'] = validate_tissue(tissue)
-    validated['species'] = validate_species(species)
+    # species already validated above
     validated['provider'] = validate_provider(provider)
     validated['model'] = validate_model(model)
 

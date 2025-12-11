@@ -72,7 +72,7 @@ def run_quality_scoring_test():
     input_file = None
 
     if batch_results_dir:
-        potential_file = batch_results_dir / "batch_results_full.csv"
+        potential_file = batch_results_dir / "batch_results_summary.csv"
         if potential_file.exists():
             input_file = str(potential_file)
             print(f"\nUsing existing batch results: {input_file}")
@@ -95,7 +95,7 @@ def run_quality_scoring_test():
             provider=llm_config.get('provider', 'openrouter'),
             validator_involvement=config.get('validator', {}).get('default', 'v1')
         )
-        input_file = f"{batch_output}_full.csv"
+        input_file = f"{batch_output}_summary.csv"
 
     # Run quality scoring
     start_time = time.time()

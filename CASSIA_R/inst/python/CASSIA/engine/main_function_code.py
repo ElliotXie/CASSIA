@@ -119,15 +119,30 @@ def construct_prompt(json_data):
         prompt += f" Below is some additional information about the dataset:\n{json_data['additional_info']}."
     return prompt
 
-def final_annotation(agent, prompt):
-    """Manages the conversation with the final annotation agent."""
+def final_annotation(agent, prompt, max_iterations=5):
+    """Manages the conversation with the final annotation agent.
+
+    Args:
+        agent: The annotation agent to use
+        prompt: The initial prompt to send
+        max_iterations: Maximum number of iterations before giving up (default: 5)
+
+    Returns:
+        List of conversation tuples
+    """
     conversation = []
-    while True:
+    iteration = 0
+    while iteration < max_iterations:
+        iteration += 1
         response = agent(prompt, "user")
         conversation.append(("Final Annotation Agent", response))
         if "FINAL ANNOTATION COMPLETED" in response:
             break
         prompt = response
+
+    if iteration >= max_iterations and "FINAL ANNOTATION COMPLETED" not in conversation[-1][1]:
+        print(f"Warning: final_annotation reached max iterations ({max_iterations}) without completion phrase")
+
     return conversation
 
 def coupling_validation(agent, annotation_result, onboarding_data):
