@@ -92,6 +92,7 @@ setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 ```
 
 > **自定义 API**：CASSIA 支持任何 OpenAI 兼容的 API 端点。只需将 API 的基础 URL 作为 provider 参数即可。
+
 > **本地 LLM**：为了数据隐私和零 API 费用，可使用 Ollama 或 LM Studio 等本地 LLM。本地 URL 无需 API 密钥。
 
 - **API 提供商指南:**
