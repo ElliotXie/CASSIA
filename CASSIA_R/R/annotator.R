@@ -1697,8 +1697,6 @@ runCASSIA_score_batch <- function(input_file,
                                     model = "deepseek/deepseek-chat-v3-0324",
                                     provider = "openrouter",
                                     max_retries = 1) {
-  .require_python("runCASSIA_score_batch")
-
   tryCatch({
     results <- py_cassia$runCASSIA_score_batch(
       input_file = input_file,
@@ -1738,8 +1736,6 @@ runCASSIA_score_batch <- function(input_file,
 #' runCASSIA_generate_score_report("path/to/scored_results.csv")
 #' }
 runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_reports_summary") {
-  .require_python("runCASSIA_generate_score_report")
-
   tryCatch({
     py_cassia$runCASSIA_generate_score_report(
       csv_path = csv_path,
