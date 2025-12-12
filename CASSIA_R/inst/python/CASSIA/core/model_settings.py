@@ -340,7 +340,7 @@ class ModelSettings:
 
         Args:
             agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
-                       'annotation_boost', 'uncertainty'
+                       'subclustering_n', 'annotation_boost', 'uncertainty'
             provider: Provider name ("openai", "anthropic", "openrouter")
 
         Returns:
@@ -372,26 +372,29 @@ class ModelSettings:
             "openrouter": {
                 "annotation": {"model": "openai/gpt-5.1", "temperature": 0},
                 "scoring": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0.3},
-                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.1},
-                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0}
+                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0},
+                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0},
+                "subclustering_n": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0.3}
             },
             "openai": {
                 "annotation": {"model": "gpt-5.1", "temperature": 0},
                 "scoring": {"model": "gpt-5.1", "temperature": 0.3},
-                "merging": {"model": "gpt-5-mini", "temperature": 0.3},
-                "subclustering": {"model": "gpt-5.1", "temperature": 0.3},
-                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.1},
-                "uncertainty": {"model": "gpt-5.1", "temperature": 0}
+                "merging": {"model": "gpt-5-mini", "temperature": 0},
+                "subclustering": {"model": "gpt-5.1", "temperature": 0},
+                "subclustering_n": {"model": "gpt-5.1", "temperature": 0.3},
+                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.3},
+                "uncertainty": {"model": "gpt-5.1", "temperature": 0.3}
             },
             "anthropic": {
                 "annotation": {"model": "claude-sonnet-4-5", "temperature": 0},
                 "scoring": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "merging": {"model": "claude-haiku-4-5", "temperature": 0.3},
-                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.1},
-                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0}
+                "merging": {"model": "claude-haiku-4-5", "temperature": 0},
+                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0},
+                "subclustering_n": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0.3}
             }
         }
         provider_fallbacks = fallbacks.get(provider, fallbacks["openrouter"])
@@ -534,7 +537,7 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
 
     Args:
         agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
-                   'annotation_boost', 'uncertainty'
+                   'subclustering_n', 'annotation_boost', 'uncertainty'
         provider: Provider name ("openai", "anthropic", "openrouter")
 
     Returns:
@@ -544,9 +547,11 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
     Examples:
         >>> get_agent_default("annotation", "openrouter")
         {'model': 'openai/gpt-5.1', 'temperature': 0}
-        >>> get_agent_default("scoring", "openai")
-        {'model': 'gpt-5.1', 'temperature': 0.3}
         >>> get_agent_default("subclustering", "anthropic")
+        {'model': 'claude-sonnet-4-5', 'temperature': 0}
+        >>> get_agent_default("subclustering_n", "anthropic")
         {'model': 'claude-sonnet-4-5', 'temperature': 0.3}
+        >>> get_agent_default("uncertainty", "openai")
+        {'model': 'gpt-5.1', 'temperature': 0.3}
     """
     return get_model_settings().get_agent_default(agent_name, provider)
