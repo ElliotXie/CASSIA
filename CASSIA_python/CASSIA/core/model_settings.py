@@ -340,7 +340,7 @@ class ModelSettings:
 
         Args:
             agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
-                       'annotation_boost', 'uncertainty'
+                       'subclustering_n', 'annotation_boost', 'uncertainty'
             provider: Provider name ("openai", "anthropic", "openrouter")
 
         Returns:
@@ -537,7 +537,7 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
 
     Args:
         agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
-                   'annotation_boost', 'uncertainty'
+                   'subclustering_n', 'annotation_boost', 'uncertainty'
         provider: Provider name ("openai", "anthropic", "openrouter")
 
     Returns:
@@ -547,9 +547,11 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
     Examples:
         >>> get_agent_default("annotation", "openrouter")
         {'model': 'openai/gpt-5.1', 'temperature': 0}
-        >>> get_agent_default("scoring", "openai")
-        {'model': 'gpt-5.1', 'temperature': 0.3}
         >>> get_agent_default("subclustering", "anthropic")
+        {'model': 'claude-sonnet-4-5', 'temperature': 0}
+        >>> get_agent_default("subclustering_n", "anthropic")
         {'model': 'claude-sonnet-4-5', 'temperature': 0.3}
+        >>> get_agent_default("uncertainty", "openai")
+        {'model': 'gpt-5.1', 'temperature': 0.3}
     """
     return get_model_settings().get_agent_default(agent_name, provider)

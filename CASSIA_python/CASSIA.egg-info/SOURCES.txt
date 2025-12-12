@@ -30,11 +30,11 @@ CASSIA/agents/uncertainty/__init__.py
 CASSIA/comparison/__init__.py
 CASSIA/comparison/symphony_compare.py
 CASSIA/config/__init__.py
-CASSIA/config/set_api_keys.py
 CASSIA/core/__init__.py
 CASSIA/core/anndata_utils.py
 CASSIA/core/api_validation.py
 CASSIA/core/exceptions.py
+CASSIA/core/gene_id_converter.py
 CASSIA/core/llm_utils.py
 CASSIA/core/logging_config.py
 CASSIA/core/marker_utils.py

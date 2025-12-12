@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: CASSIA
-Version: 0.3.14
+Version: 0.3.15
 Summary: CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
 Home-page: https://github.com/elliotxe/CASSIA
 Author: Elliot Yixuan Xie
@@ -24,6 +24,7 @@ Requires-Dist: anthropic>=0.3.0
 Requires-Dist: requests>=2.25.0
 Requires-Dist: matplotlib>=3.3.0
 Requires-Dist: seaborn>=0.11.0
+Requires-Dist: mygene>=3.2.0
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier

@@ -5,3 +5,4 @@ anthropic>=0.3.0
 requests>=2.25.0
 matplotlib>=3.3.0
 seaborn>=0.11.0
+mygene>=3.2.0

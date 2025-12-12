@@ -415,8 +415,8 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         marker: DataFrame containing marker data
         major_cluster_info: Description of the major cluster type
         base_output_name: Base name for output files
-        model: Model name to use (defaults to provider's subclustering default)
-        temperature: Temperature parameter for API calls (0-1), forced to 0.3 for consistency
+        model: Model name to use (defaults to provider's subclustering_n default)
+        temperature: Temperature parameter for API calls (defaults to subclustering_n default: 0.3)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         max_workers: Maximum number of parallel workers
         n_genes: Number of top genes to use for analysis
@@ -424,13 +424,13 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
     Returns:
         None: Results are saved to CSV files
     """
-    # Apply agent defaults if model not specified
-    if model is None:
-        defaults = get_agent_default("subclustering", provider)
-        model = defaults["model"]
-
-    # Force temperature to 0.3 for all runs (for consistency across multiple analyses)
-    temperature = 0.3
+    # Apply agent defaults for n-times subclustering (uses subclustering_n for variability)
+    if model is None or temperature is None:
+        defaults = get_agent_default("subclustering_n", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
     
     def run_single_analysis(i):
         # Run the annotation process
