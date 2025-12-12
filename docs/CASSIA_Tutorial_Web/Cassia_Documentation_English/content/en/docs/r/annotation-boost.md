@@ -27,7 +27,7 @@ runCASSIA_annotationboost(
 ## Input
 
 - Full results CSV from CASSIA batch analysis (`_summary.csv`)
-- Original marker gene file (***Note: The marker file should not be filtered!***)
+- Original marker gene file (***Ideally use the raw marker file - do not filter!***)
 - Cluster context information
 - Specific cluster identifier
 - (Optional) Conversations JSON file from batch annotation (`_conversations.json`)
@@ -51,16 +51,10 @@ runCASSIA_annotationboost(
 | `num_iterations` | 5 | Number of validation rounds |
 | `model` | - | LLM model to use. Recommended: `anthropic/claude-sonnet-4.5` or better |
 | `provider` | - | API provider for the model |
-| `conversations_json_path` | - | Path to the conversations JSON file from batch annotation |
+| `conversations_json_path` | `"auto"` | Path to the conversations JSON file, or `"auto"` to auto-detect from `full_result_path` (e.g., `batch_summary.csv` → `batch_conversations.json`) |
 | `conversation_history_mode` | `"full"` | How to use prior conversation history: `"full"`, `"final"`, or `"none"` |
-
-### Advanced Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
 | `search_strategy` | `"breadth"` | Strategy for exploring hypotheses: `"breadth"` or `"depth"` |
 | `report_style` | `"per_iteration"` | Format of the final report: `"per_iteration"` or `"total_summary"` |
-| `validator_involvement` | `"v1"` | Level of validation strictness: `"v1"` (moderate) or `"v0"` (high) |
 | `reasoning` | - | Reasoning effort level: `"low"`, `"medium"`, `"high"`. Only supported by OpenAI GPT-5 series models |
 
 ## Output

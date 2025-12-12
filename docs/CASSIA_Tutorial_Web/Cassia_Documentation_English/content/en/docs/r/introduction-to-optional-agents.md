@@ -5,7 +5,20 @@ title: Introduction to Optional Agents
 
 The basic CASSIA workflow is sufficient for most situations. However, to handle some special cases, we now introduce several advanced agents.
 
-  
+## When to Use Each Agent
+
+![Decision Tree for Choosing CASSIA Agents](/images/decisionTree.webp)
+
+*Figure: Decision tree to help you choose the right CASSIA agent based on your situation.*
+
+**Quick Summary:**
+- **Planning to run CASSIA + need detailed/novel annotations** → RAG Agent (Python only)
+- **Not satisfied with quality/detail** → Annotation Boost Agent
+- **Want certainty about results** → UQ Agent
+- **Have candidates but can't decide** → Symphony Agent
+- **Want to explore subclusters** → Subclustering Agent
+
+---
 
 ## 🤔 Uncertainty Quantification Agent (UQ Agent)
 

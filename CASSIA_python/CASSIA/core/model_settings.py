@@ -372,26 +372,29 @@ class ModelSettings:
             "openrouter": {
                 "annotation": {"model": "openai/gpt-5.1", "temperature": 0},
                 "scoring": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0.3},
-                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.1},
-                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0}
+                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0},
+                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0},
+                "subclustering_n": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0.3}
             },
             "openai": {
                 "annotation": {"model": "gpt-5.1", "temperature": 0},
                 "scoring": {"model": "gpt-5.1", "temperature": 0.3},
-                "merging": {"model": "gpt-5-mini", "temperature": 0.3},
-                "subclustering": {"model": "gpt-5.1", "temperature": 0.3},
-                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.1},
-                "uncertainty": {"model": "gpt-5.1", "temperature": 0}
+                "merging": {"model": "gpt-5-mini", "temperature": 0},
+                "subclustering": {"model": "gpt-5.1", "temperature": 0},
+                "subclustering_n": {"model": "gpt-5.1", "temperature": 0.3},
+                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.3},
+                "uncertainty": {"model": "gpt-5.1", "temperature": 0.3}
             },
             "anthropic": {
                 "annotation": {"model": "claude-sonnet-4-5", "temperature": 0},
                 "scoring": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "merging": {"model": "claude-haiku-4-5", "temperature": 0.3},
-                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.1},
-                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0}
+                "merging": {"model": "claude-haiku-4-5", "temperature": 0},
+                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0},
+                "subclustering_n": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0.3}
             }
         }
         provider_fallbacks = fallbacks.get(provider, fallbacks["openrouter"])

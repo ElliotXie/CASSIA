@@ -1587,11 +1587,11 @@ def runCASSIA_annotationboost(
     model: Optional[str] = None,
     provider: str = "openrouter",
     temperature: float = 0,
-    conversation_history_mode: str = "final",
+    conversation_history_mode: str = "full",
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
-    conversations_json_path: str = None,
+    conversations_json_path: str = "auto",
     species: str = "human",
     auto_convert_ids: bool = True,
     reasoning: Optional[str] = None
@@ -1609,10 +1609,10 @@ def runCASSIA_annotationboost(
         model: Model to use for analysis - if None, uses the provider's default
         provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
         temperature: Sampling temperature (0-1)
-        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none"). Default: "full"
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
-        conversations_json_path: Path to the conversations JSON file for conversation history
+        conversations_json_path: Path to the conversations JSON file, or "auto" to auto-detect from full_result_path. Default: "auto"
         species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
         auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
         reasoning: Reasoning effort level ("low", "medium", "high")
@@ -1640,6 +1640,24 @@ def runCASSIA_annotationboost(
             conversation_history_mode=conversation_history_mode,
             report_style=report_style
         )
+
+    # Handle "auto" mode for conversations_json_path
+    if conversations_json_path == "auto":
+        # Derive from full_result_path: {base}_summary.csv → {base}_conversations.json
+        dir_path = os.path.dirname(full_result_path)
+        base_name = os.path.basename(full_result_path)
+        if base_name.endswith('_summary.csv'):
+            json_base = base_name.replace('_summary.csv', '_conversations.json')
+            auto_path = os.path.join(dir_path, json_base) if dir_path else json_base
+            if os.path.exists(auto_path):
+                conversations_json_path = auto_path
+                print(f"Auto-detected conversations JSON: {auto_path}")
+            else:
+                print(f"Warning: Could not find conversations JSON at: {auto_path}")
+                conversations_json_path = None
+        else:
+            print(f"Warning: full_result_path doesn't match expected pattern '*_summary.csv', cannot auto-detect conversations JSON")
+            conversations_json_path = None
 
     try:
         import time
@@ -1733,11 +1751,11 @@ def runCASSIA_annotationboost_additional_task(
     provider: str = "openrouter",
     additional_task: str = "check if this is a cancer cluster",
     temperature: float = 0,
-    conversation_history_mode: str = "final",
+    conversation_history_mode: str = "full",
     search_strategy: str = "breadth",
     report_style: str = "per_iteration",
     validator_involvement: str = "v1",
-    conversations_json_path: str = None,
+    conversations_json_path: str = "auto",
     species: str = "human",
     auto_convert_ids: bool = True,
     reasoning: Optional[str] = None
@@ -1756,10 +1774,10 @@ def runCASSIA_annotationboost_additional_task(
         provider: AI provider to use ('openai', 'anthropic', or 'openrouter')
         additional_task: Additional task to perform during analysis
         temperature: Sampling temperature (0-1)
-        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none")
+        conversation_history_mode: Mode for extracting conversation history ("full", "final", or "none"). Default: "full"
         search_strategy: Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time)
         report_style: Style of report ("per_iteration" or "total_summary")
-        conversations_json_path: Path to the conversations JSON file for conversation history
+        conversations_json_path: Path to the conversations JSON file, or "auto" to auto-detect from full_result_path. Default: "auto"
         species: Species for gene ID conversion ('human' or 'mouse', default: 'human')
         auto_convert_ids: Whether to auto-convert Ensembl/Entrez IDs to gene symbols (default: True)
         reasoning: Reasoning effort level ("low", "medium", "high")
@@ -1767,6 +1785,24 @@ def runCASSIA_annotationboost_additional_task(
     Returns:
         tuple or dict: Either (analysis_result, messages_history) or a dictionary with paths to reports
     """
+    # Handle "auto" mode for conversations_json_path
+    if conversations_json_path == "auto":
+        # Derive from full_result_path: {base}_summary.csv → {base}_conversations.json
+        dir_path = os.path.dirname(full_result_path)
+        base_name = os.path.basename(full_result_path)
+        if base_name.endswith('_summary.csv'):
+            json_base = base_name.replace('_summary.csv', '_conversations.json')
+            auto_path = os.path.join(dir_path, json_base) if dir_path else json_base
+            if os.path.exists(auto_path):
+                conversations_json_path = auto_path
+                print(f"Auto-detected conversations JSON: {auto_path}")
+            else:
+                print(f"Warning: Could not find conversations JSON at: {auto_path}")
+                conversations_json_path = None
+        else:
+            print(f"Warning: full_result_path doesn't match expected pattern '*_summary.csv', cannot auto-detect conversations JSON")
+            conversations_json_path = None
+
     try:
         import time
         start_time = time.time()

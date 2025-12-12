@@ -111,7 +111,7 @@ print(markers.head())
 | `additional_info` | `None` | Extra experimental context (see below) |
 | `temperature` | 0 | Output randomness (0=deterministic, 1=creative). Keep at 0 for reproducible results. |
 | `validator_involvement` | `"v1"` | Validation intensity: `"v1"` (moderate) or `"v0"` (high, slower) |
-| `reasoning` | `None` | Reasoning depth for GPT-5 series via OpenRouter only (`"low"`, `"medium"`, `"high"`). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter). |
+| `reasoning` | `None` | Reasoning depth for GPT-5 series via OpenRouter only: `"low"`, `"medium"`, `"high"` |
 | `ranking_method` | `"avg_log2FC"` | Gene ranking: `"avg_log2FC"`, `"p_val_adj"`, `"pct_diff"`, `"Score"` |
 | `ascending` | `None` | Sort direction (uses method default) |
 | `celltype_column` | `None` | Column name for cluster IDs |

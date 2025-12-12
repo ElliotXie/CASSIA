@@ -1166,10 +1166,10 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param temperature Sampling temperature (0-1)
-#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "full")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
-#' @param conversations_json_path Path to the conversations JSON file from batch annotation (default: NULL)
+#' @param conversations_json_path Path to the conversations JSON file, or "auto" to auto-detect from full_result_path (default: "auto")
 #' @param species Species for the analysis (default: "human")
 #' @param auto_convert_ids Logical. Whether to auto-convert gene IDs (default: TRUE)
 #' @param reasoning Reasoning effort level: "high", "medium", or "low" (default: NULL, no extended reasoning)
@@ -1186,10 +1186,10 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      model = "google/gemini-2.5-flash-preview",
                                      provider = "openrouter",
                                      temperature = 0,
-                                     conversation_history_mode = "final",
+                                     conversation_history_mode = "full",
                                      search_strategy = "breadth",
                                      report_style = "per_iteration",
-                                     conversations_json_path = NULL,
+                                     conversations_json_path = "auto",
                                      species = "human",
                                      auto_convert_ids = TRUE,
                                      reasoning = NULL,
@@ -1250,11 +1250,11 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param additional_task Additional task to perform during analysis
 #' @param temperature Sampling temperature (0-1)
-#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
+#' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "full")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
-#' @param conversations_json_path Path to the conversations JSON file from batch annotation (default: NULL)
+#' @param conversations_json_path Path to the conversations JSON file, or "auto" to auto-detect from full_result_path (default: "auto")
 #' @param ... Additional parameters for future compatibility
 #'
 #' @return None. This function generates output files.
@@ -1269,11 +1269,11 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      provider = "openrouter",
                                                      additional_task = "check if this is a cancer cluster",
                                                      temperature = 0,
-                                                     conversation_history_mode = "final",
+                                                     conversation_history_mode = "full",
                                                      search_strategy = "breadth",
                                                      report_style = "per_iteration",
                                                      validator_involvement = "v1",
-                                                     conversations_json_path = NULL,
+                                                     conversations_json_path = "auto",
                                                      ...) {
 
   if (is.data.frame(marker)) {

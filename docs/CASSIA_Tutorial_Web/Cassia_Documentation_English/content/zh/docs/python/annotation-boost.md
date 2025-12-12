@@ -27,7 +27,7 @@ CASSIA.runCASSIA_annotationboost(
 ## 输入
 
 - 来自 CASSIA 批量分析的完整结果 CSV（`_summary.csv`）
-- 原始标记基因文件（***注意：标记文件不应被过滤！***）
+- 原始标记基因文件（***建议使用原始标记文件 - 请勿过滤！***）
 - 聚类背景信息
 - 特定聚类标识符
 - （可选）批量注释的对话 JSON 文件（`_conversations.json`）
@@ -51,16 +51,10 @@ CASSIA.runCASSIA_annotationboost(
 | `num_iterations` | 5 | 验证轮数 |
 | `model` | - | 使用的 LLM 模型。推荐：`anthropic/claude-sonnet-4.5` 或更好的模型 |
 | `provider` | - | 模型的 API 提供商 |
-| `conversations_json_path` | - | 批量注释的对话 JSON 文件路径 |
+| `conversations_json_path` | `"auto"` | 对话 JSON 文件路径，或 `"auto"` 从 `full_result_path` 自动检测（例如，`batch_summary.csv` → `batch_conversations.json`） |
 | `conversation_history_mode` | `"full"` | 如何使用先前的对话历史：`"full"`、`"final"` 或 `"none"` |
-
-### 高级参数
-
-| 参数 | 默认值 | 描述 |
-|------|--------|------|
 | `search_strategy` | `"breadth"` | 探索假设的策略：`"breadth"` 或 `"depth"` |
 | `report_style` | `"per_iteration"` | 最终报告的格式：`"per_iteration"` 或 `"total_summary"` |
-| `validator_involvement` | `"v1"` | 验证严格程度：`"v1"`（中等）或 `"v0"`（高） |
 | `reasoning` | - | 推理深度级别：`"low"`、`"medium"`、`"high"`。仅支持 OpenAI GPT-5 系列模型 |
 
 ## 输出

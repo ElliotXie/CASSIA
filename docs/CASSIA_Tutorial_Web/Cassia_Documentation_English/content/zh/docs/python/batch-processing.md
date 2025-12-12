@@ -111,9 +111,7 @@ print(markers.head())
 | `additional_info` | `None` | 额外的实验上下文（见下方） |
 | `temperature` | 0 | 输出随机性（0=确定性，1=创造性）。保持为 0 以获得可重复的结果。 |
 | `validator_involvement` | `"v1"` | 验证强度：`"v1"`（中等）或 `"v0"`（高，较慢） |
-| `reasoning` | `None` | 仅适用于通过 OpenRouter 使用的 GPT-5 系列模型的推理深度（`"low"`、`"medium"`、`"high"`）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。 |
-
-|------|--------|------|
+| `reasoning` | `None` | 仅适用于通过 OpenRouter 使用的 GPT-5 系列模型的推理深度：`"low"`、`"medium"`、`"high"` |
 | `ranking_method` | `"avg_log2FC"` | 基因排序：`"avg_log2FC"`、`"p_val_adj"`、`"pct_diff"`、`"Score"` |
 | `ascending` | `None` | 排序方向（使用方法默认值） |
 | `celltype_column` | `None` | 聚类 ID 的列名 |

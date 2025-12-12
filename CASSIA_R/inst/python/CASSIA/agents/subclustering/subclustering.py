@@ -314,8 +314,9 @@ def write_results_to_csv(results, output_name='subcluster_results'):
         matches = re.findall(pattern, results)
 
         if matches:
-            # Convert matches to a DataFrame with the reason column
-            df = pd.DataFrame(matches, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'reason'])
+            # Convert matches to a DataFrame with 5 columns for consistency
+            rows = [[m[0], m[1], m[2], '', ''] for m in matches]
+            df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
             df.to_csv(output_name, index=False)
             print(f"Results have been written to {output_name}")
             return df
@@ -324,10 +325,9 @@ def write_results_to_csv(results, output_name='subcluster_results'):
             alt_pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
             alt_matches = re.findall(alt_pattern, results)
             if alt_matches:
-                # Convert matches to a DataFrame without reason column
-                df = pd.DataFrame(alt_matches, columns=['Result ID', 'main_cell_type', 'sub_cell_type'])
-                # Add empty reason column
-                df['reason'] = ""
+                # Convert matches to a DataFrame with 5 columns for consistency
+                rows = [[m[0], m[1], m[2], '', ''] for m in alt_matches]
+                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
                 df.to_csv(output_name, index=False)
                 print(f"Results have been written to {output_name} (without reasons)")
                 return df
