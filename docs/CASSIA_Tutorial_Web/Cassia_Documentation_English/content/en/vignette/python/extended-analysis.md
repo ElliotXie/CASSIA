@@ -30,7 +30,7 @@ iteration_results = CASSIA.runCASSIA_batch_n_times(
 # Calculate similarity scores
 similarity_scores = CASSIA.runCASSIA_similarity_score_batch(
     marker=unprocessed_markers,
-    file_pattern=output_name + "_Uncertainty_*_full.csv",
+    file_pattern=output_name + "_Uncertainty_*_summary.csv",
     output_name="intestine_uncertainty",
     max_workers=6,
     model="openai/gpt-5.1",
@@ -49,14 +49,15 @@ Here we use annotation boost agent to test these hypotheses in more detail.
 ```python
 # Run validation plus for the high mitochondrial content cluster
 CASSIA.runCASSIA_annotationboost(
-    full_result_path = output_name + "_full.csv",
+    full_result_path = output_name + "_summary.csv",
     marker = unprocessed_markers,
     output_name = "monocyte_annotationboost",
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
     model = "anthropic/claude-sonnet-4.5",
-    provider = "openrouter"
+    provider = "openrouter",
+    conversations_json_path = output_name + "_conversations.json"  # Provides annotation context
 )
 ```
 

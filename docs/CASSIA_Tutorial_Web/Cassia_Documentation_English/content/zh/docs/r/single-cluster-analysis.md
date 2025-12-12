@@ -2,57 +2,94 @@
 title: 单簇分析
 ---
 
-runCASSIA函数分析单个标记基因簇以识别细胞类型。
-**CASSIA可以一次性处理多个簇，因此此方法只适用于分析单个感兴趣的簇。**
+## 概述
 
-### 示例
+`runCASSIA` 函数分析单个标记基因簇以识别细胞类型。此函数专为只需分析单个簇的用户设计。
 
-有关模型设置和推荐的详细信息，请参阅 **[如何选择模型和提供商](setting-up-cassia.md#how-to-select-models-and-providers)** 部分。
+注意：CASSIA 可以通过[批量处理](batch-processing.md)一次性处理多个簇。当您只需要注释单个簇时，请使用此函数。
 
-#### 示例代码
+---
+
+## 快速开始
 
 ```R
-# 参数
-model <- "anthropic/claude-4.5-sonnet"  # 要使用的模型
-temperature <- 0
-marker_list <- c("CD3D", "CD3E", "CD2", "TRAC")
-tissue <- "blood"
-species <- "human"
-additional_info <- NULL
-provider <- "openrouter"  # 或"openai"、"anthropic"
-
-# 运行分析
 result <- runCASSIA(
-  model = model,
-  temperature = temperature,
-  marker_list = marker_list,
-  tissue = tissue,
-  species = species,
-  additional_info = additional_info,
-  provider = provider,
-  validator_involvement = "v1",
-  reasoning = "medium"  # 可选: "high", "medium", "low" 用于兼容模型
+    marker_list = c("CD3D", "CD3E", "CD2", "TRAC"),
+    model = "anthropic/claude-sonnet-4.5",
+    tissue = "blood",
+    species = "human",
+    provider = "openrouter"
 )
 
-# 查看结构化输出
+# 查看注释结果
 print(result$structured_output)
-
-# 查看对话历史
-print(result$conversation_history)
 ```
+
+模型推荐请参阅[如何选择模型和提供商](setting-up-cassia.md#how-to-select-models-and-providers)。
+
+---
+
+## 输入
+
+### 标记基因列表格式
+
+提供一个包含簇标记基因名称的字符向量：
+
+```R
+marker_list <- c("CD3D", "CD3E", "CD2", "TRAC", "IL7R")
+```
+
+这些应该是表征您感兴趣簇的顶级差异表达基因。
+
+---
+
+## 参数
+
+### 必需参数
+
+| 参数 | 描述 |
+|------|------|
+| `marker_list` | 簇的标记基因名称字符向量 |
+| `model` | LLM 模型 ID（例如 `"anthropic/claude-sonnet-4.5"`） |
+| `tissue` | 组织类型（例如 `"blood"`、`"brain"`） |
+| `species` | 物种（例如 `"human"`、`"mouse"`） |
+| `provider` | API 提供商（`"openrouter"`、`"openai"`、`"anthropic"`） |
+
+### 可选参数
+
+| 参数 | 默认值 | 描述 |
+|------|--------|------|
+| `temperature` | 0 | 输出随机性（0=确定性，1=创造性）。保持为 0 以获得可重复结果。 |
+| `additional_info` | `NULL` | 关于样本的额外实验上下文 |
+| `validator_involvement` | `"v1"` | 验证强度：`"v1"`（中等）或 `"v0"`（高，较慢） |
+| `reasoning` | `NULL` | 兼容模型的推理深度（`"low"`、`"medium"`、`"high"`）。见下文。 |
 
 ### 参数详情
 
-- **`model`**: 用于分析的大语言模型。选项请参阅 [设置 CASSIA](setting-up-cassia.md)。
-- **`temperature`**: 控制模型输出的随机性（0 = 确定性，1 = 创造性）。默认为 0。
-- **`marker_list`**: 单个簇的标记基因名称字符向量。
-- **`tissue`**: 样本的组织来源。
-- **`species`**: 样本的物种（例如 "human", "mouse"）。
-- **`additional_info`**: (可选) 关于实验或样本的任何额外上下文信息。
-- **`provider`**: 要使用的 API 提供商 ("openrouter", "openai", "anthropic")。
-- **`validator_involvement`**: 验证严格程度级别（"v1" 为中等，"v0" 为高）。
-- **`reasoning`**: （可选）控制兼容模型的推理深度（"high"、"medium"、"low"）。省略则使用标准模式。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
+**模型选择**
+- 默认：`anthropic/claude-sonnet-4.5` 以获得最佳性能
+- 替代：`google/gemini-2.5-flash` 以获得更快分析
+- 使用 OpenRouter 时，请指定完整的模型 ID
+- 详细推荐请参阅[如何选择模型和提供商](setting-up-cassia.md#how-to-select-models-and-providers)
 
-更多参数详情请参阅 [批量处理参数详情](batch-processing.md#参数详情)。
+**推理参数**
+- 控制兼容模型的推理深度（通过 OpenRouter 使用 GPT-5 系列）
+- 选项：`"low"`、`"medium"`、`"high"`
+- 省略此参数以使用标准模式
+- 详见[推理深度参数](setting-up-cassia.md#推理深度参数)
 
-_注意：_ 使用OpenRouter时，需指定完整的模型ID。
+**额外上下文**
+- 使用 `additional_info` 提供实验上下文
+- 示例：`"来自肿瘤微环境的样本，关注免疫浸润"`
+
+---
+
+## 输出
+
+函数返回包含两个组件的列表：
+
+| 组件 | 描述 |
+|------|------|
+| `structured_output` | 包含预测细胞类型和推理的注释结果 |
+| `conversation_history` | 用于调试和透明度的完整对话日志 |
+

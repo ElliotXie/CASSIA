@@ -25,7 +25,8 @@
       "Bash(cmd /c \"dir /s /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r\")",
       "Bash(cmd /c \"dir d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\")",
       "Bash(cmd /c \"dir /s /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content 2>nul | findstr /i \".md$\"\")",
-      "Bash(cmd /c \"if exist d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r (echo Path exists) else (echo Path does not exist)\")"
+      "Bash(cmd /c \"if exist d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r (echo Path exists) else (echo Path does not exist)\")",
+      "Bash(cmd /c \"dir /b d:\\CASSIA\\output3 2>nul || echo Folder not found\")"
     ],
     "deny": []
   }

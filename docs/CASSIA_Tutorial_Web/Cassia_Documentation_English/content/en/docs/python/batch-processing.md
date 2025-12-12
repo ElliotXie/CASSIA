@@ -113,15 +113,10 @@ print(markers.head())
 | `validator_involvement` | `"v1"` | Validation intensity: `"v1"` (moderate) or `"v0"` (high, slower) |
 | `reasoning` | `None` | Reasoning depth for GPT-5 series via OpenRouter only (`"low"`, `"medium"`, `"high"`). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter). |
 
-### Advanced
+
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `ranking_method` | `"avg_log2FC"` | Gene ranking: `"avg_log2FC"`, `"p_val_adj"`, `"pct_diff"`, `"Score"` |
-| `ascending` | `None` | Sort direction (uses method default) |
-| `celltype_column` | `None` | Column name for cluster IDs |
-| `gene_column_name` | `None` | Column name for gene symbols |
-| `max_retries` | 1 | Max retries for failed API calls |
 
 ### Parameter Details
 

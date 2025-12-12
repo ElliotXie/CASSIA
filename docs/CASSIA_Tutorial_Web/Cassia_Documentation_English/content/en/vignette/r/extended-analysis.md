@@ -39,7 +39,7 @@ runCASSIA_batch_n_times(
 # Calculate similarity scores
 runCASSIA_similarity_score_batch(
     marker = markers_unprocessed,
-    file_pattern = paste0(output_name, "_Uncertainty_*_full.csv"), # The file pattern of the uncertainty results
+    file_pattern = paste0(output_name, "_Uncertainty_*_summary.csv"), # The file pattern of the uncertainty results
     output_name = "cs_results",
     max_workers = 6,
     model = "anthropic/claude-sonnet-4.5",
@@ -70,14 +70,15 @@ Here we use annotation boost agent to test these hypotheses in more detail.
 ```r
 # Run validation plus for the high mitochondrial content cluster
 runCASSIA_annotationboost(
-    full_result_path = paste0(output_name, "_full.csv"),
+    full_result_path = paste0(output_name, "_summary.csv"),
     marker = markers_unprocessed,
-    output_name="monocyte_annotationboost2",
+    output_name = "monocyte_annotationboost2",
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
     model = "anthropic/claude-sonnet-4.5",
-    provider = "openrouter"
+    provider = "openrouter",
+    conversations_json_path = paste0(output_name, "_conversations.json")  # Provides annotation context
 )
 ```
 A detailed report will be generated. The report provides in-depth analysis of the monocyte cluster. Part of the result is shown here:
@@ -102,7 +103,7 @@ results <- symphonyCompare(
   celltypes = c("Plasma Cells", "IgA-secreting Plasma Cells", "IgG-secreting Plasma Cells"),
   marker_set = marker,
   species = "human",
-  model_preset = "symphony", # Uses Claude, GPT-4, and Gemini
+  model_preset = "premium", # Uses Claude, GPT-4, Gemini, Grok
   enable_discussion = TRUE,  # Models will discuss if they disagree
   max_discussion_rounds = 2
 )

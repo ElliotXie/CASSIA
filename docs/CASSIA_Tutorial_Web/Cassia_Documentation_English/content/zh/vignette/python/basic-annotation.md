@@ -103,7 +103,7 @@ CASSIA.runCASSIA_batch(
 ```python
 # 运行质量评分
 CASSIA.runCASSIA_score_batch(
-    input_file = output_name + "_full.csv",
+    input_file = output_name + "_summary.csv",  # JSON 自动检测
     output_file = output_name + "_scored.csv",
     max_workers = 6,
     model = "openai/gpt-5.1",

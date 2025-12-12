@@ -390,6 +390,11 @@ def call_llm(
         model_lower = model.lower() if model else ""
         uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
 
+        # Auto-default reasoning to "medium" for GPT-5 series models if not explicitly set
+        # Covers: gpt-5, gpt5, gpt-5.1, openai/gpt-5.1, etc.
+        if reasoning is None and ("gpt-5" in model_lower or "gpt5" in model_lower):
+            reasoning = {"effort": "medium"}
+
         data = {
             **params_copy,
             "model": model,

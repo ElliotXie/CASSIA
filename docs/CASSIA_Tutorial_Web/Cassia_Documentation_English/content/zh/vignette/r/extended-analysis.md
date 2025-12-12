@@ -37,7 +37,7 @@ runCASSIA_batch_n_times(
 # 计算相似度评分
 runCASSIA_similarity_score_batch(
     marker = markers_unprocessed,
-    file_pattern = paste0(output_name,"_Uncertainty_*_full.csv"), # 不确定性结果的文件模式
+    file_pattern = paste0(output_name, "_Uncertainty_*_summary.csv"), # 不确定性结果的文件模式
     output_name = "cs_results",
     max_workers = 6
 )
@@ -66,14 +66,15 @@ runCASSIA_similarity_score_batch(
 ```r
 # 对高线粒体含量的细胞簇运行验证增强
 runCASSIA_annotationboost(
-    full_result_path = paste0(output_name, "_full.csv"),
+    full_result_path = paste0(output_name, "_summary.csv"),
     marker = markers_unprocessed,
-    output_name="monocyte_annotationboost2",
+    output_name = "monocyte_annotationboost2",
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-3.5-sonnet",
-    provider = "openrouter"
+    model = "anthropic/claude-sonnet-4.5",
+    provider = "openrouter",
+    conversations_json_path = paste0(output_name, "_conversations.json")  # 提供注释上下文
 )
 ```
 将生成详细的报告。该报告提供对单核细胞簇的深入分析。部分结果如下所示：

@@ -125,7 +125,7 @@ batch_results <- runCASSIA_batch(
 
 # 步骤2：评分注释
 quality_scores <- runCASSIA_score_batch(
-    input_file = "StepByStep_full.csv",
+    input_file = "StepByStep_summary.csv",  # JSON 自动检测
     output_file = "StepByStep_scored.csv",
     max_workers = 4,
     model = "anthropic/claude-sonnet-4.5",
@@ -143,13 +143,13 @@ runCASSIA_generate_score_report(
 
 CASSIA生成多个输出文件：
 
-### 4.1 完整结果CSV
+### 4.1 摘要结果CSV
 
-`_full.csv` 文件包含每个细胞簇的详细注释信息：
+`_summary.csv` 文件包含每个细胞簇的注释信息：
 
 ```r
-# 读取完整结果文件
-results <- read.csv("MyAnalysis_full.csv")
+# 读取摘要结果文件
+results <- read.csv("MyAnalysis_summary.csv")
 head(results)
 ```
 

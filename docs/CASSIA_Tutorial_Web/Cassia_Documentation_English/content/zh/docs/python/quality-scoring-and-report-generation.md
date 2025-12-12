@@ -57,7 +57,6 @@ CASSIA.runCASSIA_score_batch(
 **模型选择**
 - 强烈推荐：`openai/gpt-5.1` 或 `anthropic/claude-sonnet-4.5` 以获得最佳准确性
 - 评分需要强大的推理能力来评估注释质量
-- 使用与注释运行相同的提供商设置
 
 ---
 

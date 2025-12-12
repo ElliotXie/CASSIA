@@ -174,16 +174,17 @@ results = CASSIA.runCASSIA_pipeline(
 
 ### 5.2 输出文件
 
-流程会创建一个包含三个子文件夹的输出文件夹：
+流程会创建一个名为 `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` 的输出文件夹，包含三个子文件夹：
 
-- `01_html_reports/` - 每个聚类的交互式 HTML 报告
-- `02_cluster_annotations/` - 每个聚类的单独注释结果
+- `01_annotation_report/` - 分析的交互式 HTML 报告
+- `02_annotation_boost/` - 低评分聚类的注释增强结果
 - `03_csv_files/` - 汇总 CSV 文件，包括最终结果
 
 ### 5.3 加载结果
 
 ```python
-cassia_results = pd.read_csv("CASSIA_Pipeline_output/gtex_breast_annotation_FINAL_RESULTS.csv")
+# 将文件夹名称替换为实际的输出文件夹（包含时间戳）
+cassia_results = pd.read_csv("CASSIA_Pipeline_Breast_Human_XXXXXX/03_csv_files/gtex_breast_annotation_FINAL_RESULTS.csv")
 ```
 
 ### 5.4 将注释添加到 AnnData

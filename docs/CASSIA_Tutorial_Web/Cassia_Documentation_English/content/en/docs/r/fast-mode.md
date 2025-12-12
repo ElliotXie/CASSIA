@@ -2,9 +2,12 @@
 title: Fast Mode
 ---
 
+## Overview
+
 CASSIA's Fast Mode offers a streamlined, one-line solution for running the complete analysis pipeline. This mode combines annotation, scoring, and annotation boost for correcting low quality annotations in a single function call, using optimized default parameters.
 
-### Basic Usage
+## Quick Start
+
 ```R
 runCASSIA_pipeline(
     output_file_name = "my_analysis",
@@ -15,8 +18,84 @@ runCASSIA_pipeline(
 )
 ```
 
+## Input
 
-### Add CASSIA results back to the seurat object
+| Input | Type | Description |
+|-------|------|-------------|
+| `marker` | Data frame or path | Marker gene data with cluster and gene columns |
+| `tissue` | String | Tissue type of the sample (e.g., "brain", "lung") |
+| `species` | String | Species of the sample (e.g., "human", "mouse") |
+
+## Parameters
+
+### Required Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `output_file_name` | String | Base name for the output folder and files |
+| `tissue` | String | The tissue type of the sample |
+| `species` | String | The species of the sample |
+| `marker` | Data frame/path | Marker gene data |
+
+### Optional Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_workers` | 6 | Number of parallel processes to use |
+| `overall_provider` | "openrouter" | Main provider for all pipeline stages ("openai", "anthropic", "openrouter") |
+| `score_threshold` | 75 | Annotations below this score (0-100) trigger Annotation Boost |
+| `additional_info` | NULL | Optional experimental context (e.g., "treated with drug X") |
+| `validator_involvement` | "v1" | Validation strictness ("v1" = moderate, "v0" = high) |
+| `do_merge_annotations` | TRUE | If TRUE, merges detailed cell types into broader categories |
+| `annotation_model` | "anthropic/claude-sonnet-4.5" | Model for initial cell type annotation |
+| `annotation_provider` | "openrouter" | Provider for annotation model |
+| `score_model` | "openai/gpt-5.1" | Model for quality scoring |
+| `score_provider` | "openrouter" | Provider for score model |
+| `annotationboost_model` | "anthropic/claude-sonnet-4.5" | Model for refining low-confidence annotations |
+| `annotationboost_provider` | "openrouter" | Provider for annotation boost model |
+| `merge_model` | "google/gemini-2.5-flash" | Model for the merging step |
+| `merge_provider` | "openrouter" | Provider for merge model |
+| `overall_reasoning` | NULL | Reasoning effort for all stages ("low", "medium", "high") |
+| `annotation_reasoning` | NULL | Override reasoning level for annotation stage only |
+| `score_reasoning` | NULL | Override reasoning level for scoring stage only |
+| `annotationboost_reasoning` | NULL | Override reasoning level for annotation boost stage only |
+| `merge_reasoning` | NULL | Override reasoning level for merging stage only |
+
+## Output
+
+The pipeline generates a timestamped main folder (`CASSIA_Pipeline_{tissue}_{species}_{timestamp}`) containing three organized subfolders:
+
+### Folder Structure
+
+```
+CASSIA_Pipeline_brain_human_20240115_143022/
+├── 01_annotation_report/
+│   └── {name}_report.html          # Interactive HTML report
+├── 02_annotation_boost/
+│   └── {cluster_name}/             # One folder per low-scoring cluster
+│       └── {name}_{cluster}_boosted_report.html
+└── 03_csv_files/
+    ├── {name}_summary.csv          # Initial annotation results
+    ├── {name}_conversations.json   # Full conversation history
+    ├── {name}_scored.csv           # Results with quality scores
+    ├── {name}_merged.csv           # Merged annotations (if enabled)
+    └── {name}_FINAL_RESULTS.csv    # Combined final results
+```
+
+### Output Files
+
+| Folder | File | Description |
+|--------|------|-------------|
+| `01_annotation_report` | `{name}_report.html` | Interactive HTML report with all annotations |
+| `02_annotation_boost` | Per-cluster folders | Boost analysis for clusters scoring below threshold |
+| `03_csv_files` | `{name}_FINAL_RESULTS.csv` | **Main output** - combined results with scores and merged annotations |
+| `03_csv_files` | `{name}_summary.csv` | Initial cell type annotations |
+| `03_csv_files` | `{name}_scored.csv` | Annotations with quality scores |
+| `03_csv_files` | `{name}_merged.csv` | Broader category groupings (if `do_merge_annotations = TRUE`) |
+| `03_csv_files` | `{name}_conversations.json` | Full LLM conversation history for reproducibility |
+
+### Add CASSIA Results to Seurat Object
+
 ```R
 seurat_corrected <- add_cassia_to_seurat(
   seurat_obj = seurat_corrected, # The seurat object you want to add the CASSIA results to
@@ -28,96 +107,12 @@ seurat_corrected <- add_cassia_to_seurat(
 # This will add six new columns to the seurat object: the general celltype, all three sub cell types, the most likely celltype, the second likely celltype, the third likely celltype, and mixed celltype, and the quality score of each cell type.
 ```
 
-
-
-
-### Full Parameter Options
-```R
-runCASSIA_pipeline(
-    # Required parameters
-    output_file_name,
-    tissue,
-    species,
-    marker,
-
-    # Optional parameters with defaults
-    max_workers = 6,
-
-    # Model configurations
-    annotation_model = "anthropic/claude-sonnet-4.5",
-    annotation_provider = "openrouter",
-    score_model = "openai/gpt-5.1",
-    score_provider = "openrouter",
-    annotationboost_model="anthropic/claude-sonnet-4.5",
-    annotationboost_provider="openrouter",
-
-    # Merging parameters
-    do_merge_annotations = TRUE,
-    merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter",
-
-    # Analysis parameters
-    score_threshold = 75,
-    additional_info = NULL,
-    validator_involvement = "v1",
-
-    # Optional: Reasoning effort parameters
-    overall_reasoning = "low",  # Applies to all stages
-    annotation_reasoning = "medium"  # Override for annotation step only
-)
-```
-
-### Parameter Details
-
-- **`output_file_name`**: Base name for the output folder and files.
-- **`tissue`**: The tissue type of the sample (e.g., "brain").
-- **`species`**: The species of the sample (e.g., "human").
-- **`marker`**: Marker gene data (data frame or path to CSV).
-- **`max_workers`**: Number of parallel processes to use.
-- **`annotation_model`**: Model used for the initial cell type annotation step.
-- **`score_model`**: Model used for quality scoring. **Recommendation**: Use a high-capability model like `claude-sonnet-4.5` for accurate scoring.
-- **`annotationboost_model`**: Model used for refining low-confidence annotations.
-- **`do_merge_annotations`**: Logical. If `TRUE`, merges detailed cell types into broader categories.
-- **`merge_model`**: Model used for the merging step.
-- **`score_threshold`**: Annotations with a quality score below this threshold (0-100) will trigger the Annotation Boost process. Default is 75.
-- **`additional_info`**: Optional experimental context (e.g., "treated with drug X").
-- **`validator_involvement`**: Controls validation strictness ("v1" = moderate, "v0" = high).
-
-#### Reasoning Effort Parameters
-
-These parameters control how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
-
-- **`overall_reasoning`**: (Optional) Reasoning effort level that applies to all pipeline stages ("low", "medium", "high"). Default: NULL (no extended reasoning).
-- **`annotation_reasoning`**: (Optional) Override reasoning level for annotation stage only.
-- **`score_reasoning`**: (Optional) Override reasoning level for scoring stage only.
-- **`annotationboost_reasoning`**: (Optional) Override reasoning level for annotation boost stage only.
-- **`merge_reasoning`**: (Optional) Override reasoning level for merging stage only.
-
-**Resolution priority**: Stage-specific reasoning > overall_reasoning > NULL
-
-### Key Features Explanation
-
-#### Merging Annotations
-The pipeline includes an automatic merging step (`do_merge_annotations = TRUE`) that groups annotated clusters into broader categories (e.g., grouping "CD4+ T cells" and "CD8+ T cells" into "T cells"). This provides a hierarchical view of your cell types, making it easier to understand the major populations in your dataset.
-
-#### Validator Involvement
-The `validator_involvement` parameter controls the intensity of the validation process:
-- `"v0"`: High involvement. Stronger validation checks are applied, which may be slower but more rigorous.
-- `"v1"`: Moderate involvement (Default). Balanced validation suitable for most standard analyses.
-
-### Output Files
-The pipeline generates a folder which contains the following files:
-1. Annotation results csv files
-2. Scored results csv files
-3. Merged annotation results (if enabled)
-4. Basic CASSIA report
-5. Annotation boost report
-
 ### Performance Tips
+
 - For optimal performance, adjust `max_workers` based on your system's CPU cores
 - Use `additional_info` to provide relevant experimental context
 - Monitor `score_threshold` to balance stringency with throughput
 
-
+---
 
 Next we introduce each function in detail...

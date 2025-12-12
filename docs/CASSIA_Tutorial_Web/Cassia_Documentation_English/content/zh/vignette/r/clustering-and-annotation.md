@@ -95,14 +95,13 @@ results <- runCASSIA_pipeline(
 [***sc-llm-benchmark.com/methods/cassia***](https://sc-llm-benchmark.com/methods/cassia)
 
 
-输出文件保存在以组织和物种命名的文件夹中。在文件夹内，您将看到以下文件：
+流水线创建一个名为 `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` 的输出文件夹，包含三个子文件夹：
 
-- `gtex_breast_annotation_summary.csv`：注释结果摘要
-- `gtex_breast_annotation_full.csv`：包含完整对话历史和不同层级合并细胞簇的完整注释结果
-- `gtex_breast_annotation_scored.csv`：评分后的注释结果
-- `gtex_breast_annotation_report.html`：生成的注释结果报告，包含所有细胞簇报告的路由
+- `01_annotation_report/` - 分析的交互式HTML报告
+- `02_annotation_boost/` - 低评分细胞簇的注释增强结果
+- `03_csv_files/` - 汇总CSV文件，包括最终结果
 
-gtex_breast_annotation_scored.csv 文件：
+最终结果CSV文件：
 
 ![CASSIA注释报告](/images/gtex-breast-annotation-report.webp)
 
@@ -115,9 +114,9 @@ gtex_breast_annotation_scored.csv 文件：
 ```r
 seurat_breast=add_cassia_to_seurat(
     seurat_obj = gtex_data,
-    cassia_results_path = "gtex_breast_annotation_scored.csv", # CASSIA结果csv文件的路径
+    cassia_results_path = "CASSIA_Pipeline_Breast_Human_XXXXXX/03_csv_files/gtex_breast_annotation_FINAL_RESULTS.csv", # 将XXXXXX替换为实际时间戳
     cluster_col = "RNA_snn_res.0.4", # Seurat对象中用于FindAllMarkers的细胞簇列名
-    columns_to_include = "1") # 默认仅导出合并列回seurat，设置为"2"可导出所有列
+    columns_to_include = 1) # 默认仅导出合并列回seurat，设置为2可导出所有列
 ```
 
 

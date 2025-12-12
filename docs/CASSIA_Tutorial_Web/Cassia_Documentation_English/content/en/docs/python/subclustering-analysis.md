@@ -2,18 +2,11 @@
 title: Subclustering Analysis (Optional)
 ---
 
-Subclustering analysis is a powerful technique for studying specific cell populations in greater detail. This tutorial walks you through the process of analyzing subclustered populations, such as T cells or fibroblasts.
+## Overview
 
-### Workflow Summary
-1. Initial CASSIA analysis
-2. Subcluster extraction and processing (using Seurat or Scanpy)
-3. Marker identification
-4. CASSIA subclustering analysis
-5. Uncertainty assessment (optional)
+Subclustering analysis is a powerful technique for studying specific cell populations in greater detail. This feature allows you to analyze subclustered populations, such as T cells or fibroblasts, after initial CASSIA annotation.
 
-### Running Subclustering Analysis
-
-We recommend applying the default CASSIA first. Then, on a target cluster, apply standard pipelines (Seurat/Scanpy) to subcluster and get marker results.
+## Quick Start
 
 ```python
 CASSIA.runCASSIA_subclusters(
@@ -25,26 +18,48 @@ CASSIA.runCASSIA_subclusters(
 )
 ```
 
-#### Parameter Details
+## Input
 
-- **`marker`**: Marker genes for the subclusters (data frame or file path).
-- **`major_cluster_info`**: Description of the parent cluster or context (e.g., "CD8+ T cells" or "cd8 t cell mixed with other celltypes").
-- **`output_name`**: Base name for the output CSV file.
-- **`model`**: LLM model to use.
-- **`provider`**: API provider.
-- **`temperature`**: Sampling temperature (0-1).
-- **`n_genes`**: Number of top marker genes to use.
+### Workflow Summary
+1. Initial CASSIA analysis on full dataset
+2. Subcluster extraction and processing (using Seurat or Scanpy)
+3. Marker identification for subclusters
+4. CASSIA subclustering analysis
+5. Uncertainty assessment (optional)
 
-> **📊 Automatic Report Generation**: An HTML report is automatically generated alongside the CSV output for easy visualization of subclustering results.
+### Required Input
+- **Marker genes**: DataFrame or file path containing marker genes for each subcluster (output from `FindAllMarkers` in Seurat or `sc.tl.rank_genes_groups` in Scanpy)
 
-### Uncertainty Assessment
+We recommend applying the default CASSIA first. Then, on a target cluster, apply standard pipelines (Seurat/Scanpy) to subcluster and get marker results.
 
-For more confident results, calculate consistency scores (CS):
+## Parameters
+
+### Required Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `marker` | Marker genes for the subclusters (DataFrame or file path) |
+| `major_cluster_info` | Description of the parent cluster or context (e.g., "CD8+ T cells" or "cd8 t cell mixed with other celltypes") |
+| `output_name` | Base name for the output CSV file |
+| `model` | LLM model to use |
+| `provider` | API provider |
+
+### Optional Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `temperature` | 0 | Sampling temperature (0-1) |
+| `n_genes` | 50 | Number of top marker genes to use |
+
+### Uncertainty Assessment Functions
+
+For more confident results, calculate consistency scores (CS) using multiple iterations:
+
+**`runCASSIA_n_subcluster()`** - Run multiple annotation iterations:
 
 ```python
-# Run multiple iterations
 CASSIA.runCASSIA_n_subcluster(
-    n=5, 
+    n=5,
     marker=subcluster_results,
     major_cluster_info="cd8 t cell",
     base_output_name="subclustering_results_n",
@@ -54,21 +69,41 @@ CASSIA.runCASSIA_n_subcluster(
     max_workers=5,
     n_genes=50
 )
+```
 
-# Calculate similarity scores
+| Parameter | Description |
+|-----------|-------------|
+| `n` | Number of iterations to run |
+| `base_output_name` | Base name for output files (appended with iteration number) |
+| `max_workers` | Number of parallel workers |
+
+**`runCASSIA_similarity_score_batch()`** - Calculate similarity scores across iterations:
+
+```python
 CASSIA.runCASSIA_similarity_score_batch(
     marker = subcluster_results,
     file_pattern = "subclustering_results_n_*.csv",
     output_name = "subclustering_uncertainty",
     max_workers = 6,
-    model = "openai/gpt-5.1",
+    model = "anthropic/claude-sonnet-4.5",
     provider = "openrouter",
     main_weight = 0.5,
     sub_weight = 0.5
 )
 ```
 
-### Output Files
-- `{output_name}.csv`: Basic Cassia analysis results.
-- `{output_name}.html`: HTML report with visualizations.
-- `{output_name}_uncertainty.csv`: Similarity scores (if uncertainty assessment is performed).
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `file_pattern` | - | Glob pattern matching iteration result files |
+| `main_weight` | 0.5 | Weight for main cell type similarity |
+| `sub_weight` | 0.5 | Weight for subtype similarity |
+
+## Output
+
+| File | Description |
+|------|-------------|
+| `{output_name}.csv` | Basic CASSIA analysis results |
+| `{output_name}.html` | HTML report with visualizations |
+| `{output_name}_uncertainty.csv` | Similarity scores (if uncertainty assessment is performed) |
+
+> **Automatic Report Generation**: An HTML report is automatically generated alongside the CSV output for easy visualization of subclustering results.

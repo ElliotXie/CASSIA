@@ -2,85 +2,104 @@
 title: 快速模式
 ---
 
-CASSIA 的快速模式提供了一个精简的、单行解决方案来运行完整的分析流程。此模式在单个函数调用中结合了注释、评分和用于纠正低质量注释的注释增强，使用优化的默认参数。
+## 概述
 
-### 基本用法
+CASSIA的快速模式提供了一个简化的、单行的解决方案，用于运行完整的分析流程。此模式在单个函数调用中结合了注释、评分和注释增强（用于修正低质量注释），使用优化的默认参数。
+
+## 快速开始
 
 ```python
-# 以快速模式运行 CASSIA 流程
 CASSIA.runCASSIA_pipeline(
-    output_file_name = "FastAnalysisResults",
-    tissue = "large intestine",
+    output_file_name = "my_analysis",
+    tissue = "brain",
     species = "human",
-    marker = unprocessed_markers,
-    max_workers = 6,  # 与数据集中的聚类数匹配
-    annotation_model = "anthropic/claude-sonnet-4.5",
-    annotation_provider = "openrouter",
-    score_model = "openai/gpt-5.1",
-    score_provider = "openrouter",
-    score_threshold = 75,
-    annotationboost_model="anthropic/claude-sonnet-4.5",
-    annotationboost_provider="openrouter",
-    merge_model = "google/gemini-2.5-flash",
-    merge_provider = "openrouter",
-    # 可选: 推理深度参数
-    overall_reasoning = "low",  # 应用于所有阶段
-    annotation_reasoning = "medium",  # 仅覆盖注释步骤
+    marker = marker_data,
+    max_workers = 4
 )
 ```
 
-### 参数详情
+## 输入
 
-- **`output_file_name`**: 输出文件夹和文件的基本名称。
-- **`tissue`**: 样本的组织类型（例如，“脑”）。
-- **`species`**: 样本的物种（例如，“人类”）。
-- **`marker`**: 标记基因数据（DataFrame 或 CSV 路径）。
-- **`max_workers`**: 使用的并行进程数。
-- **`annotation_model`**: 用于初始细胞类型注释步骤的模型。
-- **`annotation_provider`**: 注释模型的提供商。
-- **`score_model`**: 用于质量评分的模型。**建议**：使用像 `claude-4.5-sonnet` 这样的高能力模型以获得准确的评分。
-- **`score_provider`**: 评分模型的提供商。
-- **`score_threshold`**: 质量评分低于此阈值 (0-100) 的注释将触发注释增强过程。默认值为 75。
-- **`annotationboost_model`**: 用于改进低置信度注释的模型。
-- **`annotationboost_provider`**: 注释增强模型的提供商。
-- **`do_merge_annotations`**: 逻辑值。如果为 `True`，则将详细的细胞类型合并为更广泛的类别。
-- **`merge_model`**: 用于合并步骤的模型。
-- **`merge_provider`**: 合并模型的提供商。
-- **`additional_info`**: 可选的实验背景（例如，"用药物 X 处理"）。
-- **`validator_involvement`**: 控制验证的严格程度（"v1" = 中等，"v0" = 高）。
+| 输入 | 类型 | 描述 |
+|------|------|------|
+| `marker` | DataFrame或路径 | 包含cluster和gene列的标记基因数据 |
+| `tissue` | 字符串 | 样本的组织类型（如 "brain"、"lung"） |
+| `species` | 字符串 | 样本的物种（如 "human"、"mouse"） |
 
-#### 推理深度参数
+## 参数
 
-这些参数控制模型在响应前"思考"的程度。仅支持 OpenAI GPT-5 系列模型（如 `gpt-5.1`）。通过 OpenRouter 使用无需额外验证。通过 OpenAI API 直接使用需要身份验证（KYC）。
+### 必需参数
 
-- **`overall_reasoning`**: （可选）应用于所有流程阶段的推理深度级别（"low"、"medium"、"high"）。默认：None（无扩展推理）。
-- **`annotation_reasoning`**: （可选）仅覆盖注释阶段的推理级别。
-- **`score_reasoning`**: （可选）仅覆盖评分阶段的推理级别。
-- **`annotationboost_reasoning`**: （可选）仅覆盖注释增强阶段的推理级别。
-- **`merge_reasoning`**: （可选）仅覆盖合并阶段的推理级别。
+| 参数 | 类型 | 描述 |
+|------|------|------|
+| `output_file_name` | 字符串 | 输出文件夹和文件的基本名称 |
+| `tissue` | 字符串 | 样本的组织类型 |
+| `species` | 字符串 | 样本的物种 |
+| `marker` | DataFrame/路径 | 标记基因数据 |
 
-**优先级规则**: 阶段特定推理 > overall_reasoning > None
+### 可选参数
 
-### 主要功能说明
+| 参数 | 默认值 | 描述 |
+|------|--------|------|
+| `max_workers` | 6 | 并行处理的工作进程数 |
+| `overall_provider` | "openrouter" | 所有流程阶段的主提供商（"openai"、"anthropic"、"openrouter"） |
+| `score_threshold` | 75 | 低于此分数（0-100）的注释将触发注释增强 |
+| `additional_info` | None | 可选的实验上下文（如 "药物X处理"） |
+| `validator_involvement` | "v1" | 验证严格程度（"v1" = 中等，"v0" = 高） |
+| `do_merge_annotations` | True | 如果为True，将详细细胞类型合并为更广泛的类别 |
+| `annotation_model` | "anthropic/claude-sonnet-4.5" | 用于初始细胞类型注释的模型 |
+| `annotation_provider` | "openrouter" | 注释模型的提供商 |
+| `score_model` | "openai/gpt-5.1" | 用于质量评分的模型 |
+| `score_provider` | "openrouter" | 评分模型的提供商 |
+| `annotationboost_model` | "anthropic/claude-sonnet-4.5" | 用于优化低置信度注释的模型 |
+| `annotationboost_provider` | "openrouter" | 注释增强模型的提供商 |
+| `merge_model` | "google/gemini-2.5-flash" | 用于合并步骤的模型 |
+| `merge_provider` | "openrouter" | 合并模型的提供商 |
+| `overall_reasoning` | None | 所有阶段的推理深度（"low"、"medium"、"high"） |
+| `annotation_reasoning` | None | 仅覆盖注释阶段的推理级别 |
+| `score_reasoning` | None | 仅覆盖评分阶段的推理级别 |
+| `annotationboost_reasoning` | None | 仅覆盖注释增强阶段的推理级别 |
+| `merge_reasoning` | None | 仅覆盖合并阶段的推理级别 |
 
-#### 合并注释
-该流程包括一个自动合并步骤 (`do_merge_annotations = True`)，将注释的聚类分组为更广泛的类别（例如，将“CD4+ T 细胞”和“CD8+ T 细胞”分组为“T 细胞”）。这提供了细胞类型的分层视图，使您更容易理解数据集中的主要群体。
+## 输出
 
-#### 验证者参与度
-`validator_involvement` 参数控制验证过程的强度：
-- `"v0"`: 高参与度。应用更强的验证检查，可能较慢但更严格。
-- `"v1"`: 中等参与度（默认）。适合大多数标准分析的平衡验证。
+流程生成一个带时间戳的主文件夹（`CASSIA_Pipeline_{tissue}_{species}_{timestamp}`），包含三个组织有序的子文件夹：
+
+### 文件夹结构
+
+```
+CASSIA_Pipeline_brain_human_20240115_143022/
+├── 01_annotation_report/
+│   └── {name}_report.html          # 交互式HTML报告
+├── 02_annotation_boost/
+│   └── {cluster_name}/             # 每个低分cluster一个文件夹
+│       └── {name}_{cluster}_boosted_report.html
+└── 03_csv_files/
+    ├── {name}_summary.csv          # 初始注释结果
+    ├── {name}_conversations.json   # 完整对话历史
+    ├── {name}_scored.csv           # 带质量评分的结果
+    ├── {name}_merged.csv           # 合并后的注释（如果启用）
+    └── {name}_FINAL_RESULTS.csv    # 合并的最终结果
+```
 
 ### 输出文件
-该流程生成一个包含以下文件的文件夹：
-1. 注释结果 csv 文件
-2. 评分结果 csv 文件
-3. 合并的注释结果（如果启用）
-4. 基本 CASSIA 报告
-5. 注释增强报告
+
+| 文件夹 | 文件 | 描述 |
+|--------|------|------|
+| `01_annotation_report` | `{name}_report.html` | 包含所有注释的交互式HTML报告 |
+| `02_annotation_boost` | 每个cluster的文件夹 | 低于阈值分数的cluster的增强分析 |
+| `03_csv_files` | `{name}_FINAL_RESULTS.csv` | **主要输出** - 包含评分和合并注释的综合结果 |
+| `03_csv_files` | `{name}_summary.csv` | 初始细胞类型注释 |
+| `03_csv_files` | `{name}_scored.csv` | 带质量评分的注释 |
+| `03_csv_files` | `{name}_merged.csv` | 更广泛的类别分组（如果 `do_merge_annotations = True`） |
+| `03_csv_files` | `{name}_conversations.json` | 完整的LLM对话历史，用于可重复性 |
 
 ### 性能提示
-- 为了获得最佳性能，请根据系统的 CPU 核心数调整 `max_workers`
-- 使用 `additional_info` 提供相关的实验背景
-- 监控 `score_threshold` 以平衡严格性和吞吐量
 
+- 为获得最佳性能，根据系统的CPU核心调整 `max_workers`
+- 使用 `additional_info` 提供相关的实验上下文
+- 监控 `score_threshold` 以平衡严格性和处理量
+
+---
+
+接下来我们详细介绍每个功能...

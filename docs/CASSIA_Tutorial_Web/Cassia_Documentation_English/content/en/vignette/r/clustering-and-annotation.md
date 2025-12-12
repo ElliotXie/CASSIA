@@ -96,14 +96,13 @@ The default provider is OpenRouter, and the default models are selected to optim
 [***sc-llm-benchmark.com/methods/cassia***](https://sc-llm-benchmark.com/methods/cassia)
 
 
-The output file is saved in a folder named after the tissue and species. Inside the folder, you will see the following files:
+The pipeline creates an output folder named `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` with three subfolders:
 
-- `gtex_breast_annotation_summary.csv`: The summary of the annotation results
-- `gtex_breast_annotation_full.csv`: The full annotation results with full conversation history and merged clusters at different levels
-- `gtex_breast_annotation_scored.csv`: The scored annotation results
-- `gtex_breast_annotation_report.html`: Generated report of the annotation results, contains the router to all the clusters reports.
+- `01_annotation_report/` - Interactive HTML reports for the analysis
+- `02_annotation_boost/` - Annotation boost results for low-scoring clusters
+- `03_csv_files/` - Summary CSV files including final results
 
-The gtex_breast_annotation_scored.csv file:
+The final results CSV file:
 
 ![CASSIA annotation report](/images/gtex-breast-annotation-report.webp)
 
@@ -116,9 +115,9 @@ After running CASSIA, you can integrate the annotations back into your Seurat ob
 ```r
 seurat_breast=add_cassia_to_seurat(
     seurat_obj = gtex_data, 
-    cassia_results_path = "gtex_breast_annotation_scored.csv", # the path to the CASSIA results csv file
+    cassia_results_path = "CASSIA_Pipeline_Breast_Human_XXXXXX/03_csv_files/gtex_breast_annotation_FINAL_RESULTS.csv", # replace XXXXXX with actual timestamp
     cluster_col = "RNA_snn_res.0.4", # the column name of the cluster column used for Findallmarkers in the seurat object
-    columns_to_include = "1") # default is to export only the merged column back to seurat, set to "2" if you want to export all the columns
+    columns_to_include = 1) # default is to export only the merged column back to seurat, set to 2 if you want to export all the columns
 ```
 
 

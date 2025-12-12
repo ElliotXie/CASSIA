@@ -103,7 +103,7 @@ After annotation, run quality scoring to assess confidence.
 ```python
 # Run quality scoring
 CASSIA.runCASSIA_score_batch(
-    input_file = output_name + "_full.csv",
+    input_file = output_name + "_summary.csv",  # JSON auto-detected
     output_file = output_name + "_scored.csv",
     max_workers = 6,
     model = "openai/gpt-5.1",

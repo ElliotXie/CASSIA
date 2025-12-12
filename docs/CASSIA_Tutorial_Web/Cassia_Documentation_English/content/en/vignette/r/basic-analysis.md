@@ -125,7 +125,7 @@ batch_results <- runCASSIA_batch(
 
 # Step 2: Score the annotations
 quality_scores <- runCASSIA_score_batch(
-    input_file = "StepByStep_full.csv",
+    input_file = "StepByStep_summary.csv",  # JSON auto-detected
     output_file = "StepByStep_scored.csv",
     max_workers = 4,
     model = "anthropic/claude-sonnet-4.5",
@@ -143,13 +143,13 @@ runCASSIA_generate_score_report(
 
 CASSIA produces several output files:
 
-### 4.1 Full Results CSV
+### 4.1 Summary Results CSV
 
-The `_full.csv` file contains detailed annotation information for each cluster:
+The `_summary.csv` file contains annotation information for each cluster:
 
 ```r
-# Read the full results file
-results <- read.csv("MyAnalysis_full.csv")
+# Read the summary results file
+results <- read.csv("MyAnalysis_summary.csv")
 head(results)
 ```
 

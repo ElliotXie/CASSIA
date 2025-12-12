@@ -2,13 +2,15 @@
 title: Symphony Compare (Optional)
 ---
 
+## Overview
+
+> **Note:** Symphony Compare requires OpenRouter as the provider. This is the only supported provider for this module.
 
 `symphonyCompare` is an advanced module that orchestrates multiple AI models to compare cell types with automatic consensus building. It conducts a comprehensive cell type comparison using multiple AI models in parallel, automatically triggering discussion rounds when models disagree on the best matching cell type. Think of it as a virtual panel of expert biologists debating and reaching consensus.
 
-### Usage Example
+## Quick Start
 
 ```r
-# Basic usage - let Symphony Compare handle everything
 results <- symphonyCompare(
   tissue = "peripheral blood",
   celltypes = c("T cell", "B cell", "NK cell", "Monocyte"),
@@ -16,49 +18,52 @@ results <- symphonyCompare(
   species = "human"
 )
 
-# Access the results
 cat("Consensus:", results$consensus, "\n")
 cat("Confidence:", sprintf("%.1f%%", results$confidence * 100), "\n")
 ```
 
-### Function Parameters
+## Input
 
-```r
-symphonyCompare(
-    tissue,             # Tissue type
-    celltypes,          # Vector of 2-4 cell types to compare
-    marker_set,         # Vector or string of marker genes
-    species = "human",  # Species
-    model_preset = "premium", # Preset model configuration
-    enable_discussion = TRUE,  # Enable automatic discussion rounds
-    max_discussion_rounds = 2, # Maximum discussion rounds
-    consensus_threshold = 0.8, # Threshold for consensus (0-1)
-    generate_report = TRUE,    # Generate HTML report
-    verbose = TRUE             # Print progress messages
-)
-```
+- **Marker genes**: A character vector or comma-separated string of marker genes from CASSIA's previous results or your own analysis
+- **Candidate cell types**: A vector of 2-4 cell types to compare
+- **Tissue context**: The tissue type being analyzed
+- **Species**: The species of the sample (default: human)
 
-### Parameter Details
+## Parameters
 
-- **`tissue`** (character string): The tissue type being analyzed (e.g., "blood", "brain", "liver").
-- **`celltypes`** (character vector): A vector of 2-4 cell types to compare.
-- **`marker_set`** (character vector or string): A list or string of marker genes.
-- **`species`** (character string): The species of the sample (default: "human").
-- **`model_preset`** (character string): Pre-configured model ensemble to use.
-  - `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)
-  - `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash)
-- **`enable_discussion`** (logical): If `TRUE`, models will "discuss" and reconsider their votes if initial consensus is not reached.
-- **`max_discussion_rounds`** (integer): Maximum number of discussion rounds allowed (default: 2).
-- **`consensus_threshold`** (numeric): The confidence threshold required to declare consensus (0-1, default: 0.8).
-- **`generate_report`** (logical): Whether to generate an HTML report of the analysis (default: `TRUE`).
-- **`verbose`** (logical): Whether to print progress messages to the console (default: `TRUE`).
+### Required Parameters
 
-### Output Format
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `tissue` | character | The tissue type being analyzed (e.g., "blood", "brain", "liver") |
+| `celltypes` | character vector | A vector of 2-4 cell types to compare |
+| `marker_set` | character vector/string | A list or string of marker genes |
 
-The function returns a list containing:
-- **`results`**: List of all model responses and scores.
-- **`consensus`**: The consensus cell type (if reached).
-- **`confidence`**: Confidence level of the consensus (0-1).
-- **`csv_file`**: Path to the generated CSV file with detailed results.
-- **`html_file`**: Path to the generated interactive HTML report (if enabled).
-- **`summary`**: Summary statistics of the comparison.
+### Optional Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `species` | character | `"human"` | The species of the sample |
+| `model_preset` | character | `"premium"` | Pre-configured model ensemble. `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4). `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
+| `enable_discussion` | logical | `TRUE` | If TRUE, models will "discuss" and reconsider their votes if initial consensus is not reached |
+| `generate_report` | logical | `TRUE` | Whether to generate an HTML report of the analysis |
+| `verbose` | logical | `TRUE` | Whether to print progress messages to the console |
+
+### Advanced Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `max_discussion_rounds` | integer | `2` | Maximum number of discussion rounds allowed |
+| `consensus_threshold` | numeric | `0.8` | The confidence threshold required to declare consensus (0-1) |
+
+## Output
+
+The function returns a list containing consensus results and generates output files.
+
+**Return Value:**
+- `results`: List of all model responses and scores
+- `consensus`: The consensus cell type (if reached)
+- `confidence`: Confidence level of the consensus (0-1)
+- `csv_file`: Path to the generated CSV file with detailed results
+- `html_file`: Path to the generated interactive HTML report (if enabled)
+- `summary`: Summary statistics of the comparison

@@ -174,16 +174,17 @@ To see how each model performs, visit our benchmark website: [sc-llm-benchmark.c
 
 ### 5.2 Output Files
 
-The pipeline creates an output folder with three subfolders:
+The pipeline creates an output folder named `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` with three subfolders:
 
-- `01_html_reports/` - Interactive HTML reports for each cluster
-- `02_cluster_annotations/` - Individual annotation results per cluster
+- `01_annotation_report/` - Interactive HTML reports for the analysis
+- `02_annotation_boost/` - Annotation boost results for low-scoring clusters
 - `03_csv_files/` - Summary CSV files including final results
 
 ### 5.3 Load Results
 
 ```python
-cassia_results = pd.read_csv("CASSIA_Pipeline_output/gtex_breast_annotation_FINAL_RESULTS.csv")
+# Replace the folder name with the actual output folder (includes timestamp)
+cassia_results = pd.read_csv("CASSIA_Pipeline_Breast_Human_XXXXXX/03_csv_files/gtex_breast_annotation_FINAL_RESULTS.csv")
 ```
 
 ### 5.4 Add Annotations to AnnData
