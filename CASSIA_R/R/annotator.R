@@ -441,6 +441,7 @@ py_cassia <- NULL
 }
 
 .onAttach <- function(libname, pkgname) {
+
   # Skip messages during R CMD check
   if (.is_cran_check()) {
     return(invisible(NULL))
@@ -450,21 +451,387 @@ py_cassia <- NULL
   if (.cassia_load_status$success) {
     packageStartupMessage("CASSIA loaded successfully! Happy annotating!")
   } else if (!is.null(.cassia_load_status$message)) {
-    msg <- switch(.cassia_load_status$message,
-      "python_not_found" = "Note: Python not found. Run setup_cassia_env() to configure.",
-      "python_version" = "Note: Python >= 3.9 required. Run setup_cassia_env() to configure.",
-      "no_env_manager" = "Note: No virtualenv or conda found. Please install one first.",
-      "env_setup" = "Setting up CASSIA Python environment...",
-      "setup_failed" = "Note: Python setup incomplete. Run setup_cassia_env() to configure.",
-      NULL
-    )
-    if (!is.null(msg)) {
-      packageStartupMessage(msg)
+    # Show detailed setup instructions based on the specific issue
+    if (.cassia_load_status$message == "python_not_found") {
+      .show_python_not_found_message()
+    } else if (.cassia_load_status$message == "python_version") {
+      .show_python_version_message()
+    } else if (.cassia_load_status$message == "no_env_manager") {
+      .show_no_env_manager_message()
+    } else if (.cassia_load_status$message == "setup_failed") {
+      .show_setup_failed_message()
+    } else if (.cassia_load_status$message == "env_setup") {
+      packageStartupMessage("Setting up CASSIA Python environment...")
     }
   }
 }
 
+# Helper function to show Python not found message with detailed instructions
+.show_python_not_found_message <- function() {
+  platform <- .get_platform_info()
 
+  lines <- c(
+    "",
+    "===============================================================================",
+    "  CASSIA: Python Not Found",
+    "===============================================================================",
+    "",
+    "CASSIA requires Python 3.9+ to run. Python was not detected on your system.",
+    "",
+    "STEP-BY-STEP INSTALLATION:",
+    ""
+  )
+
+  if (platform$is_windows) {
+    lines <- c(lines,
+      "  1. Download Python from: https://www.python.org/downloads/",
+      "     (Choose Python 3.10 or 3.11 recommended)",
+      "",
+      "  2. Run the installer and IMPORTANT:",
+      "     [x] Check 'Add Python to PATH' at the bottom of the installer!",
+      "",
+      "  3. Restart RStudio/R completely (close and reopen)",
+      "",
+      "  4. Run in R:",
+      "     library(CASSIA)",
+      "     setup_cassia_env()"
+    )
+  } else if (platform$is_mac) {
+    lines <- c(lines,
+      "  Option A - Using Homebrew (recommended):",
+      "    1. Open Terminal",
+      "    2. Run: brew install python@3.10",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Option B - Download installer:",
+      "    1. Go to: https://www.python.org/downloads/",
+      "    2. Download and install Python 3.10+",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()"
+    )
+  } else {
+    lines <- c(lines,
+      "  Ubuntu/Debian:",
+      "    1. Open Terminal",
+      "    2. Run: sudo apt update && sudo apt install python3 python3-pip python3-venv",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  CentOS/RHEL:",
+      "    1. Run: sudo yum install python3 python3-pip",
+      "    2. Restart RStudio/R",
+      "    3. Run: library(CASSIA); setup_cassia_env()"
+    )
+  }
+
+  lines <- c(lines,
+    "",
+    "NEED HELP? Visit: https://github.com/ElliotXie/CASSIA",
+    "===============================================================================",
+    ""
+  )
+
+  packageStartupMessage(paste(lines, collapse = "\n"))
+}
+
+# Helper function to show Python version too old message
+.show_python_version_message <- function() {
+  platform <- .get_platform_info()
+  py_info <- .check_python_available()
+  current_version <- if (!is.null(py_info$version)) py_info$version else "unknown"
+
+  lines <- c(
+    "",
+    "===============================================================================",
+    "  CASSIA: Python Version Too Old",
+    "===============================================================================",
+    "",
+    paste0("Found Python ", current_version, ", but CASSIA requires Python 3.9 or higher."),
+    "",
+    "STEP-BY-STEP UPGRADE:",
+    ""
+  )
+
+  if (platform$is_windows) {
+    lines <- c(lines,
+      "  1. Download Python 3.10+ from: https://www.python.org/downloads/",
+      "",
+      "  2. Run the installer:",
+      "     [x] Check 'Add Python to PATH'",
+      "     You may need to uninstall old Python first, or the new version will",
+      "     be added alongside the old one.",
+      "",
+      "  3. Restart RStudio/R completely",
+      "",
+      "  4. Verify in R: system('python --version')",
+      "",
+      "  5. Run: library(CASSIA); setup_cassia_env()"
+    )
+  } else if (platform$is_mac) {
+    lines <- c(lines,
+      "  Using Homebrew:",
+      "    1. brew install python@3.10",
+      "    2. brew link python@3.10",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Or download from: https://www.python.org/downloads/"
+    )
+  } else {
+    lines <- c(lines,
+      "  Ubuntu/Debian:",
+      "    1. sudo apt update",
+      "    2. sudo apt install python3.10 python3.10-venv",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Or use pyenv to manage multiple Python versions."
+    )
+  }
+
+  lines <- c(lines,
+    "",
+    "===============================================================================",
+    ""
+  )
+
+  packageStartupMessage(paste(lines, collapse = "\n"))
+}
+
+# Helper function to show no environment manager message
+.show_no_env_manager_message <- function() {
+  platform <- .get_platform_info()
+
+  lines <- c(
+    "",
+    "===============================================================================",
+    "  CASSIA: Cannot Create Python Environment",
+    "===============================================================================",
+    "",
+    "Python is installed, but CASSIA cannot create an isolated environment.",
+    "This is needed to manage Python packages without affecting your system.",
+    "",
+    "STEP-BY-STEP FIX:",
+    ""
+  )
+
+  if (platform$is_windows) {
+    lines <- c(lines,
+      "  Option A - Install virtualenv (simplest):",
+      "    1. Open Command Prompt (cmd)",
+      "    2. Run: pip install virtualenv",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Option B - Install Miniconda:",
+      "    1. Download from: https://docs.conda.io/en/latest/miniconda.html",
+      "    2. Install with default options",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()"
+    )
+  } else if (platform$is_mac) {
+    lines <- c(lines,
+      "  Option A - Install virtualenv:",
+      "    1. Open Terminal",
+      "    2. Run: pip3 install virtualenv",
+      "    3. Restart RStudio/R",
+      "    4. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Option B - Install Miniconda:",
+      "    1. Download from: https://docs.conda.io/en/latest/miniconda.html",
+      "    2. Install and follow prompts",
+      "    3. Restart RStudio/R"
+    )
+  } else {
+    lines <- c(lines,
+      "  Ubuntu/Debian:",
+      "    1. sudo apt install python3-venv",
+      "    2. Restart RStudio/R",
+      "    3. Run: library(CASSIA); setup_cassia_env()",
+      "",
+      "  Alternative: pip3 install virtualenv"
+    )
+  }
+
+  lines <- c(lines,
+    "",
+    "===============================================================================",
+    ""
+  )
+
+  packageStartupMessage(paste(lines, collapse = "\n"))
+}
+
+# Helper function to show setup failed message
+.show_setup_failed_message <- function() {
+  platform <- .get_platform_info()
+  error_detail <- .cassia_load_status$error
+
+  lines <- c(
+    "",
+    "===============================================================================",
+    "  CASSIA: Python Environment Setup Failed",
+    "===============================================================================",
+    "",
+    "Python is installed but CASSIA couldn't set up its environment.",
+    if (!is.null(error_detail)) paste0("Error: ", error_detail) else NULL,
+    "",
+    "TROUBLESHOOTING STEPS:",
+    "",
+    "  1. Try running setup manually:",
+    "     setup_cassia_env()",
+    ""
+  )
+
+  if (platform$is_windows) {
+    lines <- c(lines,
+      "  2. If permission error, try running RStudio as Administrator (once)",
+      "",
+      "  3. Check internet connection (packages need to download)",
+      "",
+      "  4. Manual installation (if above fails):",
+      "     Open Command Prompt and run:",
+      "     pip install openai pandas numpy anthropic requests matplotlib seaborn"
+    )
+  } else {
+    lines <- c(lines,
+      "  2. Check internet connection (packages need to download)",
+      "",
+      "  3. Manual installation (if above fails):",
+      "     Open Terminal and run:",
+      "     pip3 install openai pandas numpy anthropic requests matplotlib seaborn"
+    )
+  }
+
+  lines <- c(lines,
+    "",
+    "  After manual installation, restart R and run:",
+    "  library(CASSIA)",
+    "",
+    "===============================================================================",
+    ""
+  )
+
+  packageStartupMessage(paste(lines, collapse = "\n"))
+}
+
+# =============================================================================
+# Python Requirement Check for Function Calls
+# =============================================================================
+
+#' Check if Python environment is ready and stop with helpful message if not
+#' @keywords internal
+.require_python <- function(func_name = NULL) {
+  if (is.null(py_cassia)) {
+    # Determine the specific issue
+    py_check <- .check_python_available()
+
+    # Build the error message
+    func_context <- if (!is.null(func_name)) paste0("Cannot run ", func_name, "(): ") else ""
+
+    platform <- .get_platform_info()
+
+    if (!py_check$available) {
+      # Python not installed
+      lines <- c(
+        "",
+        "===============================================================================",
+        paste0("  CASSIA Error: Python Not Installed"),
+        "===============================================================================",
+        "",
+        paste0(func_context, "Python is required but not found on your system."),
+        "",
+        "QUICK FIX:",
+        ""
+      )
+
+      if (platform$is_windows) {
+        lines <- c(lines,
+          "  1. Download Python 3.10+ from: https://www.python.org/downloads/",
+          "     IMPORTANT: Check 'Add Python to PATH' during installation!",
+          "",
+          "  2. Restart RStudio completely",
+          "",
+          "  3. Run these commands:",
+          "     library(CASSIA)",
+          "     setup_cassia_env()",
+          "     setLLMApiKey('your-api-key', provider = 'openrouter')"
+        )
+      } else if (platform$is_mac) {
+        lines <- c(lines,
+          "  1. Install Python: brew install python@3.10",
+          "     (Or download from https://www.python.org/downloads/)",
+          "",
+          "  2. Restart RStudio",
+          "",
+          "  3. Run: library(CASSIA); setup_cassia_env()"
+        )
+      } else {
+        lines <- c(lines,
+          "  1. Install Python:",
+          "     sudo apt update && sudo apt install python3 python3-pip python3-venv",
+          "",
+          "  2. Restart RStudio",
+          "",
+          "  3. Run: library(CASSIA); setup_cassia_env()"
+        )
+      }
+    } else {
+      # Python installed but environment not set up
+      version_check <- .check_python_version("3.9")
+
+      if (!version_check$ok) {
+        lines <- c(
+          "",
+          "===============================================================================",
+          "  CASSIA Error: Python Version Too Old",
+          "===============================================================================",
+          "",
+          paste0(func_context, "Found Python ", version_check$current,
+                 " but CASSIA requires Python 3.9+."),
+          "",
+          "QUICK FIX:",
+          "",
+          "  1. Install Python 3.10+ from: https://www.python.org/downloads/",
+          "  2. Restart RStudio",
+          "  3. Run: library(CASSIA); setup_cassia_env()"
+        )
+      } else {
+        # Python OK but environment not configured
+        lines <- c(
+          "",
+          "===============================================================================",
+          "  CASSIA Error: Python Environment Not Set Up",
+          "===============================================================================",
+          "",
+          paste0(func_context, "Python is installed but CASSIA environment is not configured."),
+          "",
+          "QUICK FIX - Run these commands in R:",
+          "",
+          "  # Step 1: Set up Python environment (one-time setup)",
+          "  setup_cassia_env()",
+          "",
+          "  # Step 2: Set your API key",
+          "  setLLMApiKey('your-api-key', provider = 'openrouter')",
+          "",
+          "  # Step 3: Now you can run CASSIA functions",
+          if (!is.null(func_name)) paste0("  ", func_name, "(...)") else "  runCASSIA_batch(...)"
+        )
+      }
+    }
+
+    lines <- c(lines,
+      "",
+      "NEED HELP? Visit: https://github.com/ElliotXie/CASSIA",
+      "==============================================================================="
+    )
+
+    stop(paste(lines, collapse = "\n"), call. = FALSE)
+  }
+
+  invisible(TRUE)
+}
 
 # Helper function to try virtualenv setup
 .try_virtualenv_setup <- function(env_name, python_version, pip_packages) {
@@ -981,6 +1348,8 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           max_retries = 1, validator_involvement = "v1",
                           ranking_method = "avg_log2FC", ascending = NULL, reasoning = NULL,
                           validate_api_key_before_start = TRUE) {
+  .require_python("runCASSIA_batch")
+
   execution_time <- system.time({
     # Convert R dataframe to Python if df_input is a dataframe
 if (is.data.frame(marker)) {
@@ -1048,13 +1417,12 @@ if (is.data.frame(marker)) {
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
-runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis_results", 
-                                  model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung", 
-                                  species = "human", additional_info = NULL, 
-                                  celltype_column = NULL, gene_column_name = NULL, 
-                                  max_workers = 10, batch_max_workers = 5, 
+runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis_results",
+                                  model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung",
+                                  species = "human", additional_info = NULL,
+                                  celltype_column = NULL, gene_column_name = NULL,
+                                  max_workers = 10, batch_max_workers = 5,
                                   provider = "openrouter", max_retries = 1, validator_involvement = "v1") {
-
   if (is.data.frame(marker)) {
     # Determine the cluster column to check
     cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
@@ -1108,8 +1476,6 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @export
 runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
                                                celltype_column = NULL, max_workers = 10, model = "google/gemini-2.5-flash-preview", provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
-
-
   if (is.data.frame(marker)) {
     # Determine the cluster column to check
     cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
@@ -1194,6 +1560,7 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      auto_convert_ids = TRUE,
                                      reasoning = NULL,
                                      ...) {
+  .require_python("runCASSIA_annotationboost")
 
   if (is.data.frame(marker)) {
     # Factors can cause issues with reticulate, convert to character
@@ -1275,6 +1642,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      validator_involvement = "v1",
                                                      conversations_json_path = "auto",
                                                      ...) {
+  .require_python("runCASSIA_annotationboost_additional_task")
 
   if (is.data.frame(marker)) {
     # Factors can cause issues with reticulate, convert to character
@@ -1327,12 +1695,14 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
 #'
 #' @return None
 #' @export
-runCASSIA_score_batch <- function(input_file, 
-                                    output_file = NULL, 
-                                    max_workers = 4, 
+runCASSIA_score_batch <- function(input_file,
+                                    output_file = NULL,
+                                    max_workers = 4,
                                     model = "deepseek/deepseek-chat-v3-0324",
                                     provider = "openrouter",
                                     max_retries = 1) {
+  .require_python("runCASSIA_score_batch")
+
   tryCatch({
     results <- py_cassia$runCASSIA_score_batch(
       input_file = input_file,
@@ -1372,6 +1742,8 @@ runCASSIA_score_batch <- function(input_file,
 #' runCASSIA_generate_score_report("path/to/scored_results.csv")
 #' }
 runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_reports_summary") {
+  .require_python("runCASSIA_generate_score_report")
+
   tryCatch({
     py_cassia$runCASSIA_generate_score_report(
       csv_path = csv_path,
@@ -1448,6 +1820,8 @@ runCASSIA_pipeline <- function(
     output_dir = NULL,
     validate_api_keys_before_start = TRUE
 ) {
+  .require_python("runCASSIA_pipeline")
+
   # Convert R dataframe to Python if marker is a dataframe
   if (is.data.frame(marker)) {
     # Determine the cluster column to check

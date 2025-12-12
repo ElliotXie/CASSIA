@@ -130,16 +130,23 @@ export default function HomePage() {
 
   const handleSaveApiKey = async () => {
     setIsSaving(true)
-    await setApiKey(tempApiKey, tempProvider)
-    setProvider(tempProvider)
-    setModel(tempModel)
-    setIsSaving(false)
-    setSaveSuccess(true)
-    // Show success message briefly, then close modal
-    setTimeout(() => {
-      setSaveSuccess(false)
-      setShowApiKeyModal(false)
-    }, 1500)
+    try {
+      await setApiKey(tempApiKey, tempProvider)
+      setProvider(tempProvider)
+      setModel(tempModel)
+      setSaveSuccess(true)
+      // Show success message briefly, then close modal
+      setTimeout(() => {
+        setSaveSuccess(false)
+        setShowApiKeyModal(false)
+      }, 1500)
+    } catch (error) {
+      console.error('Failed to save API key:', error)
+      setTestResult('error')
+      setTestMessage('Failed to save API key. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
   
   const handleLoadApiKeysSuccess = () => {
@@ -198,15 +205,17 @@ export default function HomePage() {
                   Dashboard
                 </Button>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
                   setTestResult(null)
                   setTestMessage('')
+                  setIsSaving(false)
+                  setSaveSuccess(false)
                   setShowApiKeyModal(true)
                 }}
                 className="glass border-white/30 hover:bg-white/20 btn-modern"
@@ -361,18 +370,20 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex flex-col space-y-3 ml-6">
-              <Button 
+              <Button
                 onClick={() => {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
                   setTestResult(null)
                   setTestMessage('')
+                  setIsSaving(false)
+                  setSaveSuccess(false)
                   setShowApiKeyModal(true)
                 }}
                 size="lg"
                 className={`px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 btn-modern ${
-                  !apiKey 
+                  !apiKey
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white animate-pulse'
                     : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
                 }`}
@@ -845,14 +856,16 @@ export default function HomePage() {
                     </>
                   )}
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setTempApiKey(apiKey)
                     setTempProvider(provider)
                     setTempModel(model)
                     setTestResult(null)
                     setTestMessage('')
+                    setIsSaving(false)
+                    setSaveSuccess(false)
                     setShowApiKeyModal(false)
                   }}
                   className="flex-1 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold py-3"
