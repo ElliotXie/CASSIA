@@ -212,16 +212,18 @@ export function ApiKeyInput() {
       const hasLoadedKeys = data && data.length > 0
 
       if (hasLoadedKeys) {
-        data.forEach((keyData) => {
+        // Process keys and await all setApiKey calls
+        const keyPromises = data.map(async (keyData) => {
           const provider = keyData.provider as 'openrouter' | 'anthropic' | 'openai' | 'custom'
           try {
             // Simple base64 decryption (same as in the Supabase store)
             const decryptedKey = atob(keyData.encrypted_key)
-            setApiKey(decryptedKey, provider)
+            await setApiKey(decryptedKey, provider)
           } catch (decryptError) {
             console.error(`Failed to decrypt key for ${provider}:`, decryptError)
           }
         })
+        await Promise.all(keyPromises)
 
         setLoadStatus('success')
         setTimeout(() => setLoadStatus('idle'), 3000)
