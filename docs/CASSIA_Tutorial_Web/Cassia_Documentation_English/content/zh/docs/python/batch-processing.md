@@ -2,17 +2,68 @@
 title: 批量处理
 ---
 
-CASSIA 支持批量处理以同时分析多个聚类。本指南说明如何高效地运行批量分析。
+## 概述
 
-### 准备标记数据
+批量处理允许您一次性注释单细胞数据集中的所有聚类。CASSIA 并行处理多个聚类，为每个聚类生成带有详细推理的细胞类型预测。
 
-您有三种提供标记数据的选项：
+---
 
-1. 使用 Seurat 的 `FindAllMarkers` 输出（导出为 CSV）
-2. 直接使用 Scanpy 的 `rank_genes_groups` 输出（Python 推荐）
-3. 使用简化格式，包含簇 ID 和逗号分隔的标记基因
+## 快速开始
 
-您也可以使用 CASSIA 的示例标记数据进行测试。
+```python
+CASSIA.runCASSIA_batch(
+    marker = markers,
+    output_name = "my_annotation",
+    model = "anthropic/claude-sonnet-4.5",
+    tissue = "brain",
+    species = "human",
+    provider = "openrouter"
+)
+```
+
+---
+
+## 输入
+
+### 标记数据格式
+
+CASSIA 接受三种输入格式：
+
+**1. Seurat FindAllMarkers 输出**
+
+Seurat 的 `FindAllMarkers` 函数的标准输出，包含差异表达统计信息：
+
+| p_val | avg_log2FC | pct.1 | pct.2 | p_val_adj | cluster | gene |
+|-------|------------|-------|-------|-----------|---------|------|
+| 0 | 3.02 | 0.973 | 0.152 | 0 | 0 | CD79A |
+| 0 | 2.74 | 0.938 | 0.125 | 0 | 0 | MS4A1 |
+| 0 | 2.54 | 0.935 | 0.138 | 0 | 0 | CD79B |
+| 0 | 1.89 | 0.812 | 0.089 | 0 | 1 | IL7R |
+| 0 | 1.76 | 0.756 | 0.112 | 0 | 1 | CCR7 |
+
+**2. Scanpy rank_genes_groups 输出（Python 推荐）**
+
+Scanpy 的 `sc.tl.rank_genes_groups()` 函数的输出，通常使用 `sc.get.rank_genes_groups_df()` 导出：
+
+| group | names | scores | pvals | pvals_adj | logfoldchanges |
+|-------|-------|--------|-------|-----------|----------------|
+| 0 | CD79A | 28.53 | 0 | 0 | 3.02 |
+| 0 | MS4A1 | 25.41 | 0 | 0 | 2.74 |
+| 0 | CD79B | 24.89 | 0 | 0 | 2.54 |
+| 1 | IL7R | 22.15 | 0 | 0 | 1.89 |
+| 1 | CCR7 | 20.87 | 0 | 0 | 1.76 |
+
+**3. 简化格式**
+
+包含聚类 ID 和逗号分隔标记基因的两列 DataFrame：
+
+| cluster | marker_genes |
+|---------|--------------|
+| 0 | CD79A,MS4A1,CD79B,HLA-DRA,TCL1A |
+| 1 | IL7R,CCR7,LEF1,TCF7,FHIT,MAL |
+| 2 | CD8A,CD8B,GZMK,CCL5,NKG7 |
+
+### 加载标记数据
 
 ```python
 import CASSIA
@@ -36,107 +87,74 @@ markers = CASSIA.loadmarker(marker_type="unprocessed")
 print(markers.head())
 ```
 
-#### 标记数据格式
-CASSIA 接受三种格式：
+---
 
-**1. Seurat FindAllMarkers 输出**
+## 参数
 
-Seurat 的 `FindAllMarkers` 函数的标准输出，包含差异表达统计信息：
+### 必需参数
 
-```
-p_val  avg_log2FC  pct.1  pct.2  p_val_adj  cluster  gene
-0      3.02        0.973  0.152  0          0        CD79A
-0      2.74        0.938  0.125  0          0        MS4A1
-0      2.54        0.935  0.138  0          0        CD79B
-0      1.89        0.812  0.089  0          1        IL7R
-0      1.76        0.756  0.112  0          1        CCR7
-```
+| 参数 | 描述 |
+|------|------|
+| `marker` | 标记数据（DataFrame 或文件路径） |
+| `output_name` | 输出文件的基本名称 |
+| `model` | LLM 模型 ID（见下方模型选择） |
+| `tissue` | 组织类型（例如 `"brain"`、`"blood"`） |
+| `species` | 物种（例如 `"human"`、`"mouse"`） |
+| `provider` | API 提供商（`"openrouter"`、`"openai"`、`"anthropic"`）或自定义 base URL |
 
-**2. Scanpy rank_genes_groups 输出（Python 推荐）**
+### 可选参数
 
-Scanpy 的 `sc.tl.rank_genes_groups()` 函数的输出，通常使用 `sc.get.rank_genes_groups_df()` 导出：
+| 参数 | 默认值 | 描述 |
+|------|--------|------|
+| `max_workers` | 4 | 并行工作者数。建议使用约 75% 的 CPU 核心。 |
+| `n_genes` | 50 | 每个聚类使用的顶部标记基因数 |
+| `additional_info` | `None` | 额外的实验上下文（见下方） |
+| `temperature` | 0 | 输出随机性（0=确定性，1=创造性）。保持为 0 以获得可重复的结果。 |
+| `validator_involvement` | `"v1"` | 验证强度：`"v1"`（中等）或 `"v0"`（高，较慢） |
+| `reasoning` | `None` | 仅适用于通过 OpenRouter 使用的 GPT-5 系列模型的推理深度（`"low"`、`"medium"`、`"high"`）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。 |
 
-```
-group  names   scores  pvals  pvals_adj  logfoldchanges
-0      CD79A   28.53   0      0          3.02
-0      MS4A1   25.41   0      0          2.74
-0      CD79B   24.89   0      0          2.54
-1      IL7R    22.15   0      0          1.89
-1      CCR7    20.87   0      0          1.76
-```
+### 高级参数
 
-**3. 简化格式**
-
-包含簇 ID 和逗号分隔标记基因的两列 DataFrame：
-
-```
-cluster  marker_genes
-0        CD79A,MS4A1,CD79B,HLA-DRA,TCL1A
-1        IL7R,CCR7,LEF1,TCF7,FHIT,MAL
-2        CD8A,CD8B,GZMK,CCL5,NKG7
-```
-
-### 运行批量分析
-
-```python
-output_name="intestine_detailed"
-
-# 运行批量分析
-CASSIA.runCASSIA_batch(
-    marker = markers,
-    output_name = output_name,
-    model = "anthropic/claude-sonnet-4.5",
-    tissue = "large intestine",
-    species = "human",
-    max_workers = 6,  # 匹配聚类数
-    n_genes = 50,
-    additional_info = None,
-    provider = "openrouter",
-    reasoning = "medium"  # 可选: "high", "medium", "low" 用于兼容模型
-)
-```
+| 参数 | 默认值 | 描述 |
+|------|--------|------|
+| `ranking_method` | `"avg_log2FC"` | 基因排序：`"avg_log2FC"`、`"p_val_adj"`、`"pct_diff"`、`"Score"` |
+| `ascending` | `None` | 排序方向（使用方法默认值） |
+| `celltype_column` | `None` | 聚类 ID 的列名 |
+| `gene_column_name` | `None` | 基因符号的列名 |
+| `max_retries` | 1 | 失败 API 调用的最大重试次数 |
 
 ### 参数详情
 
-- **`marker`**: 标记数据（DataFrame 或文件路径）。数据应包含聚类 ID 和基因名称。
-- **`output_name`**: 输出文件的基本名称。
-- **`model`**: 要使用的模型（例如，"anthropic/claude-sonnet-4.5"）。
-- **`tissue`**: 组织类型（例如，"brain"）。
-- **`species`**: 物种（例如，"human"）。
-- **`max_workers`**: 并行工作者数。建议使用大约 75-80% 的可用 CPU 核心。
-- **`n_genes`**: 每个聚类使用的顶部标记基因数（默认 50）。
-- **`additional_info`**: 关于实验的额外背景信息（可选）。
-- **`provider`**: API 提供商 ("openrouter", "openai", "anthropic")。
-- **`ranking_method`**: 基因排序方法 ("avg_log2FC", "p_val_adj", "pct_diff", "Score")。
-- **`ascending`**: 排序方向 (布尔值)。
-- **`temperature`**: 模型温度 (0-1)。
-- **`celltype_column`**: 聚类 ID 的列名。
-- **`gene_column_name`**: 基因符号的列名。
-- **`max_retries`**: 失败 API 调用的最大重试次数。
-- **`validator_involvement`**: 验证级别 ("v1" 或 "v0")。
-- **`reasoning`**: （可选）控制推理深度（"high"、"medium"、"low"）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
+**模型选择**
+- 默认为 `anthropic/claude-sonnet-4.5` 以获得最佳性能
+- 使用 `google/gemini-2.5-flash` 进行更快的初步分析
+- 详细的模型推荐请参阅 [如何选择模型和提供商](setting-up-cassia.md#如何选择模型和提供商)
 
-### 输出文件
+**标记基因选择**
+- 默认：每个聚类的前 50 个基因
+- `ranking_method` 控制标记基因的排序和选择方式：
+  - `"avg_log2FC"`（默认）：按平均 log2 倍数变化排序
+  - `"p_val_adj"`：按调整后的 p 值排序
+  - `"pct_diff"`：按表达百分比差异排序
+  - `"Score"`：按自定义分数排序
+- 筛选标准：调整后的 p 值 < 0.05，avg_log2FC > 0.25，最小百分比 > 0.1
+- 如果通过筛选的基因少于 50 个，则使用所有通过的基因
 
-分析生成三个文件：
+**附加上下文**
+- 使用 `additional_info` 提供实验上下文
+- 示例：
+  - 处理条件：`"Samples were antibody-treated"`
+  - 分析重点：`"Please carefully distinguish between cancer and non-cancer cells"`
+- 提示：比较有无附加上下文的结果
 
-1. **`{output_name}_summary.csv`**：包含注释结果的清洁 CSV 文件：
-   - 聚类 ID、预测的一般/详细细胞类型、可能的混合细胞类型
-   - 标记数量和标记列表
-   - 迭代次数、模型、提供商、组织、物种元数据
+---
 
-2. **`{output_name}_conversations.json`**：包含每个聚类完整对话历史的结构化 JSON 文件：
-   - 注释尝试（如果验证失败，包含所有迭代）
-   - 验证响应和格式化代理响应
-   - 用于调试和理解推理过程
+## 输出
 
-3. **`{output_name}_report.html`**：交互式 HTML 报告：
-   - 摘要统计和可视化
-   - 每个聚类的可展开对话历史
-   - 可搜索和可过滤的结果表格
+### 生成的文件
 
-### 获得最佳结果的提示
-
-1. **资源管理**：设置 `max_workers` 时监控系统资源。如果不确定，从保守的数字开始。
-2. **上下文优化**：使用 `additional_info` 提供关键的实验细节（例如，“肿瘤样本”，“处理条件”）以指导模型。
-
+| 文件 | 描述 |
+|------|------|
+| `{output_name}_summary.csv` | 包含细胞类型、标记和元数据的注释结果 |
+| `{output_name}_conversations.json` | 用于调试的完整对话历史 |
+| `{output_name}_report.html` | 带有可视化的交互式 HTML 报告 |

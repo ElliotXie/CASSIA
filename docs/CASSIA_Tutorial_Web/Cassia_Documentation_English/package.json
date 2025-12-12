@@ -64,6 +64,7 @@
     "recharts": "2.15.0",
     "rehype-autolink-headings": "latest",
     "rehype-slug": "latest",
+    "remark-gfm": "^4.0.1",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

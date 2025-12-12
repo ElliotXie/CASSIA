@@ -53,4 +53,6 @@ print(result$conversation_history)
 - **`validator_involvement`**: The level of validation strictness ("v1" for moderate, "v0" for high).
 - **`reasoning`**: (Optional) Controls reasoning depth for compatible models ("high", "medium", "low"). Omit for standard mode. See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter) for details.
 
+For more detailed parameter explanations, see [Batch Processing Parameter Details](batch-processing.md#parameter-details).
+
 _Note:_ When using OpenRouter, specify the complete model ID.

@@ -329,6 +329,33 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
     if output_file and not output_file.lower().endswith('.csv'):
         output_file = output_file + '.csv'
 
+    # Auto-detect conversations JSON if not provided
+    if conversations_json_path is None:
+        # Derive JSON path from input CSV file name
+        # Pattern: {base}_summary.csv -> {base}_conversations.json
+        input_base = os.path.splitext(input_file)[0]  # Remove .csv
+
+        # Try multiple patterns in order of likelihood
+        candidates = []
+
+        # Pattern 1: "{base}_summary.csv" -> "{base}_conversations.json"
+        if input_base.endswith('_summary'):
+            candidates.append(f"{input_base[:-8]}_conversations.json")
+
+        # Pattern 2: "{base}_scored.csv" -> "{base}_conversations.json" (re-scoring)
+        if input_base.endswith('_scored'):
+            candidates.append(f"{input_base[:-7]}_conversations.json")
+
+        # Pattern 3: "{base}.csv" -> "{base}_conversations.json"
+        candidates.append(f"{input_base}_conversations.json")
+
+        # Try each candidate
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                conversations_json_path = candidate
+                print(f"Auto-detected conversations JSON: {conversations_json_path}")
+                break
+
     # Load conversations from JSON if provided
     conversations_data = None
     if conversations_json_path and os.path.exists(conversations_json_path):

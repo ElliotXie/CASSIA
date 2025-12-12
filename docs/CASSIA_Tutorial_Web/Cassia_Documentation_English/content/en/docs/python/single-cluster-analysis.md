@@ -56,6 +56,8 @@ print(conversation_history)
 - **`validator_involvement`**: The level of validation strictness ("v1" for moderate, "v0" for high).
 - **`reasoning`**: (Optional) Controls reasoning depth for compatible models ("high", "medium", "low"). Python also accepts dict format: `{"effort": "high"}`. Omit for standard mode. See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter) for details.
 
+For more detailed parameter explanations, see [Batch Processing Parameter Details](batch-processing.md#parameter-details).
+
 ### Return Value
 
 The function returns a tuple: `(result, conversation_history, _)`

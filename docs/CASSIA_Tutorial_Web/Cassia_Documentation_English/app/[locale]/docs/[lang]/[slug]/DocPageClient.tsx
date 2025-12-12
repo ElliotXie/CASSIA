@@ -1,6 +1,7 @@
 "use client"
 
 import ReactMarkdown, { Components } from "react-markdown"
+import remarkGfm from "remark-gfm"
 import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import { useState } from "react"
@@ -183,6 +184,23 @@ export default function DocPageClient({ params, doc }: DocPageClientProps) {
         />
       );
     },
+    table: ({ node, ...props }) => (
+      <div className="my-4 overflow-x-auto">
+        <table className="min-w-full border-collapse border border-slate-300 dark:border-slate-600" {...props} />
+      </div>
+    ),
+    thead: ({ node, ...props }) => (
+      <thead className="bg-slate-100 dark:bg-slate-800" {...props} />
+    ),
+    th: ({ node, ...props }) => (
+      <th className="border border-slate-300 dark:border-slate-600 px-4 py-2 text-left font-semibold text-slate-900 dark:text-slate-100" {...props} />
+    ),
+    td: ({ node, ...props }) => (
+      <td className="border border-slate-300 dark:border-slate-600 px-4 py-2 text-slate-700 dark:text-slate-300" {...props} />
+    ),
+    tr: ({ node, ...props }) => (
+      <tr className="even:bg-slate-50 dark:even:bg-slate-800/50" {...props} />
+    ),
   }
 
   return (
@@ -201,6 +219,7 @@ export default function DocPageClient({ params, doc }: DocPageClientProps) {
       )}
       <h1>{doc.frontmatter.title}</h1>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         rehypePlugins={[
           rehypeSlug,
           [

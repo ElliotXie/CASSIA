@@ -56,6 +56,8 @@ print(conversation_history)
 - **`validator_involvement`**: 验证严格程度（"v1" 为中等，"v0" 为高）。
 - **`reasoning`**: （可选）控制兼容模型的推理深度（"high"、"medium"、"low"）。Python 还接受字典格式：`{"effort": "high"}`。省略则使用标准模式。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。
 
+更多参数详情请参阅 [批量处理参数详情](batch-processing.md#参数详情)。
+
 ### 返回值
 
 函数返回一个元组：`(result, conversation_history, _)`
