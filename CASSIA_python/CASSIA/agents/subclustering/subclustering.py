@@ -128,6 +128,7 @@ def annotate_subclusters(marker, major_cluster_info, model=None, temperature=Non
 def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider="openrouter", model=None, temperature=None):
     """
     Extract multiple output results from subcluster analysis text using XML tags.
+    Uses brief reasoning to save tokens in batch runs.
 
     Args:
         analysis_text: Text containing the analysis results
@@ -138,7 +139,7 @@ def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider=
     Returns:
         Extracted results as string with XML-tagged format
     """
-    # Define the prompt to instruct the LLM with XML output format
+    # Define the prompt to instruct the LLM with XML output format (brief reasoning for batch)
     prompt = f"""You are an expert in analyzing celltype annotation for subclusters.
 
 Extract the cell type annotations from the following analysis. For each cluster, output in this exact XML format:
@@ -146,6 +147,7 @@ Extract the cell type annotations from the following analysis. For each cluster,
 <cluster id="1">
 <celltype1>first cell type</celltype1>
 <celltype2>second cell type</celltype2>
+<reason>brief reason</reason>
 </cluster>
 
 You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
@@ -358,7 +360,11 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 ct2_match = re.search(r'<celltype2>(.*?)</celltype2>', content, re.DOTALL | re.IGNORECASE)
                 celltype2 = ct2_match.group(1).strip() if ct2_match else 'Unknown'
 
-                rows.append([cluster_id, celltype1, celltype2, '', ''])
+                # Extract reason
+                reason_match = re.search(r'<reason>(.*?)</reason>', content, re.DOTALL | re.IGNORECASE)
+                reason = reason_match.group(1).strip() if reason_match else ''
+
+                rows.append([cluster_id, celltype1, celltype2, '', reason])
 
         if rows:
             df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
