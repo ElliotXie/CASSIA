@@ -6,6 +6,19 @@ import requests
 # Lazy imports to avoid circular import issues
 # runCASSIA and runCASSIA_batch are imported inside functions that need them
 
+def _get_agent_default():
+    """Lazy import of get_agent_default to avoid circular imports."""
+    try:
+        from CASSIA.core.model_settings import get_agent_default
+        return get_agent_default
+    except ImportError:
+        try:
+            from ...core.model_settings import get_agent_default
+            return get_agent_default
+        except ImportError:
+            from model_settings import get_agent_default
+            return get_agent_default
+
 def _get_runCASSIA():
     """Lazy import of runCASSIA to avoid circular imports."""
     try:
@@ -60,15 +73,15 @@ def _get_get_top_markers():
 
 
 
-def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model="google/gemini-2.5-flash-preview", temperature=0, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1, validator_involvement="v1"):
+def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results", model=None, temperature=None, tissue="lung", species="human", additional_info=None, celltype_column=None, gene_column_name=None, max_workers=10, batch_max_workers=5, provider="openrouter", max_retries=1, validator_involvement="v1"):
     """
     Run multiple batch cell type analyses in parallel.
-    
+
     Args:
         n (int): Number of batch analyses to run
         marker: DataFrame or path to CSV file containing marker data
         output_name (str): Base name for output files
-        model (str): Model name to use
+        model (str): Model name to use (defaults to provider's uncertainty default)
         temperature (float): Temperature parameter for the model
         tissue (str): Tissue type
         species (str): Species type
@@ -80,10 +93,20 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
         max_retries (int): Maximum number of retries for failed analyses
         validator_involvement (str): Validator involvement level ('v0' for high involvement, 'v1' for moderate involvement)
-    
+
     Returns:
         None: Results are saved to files
     """
+    import threading as _threading
+
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
     # Import and call validation function (fail-fast)
     try:
         from CASSIA.core.validation import validate_runCASSIA_uncertainty_inputs
@@ -97,9 +120,30 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
     if validate_runCASSIA_uncertainty_inputs is not None:
         validate_runCASSIA_uncertainty_inputs(n=n)
 
+    # Thread-safe progress tracking for top-level overview
+    _progress_lock = _threading.Lock()
+    _completed_batches = [0]  # Use list to allow modification in nested function
+    _active_batches = set()
+
+    def _print_progress():
+        """Print a clean progress summary."""
+        with _progress_lock:
+            active_str = ", ".join(sorted(_active_batches)) if _active_batches else "None"
+            pct = (_completed_batches[0] / n) * 100
+            bar_width = 30
+            filled = int(bar_width * _completed_batches[0] / n)
+            bar = '█' * filled + '░' * (bar_width - filled)
+            print(f"\r[UQ Progress] [{bar}] {_completed_batches[0]}/{n} batches ({pct:.0f}%) | Active: {active_str}    ", end="", flush=True)
+
     def single_batch_run(i):
         output_json_name = f"{output_name}_{i+1}.json"
-        print(f"Starting batch run {i+1}/{n}")
+        batch_label = f"Batch {i+1}"
+
+        # Mark as active
+        with _progress_lock:
+            _active_batches.add(batch_label)
+        _print_progress()
+
         start_time = time.time()
         runCASSIA_batch = _get_runCASSIA_batch()
         result = runCASSIA_batch(
@@ -115,29 +159,41 @@ def runCASSIA_batch_n_times(n, marker, output_name="cell_type_analysis_results",
             max_workers=max_workers,
             provider=provider,
             max_retries=max_retries,
-            validator_involvement=validator_involvement
+            validator_involvement=validator_involvement,
+            verbose=False  # Disable individual progress bars to prevent terminal flashing
         )
         end_time = time.time()
-        print(f"Finished batch run {i+1}/{n} in {end_time - start_time:.2f} seconds")
-        return i, result, output_json_name
+
+        # Mark as complete
+        with _progress_lock:
+            _active_batches.discard(batch_label)
+            _completed_batches[0] += 1
+        _print_progress()
+
+        return i, result, output_json_name, end_time - start_time
 
     all_results = []
     start_time = time.time()
 
+    print(f"\n=== Uncertainty Quantification: Running {n} batch analyses ===")
+    print(f"Model: {model} | Provider: {provider} | Workers per batch: {max_workers}")
+    print()
+
     with ThreadPoolExecutor(max_workers=batch_max_workers) as executor:
         future_to_index = {executor.submit(single_batch_run, i): i for i in range(n)}
-        
+
         for future in as_completed(future_to_index):
             index = future_to_index[future]
             try:
-                index, result, output_json_name = future.result()
+                index, result, output_json_name, duration = future.result()
                 all_results.append((index, result, output_json_name))
-                print(f"Batch run {index+1}/{n} completed and saved to {output_json_name}")
+                print(f"\n✓ Batch {index+1} completed in {duration:.1f}s → {output_json_name}")
             except Exception as exc:
-                print(f'Batch run {index+1} generated an exception: {exc}')
+                print(f'\n✗ Batch {index+1} failed: {exc}')
 
     end_time = time.time()
-    print(f"All {n} batch runs completed in {end_time - start_time:.2f} seconds")
+    print(f"\n{'='*50}")
+    print(f"✓ All {n} batch runs completed in {end_time - start_time:.1f} seconds")
 
     return None
 
@@ -731,19 +787,28 @@ Output in JSON format:
 
 
 
-def agent_unification_deplural(prompt, model="gpt-4o", provider="openai", temperature=0):
+def agent_unification_deplural(prompt, model=None, provider="openrouter", temperature=None):
     """
     Wrapper around agent_unification that only removes plurals from cell type names.
-    
+
     Args:
         prompt: The prompt containing cell type names to depluralize
-        model: Model to use
+        model: Model to use (defaults to provider's uncertainty default)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
-        
+
     Returns:
         The depluralized cell type names as a string
     """
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
+
     return agent_unification(
         prompt=prompt,
         model=model,
@@ -1113,7 +1178,16 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     return result
 
 
-def process_cell_type_results(organized_results, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0):
+def process_cell_type_results(organized_results, max_workers=10, model=None, provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=None):
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
+
     processed_results = {}
     
     def process_single_celltype(celltype, predictions):
@@ -1257,7 +1331,7 @@ def create_and_save_results_dataframe(processed_results, organized_results, outp
     return df
 
 
-def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model="google/gemini-2.5-flash-preview", provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=0.0, generate_report=True, report_output_path=None):
+def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype_column=None, max_workers=10, model=None, provider="openrouter", main_weight=0.5, sub_weight=0.5, temperature=None, generate_report=True, report_output_path=None):
     """
     Process batch results and save them to a CSV file, measuring the time taken.
 
@@ -1267,7 +1341,7 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     output_csv_name (str): Name of the output CSV file.
     celltype_column (str): Name of the column containing cell types in the marker file.
     max_workers (int): Maximum number of workers for parallel processing.
-    model (str): Model name to use for LLM calls.
+    model (str): Model name to use for LLM calls (defaults to provider's uncertainty default).
     provider (str): LLM provider ("openai", "anthropic", "openrouter", or a custom URL).
     main_weight (float): Weight for the main cell type in similarity calculation.
     sub_weight (float): Weight for the sub cell type in similarity calculation.
@@ -1275,6 +1349,14 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     generate_report (bool): Whether to generate an HTML report (default: True).
     report_output_path (str): Path to save the HTML report (default: 'uq_batch_report.html').
     """
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
 
     # Organize batch results
     organized_results = organize_batch_results(
@@ -1367,22 +1449,31 @@ def consensus_similarity_flexible_single(results, main_weight=0.7, sub_weight=0.
     
     return similarity_score, consensus_general, consensus_sub
 
-def agent_judgement_single(prompt, system_prompt, model="gpt-4o", provider="openai", temperature=0):
+def agent_judgement_single(prompt, system_prompt, model=None, provider="openrouter", temperature=None):
     """
     Wrapper around agent_judgement for single analysis operations.
-    
+
     Args:
         prompt: The prompt containing cell type info for judgment
         system_prompt: Instructions for the LLM
-        model: Model to use (defaults to gpt-4o for OpenAI)
+        model: Model to use (defaults to provider's uncertainty default)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom URL)
         temperature: Temperature for generation (0-1)
-        
+
     Returns:
         The judgment result as a string
     """
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
+
     return agent_judgement(
-        prompt=prompt, 
+        prompt=prompt,
         system_prompt=system_prompt,
         model=model,
         provider=provider,
@@ -1431,7 +1522,7 @@ def standardize_cell_types_single(results):
     return ",".join(standardized_results)
 
 
-def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model="google/gemini-2.5-flash-preview", max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False, generate_report=True, report_output_path=None):
+def runCASSIA_n_times_similarity_score(tissue, species, additional_info, temperature, marker_list, model=None, max_workers=10, n=3, provider="openrouter", main_weight=0.5, sub_weight=0.5, validator_involvement="v1", use_reference=False, generate_report=True, report_output_path=None):
     """
     Wrapper function for processing cell type analysis using any supported provider.
 
@@ -1441,7 +1532,7 @@ def runCASSIA_n_times_similarity_score(tissue, species, additional_info, tempera
         additional_info (str): Additional information for analysis
         temperature (float): Temperature parameter for the model
         marker_list (list): List of markers to analyze
-        model (str): Model name to use
+        model (str): Model name to use (defaults to provider's uncertainty default)
         max_workers (int): Maximum number of parallel workers
         n (int): Number of analysis iterations
         provider (str): AI provider to use ('openai', 'anthropic', 'openrouter', or a custom URL)
@@ -1455,6 +1546,11 @@ def runCASSIA_n_times_similarity_score(tissue, species, additional_info, tempera
     Returns:
         dict: Analysis results including consensus types, cell types, and scores
     """
+    # Apply agent defaults if model not specified
+    if model is None:
+        get_agent_default = _get_agent_default()
+        defaults = get_agent_default("uncertainty", provider)
+        model = defaults["model"]
     # System prompt for all providers
     system_prompt = '''You are a careful professional biologist, specializing in single-cell RNA-seq analysis. You will be given a series of results from a cell type annotator.
 Your task is to determine the consensus cell type. The first entry of each result is the general cell type and the second entry is the subtype. You should provide the final general cell type and the subtype. Considering all results, if you think there is very strong evidence of mixed cell types, please also list them. Please give your step-by-step reasoning and the final answer. Also give a consensus score ranging from 0 to 100 to show how similar the results are. $10,000 will be rewarded for the correct answer.

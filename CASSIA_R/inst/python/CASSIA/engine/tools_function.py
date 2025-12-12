@@ -10,14 +10,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 try:
     from CASSIA.engine.main_function_code import *
-    from CASSIA.core.model_settings import ModelSettings
+    from CASSIA.core.model_settings import ModelSettings, get_agent_default
 except ImportError:
     try:
         from .main_function_code import *
-        from ..core.model_settings import ModelSettings
+        from ..core.model_settings import ModelSettings, get_agent_default
     except ImportError:
         from main_function_code import *
-        from model_settings import ModelSettings
+        from model_settings import ModelSettings, get_agent_default
 
 import requests
 import threading
@@ -256,8 +256,8 @@ def _run_core_analysis(model, temperature, marker_list, tissue, species, additio
 
 
 def runCASSIA(
-    model="google/gemini-2.5-flash-preview",
-    temperature=0,
+    model=None,
+    temperature=None,
     marker_list=None,
     tissue="lung",
     species="human",
@@ -309,6 +309,14 @@ def runCASSIA(
     """
     # Normalize reasoning parameter (accept string or dict)
     reasoning = _normalize_reasoning(reasoning)
+
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("annotation", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
 
     # Validate all inputs early (fail-fast)
     validated = validate_runCASSIA_inputs(
@@ -487,8 +495,8 @@ def runCASSIA_batch(
     marker,
     output_name="cell_type_analysis_results.json",
     n_genes=50,
-    model="google/gemini-2.5-flash-preview",
-    temperature=0,
+    model=None,
+    temperature=None,
     tissue="lung",
     species="human",
     additional_info=None,
@@ -557,6 +565,14 @@ def runCASSIA_batch(
     """
     # Normalize reasoning parameter (accept string or dict)
     reasoning = _normalize_reasoning(reasoning)
+
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("annotation", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
 
     # Validate all inputs early (fail-fast)
     validated = validate_runCASSIA_batch_inputs(

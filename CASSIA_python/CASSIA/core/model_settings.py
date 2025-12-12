@@ -334,6 +334,69 @@ class ModelSettings:
 
         return provider_defaults
 
+    def get_agent_default(self, agent_name: str, provider: str) -> Dict[str, any]:
+        """
+        Get default model and temperature for a specific agent.
+
+        Args:
+            agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
+                       'annotation_boost', 'uncertainty'
+            provider: Provider name ("openai", "anthropic", "openrouter")
+
+        Returns:
+            Dict with 'model' and 'temperature' keys:
+            {'model': str, 'temperature': float}
+
+        Examples:
+            >>> get_agent_default("annotation", "openrouter")
+            {'model': 'openai/gpt-5.1', 'temperature': 0}
+            >>> get_agent_default("scoring", "openai")
+            {'model': 'gpt-5.1', 'temperature': 0.3}
+        """
+        provider_lower = provider.lower().strip()
+        agent_lower = agent_name.lower().strip()
+
+        # Try agent_defaults first (new format with model+temperature)
+        agent_defaults = self.settings.get("agent_defaults", {})
+        provider_agents = agent_defaults.get(provider_lower, {})
+
+        if agent_lower in provider_agents:
+            return provider_agents[agent_lower]
+
+        # Fallback to hardcoded defaults
+        return self._get_fallback_agent_default(agent_lower, provider_lower)
+
+    def _get_fallback_agent_default(self, agent_name: str, provider: str) -> Dict[str, any]:
+        """Fallback agent defaults if not in JSON config."""
+        fallbacks = {
+            "openrouter": {
+                "annotation": {"model": "openai/gpt-5.1", "temperature": 0},
+                "scoring": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0.3},
+                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
+                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.1},
+                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0}
+            },
+            "openai": {
+                "annotation": {"model": "gpt-5.1", "temperature": 0},
+                "scoring": {"model": "gpt-5.1", "temperature": 0.3},
+                "merging": {"model": "gpt-5-mini", "temperature": 0.3},
+                "subclustering": {"model": "gpt-5.1", "temperature": 0.3},
+                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.1},
+                "uncertainty": {"model": "gpt-5.1", "temperature": 0}
+            },
+            "anthropic": {
+                "annotation": {"model": "claude-sonnet-4-5", "temperature": 0},
+                "scoring": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "merging": {"model": "claude-haiku-4-5", "temperature": 0.3},
+                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0.3},
+                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.1},
+                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0}
+            }
+        }
+        provider_fallbacks = fallbacks.get(provider, fallbacks["openrouter"])
+        return provider_fallbacks.get(agent_name, {"model": "openai/gpt-5.1", "temperature": 0})
+
     def _get_fallback_pipeline_defaults(self, provider: str) -> Dict[str, str]:
         """Fallback pipeline defaults if not in JSON config."""
         fallbacks = {
@@ -463,3 +526,27 @@ def get_pipeline_defaults(provider: str) -> Dict[str, str]:
         {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
     """
     return get_model_settings().get_pipeline_defaults(provider)
+
+
+def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
+    """
+    Get default model and temperature for a specific agent.
+
+    Args:
+        agent_name: One of 'annotation', 'scoring', 'merging', 'subclustering',
+                   'annotation_boost', 'uncertainty'
+        provider: Provider name ("openai", "anthropic", "openrouter")
+
+    Returns:
+        Dict with 'model' and 'temperature' keys:
+        {'model': str, 'temperature': float}
+
+    Examples:
+        >>> get_agent_default("annotation", "openrouter")
+        {'model': 'openai/gpt-5.1', 'temperature': 0}
+        >>> get_agent_default("scoring", "openai")
+        {'model': 'gpt-5.1', 'temperature': 0.3}
+        >>> get_agent_default("subclustering", "anthropic")
+        {'model': 'claude-sonnet-4-5', 'temperature': 0.3}
+    """
+    return get_model_settings().get_agent_default(agent_name, provider)

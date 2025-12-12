@@ -6,25 +6,40 @@ import requests
 import re  # Import regex
 from typing import List, Dict, Union, Tuple, Optional, Any
 
+try:
+    from CASSIA.core.model_settings import get_agent_default
+except ImportError:
+    try:
+        from ..core.model_settings import get_agent_default
+    except ImportError:
+        from model_settings import get_agent_default
+
 class LLMEvaluator:
     """
     A class to evaluate cell type annotations using LLM-based scoring.
     Compares annotated cell types (from LLMs) against gold standard annotations.
     """
-    
-    def __init__(self, api_key: str = None, model: str = "deepseek/deepseek-chat-v3-0324"):
+
+    def __init__(self, api_key: str = None, model: str = None, provider: str = "openrouter"):
         """
         Initialize the LLM evaluator.
-        
+
         Args:
             api_key (str): OpenRouter API key. If None, will try to get from environment.
-            model (str): Model to use for evaluation from OpenRouter.
+            model (str): Model to use for evaluation (defaults to provider's scoring default).
+            provider (str): LLM provider to use (default: "openrouter").
         """
         self.api_key = api_key or os.environ.get("OPENROUTER_API_KEY")
         if not self.api_key:
             raise ValueError("OpenRouter API key must be provided or set as OPENROUTER_API_KEY environment variable")
-        
+
+        # Apply agent defaults if model not specified
+        if model is None:
+            defaults = get_agent_default("scoring", provider)
+            model = defaults["model"]
+
         self.model = model
+        self.provider = provider
     
     def get_single_celltype_prompts(self, 
                                    predicted_celltype: str, 

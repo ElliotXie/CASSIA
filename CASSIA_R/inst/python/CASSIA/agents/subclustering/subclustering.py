@@ -1,10 +1,13 @@
 try:
     from CASSIA.engine.tools_function import *
+    from CASSIA.core.model_settings import get_agent_default
 except ImportError:
     try:
         from .tools_function import *
+        from ..core.model_settings import get_agent_default
     except ImportError:
         from tools_function import *
+        from model_settings import get_agent_default
 
 try:
     from CASSIA.core.llm_utils import *
@@ -31,31 +34,26 @@ def _get_get_top_markers():
             return get_top_markers
 
 
-def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=0, provider="anthropic"):
+def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=None, provider="openrouter"):
     """
     Unified function to call LLM for subcluster annotation.
-    
+
     Args:
         user_message: The prompt message for subcluster annotation
         model: Model to use (defaults to provider's default if None)
         temperature: Temperature for generation (0-1)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
-        
+
     Returns:
         The generated annotation as a string
     """
-    # Set default model based on provider if not specified
-    if model is None:
-        if provider == "openai":
-            model = "gpt-4o"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20241022"
-        elif provider == "openrouter":
-            model = "anthropic/claude-3.5-sonnet"
-        elif provider.startswith("http"):
-            # For custom API endpoints, use a default model if none specified
-            model = model or "deepseek-chat"
-            print(f"Using model: {model} with custom provider: {provider}")
+    # Set default model and temperature based on provider if not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("subclustering", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
     
     # Add JSON tags for providers that need them
     modified_message = user_message
@@ -148,18 +146,18 @@ Remember these subclusters are from a {major_cluster_info} big cluster. You must
 
 
 
-def annotate_subclusters(marker, major_cluster_info, model="claude-3-5-sonnet-20241022", temperature=0, provider="anthropic", n_genes=50):
+def annotate_subclusters(marker, major_cluster_info, model=None, temperature=None, provider="openrouter", n_genes=50):
     """
     Annotate subclusters using an LLM.
-    
+
     Args:
         marker: DataFrame containing marker data
         major_cluster_info: Description of the major cluster type
-        model: Model to use (defaults to Claude 3.5 Sonnet)
+        model: Model to use (defaults to provider's subclustering default)
         temperature: Temperature for generation (0-1)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         n_genes: Number of top genes to use
-        
+
     Returns:
         The generated annotation as a string
     """
@@ -169,7 +167,7 @@ def annotate_subclusters(marker, major_cluster_info, model="claude-3-5-sonnet-20
 
 
 
-def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider="anthropic", model="claude-3-5-sonnet-20241022", temperature=0):
+def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider="openrouter", model=None, temperature=None):
     """
     Extract multiple output results from subcluster analysis text.
     
@@ -210,7 +208,7 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 
 
 
-def extract_subcluster_results_with_llm(analysis_text, provider="anthropic", model="claude-3-5-sonnet-20241022", temperature=0):
+def extract_subcluster_results_with_llm(analysis_text, provider="openrouter", model=None, temperature=None):
     """
     Extract results with reasons from subcluster analysis text.
     
@@ -353,23 +351,31 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 
-def runCASSIA_subclusters(marker, major_cluster_info, output_name, 
-                       model="google/gemini-2.5-flash-preview", temperature=0, provider="openrouter", n_genes=50):
+def runCASSIA_subclusters(marker, major_cluster_info, output_name,
+                       model=None, temperature=None, provider="openrouter", n_genes=50):
     """
     Process subclusters from marker data and generate annotated results.
-    
+
     Args:
         marker: DataFrame containing marker data
         major_cluster_info: Description of the major cluster type
         output_name: Base name for output file (will add .csv if not present)
-        model: Model name to use
+        model: Model name to use (defaults to provider's subclustering default)
         temperature: Temperature parameter for API calls (0-1)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         n_genes: Number of top genes to use for analysis
-        
+
     Returns:
         None: Results are saved to a CSV file
     """
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("subclustering", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
+
     # Construct prompt and get analysis from LLM
     prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes)
     output_text = subcluster_agent_annotate_subcluster(prompt, model=model, temperature=temperature, provider=provider)
@@ -398,27 +404,32 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
 
 
-def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name, 
-                                         model="google/gemini-2.5-flash-preview", temperature=0, 
+def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
+                          model=None, temperature=None,
                           provider="openrouter", max_workers=5, n_genes=50):
     """
     Run multiple subcluster analyses in parallel and save results.
-    
+
     Args:
         n: Number of analyses to run
         marker: DataFrame containing marker data
         major_cluster_info: Description of the major cluster type
         base_output_name: Base name for output files
-        model: Model name to use
-        temperature: Temperature parameter for API calls (0-1)
+        model: Model name to use (defaults to provider's subclustering default)
+        temperature: Temperature parameter for API calls (0-1), forced to 0.3 for consistency
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         max_workers: Maximum number of parallel workers
         n_genes: Number of top genes to use for analysis
-        
+
     Returns:
         None: Results are saved to CSV files
     """
-    # Force temperature to 0.3 for all runs
+    # Apply agent defaults if model not specified
+    if model is None:
+        defaults = get_agent_default("subclustering", provider)
+        model = defaults["model"]
+
+    # Force temperature to 0.3 for all runs (for consistency across multiple analyses)
     temperature = 0.3
     
     def run_single_analysis(i):

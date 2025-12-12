@@ -7,11 +7,14 @@ from typing import List, Tuple, Dict, Any, Optional, Union
 # Handle both package and direct imports
 try:
     from CASSIA.core.llm_utils import call_llm
+    from CASSIA.core.model_settings import get_agent_default
 except ImportError:
     try:
         from ...core.llm_utils import call_llm
+        from ...core.model_settings import get_agent_default
     except ImportError:
         from llm_utils import call_llm
+        from model_settings import get_agent_default
 
 try:
     from CASSIA.core.gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
@@ -21,20 +24,27 @@ except ImportError:
     except ImportError:
         from gene_id_converter import convert_dataframe_gene_ids, convert_gene_ids
 
-def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: float = 0.1, reasoning: Optional[str] = None) -> str:
+def summarize_conversation_history(full_history: str, provider: str = "openrouter", model: Optional[str] = None, temperature: Optional[float] = None, reasoning: Optional[str] = None) -> str:
     """
     Use an LLM to summarize the conversation history for use as context in annotation boost.
 
     Args:
         full_history: The full conversation history text
         provider: LLM provider to use for summarization
-        model: Specific model to use (if None, uses provider default)
-        temperature: Temperature for summarization (low for consistency)
+        model: Specific model to use (if None, uses provider's annotation_boost default)
+        temperature: Temperature for summarization (if None, uses agent default)
         reasoning: Reasoning effort level ("low", "medium", "high")
 
     Returns:
         str: Summarized conversation history
     """
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("annotation_boost", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
     try:
         # Create a prompt for summarization
         summarization_prompt = f"""You are a specialized scientific summarization agent. Your task is to create a concise summary of a prior cell type annotation analysis that will be used as context for further detailed analysis.
@@ -67,7 +77,7 @@ Please provide a structured summary following the format above:"""
         summary = call_llm(
             prompt=summarization_prompt,
             provider=provider,
-            model=model if model else "google/gemini-2.5-flash",  # Default model for summarization
+            model=model,
             temperature=temperature,
             reasoning=reasoning_param
         )

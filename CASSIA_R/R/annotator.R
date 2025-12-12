@@ -750,7 +750,7 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
+runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   # Convert marker_list to character vector if it's a data frame
   if (is.data.frame(marker_list)) {
     # Try common column names for gene markers
@@ -1169,8 +1169,10 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none")
 #' @param search_strategy Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")
 #' @param report_style Style of report ("per_iteration" or "total_summary") (default: "per_iteration")
-#' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param conversations_json_path Path to the conversations JSON file from batch annotation (default: NULL)
+#' @param species Species for the analysis (default: "human")
+#' @param auto_convert_ids Logical. Whether to auto-convert gene IDs (default: TRUE)
+#' @param reasoning Reasoning effort level: "high", "medium", or "low" (default: NULL, no extended reasoning)
 #' @param ... Additional arguments passed to the Python function
 #'
 #' @return None. This function generates output files.
@@ -1187,8 +1189,10 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      conversation_history_mode = "final",
                                      search_strategy = "breadth",
                                      report_style = "per_iteration",
-                                     validator_involvement = "v1",
                                      conversations_json_path = NULL,
+                                     species = "human",
+                                     auto_convert_ids = TRUE,
+                                     reasoning = NULL,
                                      ...) {
 
   if (is.data.frame(marker)) {
@@ -1217,7 +1221,10 @@ runCASSIA_annotationboost <- function(full_result_path,
       conversation_history_mode = conversation_history_mode,
       search_strategy = search_strategy,
       report_style = report_style,
-      conversations_json_path = conversations_json_path
+      conversations_json_path = conversations_json_path,
+      species = species,
+      auto_convert_ids = auto_convert_ids,
+      reasoning = reasoning
     )
 
     invisible(NULL)

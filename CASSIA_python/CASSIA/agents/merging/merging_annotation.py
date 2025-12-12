@@ -9,18 +9,21 @@ from typing import Dict, Any, Optional, Union, List
 try:
     from CASSIA.core.llm_utils import call_llm
     from CASSIA.core.progress_tracker import BatchProgressTracker
+    from CASSIA.core.model_settings import get_agent_default
 except ImportError:
     try:
         from .llm_utils import call_llm
         from .progress_tracker import BatchProgressTracker
+        from ..core.model_settings import get_agent_default
     except ImportError:
         from llm_utils import call_llm
         from progress_tracker import BatchProgressTracker
+        from model_settings import get_agent_default
 
 def merge_annotations(
     csv_path: str,
     output_path: Optional[str] = None,
-    provider: str = "openai",
+    provider: str = "openrouter",
     model: Optional[str] = None,
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
@@ -35,7 +38,7 @@ def merge_annotations(
         csv_path: Path to the CSV file containing cluster annotations
         output_path: Path to save the results (if None, returns DataFrame without saving)
         provider: LLM provider to use ("openai", "anthropic", or "openrouter")
-        model: Specific model to use (if None, uses default for provider)
+        model: Specific model to use (if None, uses provider's merging default)
         api_key: API key for the provider (if None, gets from environment)
         additional_context: Optional domain-specific context to help with annotation
         batch_size: Number of clusters to process in each LLM call (for efficiency)
@@ -48,6 +51,11 @@ def merge_annotations(
     Returns:
         DataFrame with original annotations and suggested cell groupings
     """
+    # Apply agent defaults if model not specified
+    if model is None:
+        defaults = get_agent_default("merging", provider)
+        model = defaults["model"]
+
     # Validate detail_level parameter
     if detail_level not in ["broad", "detailed", "very_detailed"]:
         raise ValueError("detail_level must be one of: 'broad', 'detailed', or 'very_detailed'")
