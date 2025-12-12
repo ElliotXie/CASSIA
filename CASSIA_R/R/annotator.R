@@ -1560,8 +1560,6 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      auto_convert_ids = TRUE,
                                      reasoning = NULL,
                                      ...) {
-  .require_python("runCASSIA_annotationboost")
-
   if (is.data.frame(marker)) {
     # Factors can cause issues with reticulate, convert to character
     if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
@@ -1642,8 +1640,6 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      validator_involvement = "v1",
                                                      conversations_json_path = "auto",
                                                      ...) {
-  .require_python("runCASSIA_annotationboost_additional_task")
-
   if (is.data.frame(marker)) {
     # Factors can cause issues with reticulate, convert to character
     if ("cluster" %in% names(marker) && is.factor(marker[["cluster"]])) {
