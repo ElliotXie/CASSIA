@@ -32,7 +32,7 @@ runCASSIA_batch_n_times(
 # Step 2: Calculate similarity scores
 runCASSIA_similarity_score_batch(
     marker = marker_data,
-    file_pattern = "my_annotation_*_full.csv",
+    file_pattern = "my_annotation_*_summary.csv",
     output_name = "similarity_results",
     model = "openai/gpt-5.1",
     provider = "openrouter",
@@ -71,7 +71,7 @@ runCASSIA_similarity_score_batch(
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `marker` | Yes | - | Marker gene data |
-| `file_pattern` | Yes | - | Pattern to match iteration results (e.g., `"output_*_full.csv"`) |
+| `file_pattern` | Yes | - | Pattern to match iteration results (e.g., `"output_*_summary.csv"`) |
 | `output_name` | Yes | - | Base name for results |
 | `model` | Yes | - | LLM model for scoring |
 | `provider` | Yes | - | API provider |
@@ -88,7 +88,7 @@ runCASSIA_similarity_score_batch(
 
 | File | Description |
 |------|-------------|
-| `{output_name}_{n}_full.csv` | Results from each iteration |
+| `{output_name}_{n}_summary.csv` | Results from each iteration |
 | `{output_name}_similarity.csv` | Similarity scores across iterations |
 | `uq_batch_report.html` | HTML visualization report |
 

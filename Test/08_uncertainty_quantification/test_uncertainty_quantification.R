@@ -184,16 +184,16 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
 
       # Check that output files were created
       expected_files <- c(
-        paste0(batch_output_name, "_1_full.csv"),
         paste0(batch_output_name, "_1_summary.csv"),
-        paste0(batch_output_name, "_2_full.csv"),
+        paste0(batch_output_name, "_1_conversations.json"),
         paste0(batch_output_name, "_2_summary.csv"),
-        paste0(batch_output_name, "_3_full.csv"),
+        paste0(batch_output_name, "_2_conversations.json"),
         paste0(batch_output_name, "_3_summary.csv"),
-        paste0(batch_output_name, "_4_full.csv"),
+        paste0(batch_output_name, "_3_conversations.json"),
         paste0(batch_output_name, "_4_summary.csv"),
-        paste0(batch_output_name, "_5_full.csv"),
-        paste0(batch_output_name, "_5_summary.csv")
+        paste0(batch_output_name, "_4_conversations.json"),
+        paste0(batch_output_name, "_5_summary.csv"),
+        paste0(batch_output_name, "_5_conversations.json")
       )
 
       files_found <- c()
@@ -236,11 +236,11 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
           dir.create(data_folder, recursive = TRUE)
         }
         for (i in 1:5) {
-          src_file <- paste0(batch_output_name, "_", i, "_full.csv")
+          src_file <- paste0(batch_output_name, "_", i, "_summary.csv")
           if (file.exists(src_file)) {
-            dst_file <- file.path(data_folder, paste0("batch_results_", i, "_full.csv"))
+            dst_file <- file.path(data_folder, paste0("batch_results_", i, "_summary.csv"))
             file.copy(src_file, dst_file, overwrite = TRUE)
-            log_msg("  Copied to data folder:", paste0("batch_results_", i, "_full.csv"))
+            log_msg("  Copied to data folder:", paste0("batch_results_", i, "_summary.csv"))
           }
         }
       } else {
@@ -260,7 +260,7 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
     batch_output_name <- file.path(data_folder, "batch_results")
 
     # Check for pre-existing files
-    expected_files <- paste0("batch_results_", 1:5, "_full.csv")
+    expected_files <- paste0("batch_results_", 1:5, "_summary.csv")
     for (f in expected_files) {
       if (file.exists(file.path(data_folder, f))) {
         files_found <- c(files_found, f)
@@ -272,7 +272,7 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
       log_msg("  Found", length(files_found), "pre-existing batch result files in data folder")
     } else {
       log_msg("  Warning: Only found", length(files_found), "batch files in", data_folder)
-      log_msg("  Expected files: batch_results_1_full.csv through batch_results_5_full.csv")
+      log_msg("  Expected files: batch_results_1_summary.csv through batch_results_5_summary.csv")
       batch_status <- "skipped"
     }
 
@@ -300,7 +300,7 @@ run_uncertainty_quantification_test <- function(run_batch_generation = FALSE) {
 
       CASSIA::runCASSIA_similarity_score_batch(
         marker = test_markers,
-        file_pattern = paste0(batch_output_name, "_*_full.csv"),
+        file_pattern = paste0(batch_output_name, "_*_summary.csv"),
         output_name = similarity_output_name,
         celltype_column = "Broad.cell.type",
         max_workers = 3,

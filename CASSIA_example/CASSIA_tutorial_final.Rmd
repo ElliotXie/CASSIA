@@ -216,7 +216,7 @@ iteration_results <- runCASSIA_batch_n_times(
 # Calculate similarity scores
 similarity_scores <- runCASSIA_similarity_score_batch(
     marker = markers_unprocessed,
-    file_pattern = paste0(output_name,"_Uncertainty_*_full.csv"),
+    file_pattern = paste0(output_name,"_Uncertainty_*_summary.csv"),
     output_name = "intestine_similarity2",
     max_workers = 6,
     model = "claude-3-5-sonnet-20241022",

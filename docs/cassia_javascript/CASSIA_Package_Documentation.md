@@ -187,7 +187,7 @@ CASSIA includes several advanced modules for deeper investigation into your data
         # Step 2: Calculate similarity scores
         CASSIA.runCASSIA_similarity_score_batch(
             marker=unprocessed_markers,
-            file_pattern="intestine_uncertainty_run_*_full.csv",
+            file_pattern="intestine_uncertainty_run_*_summary.csv",
             output_name="intestine_uncertainty_scores"
         )
         ```

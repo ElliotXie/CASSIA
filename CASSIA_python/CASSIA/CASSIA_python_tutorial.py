@@ -353,7 +353,7 @@ def run_uncertainty_quantification(marker_data, provider_test=None):
     similarity_output_name = get_output_path("uncertainty", filename="intestine_uncertainty")
     similarity_scores = runCASSIA_similarity_score_batch(
         marker=marker_data,
-        file_pattern=f"{uncertainty_output_name}_*_full.csv",
+        file_pattern=f"{uncertainty_output_name}_*_summary.csv",
         output_name=similarity_output_name,
         max_workers=6,
         model=current_model,

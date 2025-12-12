@@ -168,10 +168,10 @@ run_uncertainty_quantification_install_test <- function() {
 
     # Check that output files were created
     expected_files <- c(
-      paste0(batch_output_name, "_1_full.csv"),
       paste0(batch_output_name, "_1_summary.csv"),
-      paste0(batch_output_name, "_2_full.csv"),
-      paste0(batch_output_name, "_2_summary.csv")
+      paste0(batch_output_name, "_1_conversations.json"),
+      paste0(batch_output_name, "_2_summary.csv"),
+      paste0(batch_output_name, "_2_conversations.json")
     )
 
     files_found <- c()

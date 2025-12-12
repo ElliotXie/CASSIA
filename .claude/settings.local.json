@@ -27,7 +27,9 @@
       "Bash(cmd /c \"dir /s /b d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content 2>nul | findstr /i \".md$\"\")",
       "Bash(cmd /c \"if exist d:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\content\\en\\docs\\r (echo Path exists) else (echo Path does not exist)\")",
       "Bash(cmd /c \"dir /b d:\\CASSIA\\output3 2>nul || echo Folder not found\")",
-      "Bash(cmd /c \"if not exist d:\\CASSIA\\Test\\17_manual_package_Test mkdir d:\\CASSIA\\Test\\17_manual_package_Test\")"
+      "Bash(cmd /c \"if not exist d:\\CASSIA\\Test\\17_manual_package_Test mkdir d:\\CASSIA\\Test\\17_manual_package_Test\")",
+      "Bash(\"C:\\Users\\ellio\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" \"d:\\CASSIA\\sync_python_files.py\")",
+      "Bash(copy \"D:\\CASSIA\\docs\\decisionTree.jpeg\" \"D:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\public\\images\"\")"
     ],
     "deny": []
   }

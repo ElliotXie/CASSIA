@@ -32,7 +32,7 @@ runCASSIA_batch_n_times(
 # 步骤 2：计算相似性分数
 runCASSIA_similarity_score_batch(
     marker = marker_data,
-    file_pattern = "my_annotation_*_full.csv",
+    file_pattern = "my_annotation_*_summary.csv",
     output_name = "similarity_results",
     model = "openai/gpt-5.1",
     provider = "openrouter",
@@ -71,7 +71,7 @@ runCASSIA_similarity_score_batch(
 | 参数 | 必需 | 默认值 | 描述 |
 |------|------|--------|------|
 | `marker` | 是 | - | 标记基因数据 |
-| `file_pattern` | 是 | - | 匹配迭代结果的模式（如 `"output_*_full.csv"`） |
+| `file_pattern` | 是 | - | 匹配迭代结果的模式（如 `"output_*_summary.csv"`） |
 | `output_name` | 是 | - | 结果的基本名称 |
 | `model` | 是 | - | 用于评分的 LLM 模型 |
 | `provider` | 是 | - | API 提供商 |
@@ -88,7 +88,7 @@ runCASSIA_similarity_score_batch(
 
 | 文件 | 描述 |
 |------|------|
-| `{output_name}_{n}_full.csv` | 每次迭代的结果 |
+| `{output_name}_{n}_summary.csv` | 每次迭代的结果 |
 | `{output_name}_similarity.csv` | 跨迭代的相似性分数 |
 | `uq_batch_report.html` | HTML 可视化报告 |
 

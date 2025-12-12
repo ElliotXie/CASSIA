@@ -453,7 +453,9 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                         cell_types = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])
                         main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
                         sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        rows.append([cluster_id, main_type, sub_type])
+                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
                     # Format 2: Dictionary with key like 'results1'
                     elif any(key.startswith('result') for key in item.keys()):
                         key = next(k for k in item.keys() if k.startswith('result'))
@@ -464,30 +466,38 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                             main_type = value[0] if len(value) > 0 else ""
                             sub_type = value[1] if len(value) > 1 else ""
                             result_id = ''.join(filter(str.isdigit, key)) or str(idx)
-                            rows.append([result_id, main_type, sub_type])
+                            key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                            reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                            rows.append([result_id, main_type, sub_type, key_markers, reason])
                         elif isinstance(value, dict) and 'celltype1' in value and 'celltype2' in value:
                             # Format: {'results1': {'celltype1': 'type1', 'celltype2': 'type2'}}
                             main_type = value.get('celltype1', "")
                             sub_type = value.get('celltype2', "")
                             result_id = ''.join(filter(str.isdigit, key)) or str(idx)
-                            rows.append([result_id, main_type, sub_type])
+                            key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                            reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                            rows.append([result_id, main_type, sub_type, key_markers, reason])
                     # Format 3: Dictionary with 'key_markers', 'explanation', etc. (with underscores)
                     elif 'key_markers' in item or 'explanation' in item:
                         cluster_id = str(item.get('cluster', idx))
                         cell_types = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])
                         main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
                         sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        rows.append([cluster_id, main_type, sub_type])
+                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
                     # Format 4: Dictionary with 'Key marker', 'Explanation', etc. (with spaces and capital letters)
                     elif 'Key marker' in item or 'Explanation' in item or 'Most likely top2 cell types' in item:
                         cluster_id = str(idx)  # Use index as cluster ID since no cluster field
                         cell_types = item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])
                         main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
                         sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        rows.append([cluster_id, main_type, sub_type])
+                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
+                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
+                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
             
             if rows:
-                df = pd.DataFrame(rows, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
+                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
             else:
                 # Fail if we couldn't extract any structured data
                 raise RuntimeError(
@@ -500,8 +510,9 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
             matches = re.findall(pattern, results)
         
             if matches:
-                # Convert matches to a DataFrame
-                df = pd.DataFrame(matches, columns=['Cluster ID', 'main_cell_type', 'sub_cell_type'])
+                # Convert matches to a DataFrame with 5 columns for consistency
+                rows = [[m[0], m[1], m[2], '', ''] for m in matches]
+                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
             else:
                 # Fail if regex didn't match - don't create misleading "Unknown" files
                 raise RuntimeError(
@@ -520,10 +531,10 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 marker_df = marker.copy()
             
             # Convert types to ensure compatibility
-            df['Cluster ID'] = df['Cluster ID'].astype(str)
+            df['Result ID'] = df['Result ID'].astype(str)
 
             # Make a copy of the original values before swapping
-            original_cluster_ids = df['Cluster ID'].copy()
+            original_cluster_ids = df['Result ID'].copy()
 
             # Check if marker_df has at least one row and one column
             if marker_df.shape[0] > 0 and marker_df.shape[1] > 0:
@@ -532,7 +543,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 # Perform the swap safely - only if there are enough rows in both dataframes
                 min_rows = min(len(df), len(marker_df))
                 if min_rows > 0:
-                    df.loc[:min_rows-1, 'Cluster ID'] = original_marker_first_col[:min_rows].values
+                    df.loc[:min_rows-1, 'Result ID'] = original_marker_first_col[:min_rows].values
                     # Only update marker_df if we're actually going to use it later
                     # marker_df.iloc[:min_rows, 0] = original_true_cell_types[:min_rows].values
             else:

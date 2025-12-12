@@ -171,10 +171,10 @@ def run_uncertainty_quantification_test(results_dir):
 
         # Check that output files were created
         expected_files = [
-            f"{batch_output_name}_1_full.csv",
             f"{batch_output_name}_1_summary.csv",
-            f"{batch_output_name}_2_full.csv",
-            f"{batch_output_name}_2_summary.csv"
+            f"{batch_output_name}_1_conversations.json",
+            f"{batch_output_name}_2_summary.csv",
+            f"{batch_output_name}_2_conversations.json"
         ]
 
         files_found = []

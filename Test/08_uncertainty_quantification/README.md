@@ -52,8 +52,8 @@ Runs CASSIA batch annotation n times on **multiple clusters** to measure reprodu
 
 ### From runCASSIA_batch_n_times:
 Per iteration, generates 3 files:
-- `batch_results_{n}_full.csv` - Full results with conversation history
 - `batch_results_{n}_summary.csv` - Summary with key predictions
+- `batch_results_{n}_conversations.json` - Conversation history
 - `batch_results_{n}_report.html` - Interactive HTML report
 
 Each CSV contains columns:
@@ -91,8 +91,8 @@ Rscript test_uncertainty_quantification.R
 Results are saved to `results/<timestamp>/outputs/` containing:
 - `test_metadata.json`: Test configuration and status for both tests
 - `results.json`: Combined results from both tests
-- `batch_results_1_full.csv`, `batch_results_1_summary.csv`: First batch iteration
-- `batch_results_2_full.csv`, `batch_results_2_summary.csv`: Second batch iteration
+- `batch_results_1_summary.csv`, `batch_results_1_conversations.json`: First batch iteration
+- `batch_results_2_summary.csv`, `batch_results_2_conversations.json`: Second batch iteration
 - HTML reports for each iteration
 
 ## Notes
