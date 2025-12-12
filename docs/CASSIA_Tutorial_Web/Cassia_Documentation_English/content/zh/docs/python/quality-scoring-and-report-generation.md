@@ -8,17 +8,6 @@ title: 质量评分
 
 ---
 
-## 输入
-
-质量评分需要由 `runCASSIA_batch` 生成的**两个文件**：
-
-1. **摘要 CSV** (`*_summary.csv`) - 包含聚类标识符、预测的细胞类型、标记基因列表和元数据
-2. **对话 JSON** (`*_conversations.json`) - 包含完整的对话历史和推理过程
-
-**自动检测：** 当您提供摘要 CSV 作为输入时，CASSIA 会自动在同一目录中查找对应的对话 JSON 文件。无需手动指定两个文件。
-
----
-
 ## 快速开始
 
 ```python
@@ -29,6 +18,17 @@ CASSIA.runCASSIA_score_batch(
     provider = "openrouter"
 )
 ```
+
+---
+
+## 输入
+
+质量评分需要由 `runCASSIA_batch` 生成的**两个文件**：
+
+1. **摘要 CSV** (`*_summary.csv`) - 包含聚类标识符、预测的细胞类型、标记基因列表和元数据
+2. **对话 JSON** (`*_conversations.json`) - 包含完整的对话历史和推理过程
+
+**自动检测：** 当您提供摘要 CSV 作为输入时，CASSIA 会自动在同一目录中查找对应的对话 JSON 文件。无需手动指定两个文件。
 
 ---
 
