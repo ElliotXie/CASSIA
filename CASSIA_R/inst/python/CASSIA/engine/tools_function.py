@@ -634,9 +634,38 @@ def runCASSIA_batch(
     else:
         raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
 
-    # If dataframe has only two columns, assume it's already processed
-    if len(df.columns) == 2:
-        print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
+    # Drop any unnamed index columns that pandas creates when loading CSVs with row indices
+    unnamed_cols = [col for col in df.columns if col.startswith('Unnamed:')]
+    if unnamed_cols:
+        df = df.drop(columns=unnamed_cols)
+
+    # Detect if this is pre-processed marker data (cell type + comma-separated markers)
+    # Pre-processed data characteristics:
+    # 1. Has 2 columns after dropping index
+    # 2. OR has a column containing comma-separated values (marker lists)
+    def _is_preformatted_markers(df):
+        """Check if dataframe is already in pre-processed format."""
+        # Simple check: 2 columns = pre-processed
+        if len(df.columns) == 2:
+            return True
+        # Check if any column contains comma-separated marker lists
+        # (characteristic of pre-processed data)
+        for col in df.columns:
+            sample = df[col].dropna().head(3)
+            if len(sample) > 0:
+                # Check if values contain commas (marker lists)
+                has_commas = sample.astype(str).str.contains(',').any()
+                if has_commas:
+                    # Verify it's not a numeric column with commas
+                    # Marker lists have multiple gene names separated by commas
+                    first_val = str(sample.iloc[0])
+                    if ',' in first_val and len(first_val.split(',')) > 3:
+                        return True
+        return False
+
+    # Check if dataframe needs processing or is already pre-processed
+    if _is_preformatted_markers(df):
+        print("Using input dataframe directly as it appears to be pre-processed (cell type + markers format)")
     else:
         print("Processing input dataframe to get top markers")
         df = get_top_markers(df, n_genes=n_genes, ranking_method=ranking_method, ascending=ascending)

@@ -54,58 +54,16 @@ def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=N
             model = defaults["model"]
         if temperature is None:
             temperature = defaults["temperature"]
-    
-    # Add JSON tags for providers that need them
-    modified_message = user_message
-    if provider == "anthropic" or provider == "openrouter" or provider.startswith("http"):
-        # Add JSON tags to help with structured output for these providers
-        if not "<json>" in modified_message.lower():
-            modified_message = f"{modified_message}\n\nPlease format your response as JSON:\n<json>\n{{\"response\": \"Your detailed analysis here\"}}\n</json>"
-    
+
     # Use the unified call_llm function
     result = call_llm(
-        prompt=modified_message,
+        prompt=user_message,
         provider=provider,
         model=model,
         temperature=temperature,
         max_tokens=4096
     )
-    
-    # Process the result for providers that use JSON tags
-    if provider == "anthropic" or provider == "openrouter" or provider.startswith("http"):
-        # Extract content from JSON tags if present
-        import re
-        import json
-        
-        # First check for JSON format with ```json or <json> tags
-        json_match = re.search(r'(?:```json|<json>)(.*?)(?:```|</json>)', result, re.DOTALL)
-        if json_match:
-            try:
-                json_content = json_match.group(1).strip()
-                # Try to parse as JSON
-                parsed = json.loads(json_content)
-                if isinstance(parsed, dict) and "response" in parsed:
-                    # If it's a dict with a response key, return the response
-                    if isinstance(parsed["response"], list):
-                        return parsed["response"]
-                    return parsed["response"]
-                return parsed
-            except json.JSONDecodeError:
-                pass  # If JSON parsing fails, continue with other methods
-        
-        # Check if the entire response is a JSON string (common with DeepSeek API)
-        if result.strip().startswith('{') and result.strip().endswith('}'):
-            try:
-                parsed = json.loads(result)
-                if isinstance(parsed, dict) and "response" in parsed:
-                    # If it's a dict with a response key, return the response
-                    if isinstance(parsed["response"], list):
-                        return parsed["response"]
-                    return parsed["response"]
-                return parsed
-            except json.JSONDecodeError:
-                pass  # If JSON parsing fails, return the original result
-    
+
     return result if result else ''
 
 
@@ -169,40 +127,33 @@ def annotate_subclusters(marker, major_cluster_info, model=None, temperature=Non
 
 def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider="openrouter", model=None, temperature=None):
     """
-    Extract multiple output results from subcluster analysis text.
-    
+    Extract multiple output results from subcluster analysis text using XML tags.
+
     Args:
         analysis_text: Text containing the analysis results
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
-        model: Model to use (defaults to Claude 3.5 Sonnet)
+        model: Model to use
         temperature: Temperature for generation (0-1)
-        
+
     Returns:
-        Extracted results in the format: results1(celltype1, celltype2), results2(celltype1, celltype2), etc.
-        For custom APIs, may return a list of dictionaries directly.
+        Extracted results as string with XML-tagged format
     """
-    # If the analysis_text is already in a structured format (list of dictionaries),
-    # we can return it directly for processing
-    if isinstance(analysis_text, list) and all(isinstance(item, dict) for item in analysis_text):
-        print(f"Analysis text is already in structured format (list of {len(analysis_text)} dictionaries)")
-        return analysis_text
-    
-    # Define the prompt to instruct the LLM
-    prompt = f"""
-You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2), results2(celltype1, celltype2), etc.
+    # Define the prompt to instruct the LLM with XML output format
+    prompt = f"""You are an expert in analyzing celltype annotation for subclusters.
+
+Extract the cell type annotations from the following analysis. For each cluster, output in this exact XML format:
+
+<cluster id="1">
+<celltype1>first cell type</celltype1>
+<celltype2>second cell type</celltype2>
+</cluster>
 
 You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
 
 {analysis_text}
 """
 
-    # Use the subcluster_agent_annotate function to get the extraction
     result = subcluster_agent_annotate_subcluster(prompt, provider=provider, model=model, temperature=temperature)
-
-    # Check if the result is already in structured format (e.g., from DeepSeek API)
-    if isinstance(result, list) and all(isinstance(item, dict) for item in result):
-        return result
-    
     return result
 
 
@@ -210,142 +161,93 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 
 def extract_subcluster_results_with_llm(analysis_text, provider="openrouter", model=None, temperature=None):
     """
-    Extract results with reasons from subcluster analysis text.
-    
+    Extract results with reasons from subcluster analysis text using XML tags.
+
     Args:
         analysis_text: Text containing the analysis results
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
-        model: Model to use (defaults to Claude 3.5 Sonnet)
+        model: Model to use
         temperature: Temperature for generation (0-1)
-        
+
     Returns:
-        Extracted results in the format: results1(celltype1, celltype2, reason), results2(celltype1, celltype2, reason), etc.
-        For custom APIs, may return a list of dictionaries directly.
+        Extracted results as string with XML-tagged format
     """
-    # If the analysis_text is already in a structured format (list of dictionaries),
-    # we can return it directly for processing by write_results_to_csv
-    if isinstance(analysis_text, list) and all(isinstance(item, dict) for item in analysis_text):
-        print(f"Analysis text is already in structured format (list of {len(analysis_text)} dictionaries)")
-        return analysis_text
-    
-    # Define the prompt to instruct the LLM
-    prompt = f"""
-You are an expert in analyzing celltype annotation for subclusters. Extract the results perfectly and accurately from the following analysis and format them as: results1(celltype1, celltype2,reason), results2(celltype1, celltype2,reason), etc.
+    # Define the prompt to instruct the LLM with XML output format
+    prompt = f"""You are an expert in analyzing celltype annotation for subclusters.
+
+Extract the cell type annotations from the following analysis. For each cluster, output in this exact XML format:
+
+<cluster id="1">
+<celltype1>first cell type</celltype1>
+<celltype2>second cell type</celltype2>
+<reason>the complete explanation from the analysis</reason>
+</cluster>
 
 You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
 
 {analysis_text}
 """
 
-    # Use the subcluster_agent_annotate function to get the extraction
     result = subcluster_agent_annotate_subcluster(prompt, provider=provider, model=model, temperature=temperature)
-    
-    # Check if the result is already in structured format (e.g., from DeepSeek API)
-    if isinstance(result, list) and all(isinstance(item, dict) for item in result):
-        return result
-    
     return result
 
 
 
 def write_results_to_csv(results, output_name='subcluster_results'):
     """
-    Extract cell type results from LLM output and write to CSV file
-    
+    Extract cell type results from LLM output (XML format) and write to CSV file
+
     Args:
-        results (str or list): LLM analysis results as string or structured data
+        results (str): LLM analysis results with XML-tagged clusters
         output_name (str): Base name for output file (will add .csv if not present)
-        
+
     Returns:
         pandas.DataFrame: DataFrame containing the extracted results
     """
     # Add .csv suffix if not present
     if not output_name.lower().endswith('.csv'):
         output_name = output_name + '.csv'
-    
-    # Handle different result formats
-    if isinstance(results, list):
-        try:
-            rows = []
-            for i, item in enumerate(results, 1):
-                if isinstance(item, dict):
-                    # Always check both capitalized and lowercase keys
-                    cluster_id = str(item.get('cluster', i))
-                    # Main type
-                    main_type = (
-                        item.get('most_likely_top2_cell_types', ['Unknown'])[0]
-                        if isinstance(item.get('most_likely_top2_cell_types'), list) and len(item.get('most_likely_top2_cell_types')) > 0
-                        else item.get('main_cell_type',
-                            item.get('Most likely top2 cell types', ['Unknown'])[0]
-                            if isinstance(item.get('Most likely top2 cell types', ['Unknown']), list) and len(item.get('Most likely top2 cell types', ['Unknown'])) > 0
-                            else item.get('Main cell type', 'Unknown')
-                        )
-                    )
-                    # Sub type
-                    sub_type = (
-                        item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])[1]
-                        if isinstance(item.get('most_likely_top2_cell_types'), list) and len(item.get('most_likely_top2_cell_types')) > 1
-                        else item.get('sub_cell_type',
-                            item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])[1]
-                            if isinstance(item.get('Most likely top2 cell types', ['Unknown', 'Unknown']), list) and len(item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])) > 1
-                            else item.get('Sub cell type', 'Unknown')
-                        )
-                    )
-                    # Key markers
-                    key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                    # Reason/explanation
-                    reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                    rows.append([cluster_id, main_type, sub_type, key_markers, reason])
-            if rows:
-                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
-                df.to_csv(output_name, index=False)
-                print(f"Results have been written to {output_name}")
-                return df
-        except Exception as e:
-            print(f"Error processing list results: {str(e)}")
-            print("Attempting to convert to string and process...")
-            # Fall back to string processing
-            results = str(results)
-    
-    # Process as string (original method)
-    if isinstance(results, str):
-        # Updated regex pattern to capture the reason
-        pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
-        matches = re.findall(pattern, results)
 
-        if matches:
-            # Convert matches to a DataFrame with 5 columns for consistency
-            rows = [[m[0], m[1], m[2], '', ''] for m in matches]
-            df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
-            df.to_csv(output_name, index=False)
-            print(f"Results have been written to {output_name}")
-            return df
-        else:
-            # Try alternative pattern without reason
-            alt_pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
-            alt_matches = re.findall(alt_pattern, results)
-            if alt_matches:
-                # Convert matches to a DataFrame with 5 columns for consistency
-                rows = [[m[0], m[1], m[2], '', ''] for m in alt_matches]
-                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
-                df.to_csv(output_name, index=False)
-                print(f"Results have been written to {output_name} (without reasons)")
-                return df
-    
-    # If we get here, we couldn't process the results - fail instead of creating useless file
-    # Save raw results for debugging
+    results_str = str(results)
+
+    # Parse XML-tagged clusters: <cluster id="1">...</cluster>
+    cluster_pattern = r'<cluster[^>]*id=["\']?(\d+)["\']?[^>]*>(.*?)</cluster>'
+    cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
+
+    rows = []
+    if cluster_matches:
+        for cluster_id, content in cluster_matches:
+            # Extract celltype1
+            ct1_match = re.search(r'<celltype1>(.*?)</celltype1>', content, re.DOTALL | re.IGNORECASE)
+            celltype1 = ct1_match.group(1).strip() if ct1_match else 'Unknown'
+
+            # Extract celltype2
+            ct2_match = re.search(r'<celltype2>(.*?)</celltype2>', content, re.DOTALL | re.IGNORECASE)
+            celltype2 = ct2_match.group(1).strip() if ct2_match else 'Unknown'
+
+            # Extract reason
+            reason_match = re.search(r'<reason>(.*?)</reason>', content, re.DOTALL | re.IGNORECASE)
+            reason = reason_match.group(1).strip() if reason_match else ''
+
+            rows.append([cluster_id, celltype1, celltype2, '', reason])
+
+    if rows:
+        df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
+        df.to_csv(output_name, index=False)
+        print(f"Results have been written to {output_name}")
+        return df
+
+    # If XML parsing failed, save raw results for debugging
     raw_output_file = f"{output_name}.txt"
     with open(raw_output_file, "w") as f:
-        f.write(str(results))
+        f.write(results_str)
 
     raise RuntimeError(
         f"\n{'='*60}\n"
         f"SUBCLUSTERING FAILED - Could not parse LLM results\n"
         f"{'='*60}\n"
-        f"Results type: {type(results)}\n"
         f"Raw output saved to: {raw_output_file}\n"
-        f"\nThis may indicate an issue with the LLM response format.\n"
-        f"Check the raw output file for details.\n"
+        f"Expected XML format: <cluster id=\"1\"><celltype1>...</celltype1>...</cluster>\n"
         f"{'='*60}"
     )
 
@@ -434,91 +336,38 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
     
     def run_single_analysis(i):
         # Run the annotation process
-        output_text = annotate_subclusters(marker, major_cluster_info, 
+        output_text = annotate_subclusters(marker, major_cluster_info,
                                          model=model, temperature=temperature, provider=provider, n_genes=n_genes)
-        
-        # Extract results
+
+        # Extract results using XML format
         results = extract_subcluster_results_with_llm_multiple_output(output_text, provider=provider, model=model, temperature=temperature)
-        
-        # Create DataFrame based on result type
-        if isinstance(results, list) and all(isinstance(item, dict) for item in results):
-            # Handle structured data (list of dictionaries)
-            rows = []
-            for idx, item in enumerate(results, 1):
-                # Try to extract data from different possible formats
-                if isinstance(item, dict):
-                    # Format 1: Dictionary with 'cluster' key and 'most_likely_top2_cell_types'
-                    if 'cluster' in item and 'most_likely_top2_cell_types' in item:
-                        cluster_id = str(item.get('cluster', idx))
-                        cell_types = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])
-                        main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
-                        sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
-                    # Format 2: Dictionary with key like 'results1'
-                    elif any(key.startswith('result') for key in item.keys()):
-                        key = next(k for k in item.keys() if k.startswith('result'))
-                        value = item[key]
-                        
-                        if isinstance(value, list) and len(value) >= 2:
-                            # Format: {'results1': ['celltype1', 'celltype2']}
-                            main_type = value[0] if len(value) > 0 else ""
-                            sub_type = value[1] if len(value) > 1 else ""
-                            result_id = ''.join(filter(str.isdigit, key)) or str(idx)
-                            key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                            reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                            rows.append([result_id, main_type, sub_type, key_markers, reason])
-                        elif isinstance(value, dict) and 'celltype1' in value and 'celltype2' in value:
-                            # Format: {'results1': {'celltype1': 'type1', 'celltype2': 'type2'}}
-                            main_type = value.get('celltype1', "")
-                            sub_type = value.get('celltype2', "")
-                            result_id = ''.join(filter(str.isdigit, key)) or str(idx)
-                            key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                            reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                            rows.append([result_id, main_type, sub_type, key_markers, reason])
-                    # Format 3: Dictionary with 'key_markers', 'explanation', etc. (with underscores)
-                    elif 'key_markers' in item or 'explanation' in item:
-                        cluster_id = str(item.get('cluster', idx))
-                        cell_types = item.get('most_likely_top2_cell_types', ['Unknown', 'Unknown'])
-                        main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
-                        sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
-                    # Format 4: Dictionary with 'Key marker', 'Explanation', etc. (with spaces and capital letters)
-                    elif 'Key marker' in item or 'Explanation' in item or 'Most likely top2 cell types' in item:
-                        cluster_id = str(idx)  # Use index as cluster ID since no cluster field
-                        cell_types = item.get('Most likely top2 cell types', ['Unknown', 'Unknown'])
-                        main_type = cell_types[0] if isinstance(cell_types, list) and len(cell_types) > 0 else "Unknown"
-                        sub_type = cell_types[1] if isinstance(cell_types, list) and len(cell_types) > 1 else "Unknown"
-                        key_markers = item.get('key_markers', item.get('Key marker', item.get('Key Marker', '')))
-                        reason = item.get('explanation', item.get('Explanation', item.get('reason', '')))
-                        rows.append([cluster_id, main_type, sub_type, key_markers, reason])
-            
-            if rows:
-                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
-            else:
-                # Fail if we couldn't extract any structured data
-                raise RuntimeError(
-                    f"Iteration {i+1}: Could not extract cell types from structured LLM response. "
-                    f"Results contained {len(results)} items but none could be parsed."
-                )
+        results_str = str(results)
+
+        # Parse XML-tagged clusters: <cluster id="1">...</cluster>
+        cluster_pattern = r'<cluster[^>]*id=["\']?(\d+)["\']?[^>]*>(.*?)</cluster>'
+        cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
+
+        rows = []
+        if cluster_matches:
+            for cluster_id, content in cluster_matches:
+                # Extract celltype1
+                ct1_match = re.search(r'<celltype1>(.*?)</celltype1>', content, re.DOTALL | re.IGNORECASE)
+                celltype1 = ct1_match.group(1).strip() if ct1_match else 'Unknown'
+
+                # Extract celltype2
+                ct2_match = re.search(r'<celltype2>(.*?)</celltype2>', content, re.DOTALL | re.IGNORECASE)
+                celltype2 = ct2_match.group(1).strip() if ct2_match else 'Unknown'
+
+                rows.append([cluster_id, celltype1, celltype2, '', ''])
+
+        if rows:
+            df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
         else:
-            # Use regex to extract the results (original method)
-            pattern = r"results(\\d+)\\(([^,]+),\\s*([^)]+)\\)"
-            matches = re.findall(pattern, results)
-        
-            if matches:
-                # Convert matches to a DataFrame with 5 columns for consistency
-                rows = [[m[0], m[1], m[2], '', ''] for m in matches]
-                df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
-            else:
-                # Fail if regex didn't match - don't create misleading "Unknown" files
-                raise RuntimeError(
-                    f"Iteration {i+1}: Could not parse LLM response using regex. "
-                    f"Response format not recognized. Response preview: {str(results)[:200]}"
-                )
+            raise RuntimeError(
+                f"Iteration {i+1}: Could not parse LLM response. "
+                f"Expected XML format: <cluster id=\"1\"><celltype1>...</celltype1>...</cluster>. "
+                f"Response preview: {results_str[:200]}"
+            )
 
         try:
             # Try to get top markers, but handle the case where required columns are missing

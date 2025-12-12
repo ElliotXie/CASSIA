@@ -25,7 +25,7 @@ Use `merge_annotations()` to merge at a specific detail level:
 ```R
 # Merge at broad level
 result_df <- merge_annotations(
-    csv_path = "batch_results_full.csv",
+    csv_path = "annotation_results_summary.csv",
     output_path = "merged_broad.csv",
     provider = "openrouter",
     model = "google/gemini-2.5-flash",
@@ -44,7 +44,7 @@ Use `merge_annotations_all()` to merge at all three levels simultaneously with p
 ```R
 # Merge at all levels simultaneously
 result_df <- merge_annotations_all(
-    csv_path = "batch_results_full.csv",
+    csv_path = "annotation_results_summary.csv",
     output_path = "merged_all.csv",
     provider = "openrouter",
     model = "google/gemini-2.5-flash",

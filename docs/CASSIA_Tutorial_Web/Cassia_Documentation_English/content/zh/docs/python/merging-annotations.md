@@ -27,7 +27,7 @@ from CASSIA import merge_annotations
 
 # 在广泛级别合并
 result_df = merge_annotations(
-    csv_path="batch_results_full.csv",
+    csv_path="annotation_results_summary.csv",
     output_path="merged_broad.csv",
     provider="openrouter",
     model="google/gemini-2.5-flash",
@@ -48,7 +48,7 @@ from CASSIA import merge_annotations_all
 
 # 同时在所有级别合并
 result_df = merge_annotations_all(
-    csv_path="batch_results_full.csv",
+    csv_path="annotation_results_summary.csv",
     output_path="merged_all.csv",
     provider="openrouter",
     model="google/gemini-2.5-flash",

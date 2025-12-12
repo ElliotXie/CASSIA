@@ -381,7 +381,14 @@ def loadmarker(marker_type="processed"):
     try:
         # Using importlib.resources for Python 3.7+
         with resources.path('CASSIA.data', filename) as file_path:
-            return pd.read_csv(file_path)
+            # Use index_col=0 to treat the first column as index (not data)
+            # This handles CSV files that were saved with row indices
+            df = pd.read_csv(file_path)
+            # Drop any unnamed index columns that pandas creates
+            unnamed_cols = [col for col in df.columns if col.startswith('Unnamed:')]
+            if unnamed_cols:
+                df = df.drop(columns=unnamed_cols)
+            return df
     except Exception as e:
         raise Exception(f"Error loading marker file: {str(e)}")
 

@@ -933,12 +933,34 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
     else:
         raise ValueError("marker must be either a pandas DataFrame or a string path to a CSV file")
 
-    # Only process with get_top_markers if more than 2 columns
-    if len(df.columns) > 2:
+    # Drop any unnamed index columns that pandas creates when loading CSVs with row indices
+    unnamed_cols = [col for col in df.columns if col.startswith('Unnamed:')]
+    if unnamed_cols:
+        df = df.drop(columns=unnamed_cols)
+
+    # Detect if this is pre-processed marker data (cell type + comma-separated markers)
+    def _is_preformatted_markers(df):
+        """Check if dataframe is already in pre-processed format."""
+        # Simple check: 2 columns = pre-processed
+        if len(df.columns) == 2:
+            return True
+        # Check if any column contains comma-separated marker lists
+        for col in df.columns:
+            sample = df[col].dropna().head(3)
+            if len(sample) > 0:
+                has_commas = sample.astype(str).str.contains(',').any()
+                if has_commas:
+                    first_val = str(sample.iloc[0])
+                    if ',' in first_val and len(first_val.split(',')) > 3:
+                        return True
+        return False
+
+    # Only process with get_top_markers if not already pre-processed
+    if _is_preformatted_markers(df):
+        marker = df  # Use the DataFrame directly
+    else:
         get_top_markers = _get_get_top_markers()
         marker = get_top_markers(df, n_genes=50)
-    else:
-        marker = df  # Use the DataFrame directly if it has 2 or fewer columns
         
     # If celltype_column is not provided, use the first column
     if celltype_column is None:
