@@ -109,9 +109,6 @@ head(markers)
 | `validator_involvement` | `"v1"` | Validation intensity: `"v1"` (moderate) or `"v0"` (high, slower) |
 | `reasoning` | `NULL` | Reasoning depth for GPT-5 series via OpenRouter only (`"low"`, `"medium"`, `"high"`). See [Reasoning Effort Parameter](setting-up-cassia.md#reasoning-effort-parameter). |
 
-### Advanced
-
-| Parameter | Default | Description |
 |-----------|---------|-------------|
 | `ranking_method` | `"avg_log2FC"` | Gene ranking: `"avg_log2FC"`, `"p_val_adj"`, `"pct_diff"`, `"Score"` |
 | `ascending` | `NULL` | Sort direction (uses method default) |

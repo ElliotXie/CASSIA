@@ -45,7 +45,7 @@ print(f"Consensus: {results['consensus']} (confidence: {results['confidence']:.1
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `species` | string | `"human"` | The species of the sample |
-| `model_preset` | string | `"premium"` | Configuration of models to use. `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4). `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
+| `model_preset` | string | `"budget"` | Configuration of models to use. `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4). `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
 | `output_basename` | string | - | Base name for output files |
 | `enable_discussion` | bool | `True` | Whether to enable multi-round debate between models |
 

@@ -45,7 +45,7 @@ print(f"Consensus: {results['consensus']} (confidence: {results['confidence']:.1
 | 参数 | 类型 | 默认值 | 描述 |
 |-----------|------|---------|-------------|
 | `species` | 字符串 | `"human"` | 样本的物种 |
-| `model_preset` | 字符串 | `"premium"` | 要使用的模型配置。`"premium"`: 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)。`"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
+| `model_preset` | 字符串 | `"budget"` | 要使用的模型配置。`"premium"`: 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)。`"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
 | `output_basename` | 字符串 | - | 输出文件的基本名称 |
 | `enable_discussion` | 布尔值 | `True` | 是否启用模型之间的多轮辩论 |
 

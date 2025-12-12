@@ -113,9 +113,6 @@ print(markers.head())
 | `validator_involvement` | `"v1"` | 验证强度：`"v1"`（中等）或 `"v0"`（高，较慢） |
 | `reasoning` | `None` | 仅适用于通过 OpenRouter 使用的 GPT-5 系列模型的推理深度（`"low"`、`"medium"`、`"high"`）。详见 [推理深度参数](setting-up-cassia.md#推理深度参数)。 |
 
-### 高级参数
-
-| 参数 | 默认值 | 描述 |
 |------|--------|------|
 | `ranking_method` | `"avg_log2FC"` | 基因排序：`"avg_log2FC"`、`"p_val_adj"`、`"pct_diff"`、`"Score"` |
 | `ascending` | `None` | 排序方向（使用方法默认值） |

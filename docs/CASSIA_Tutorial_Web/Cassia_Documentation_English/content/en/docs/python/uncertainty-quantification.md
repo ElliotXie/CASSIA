@@ -23,9 +23,10 @@ result = runCASSIA_n_times_similarity_score(
     tissue="large intestine",
     species="human",
     marker_list=["CD38", "CD138", "JCHAIN", "MZB1", "SDC1"],
-    model="google/gemini-2.5-flash",
+    model="openai/gpt-5.1",
     provider="openrouter",
-    n=5
+    n=5,
+    reasoning="medium"
 )
 
 print(f"Main cell type: {result['general_celltype_llm']}")
@@ -42,10 +43,11 @@ CASSIA.runCASSIA_batch_n_times(
     n=5,
     marker=marker_data,
     output_name="my_annotation",
-    model="anthropic/claude-sonnet-4.5",
+    model="openai/gpt-5.1",
     provider="openrouter",
     tissue="large intestine",
-    species="human"
+    species="human",
+    reasoning="medium"
 )
 
 # Step 2: Calculate similarity scores
@@ -53,8 +55,9 @@ CASSIA.runCASSIA_similarity_score_batch(
     marker=marker_data,
     file_pattern="my_annotation_*_full.csv",
     output_name="similarity_results",
-    model="openai/gpt-4.1",
-    provider="openrouter"
+    model="openai/gpt-5.1",
+    provider="openrouter",
+    reasoning="medium"
 )
 ```
 
@@ -88,6 +91,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `additional_info` | No | None | Additional context string |
 | `generate_report` | No | True | Generate HTML report |
 | `report_output_path` | No | "uq_report.html" | Path for HTML report |
+| `reasoning` | No | None | Reasoning effort level ("low", "medium", "high") - only for GPT-5 models |
 
 ### Batch Iteration (`runCASSIA_batch_n_times`)
 
@@ -102,6 +106,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `species` | Yes | - | Species |
 | `max_workers` | No | 4 | Overall parallel processing limit |
 | `batch_max_workers` | No | 2 | Workers per iteration |
+| `reasoning` | No | None | Reasoning effort level ("low", "medium", "high") - only for GPT-5 models |
 
 ### Similarity Scoring (`runCASSIA_similarity_score_batch`)
 
@@ -117,6 +122,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `sub_weight` | No | 0.5 | Importance of subtype match (0-1) |
 | `generate_report` | No | True | Generate HTML report |
 | `report_output_path` | No | "uq_batch_report.html" | Path for HTML report |
+| `reasoning` | No | None | Reasoning effort level ("low", "medium", "high") - only for GPT-5 models |
 
 ## Output
 

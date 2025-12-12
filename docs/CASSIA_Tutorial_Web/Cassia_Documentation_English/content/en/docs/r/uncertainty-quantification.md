@@ -22,10 +22,11 @@ runCASSIA_batch_n_times(
     n = 5,
     marker = marker_data,
     output_name = "my_annotation",
-    model = "anthropic/claude-3.5-sonnet",
+    model = "openai/gpt-5.1",
     provider = "openrouter",
     tissue = "brain",
-    species = "human"
+    species = "human",
+    reasoning = "medium"
 )
 
 # Step 2: Calculate similarity scores
@@ -33,8 +34,9 @@ runCASSIA_similarity_score_batch(
     marker = marker_data,
     file_pattern = "my_annotation_*_full.csv",
     output_name = "similarity_results",
-    model = "anthropic/claude-3.5-sonnet",
-    provider = "openrouter"
+    model = "openai/gpt-5.1",
+    provider = "openrouter",
+    reasoning = "medium"
 )
 ```
 
@@ -62,6 +64,7 @@ runCASSIA_similarity_score_batch(
 | `species` | Yes | - | Species |
 | `max_workers` | No | 4 | Overall parallel processing limit |
 | `batch_max_workers` | No | 2 | Workers per iteration (max_workers * batch_max_workers should match your cores) |
+| `reasoning` | No | NULL | Reasoning effort level ("low", "medium", "high") - only for GPT-5 models |
 
 ### Similarity Scoring (`runCASSIA_similarity_score_batch`)
 
@@ -77,6 +80,7 @@ runCASSIA_similarity_score_batch(
 | `sub_weight` | No | 0.5 | Importance of subtype match (0-1) |
 | `generate_report` | No | TRUE | Generate HTML report |
 | `report_output_path` | No | "uq_batch_report.html" | Path for HTML report |
+| `reasoning` | No | NULL | Reasoning effort level ("low", "medium", "high") - only for GPT-5 models |
 
 ## Output
 

@@ -44,7 +44,7 @@ cat("Confidence:", sprintf("%.1f%%", results$confidence * 100), "\n")
 | 参数 | 类型 | 默认值 | 描述 |
 |-----------|------|---------|-------------|
 | `species` | 字符串 | `"human"` | 样本的物种 |
-| `model_preset` | 字符串 | `"premium"` | 要使用的预配置模型集合。`"premium"`: 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)。`"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
+| `model_preset` | 字符串 | `"budget"` | 要使用的预配置模型集合。`"premium"`: 高性能组合 (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4)。`"budget"`: 具成本效益的模型 (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
 | `enable_discussion` | 逻辑值 | `TRUE` | 如果为 TRUE，若未达成初始共识，模型将"讨论"并重新考虑其投票 |
 | `generate_report` | 逻辑值 | `TRUE` | 是否生成分析的 HTML 报告 |
 | `verbose` | 逻辑值 | `TRUE` | 是否向控制台打印进度消息 |

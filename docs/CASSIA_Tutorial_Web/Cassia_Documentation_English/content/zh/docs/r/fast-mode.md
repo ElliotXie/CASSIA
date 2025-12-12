@@ -46,7 +46,7 @@ runCASSIA_pipeline(
 | `score_threshold` | 75 | 低于此分数（0-100）的注释将触发注释增强 |
 | `additional_info` | NULL | 可选的实验上下文（如 "药物X处理"） |
 | `validator_involvement` | "v1" | 验证严格程度（"v1" = 中等，"v0" = 高） |
-| `do_merge_annotations` | TRUE | 如果为TRUE，将详细细胞类型合并为更广泛的类别 |
+| `merge_annotations` | TRUE | 如果为TRUE，将详细细胞类型合并为更广泛的类别 |
 | `annotation_model` | "anthropic/claude-sonnet-4.5" | 用于初始细胞类型注释的模型 |
 | `annotation_provider` | "openrouter" | 注释模型的提供商 |
 | `score_model` | "openai/gpt-5.1" | 用于质量评分的模型 |

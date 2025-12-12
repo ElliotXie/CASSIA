@@ -22,10 +22,11 @@ runCASSIA_batch_n_times(
     n = 5,
     marker = marker_data,
     output_name = "my_annotation",
-    model = "anthropic/claude-3.5-sonnet",
+    model = "openai/gpt-5.1",
     provider = "openrouter",
     tissue = "brain",
-    species = "human"
+    species = "human",
+    reasoning = "medium"
 )
 
 # 步骤 2：计算相似性分数
@@ -33,8 +34,9 @@ runCASSIA_similarity_score_batch(
     marker = marker_data,
     file_pattern = "my_annotation_*_full.csv",
     output_name = "similarity_results",
-    model = "anthropic/claude-3.5-sonnet",
-    provider = "openrouter"
+    model = "openai/gpt-5.1",
+    provider = "openrouter",
+    reasoning = "medium"
 )
 ```
 
@@ -62,6 +64,7 @@ runCASSIA_similarity_score_batch(
 | `species` | 是 | - | 物种 |
 | `max_workers` | 否 | 4 | 整体并行处理限制 |
 | `batch_max_workers` | 否 | 2 | 每次迭代的工作进程（max_workers * batch_max_workers 应与核心数匹配） |
+| `reasoning` | 否 | NULL | 推理深度级别（"low"、"medium"、"high"）- 仅适用于 GPT-5 模型 |
 
 ### 相似性评分 (`runCASSIA_similarity_score_batch`)
 
@@ -77,6 +80,7 @@ runCASSIA_similarity_score_batch(
 | `sub_weight` | 否 | 0.5 | 亚类型匹配的重要性（0-1） |
 | `generate_report` | 否 | TRUE | 生成 HTML 报告 |
 | `report_output_path` | 否 | "uq_batch_report.html" | HTML 报告路径 |
+| `reasoning` | 否 | NULL | 推理深度级别（"low"、"medium"、"high"）- 仅适用于 GPT-5 模型 |
 
 ## 输出
 

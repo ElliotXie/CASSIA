@@ -44,7 +44,7 @@ cat("Confidence:", sprintf("%.1f%%", results$confidence * 100), "\n")
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `species` | character | `"human"` | The species of the sample |
-| `model_preset` | character | `"premium"` | Pre-configured model ensemble. `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4). `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
+| `model_preset` | character | `"budget"` | Pre-configured model ensemble. `"premium"`: High-performance ensemble (Gemini 3 Pro, Claude Sonnet 4.5, GPT-5.1, Grok 4). `"budget"`: Cost-effective models (DeepSeek V3.2, Grok 4 Fast, Kimi K2, Gemini 2.5 Flash) |
 | `enable_discussion` | logical | `TRUE` | If TRUE, models will "discuss" and reconsider their votes if initial consensus is not reached |
 | `generate_report` | logical | `TRUE` | Whether to generate an HTML report of the analysis |
 | `verbose` | logical | `TRUE` | Whether to print progress messages to the console |

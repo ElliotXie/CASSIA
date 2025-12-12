@@ -23,9 +23,10 @@ result = runCASSIA_n_times_similarity_score(
     tissue="large intestine",
     species="human",
     marker_list=["CD38", "CD138", "JCHAIN", "MZB1", "SDC1"],
-    model="google/gemini-2.5-flash",
+    model="openai/gpt-5.1",
     provider="openrouter",
-    n=5
+    n=5,
+    reasoning="medium"
 )
 
 print(f"主要细胞类型: {result['general_celltype_llm']}")
@@ -42,10 +43,11 @@ CASSIA.runCASSIA_batch_n_times(
     n=5,
     marker=marker_data,
     output_name="my_annotation",
-    model="anthropic/claude-sonnet-4.5",
+    model="openai/gpt-5.1",
     provider="openrouter",
     tissue="large intestine",
-    species="human"
+    species="human",
+    reasoning="medium"
 )
 
 # 步骤 2：计算相似性评分
@@ -53,8 +55,9 @@ CASSIA.runCASSIA_similarity_score_batch(
     marker=marker_data,
     file_pattern="my_annotation_*_full.csv",
     output_name="similarity_results",
-    model="openai/gpt-4.1",
-    provider="openrouter"
+    model="openai/gpt-5.1",
+    provider="openrouter",
+    reasoning="medium"
 )
 ```
 
@@ -88,6 +91,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `additional_info` | 否 | None | 额外上下文字符串 |
 | `generate_report` | 否 | True | 生成 HTML 报告 |
 | `report_output_path` | 否 | "uq_report.html" | HTML 报告路径 |
+| `reasoning` | 否 | None | 推理深度级别（"low"、"medium"、"high"）- 仅适用于 GPT-5 模型 |
 
 ### 批量迭代 (`runCASSIA_batch_n_times`)
 
@@ -102,6 +106,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `species` | 是 | - | 物种 |
 | `max_workers` | 否 | 4 | 总体并行处理限制 |
 | `batch_max_workers` | 否 | 2 | 每次迭代的工作者数 |
+| `reasoning` | 否 | None | 推理深度级别（"low"、"medium"、"high"）- 仅适用于 GPT-5 模型 |
 
 ### 相似性评分 (`runCASSIA_similarity_score_batch`)
 
@@ -117,6 +122,7 @@ CASSIA.runCASSIA_similarity_score_batch(
 | `sub_weight` | 否 | 0.5 | 亚型匹配的重要性 (0-1) |
 | `generate_report` | 否 | True | 生成 HTML 报告 |
 | `report_output_path` | 否 | "uq_batch_report.html" | HTML 报告路径 |
+| `reasoning` | 否 | None | 推理深度级别（"low"、"medium"、"high"）- 仅适用于 GPT-5 模型 |
 
 ## 输出
 

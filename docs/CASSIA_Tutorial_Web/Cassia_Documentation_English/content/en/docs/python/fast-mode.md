@@ -46,7 +46,7 @@ CASSIA.runCASSIA_pipeline(
 | `score_threshold` | 75 | Annotations below this score (0-100) trigger Annotation Boost |
 | `additional_info` | None | Optional experimental context (e.g., "treated with drug X") |
 | `validator_involvement` | "v1" | Validation strictness ("v1" = moderate, "v0" = high) |
-| `do_merge_annotations` | True | If True, merges detailed cell types into broader categories |
+| `merge_annotations` | True | If True, merges detailed cell types into broader categories |
 | `annotation_model` | "anthropic/claude-sonnet-4.5" | Model for initial cell type annotation |
 | `annotation_provider` | "openrouter" | Provider for annotation model |
 | `score_model` | "openai/gpt-5.1" | Model for quality scoring |
