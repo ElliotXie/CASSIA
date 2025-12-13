@@ -18,8 +18,7 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -32,23 +31,28 @@ in single-cell RNA-seq data.
 ## Key Features
 
 - **Reference-free annotation**: No pre-trained reference datasets required
-- **Multi-agent system**: Specialized agents for annotation, validation, scoring
+- **Multi-agent system**: Specialized agents for annotation, validation, and scoring
 - **Interpretable results**: Detailed reasoning for each cell type assignment
 - **Multiple LLM support**: Works with Anthropic, OpenAI, and OpenRouter providers
-- **Batch processing**: Efficiently annotate multiple clusters in parallel
 
 ## Citation
 
 If you use CASSIA in your research, please cite:
 
-> Xie, E.Y. et al. (2024). CASSIA: A Collaborative Agent System for Single-cell
-> Interpretable Annotation. *Nature Communications*.
+> Xie, E., Cheng, L., Shireman, J. et al. CASSIA: a multi-agent large language
+> model for automated and interpretable cell annotation. *Nat Commun* (2025).
+> https://doi.org/10.1038/s41467-025-67084-x
+
+## Full Documentation
+
+For comprehensive tutorials, advanced features, and detailed examples, visit:
+**[https://docs.cassia.bio](https://docs.cassia.bio)**
 
 # Installation
 
 ## From GitHub
 
-```{r install-github}
+```{r install-github, eval=FALSE}
 if (!requireNamespace("devtools", quietly = TRUE)) {
     install.packages("devtools")
 }
@@ -58,8 +62,7 @@ devtools::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R")
 ## Python Environment Setup
 
 CASSIA requires a Python backend. Set up the environment automatically:
-
-```{r setup-env}
+```{r setup-env, eval=FALSE}
 library(CASSIA)
 setup_cassia_env()
 ```
@@ -73,14 +76,14 @@ This creates a conda environment with all required Python dependencies.
 CASSIA uses large language models via API. Set your API key for your preferred
 provider:
 
-```{r api-keys}
+```{r api-keys, eval=FALSE}
 # For Anthropic (Claude models)
 setLLMApiKey("your-api-key", provider = "anthropic")
 
 # For OpenAI (GPT models)
 setLLMApiKey("your-api-key", provider = "openai")
 
-# For OpenRouter (multiple models)
+# For OpenRouter (multiple models - recommended)
 setLLMApiKey("your-api-key", provider = "openrouter")
 ```
 
@@ -88,48 +91,32 @@ setLLMApiKey("your-api-key", provider = "openrouter")
 
 Check that your environment is properly configured:
 
-```{r validate}
+```{r validate, eval=FALSE}
 check_python_env()
 validate_api_keys()
 ```
 
-# Quick Start
+# Single Cluster Annotation
 
-## Load Example Data
+Use `runCASSIA()` to annotate a single cluster based on marker genes:
 
-CASSIA includes example marker gene data for testing:
-
-```{r load-example, eval=TRUE}
+```{r single-annotation, eval=FALSE}
 library(CASSIA)
 
-# Check available example datasets
-listAvailableMarkers()
-```
-
-```{r load-markers}
-# Load example PBMC markers
-markers <- loadExampleMarkers()
-head(markers)
-```
-
-## Single Cluster Annotation
-
-Annotate a single cluster using marker genes:
-
-```{r single-annotation}
+# Annotate a single cluster with marker genes
 result <- runCASSIA(
   marker_list = c("CD3D", "CD3E", "CD4", "IL7R"),
   tissue = "PBMC",
   species = "human",
   provider = "openrouter",
-  model = "google/gemini-2.5-flash-preview"
+  model = "anthropic/claude-sonnet-4.5"
 )
 
-# View the annotation
+# View the annotation result
 result$structured_output
 ```
 
-**Expected output structure:**
+**Example output structure:**
 
 ```
 $cell_type
@@ -139,16 +126,26 @@ $confidence
 [1] "high"
 
 $reasoning
-[1] "The marker genes CD3D, CD3E indicate T cell lineage. CD4 expression
+[1] "The marker genes CD3D and CD3E indicate T cell lineage. CD4 expression
      combined with IL7R suggests naive or memory CD4+ T helper cells..."
 ```
 
-## Batch Annotation
+## Parameters
 
-For multiple clusters, use batch processing:
+- `marker_list`: Character vector of marker genes, comma-separated string, or
+  data frame with a 'gene' column
+- `tissue`: Tissue type (e.g., "PBMC", "brain", "liver")
+- `species`: Species (e.g., "human", "mouse")
+- `provider`: LLM provider ("openrouter", "anthropic", or "openai")
+- `model`: Model name to use for annotation
 
-```{r batch-annotation}
+# Batch Annotation
+
+Use `runCASSIA_batch()` to annotate multiple clusters efficiently:
+
+```{r batch-annotation, eval=FALSE}
 # Load marker data with multiple clusters
+# Expected format: data frame with 'cluster' and 'gene' columns
 markers <- loadExampleMarkers()
 
 # Run batch annotation
@@ -157,7 +154,7 @@ results <- runCASSIA_batch(
   tissue = "PBMC",
   species = "human",
   provider = "openrouter",
-  model = "google/gemini-2.5-flash-preview",
+  model = "anthropic/claude-sonnet-4.5",
   max_workers = 4
 )
 
@@ -165,140 +162,51 @@ results <- runCASSIA_batch(
 names(results)
 ```
 
-# Complete Pipeline
+## Input Format
 
-For comprehensive analysis with quality scoring and iterative refinement:
+The `marker_data` should be a data frame with at minimum:
 
-```{r pipeline}
-runCASSIA_pipeline(
-  output_file_name = "my_analysis",
-  tissue = "PBMC",
-  species = "human",
-  marker = markers,
-  max_workers = 4,
-  score_threshold = 75,  # Re-annotate clusters scoring below 75
-  do_merge_annotations = TRUE,
-  output_dir = "results/"
-)
-```
+- `cluster`: Cluster identifier
+- `gene`: Marker gene name
 
-This generates:
-
-- Annotation results for each cluster
-- Quality scores with detailed evaluation
-- HTML reports with visualizations
-- Merged consensus annotations
-
-# Advanced Features
-
-## Annotation Boosting
-
-For low-confidence annotations, iteratively refine with additional analysis:
-
-```{r boost}
-boosted <- runCASSIA_annotationboost(
-  marker_list = markers,
-  tissue = "PBMC",
-  species = "human",
-  initial_annotation = "T cells",
-  search_strategy = "breadth"
-)
-```
-
-## Subclustering Analysis
-
-Analyze heterogeneity within clusters:
-
-```{r subcluster}
-subcluster_results <- runCASSIA_subclusters(
-  marker_data = markers,
-  tissue = "PBMC",
-  species = "human",
-  parent_cluster = "T cells"
-)
-```
-
-## Uncertainty Quantification
-
-Run multiple annotation attempts to assess confidence:
-
-```{r uncertainty}
-uncertainty <- runCASSIA_n_times(
-  marker_list = markers,
-  tissue = "PBMC",
-  species = "human",
-  n = 5
-)
-
-# Get similarity scores across runs
-uncertainty$similarity_scores
-```
+Additional columns like `avg_log2FC` or `p_val_adj` can be included for ranking.
 
 # Seurat Integration
 
 CASSIA integrates directly with Seurat objects:
 
-```{r seurat}
+```{r seurat, eval=FALSE}
 library(Seurat)
 
-# After running FindAllMarkers
+# After running FindAllMarkers on your Seurat object
 markers <- FindAllMarkers(seurat_obj)
 
-# Run CASSIA pipeline
+# Run CASSIA batch annotation
 results <- runCASSIA_batch(
   marker_data = markers,
   tissue = "brain",
   species = "mouse"
 )
 
-# Add annotations to Seurat object
+# Add annotations back to Seurat object
 seurat_obj <- add_cassia_to_seurat(seurat_obj, results)
 ```
 
-# Model Selection
 
-CASSIA supports multiple LLM providers and models:
+# Advanced Features
 
-```{r models, eval=TRUE}
-# List available models
-list_models()
-```
+For advanced features including:
 
-```{r recommended}
-# Get recommended model for your use case
-get_recommended_model(use_case = "annotation")
-```
+- **Annotation Boosting**: Iterative refinement for low-confidence annotations
+- **Subclustering Analysis**: Detailed heterogeneity analysis within clusters
+- **Uncertainty Quantification**: Multiple annotation runs to assess confidence
+- **Complete Pipeline**: End-to-end annotation with scoring and reporting
 
-Different models offer trade-offs between cost, speed, and accuracy. For most
-use cases, we recommend starting with `google/gemini-2.5-flash-preview` via
-OpenRouter for its balance of performance and cost.
-
-# Troubleshooting
-
-## Common Issues
-
-**Python environment not found:**
-```{r troubleshoot-python}
-# Reinstall the environment
-setup_cassia_env(force = TRUE)
-```
-
-**API key errors:**
-```{r troubleshoot-api}
-# Verify keys are set correctly
-validate_api_keys()
-```
-
-**Rate limiting:**
-Reduce `max_workers` in batch processing to avoid API rate limits.
+Please visit our comprehensive documentation at:
+**[https://docs.cassia.bio](https://docs.cassia.bio)**
 
 # Session Information
 
-```{r session-info, eval=TRUE}
+```{r session-info}
 sessionInfo()
 ```
-
-# References
-
-1. Xie, E.Y. et al. (2024). CASSIA: A Collaborative Agent System for Single-cell
-   Interpretable Annotation. *Nature Communications*.

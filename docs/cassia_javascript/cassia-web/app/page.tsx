@@ -71,7 +71,7 @@ export default function HomePage() {
   const { apiKeys, provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl } = useApiKeyStore()
   const customBaseUrl = getCustomBaseUrl()
   const { isAuthenticated } = useAuthStore()
-  const [tempApiKey, setTempApiKey] = useState(apiKeys[provider])
+  const [tempApiKey, setTempApiKey] = useState(apiKeys[provider] || '')
   const [tempProvider, setTempProvider] = useState(provider)
   const [tempModel, setTempModel] = useState(model)
   const [isTestingApi, setIsTestingApi] = useState(false)
