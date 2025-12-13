@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff } from 'lucide-react'
+import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff, ChevronDown, ExternalLink } from 'lucide-react'
 import { useState, Suspense } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -13,12 +13,43 @@ import { UserDashboard } from '@/components/dashboard/UserDashboard'
 import { LoadApiKeysButton } from '@/components/LoadApiKeysButton'
 import modelSettings from '../public/examples/model_settings.json'
 import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
+import { testApiKey as testApiKeyFn } from '@/lib/cassia/llm_utils'
+
+// Custom provider presets (same as ApiKeyInput.tsx)
+const CUSTOM_PROVIDER_PRESETS = {
+  deepseek: {
+    name: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+    helpUrl: 'https://platform.deepseek.com/api_keys'
+  },
+  qwen: {
+    name: 'Qwen (Alibaba)',
+    baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+    models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
+    helpUrl: 'https://dashscope.console.aliyun.com/apiKey'
+  },
+  kimi: {
+    name: 'Kimi (Moonshot)',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+    helpUrl: 'https://platform.moonshot.cn/console/api-keys'
+  },
+  manual: {
+    name: 'Manual Entry',
+    baseUrl: '',
+    models: [],
+    helpUrl: '#'
+  }
+} as const
+
+type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
 
 export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
-  const { apiKeys, provider, model, setApiKey, setProvider, setModel } = useApiKeyStore()
+  const { apiKeys, provider, model, setApiKey, setProvider, setModel, customBaseUrl, setCustomBaseUrl } = useApiKeyStore()
   const { isAuthenticated } = useAuthStore()
   const [tempApiKey, setTempApiKey] = useState(apiKeys[provider])
   const [tempProvider, setTempProvider] = useState(provider)
@@ -29,6 +60,10 @@ export default function HomePage() {
   const [showApiKey, setShowApiKey] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  // Custom provider state
+  const [customPreset, setCustomPreset] = useState<CustomPresetKey>('deepseek')
+  const [showPresetDropdown, setShowPresetDropdown] = useState(false)
+  const [tempCustomBaseUrl, setTempCustomBaseUrl] = useState(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
 
   // Get current API key
   const apiKey = apiKeys[provider]
@@ -41,10 +76,19 @@ export default function HomePage() {
 
   // Update model when provider changes
   const handleProviderChange = (newProvider: string) => {
-    setTempProvider(newProvider)
-    setTempModel(getDefaultModel(newProvider))
+    setTempProvider(newProvider as typeof provider)
     setTestResult(null)
     setTestMessage('')
+
+    if (newProvider === 'custom') {
+      // Initialize with DeepSeek preset
+      const defaultPreset = CUSTOM_PROVIDER_PRESETS.deepseek
+      setTempCustomBaseUrl(defaultPreset.baseUrl)
+      setTempModel(defaultPreset.models[0])
+      setCustomPreset('deepseek')
+    } else {
+      setTempModel(getDefaultModel(newProvider))
+    }
   }
 
   // Test API key function
@@ -60,6 +104,28 @@ export default function HomePage() {
     setTestMessage('')
 
     try {
+      // Handle custom provider using the imported testApiKeyFn
+      if (tempProvider === 'custom') {
+        if (!tempCustomBaseUrl) {
+          setTestResult('error')
+          setTestMessage('Base URL is required for custom provider')
+          setIsTestingApi(false)
+          return
+        }
+
+        const result = await testApiKeyFn('custom', tempApiKey, tempCustomBaseUrl)
+
+        if (result.success) {
+          setTestResult('success')
+          setTestMessage('API key is valid and working!')
+        } else {
+          setTestResult('error')
+          setTestMessage(`API test failed: ${result.error}`)
+        }
+        setIsTestingApi(false)
+        return
+      }
+
       let testUrl = ''
       let testHeaders: any = {}
       let testBody: any = {}
@@ -134,6 +200,12 @@ export default function HomePage() {
       await setApiKey(tempApiKey, tempProvider)
       setProvider(tempProvider)
       setModel(tempModel)
+
+      // Save custom base URL if using custom provider
+      if (tempProvider === 'custom') {
+        setCustomBaseUrl(tempCustomBaseUrl)
+      }
+
       setSaveSuccess(true)
       // Show success message briefly, then close modal
       setTimeout(() => {
@@ -212,6 +284,9 @@ export default function HomePage() {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
+                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
+                  setCustomPreset('deepseek')
+                  setShowPresetDropdown(false)
                   setTestResult(null)
                   setTestMessage('')
                   setIsSaving(false)
@@ -353,7 +428,7 @@ export default function HomePage() {
                     : `API key configured for ${provider}. You're ready to run analysis!`
                   }
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center space-x-2">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                     <span className="text-gray-700 dark:text-gray-300">OpenRouter (Recommended)</span>
@@ -366,6 +441,10 @@ export default function HomePage() {
                     <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
                     <span className="text-gray-700 dark:text-gray-300">Anthropic Claude</span>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                    <span className="text-gray-700 dark:text-gray-300">Custom Provider</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -375,6 +454,9 @@ export default function HomePage() {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
+                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
+                  setCustomPreset('deepseek')
+                  setShowPresetDropdown(false)
                   setTestResult(null)
                   setTestMessage('')
                   setIsSaving(false)
@@ -699,29 +781,164 @@ export default function HomePage() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">AI Provider</label>
-                <select 
-                  value={tempProvider} 
+                <select
+                  value={tempProvider}
                   onChange={(e) => handleProviderChange(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-blue-200 dark:border-blue-700 rounded-xl text-gray-900 dark:text-white bg-blue-50 dark:bg-blue-900/20 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                 >
                   <option value="openrouter">OpenRouter (Recommended)</option>
                   <option value="openai">OpenAI</option>
                   <option value="anthropic">Anthropic</option>
+                  <option value="custom">Custom Provider</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">Default Model</label>
-                <input 
-                  type="text" 
-                  value={tempModel} 
-                  onChange={(e) => setTempModel(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-blue-200 dark:border-blue-700 rounded-xl text-gray-900 dark:text-white bg-blue-50 dark:bg-blue-900/20 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Default: {getDefaultModel(tempProvider)}
-                </p>
-              </div>
+              {/* Custom Provider Configuration */}
+              {tempProvider === 'custom' && (
+                <div className="space-y-4 p-4 border-2 border-purple-200 dark:border-purple-700 rounded-xl bg-purple-50/30 dark:bg-purple-900/10">
+                  {/* Preset Selection */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-white">Provider Preset</label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowPresetDropdown(!showPresetDropdown)}
+                        className="w-full p-3 text-left border-2 border-purple-200 dark:border-purple-600 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-between hover:border-purple-400 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white">{CUSTOM_PROVIDER_PRESETS[customPreset].name}</span>
+                        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showPresetDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+                      {showPresetDropdown && (
+                        <div className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-600 rounded-xl shadow-lg overflow-hidden">
+                          {Object.entries(CUSTOM_PROVIDER_PRESETS).map(([key, preset]) => (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => {
+                                setCustomPreset(key as CustomPresetKey)
+                                if (preset.baseUrl) {
+                                  setTempCustomBaseUrl(preset.baseUrl)
+                                  if (preset.models.length > 0) {
+                                    setTempModel(preset.models[0])
+                                  }
+                                } else {
+                                  setTempCustomBaseUrl('')
+                                  setTempModel('')
+                                }
+                                setShowPresetDropdown(false)
+                              }}
+                              className={`w-full p-3 text-left hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors ${
+                                customPreset === key ? 'bg-purple-100 dark:bg-purple-900/50' : ''
+                              }`}
+                            >
+                              <div className="font-medium text-sm text-gray-900 dark:text-white">{preset.name}</div>
+                              {preset.baseUrl && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{preset.baseUrl}</div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Base URL */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-white">Base URL</label>
+                    {customPreset === 'manual' ? (
+                      <input
+                        type="url"
+                        placeholder="https://api.example.com/v1"
+                        value={tempCustomBaseUrl}
+                        onChange={(e) => setTempCustomBaseUrl(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                      />
+                    ) : (
+                      <input
+                        type="url"
+                        value={CUSTOM_PROVIDER_PRESETS[customPreset].baseUrl}
+                        readOnly
+                        className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                      />
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {customPreset === 'manual'
+                        ? 'Enter any OpenAI-compatible endpoint URL'
+                        : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[customPreset].name}`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Model Selection */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-white">Model</label>
+                    {customPreset !== 'manual' && CUSTOM_PROVIDER_PRESETS[customPreset].models.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {CUSTOM_PROVIDER_PRESETS[customPreset].models.map((modelName) => (
+                            <button
+                              key={modelName}
+                              type="button"
+                              onClick={() => setTempModel(modelName)}
+                              className={`px-3 py-1.5 text-sm border-2 rounded-lg transition-colors ${
+                                tempModel === modelName
+                                  ? 'border-purple-500 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
+                                  : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500'
+                              }`}
+                            >
+                              {modelName}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or enter a custom model name..."
+                          value={(CUSTOM_PROVIDER_PRESETS[customPreset].models as readonly string[]).includes(tempModel) ? '' : tempModel}
+                          onChange={(e) => setTempModel(e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                        />
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
+                        value={tempModel}
+                        onChange={(e) => setTempModel(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                      />
+                    )}
+                  </div>
+
+                  {/* Help Link */}
+                  {customPreset !== 'manual' && (
+                    <a
+                      href={CUSTOM_PROVIDER_PRESETS[customPreset].helpUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline"
+                    >
+                      Get {CUSTOM_PROVIDER_PRESETS[customPreset].name} API Key
+                      <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Default Model - only show for non-custom providers */}
+              {tempProvider !== 'custom' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">Default Model</label>
+                  <input
+                    type="text"
+                    value={tempModel}
+                    onChange={(e) => setTempModel(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-blue-200 dark:border-blue-700 rounded-xl text-gray-900 dark:text-white bg-blue-50 dark:bg-blue-900/20 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Default: {getDefaultModel(tempProvider)}
+                  </p>
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">API Key</label>
