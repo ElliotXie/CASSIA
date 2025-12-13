@@ -39,7 +39,7 @@ const CUSTOM_PROVIDER_PRESETS = {
   },
   minimax: {
     name: 'MiniMax',
-    baseUrl: 'https://api.minimax.chat/v1',
+    baseUrl: 'https://api.minimax.io/v1',
     models: ['MiniMax-M2'],
     helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
   },

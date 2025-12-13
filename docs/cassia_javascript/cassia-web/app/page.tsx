@@ -43,8 +43,8 @@ const CUSTOM_PROVIDER_PRESETS = {
   },
   minimax: {
     name: 'MiniMax',
-    baseUrl: 'https://api.minimax.chat/v1',
-    models: ['MiniMax-Text-01', 'abab6.5s-chat', 'abab5.5-chat'],
+    baseUrl: 'https://api.minimax.io/v1',
+    models: ['MiniMax-M2'],
     helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
   },
   zhipuai: {
