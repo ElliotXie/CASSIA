@@ -86,7 +86,7 @@ export default function HomePage() {
   const [tempCustomBaseUrl, setTempCustomBaseUrl] = useState(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
 
   // Get current API key
-  const apiKey = apiKeys[provider]
+  const apiKey = apiKeys[provider] || ''
 
   // Default models for each provider from model_settings.json
   const getDefaultModel = (providerName: string) => {

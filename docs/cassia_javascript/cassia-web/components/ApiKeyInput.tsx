@@ -129,8 +129,8 @@ export function ApiKeyInput() {
 
   // Get the API key for the current provider (uses selected preset for custom)
   const apiKey = provider === 'custom'
-    ? getCustomApiKey(selectedCustomPreset)
-    : getApiKey(provider)
+    ? (getCustomApiKey(selectedCustomPreset) || '')
+    : (getApiKey(provider) || '')
 
   // Get the custom base URL for the selected preset
   const customBaseUrl = getCustomBaseUrl(selectedCustomPreset)
