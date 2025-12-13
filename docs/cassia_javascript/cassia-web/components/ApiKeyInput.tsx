@@ -28,25 +28,25 @@ const CUSTOM_PROVIDER_PRESETS = {
   kimi: {
     name: 'Kimi (Moonshot)',
     baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+    models: ['kimi-k2-turbo-preview'],
     helpUrl: 'https://platform.moonshot.cn/console/api-keys'
   },
   siliconflow: {
     name: 'SiliconFlow',
     baseUrl: 'https://api.siliconflow.cn/v1',
-    models: ['Pro/deepseek-ai/DeepSeek-V3', 'deepseek-ai/DeepSeek-V3', 'Qwen/Qwen2.5-72B-Instruct'],
+    models: ['deepseek-ai/DeepSeek-V3.2'],
     helpUrl: 'https://cloud.siliconflow.cn/account/ak'
   },
   minimax: {
     name: 'MiniMax',
     baseUrl: 'https://api.minimax.chat/v1',
-    models: ['MiniMax-Text-01', 'abab6.5s-chat', 'abab5.5-chat'],
+    models: ['MiniMax-M2'],
     helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
   },
   zhipuai: {
     name: 'Zhipu AI (智谱)',
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-4-plus', 'glm-4-flash', 'glm-4-long'],
+    models: ['glm-4.6'],
     helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys'
   },
   manual: {

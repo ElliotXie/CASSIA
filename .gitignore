@@ -72,3 +72,6 @@ dev_docs/quick_install_dev.py
 
 # Manual package test folder (new location)
 Test/17_manual_package_Test/
+
+# Claude Code session files
+claude-code-session/
