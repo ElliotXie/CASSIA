@@ -7,6 +7,7 @@ import Papa from 'papaparse';
 import { iterativeMarkerAnalysis, generateSummaryReport, extractConversationForCluster, getAvailableClusters, extractTopMarkerGenes } from '@/lib/cassia/annotationBoost';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useResultsStore } from '@/lib/stores/results-store';
 import { ReasoningEffort, getDefaultReasoningEffort } from '@/lib/config/model-presets';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ export default function AnnotationBoostPage() {
 
     // Auth state
     const { isAuthenticated, user } = useAuthStore();
+    const { saveResult } = useResultsStore();
 
     // State management
     const [conversationFile, setConversationFile] = useState<File | null>(null);
@@ -457,6 +459,22 @@ export default function AnnotationBoostPage() {
                 reasoningEffort
             );
             setResultsHtml(htmlReport);
+
+            // Save to database for authenticated users
+            if (isAuthenticated) {
+                try {
+                    await saveResult({
+                        analysis_type: 'annotation-boost',
+                        title: `Annotation Boost - ${selectedCluster || majorClusterInfo}`,
+                        description: `${numIterations} iterations, ${searchStrategy}-first strategy`,
+                        results: { messages: conversationWithoutPrompt, cluster: selectedCluster, iterations: numIterations },
+                        settings: { provider, model, searchStrategy, numIterations }
+                    });
+                    console.log('Results saved to dashboard');
+                } catch (saveErr) {
+                    console.error('Failed to save results:', saveErr);
+                }
+            }
         } catch (err: any) {
             setError(`Analysis failed: ${err.message}`);
         } finally {

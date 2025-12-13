@@ -16,6 +16,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
+import { useResultsStore } from '@/lib/stores/results-store'
+import { useAuthStore } from '@/lib/stores/auth-store'
 import { ContactDialog } from '@/components/ContactDialog'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -63,6 +65,9 @@ export default function BatchPage() {
     addLog,
     setResults
   } = useAnalysisStore()
+
+  const { saveResult } = useResultsStore()
+  const { isAuthenticated } = useAuthStore()
 
   // Batch-specific config
   const [batchConfig, setBatchConfig] = useState({
@@ -185,7 +190,23 @@ export default function BatchPage() {
         totalGenes: fileData.length,
         avgScore: 89.2
       })
-      
+
+      // Save to database for authenticated users
+      if (isAuthenticated) {
+        try {
+          await saveResult({
+            analysis_type: 'batch',
+            title: `${tissue} - ${species} (${(results as any).total_clusters} clusters)`,
+            description: outputName || 'Batch analysis',
+            results: results,
+            settings: { provider, model, tissue, species }
+          })
+          addLog('💾 Results saved to your dashboard')
+        } catch (err) {
+          console.error('Failed to save results:', err)
+        }
+      }
+
     } catch (error) {
       console.error('Batch analysis error:', error)
       addLog(`❌ Error: ${(error as any).message}`)

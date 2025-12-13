@@ -13,6 +13,7 @@ import { UserDashboard } from '@/components/dashboard/UserDashboard'
 import { LoadApiKeysButton } from '@/components/LoadApiKeysButton'
 import modelSettings from '../public/examples/model_settings.json'
 import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
+import { FeedbackSection } from '@/components/FeedbackSection'
 import { testApiKey as testApiKeyFn } from '@/lib/cassia/llm_utils'
 
 // Custom provider presets (same as ApiKeyInput.tsx)
@@ -709,6 +710,9 @@ export default function HomePage() {
                   <span className="ml-2">Report Issues</span>
                 </Link>
               </Button>
+
+              {/* Feedback Section */}
+              <FeedbackSection />
             </CardContent>
           </Card>
         </div>

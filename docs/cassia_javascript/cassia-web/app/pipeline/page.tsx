@@ -16,6 +16,8 @@ import { ResultsDownloader } from '@/components/ResultsDownloader'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
+import { useResultsStore } from '@/lib/stores/results-store'
+import { useAuthStore } from '@/lib/stores/auth-store'
 import { ContactDialog } from '@/components/ContactDialog'
 import { ReportViewerModal, type BatchReportData } from '@/components/reports'
 
@@ -41,7 +43,7 @@ export default function PipelinePage() {
   
   const { provider, model, getApiKey, customBaseUrl } = useApiKeyStore()
   const apiKey = getApiKey()
-  
+
   const {
     uploadedFile,
     fileData,
@@ -53,6 +55,9 @@ export default function PipelinePage() {
     addLog,
     setResults
   } = useAnalysisStore()
+
+  const { saveResult } = useResultsStore()
+  const { isAuthenticated } = useAuthStore()
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
 
@@ -87,7 +92,7 @@ export default function PipelinePage() {
         onLog: (message) => {
           addLog(message)
         },
-        onComplete: (finalResults) => {
+        onComplete: async (finalResults) => {
           // Set final results
           setResults({
             clusters: finalResults.summary.totalClusters,
@@ -97,6 +102,22 @@ export default function PipelinePage() {
             downloadUrls: finalResults.downloadUrls,
             finalResults
           })
+
+          // Save to database for authenticated users
+          if (isAuthenticated) {
+            try {
+              await saveResult({
+                analysis_type: 'batch',
+                title: `${tissue} - ${species} (${finalResults.summary.totalClusters} clusters)`,
+                description: outputName || 'Pipeline analysis',
+                results: finalResults,
+                settings: { provider, model, tissue, species, scoreThreshold }
+              })
+              addLog('💾 Results saved to your dashboard')
+            } catch (err) {
+              console.error('Failed to save results:', err)
+            }
+          }
         },
         onError: (error) => {
           console.error('Pipeline error:', error)

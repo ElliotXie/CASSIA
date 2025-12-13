@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useResultsStore } from '@/lib/stores/results-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
@@ -53,6 +54,7 @@ export default function AnnotationMergingPage() {
 
   // Auth state
   const { isAuthenticated, user } = useAuthStore();
+  const { saveResult } = useResultsStore();
 
   // Initialize with global API key
   useEffect(() => {
@@ -273,6 +275,22 @@ export default function AnnotationMergingPage() {
 
       setResults(result);
       setProgress('Annotation merging completed successfully!');
+
+      // Save to database for authenticated users
+      if (isAuthenticated) {
+        try {
+          await saveResult({
+            analysis_type: 'batch', // Use 'batch' as merging is not in the type enum
+            title: `Merged Annotations - ${uploadedFile?.name || 'analysis'}`,
+            description: `${processAllLevels ? 'All levels' : detailLevel} merging, ${csvData?.length || 0} rows`,
+            results: result,
+            settings: { provider, model, detailLevel, processAllLevels, batchSize }
+          });
+          console.log('Results saved to dashboard');
+        } catch (saveErr) {
+          console.error('Failed to save results:', saveErr);
+        }
+      }
     } catch (err) {
       setError(`Error during processing: ${err.message}`);
       setProgress('');

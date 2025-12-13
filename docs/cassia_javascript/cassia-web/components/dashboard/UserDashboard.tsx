@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useResultsStore } from '@/lib/stores/results-store'
-import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +13,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { AnalysisResult } from '@/lib/supabase/types'
+import { ApiKeyManager } from './ApiKeyManager'
 
 interface UserDashboardProps {
   onNavigate?: (path: string) => void
@@ -29,7 +29,6 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
     isLoading,
     error
   } = useResultsStore()
-  const { apiKeys } = useApiKeyStore()
 
   const [selectedResults, setSelectedResults] = useState<string[]>([])
 
@@ -74,9 +73,6 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
     }
   }
 
-  // Check if any API key is set across all providers
-  const hasApiKey = Object.values(apiKeys).some(key => key && key.length > 0)
-  
   if (!user) {
     return (
       <div className="p-6 text-center">
@@ -95,24 +91,13 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
       </div>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Results</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{results.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">API Key Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {hasApiKey ? '✓' : '✗'}
-            </div>
           </CardContent>
         </Card>
 
@@ -127,6 +112,9 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* API Key Management */}
+      <ApiKeyManager />
 
       {/* Recent Results */}
       <Card>

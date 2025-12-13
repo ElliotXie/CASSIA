@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useResultsStore } from '@/lib/stores/results-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export default function ScoringAgentPage() {
 
     // Auth state
     const { isAuthenticated, user } = useAuthStore();
+    const { saveResult } = useResultsStore();
 
     // State management
     const [apiKey, setApiKey] = useState('');
@@ -204,6 +206,22 @@ export default function ScoringAgentPage() {
             
             setResults(result);
             console.log('Scoring completed:', result);
+
+            // Save to database for authenticated users
+            if (isAuthenticated) {
+                try {
+                    await saveResult({
+                        analysis_type: 'scoring',
+                        title: `Scoring - ${csvFile?.name || 'analysis'}`,
+                        description: `Scored ${csvData.length} annotations`,
+                        results: result,
+                        settings: { provider, model, maxWorkers }
+                    });
+                    console.log('Results saved to dashboard');
+                } catch (saveErr) {
+                    console.error('Failed to save results:', saveErr);
+                }
+            }
         } catch (err: any) {
             setError(`Scoring failed: ${err.message}`);
         } finally {
