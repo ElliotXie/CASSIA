@@ -5,43 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Terminal, Download, X, CheckCircle, Clock } from 'lucide-react'
+import { Terminal, Download, X, CheckCircle } from 'lucide-react'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 
 export function ProgressTracker() {
-  const { 
-    isRunning, 
-    progress, 
-    currentStep, 
-    logs, 
+  const {
+    isRunning,
+    progress,
+    currentStep,
+    logs,
     downloadLinks,
-    reset,
-    fileMetadata 
+    reset
   } = useAnalysisStore()
   
   const logsEndRef = useRef<HTMLDivElement>(null)
-
-  // Calculate estimated time based on cluster count
-  const getEstimatedTime = (clusterCount: number, currentProgress: number) => {
-    if (!clusterCount || currentProgress <= 0) return 'Calculating...'
-    
-    // Base time is 30s for 5 clusters, +5s per additional cluster, max 90s at 30 clusters
-    const baseTime = 30 // seconds for 5 clusters
-    const additionalTime = Math.max(0, clusterCount - 5) * 5 // 5s per additional cluster
-    const maxTime = 90 // maximum 1min 30s
-    const totalEstimatedTime = Math.min(baseTime + additionalTime, maxTime)
-    
-    // Calculate remaining time based on progress
-    const remainingTime = Math.max(0, totalEstimatedTime * (100 - currentProgress) / 100)
-    
-    if (remainingTime < 60) {
-      return `${Math.round(remainingTime)}s`
-    } else {
-      const minutes = Math.floor(remainingTime / 60)
-      const seconds = Math.round(remainingTime % 60)
-      return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-    }
-  }
 
   // Auto-scroll logs to bottom
   useEffect(() => {
@@ -135,15 +112,6 @@ export function ProgressTracker() {
           </Card>
         </div>
 
-        {/* Time Estimate */}
-        {isRunning && (
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>
-              Estimated time remaining: {getEstimatedTime(fileMetadata?.clusterCount || 5, progress)}
-            </span>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

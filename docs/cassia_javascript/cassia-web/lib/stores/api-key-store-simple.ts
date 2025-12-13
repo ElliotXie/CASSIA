@@ -217,11 +217,10 @@ export const useApiKeyStore = create<ApiKeyState>()(
         const state = get()
         return state.apiKeys[provider || state.provider]
       },
-      
-      get apiKey() {
-        const state = get()
-        return state.apiKeys[state.provider]
-      }
+
+      // Note: Can't use getter here as it loses access to Zustand's get()
+      // Use getApiKey() instead or access apiKeys[provider] directly
+      apiKey: ''  // Placeholder, use getApiKey() for actual value
     }),
     {
       name: 'cassia-api-key-storage',

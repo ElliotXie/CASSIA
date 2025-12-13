@@ -374,44 +374,6 @@ export function ApiKeyInput() {
                 }
               </p>
             </div>
-
-            {/* Model Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Model</label>
-              {customPreset !== 'manual' && CUSTOM_PROVIDER_PRESETS[customPreset].models.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
-                    {CUSTOM_PROVIDER_PRESETS[customPreset].models.map((modelName) => (
-                      <button
-                        key={modelName}
-                        onClick={() => setApiModel(modelName)}
-                        className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
-                          model === modelName
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-muted hover:border-primary/50'
-                        }`}
-                      >
-                        {modelName}
-                      </button>
-                    ))}
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="Or enter a custom model name..."
-                    value={CUSTOM_PROVIDER_PRESETS[customPreset].models.includes(model as any) ? '' : model}
-                    onChange={(e) => setApiModel(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-              ) : (
-                <Input
-                  type="text"
-                  placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
-                  value={model}
-                  onChange={(e) => setApiModel(e.target.value)}
-                />
-              )}
-            </div>
           </div>
         )}
 

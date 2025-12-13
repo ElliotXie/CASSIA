@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo2.png" width="200" style="vertical-align: middle;" />
+<img src="finallogo.png" width="300" style="vertical-align: middle;" />
 
 [English](README.md) | [中文](README_CN.md)
 

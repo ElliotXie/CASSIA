@@ -81,10 +81,9 @@ export default function HomePage() {
     setTestMessage('')
 
     if (newProvider === 'custom') {
-      // Initialize with DeepSeek preset
+      // Initialize with DeepSeek preset (model will be set in batch/pipeline pages)
       const defaultPreset = CUSTOM_PROVIDER_PRESETS.deepseek
       setTempCustomBaseUrl(defaultPreset.baseUrl)
-      setTempModel(defaultPreset.models[0])
       setCustomPreset('deepseek')
     } else {
       setTempModel(getDefaultModel(newProvider))
@@ -225,11 +224,16 @@ export default function HomePage() {
     // Get the latest API keys from the store
     const store = useApiKeyStore.getState()
     const loadedKey = store.apiKeys[tempProvider as keyof typeof store.apiKeys]
-    
+
     if (loadedKey) {
       setTempApiKey(loadedKey)
       setTestResult('success')
       setTestMessage('API key loaded from your account')
+    }
+
+    // Also load customBaseUrl if custom provider is selected
+    if (tempProvider === 'custom' && store.customBaseUrl) {
+      setTempCustomBaseUrl(store.customBaseUrl)
     }
   }
 
@@ -409,46 +413,26 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Prominent API Key Configuration Section */}
-        <div className="glass rounded-2xl p-8 mb-16 border border-yellow-400/30 bg-yellow-50/20">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
-                <Key className="h-8 w-8 text-white" />
+        {/* API Key Configuration Section */}
+        <div className="glass rounded-2xl p-6 mb-16 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Key className="h-6 w-6 text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center">
-                  🔑 API Configuration Required
-                  {!apiKey && <span className="ml-3 px-3 py-1 bg-red-500 text-white text-sm rounded-full animate-pulse">Required</span>}
-                  {apiKey && <span className="ml-3 px-3 py-1 bg-green-500 text-white text-sm rounded-full">✓ Configured</span>}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                  API Configuration
+                  {!apiKey && <span className="ml-3 px-2.5 py-0.5 bg-red-500 text-white text-xs rounded-full">Required</span>}
+                  {apiKey && <span className="ml-3 px-2.5 py-0.5 bg-green-500 text-white text-xs rounded-full">Configured</span>}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">
-                  {!apiKey 
-                    ? "Set up your AI provider API key to start analyzing your data. This is required for all analysis features."
-                    : `API key configured for ${provider}. You're ready to run analysis!`
-                  }
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Supports OpenRouter, OpenAI, Anthropic, or any custom API. At least one API key is required.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-gray-700 dark:text-gray-300">OpenRouter (Recommended)</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    <span className="text-gray-700 dark:text-gray-300">OpenAI GPT Models</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                    <span className="text-gray-700 dark:text-gray-300">Anthropic Claude</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    <span className="text-gray-700 dark:text-gray-300">Custom Provider</span>
-                  </div>
-                </div>
               </div>
             </div>
-            <div className="flex flex-col space-y-3 ml-6">
+            <div className="flex items-center space-x-3">
+              {isAuthenticated && <LoadApiKeysButton />}
               <Button
                 onClick={() => {
                   setTempApiKey(apiKey)
@@ -463,48 +447,17 @@ export default function HomePage() {
                   setSaveSuccess(false)
                   setShowApiKeyModal(true)
                 }}
-                size="lg"
-                className={`px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 btn-modern ${
+                className={`px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300 btn-modern ${
                   !apiKey
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white animate-pulse'
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white'
                     : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
                 }`}
               >
-                <Key className="h-5 w-5 mr-2" />
-                {!apiKey ? 'Configure API Key' : 'Update API Key'}
+                <Key className="h-4 w-4 mr-2" />
+                {!apiKey ? 'Configure API Key' : 'Update'}
               </Button>
-              {apiKey && (
-                <div className="text-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Provider: {provider}</span>
-                </div>
-              )}
             </div>
-            
-            {/* Load API Keys from Supabase */}
-            {isAuthenticated && (
-              <div className="text-center">
-                <LoadApiKeysButton />
-              </div>
-            )}
           </div>
-          
-          {!apiKey && (
-            <div className="mt-6">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-sm font-bold">!</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Why do I need an API key?</h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                    CASSIA uses advanced AI language models to analyze your cell marker data and provide intelligent annotations.
-                    You need an API key from OpenRouter, OpenAI, or Anthropic to access these models. Your key is stored securely
-                    in your browser and never shared with our servers.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Enhanced Main Options */}
@@ -775,7 +728,7 @@ export default function HomePage() {
                   Configure API Settings
                 </span>
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Set up your AI provider and default model</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">Set up your AI provider and API key</p>
             </div>
             
             <div className="space-y-6">
@@ -818,12 +771,8 @@ export default function HomePage() {
                                 setCustomPreset(key as CustomPresetKey)
                                 if (preset.baseUrl) {
                                   setTempCustomBaseUrl(preset.baseUrl)
-                                  if (preset.models.length > 0) {
-                                    setTempModel(preset.models[0])
-                                  }
                                 } else {
                                   setTempCustomBaseUrl('')
-                                  setTempModel('')
                                 }
                                 setShowPresetDropdown(false)
                               }}
@@ -867,46 +816,6 @@ export default function HomePage() {
                         : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[customPreset].name}`
                       }
                     </p>
-                  </div>
-
-                  {/* Model Selection */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-900 dark:text-white">Model</label>
-                    {customPreset !== 'manual' && CUSTOM_PROVIDER_PRESETS[customPreset].models.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-2">
-                          {CUSTOM_PROVIDER_PRESETS[customPreset].models.map((modelName) => (
-                            <button
-                              key={modelName}
-                              type="button"
-                              onClick={() => setTempModel(modelName)}
-                              className={`px-3 py-1.5 text-sm border-2 rounded-lg transition-colors ${
-                                tempModel === modelName
-                                  ? 'border-purple-500 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-                                  : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500'
-                              }`}
-                            >
-                              {modelName}
-                            </button>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Or enter a custom model name..."
-                          value={(CUSTOM_PROVIDER_PRESETS[customPreset].models as readonly string[]).includes(tempModel) ? '' : tempModel}
-                          onChange={(e) => setTempModel(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                        />
-                      </div>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
-                        value={tempModel}
-                        onChange={(e) => setTempModel(e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                      />
-                    )}
                   </div>
 
                   {/* Help Link */}
