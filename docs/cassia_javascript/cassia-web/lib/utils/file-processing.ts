@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
+import { detectGeneIdFormat, type GeneIdDetectionResult } from './gene-id-detection'
 
 export interface FileData {
   headers: string[]
@@ -7,6 +8,10 @@ export interface FileData {
   rowCount: number
   clusterCount: number
   geneCount: number
+  // Gene ID detection fields
+  geneColumn?: string | null
+  uniqueGenes?: string[]
+  geneIdDetection?: GeneIdDetectionResult
 }
 
 export async function processFile(file: File): Promise<FileData> {
@@ -199,14 +204,35 @@ function analyzeData(data: any[]): FileData {
       }
     })
     
+    // Convert genes Set to array for detection
+    const uniqueGenes = Array.from(genes) as string[]
+
+    // Detect gene ID format
+    const geneIdDetection = uniqueGenes.length > 0
+      ? detectGeneIdFormat(uniqueGenes)
+      : undefined
+
+    if (geneIdDetection) {
+      console.log('Gene ID detection result:', {
+        format: geneIdDetection.detectedFormat,
+        confidence: Math.round(geneIdDetection.confidence * 100) + '%',
+        needsConversion: geneIdDetection.needsConversion,
+        sampleGenes: geneIdDetection.sampleGenes.slice(0, 3)
+      })
+    }
+
     const result: FileData = {
       headers: headers || [],
       data: data || [],
       rowCount: data?.length || 0,
       clusterCount: clusters.size || 0,
-      geneCount: genes.size || 0
+      geneCount: genes.size || 0,
+      // Gene ID detection fields
+      geneColumn: geneColumn,
+      uniqueGenes: uniqueGenes,
+      geneIdDetection: geneIdDetection
     }
-    
+
     console.log('Data analysis completed:', result)
     return result
     

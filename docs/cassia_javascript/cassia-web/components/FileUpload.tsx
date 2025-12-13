@@ -2,11 +2,23 @@
 
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, AlertCircle, X } from 'lucide-react'
+import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { processFile, validateMarkerData, type FileData } from '@/lib/utils/file-processing'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
+import { GeneConversionPreview, type ConversionOptions } from './GeneConversionPreview'
+import {
+  generateConversionPreview,
+  convertGeneIds,
+  applyConversionToData,
+  getIdTypeFromDetection,
+  getSpeciesFromDetection,
+  getConversionSummary,
+  type ConversionResult
+} from '@/lib/utils/gene-id-converter'
+import { getFormatLabel } from '@/lib/utils/gene-id-detection'
 
 interface FileUploadProps {
   onFileProcessed?: (file: File, data: FileData) => void
@@ -17,8 +29,107 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
   const [fileData, setFileData] = useState<FileData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  
+
+  // Gene conversion state
+  const [showConversionPreview, setShowConversionPreview] = useState(false)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [pendingFileData, setPendingFileData] = useState<FileData | null>(null)
+  const [conversionPreview, setConversionPreview] = useState<ConversionResult[]>([])
+  const [isConverting, setIsConverting] = useState(false)
+  const [conversionProgress, setConversionProgress] = useState(0)
+  const [conversionStage, setConversionStage] = useState<'local' | 'api'>('local')
+  const [conversionApplied, setConversionApplied] = useState(false)
+
   const { setFile, uploadedFile } = useAnalysisStore()
+
+  // Helper function to finalize file upload
+  const finalizeFileUpload = (file: File, data: FileData) => {
+    setFileData(data)
+    setFile(file, data.data, data)
+
+    if (onFileProcessed) {
+      onFileProcessed(file, data)
+    }
+
+    console.log('File upload completed successfully')
+  }
+
+  // Handle conversion confirmation from preview dialog
+  const handleConversionConfirm = async (options: ConversionOptions) => {
+    if (!pendingFile || !pendingFileData || !pendingFileData.geneIdDetection) {
+      setShowConversionPreview(false)
+      return
+    }
+
+    if (!options.proceed) {
+      // User chose to skip conversion - proceed with original data
+      finalizeFileUpload(pendingFile, pendingFileData)
+      setShowConversionPreview(false)
+      setPendingFile(null)
+      setPendingFileData(null)
+      return
+    }
+
+    // User confirmed conversion
+    setIsConverting(true)
+    setConversionProgress(0)
+    setConversionStage('local')
+
+    try {
+      const idType = getIdTypeFromDetection(pendingFileData.geneIdDetection)
+      const uniqueGenes = pendingFileData.uniqueGenes || []
+
+      // Perform conversion
+      const conversionResult = await convertGeneIds(uniqueGenes, {
+        species: options.species,
+        idType: idType,
+        useApiFallback: options.useApiFallback,
+        keepOriginalOnFailure: options.keepOriginalOnFailure,
+        onProgress: (current, total, stage) => {
+          setConversionProgress(Math.round((current / total) * 100))
+          setConversionStage(stage)
+        }
+      })
+
+      console.log('Conversion result:', getConversionSummary(conversionResult.stats))
+
+      // Apply conversion to data
+      if (pendingFileData.geneColumn) {
+        const convertedData = applyConversionToData(
+          pendingFileData.data,
+          pendingFileData.geneColumn,
+          conversionResult.results
+        )
+
+        // Create new FileData with converted data
+        const convertedFileData: FileData = {
+          ...pendingFileData,
+          data: convertedData
+        }
+
+        // Add conversion info to validation warnings
+        const conversionMessage = `Gene IDs converted: ${getConversionSummary(conversionResult.stats)}`
+        setValidationErrors(prev => [...prev, `Info: ${conversionMessage}`])
+        setConversionApplied(true)
+
+        finalizeFileUpload(pendingFile, convertedFileData)
+      } else {
+        // No gene column found, proceed with original data
+        finalizeFileUpload(pendingFile, pendingFileData)
+      }
+
+    } catch (err) {
+      console.error('Gene conversion error:', err)
+      setError(`Gene conversion failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      // Still proceed with original data on error
+      finalizeFileUpload(pendingFile, pendingFileData)
+    } finally {
+      setIsConverting(false)
+      setShowConversionPreview(false)
+      setPendingFile(null)
+      setPendingFileData(null)
+    }
+  }
 
   const loadAndDownloadExample = async (filename: string) => {
     setIsProcessing(true)
@@ -112,17 +223,34 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
         return
       }
 
-      // Store in state
-      setFileData(data)
-      setFile(file, data.data, data)
-      
-      // Notify parent
-      if (onFileProcessed) {
-        onFileProcessed(file, data)
+      // Check if gene ID conversion is needed
+      if (data.geneIdDetection?.needsConversion && data.uniqueGenes && data.uniqueGenes.length > 0) {
+        console.log('Gene ID conversion detected, showing preview dialog')
+
+        // Generate preview of first 20 genes
+        try {
+          const preview = await generateConversionPreview(
+            data.uniqueGenes,
+            data.geneIdDetection,
+            20
+          )
+          setConversionPreview(preview)
+        } catch (previewErr) {
+          console.warn('Failed to generate conversion preview:', previewErr)
+          setConversionPreview([])
+        }
+
+        // Store pending data and show preview dialog
+        setPendingFile(file)
+        setPendingFileData(data)
+        setShowConversionPreview(true)
+        setIsProcessing(false)
+        return  // Wait for user confirmation
       }
-      
-      console.log('File upload completed successfully')
-      
+
+      // No conversion needed - proceed normally
+      finalizeFileUpload(file, data)
+
     } catch (err) {
       console.error('File upload error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to process file'
@@ -151,6 +279,10 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
       setFileData(null)
       setError(null)
       setValidationErrors([])
+      setConversionApplied(false)
+      setPendingFile(null)
+      setPendingFileData(null)
+      setShowConversionPreview(false)
       useAnalysisStore.getState().reset()
       console.log('File cleared successfully')
     } catch (err) {
@@ -159,6 +291,7 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
       setFileData(null)
       setError(null)
       setValidationErrors([])
+      setConversionApplied(false)
     }
   }
 
@@ -187,14 +320,32 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
                   </div>
                 )}
                 
+                {/* Show gene conversion info if applied */}
+                {conversionApplied && fileData.geneIdDetection && (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <Badge variant="secondary" className="text-xs">
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Gene IDs Converted
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      from {getFormatLabel(fileData.geneIdDetection.detectedFormat)}
+                    </span>
+                  </div>
+                )}
+
                 {/* Show validation warnings */}
                 {validationErrors.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {validationErrors.map((error, index) => (
                       <div key={index} className={`text-xs flex items-center space-x-1 ${
-                        error.startsWith('Warning:') ? 'text-amber-600' : 'text-red-600'
+                        error.startsWith('Warning:') ? 'text-amber-600' :
+                        error.startsWith('Info:') ? 'text-blue-600' : 'text-red-600'
                       }`}>
-                        <AlertCircle className="h-3 w-3" />
+                        {error.startsWith('Info:') ? (
+                          <CheckCircle className="h-3 w-3" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
                         <span>{error}</span>
                       </div>
                     ))}
@@ -298,6 +449,25 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
               </ul>
             )}
           </div>
+        )}
+
+        {/* Gene Conversion Preview Dialog */}
+        {showConversionPreview && pendingFileData?.geneIdDetection && (
+          <GeneConversionPreview
+            isOpen={showConversionPreview}
+            onClose={() => {
+              setShowConversionPreview(false)
+              setPendingFile(null)
+              setPendingFileData(null)
+            }}
+            onConfirm={handleConversionConfirm}
+            detectionResult={pendingFileData.geneIdDetection}
+            previewData={conversionPreview}
+            totalGenes={pendingFileData.geneCount || 0}
+            isLoading={isConverting}
+            conversionProgress={conversionProgress}
+            conversionStage={conversionStage}
+          />
         )}
       </CardContent>
     </Card>
