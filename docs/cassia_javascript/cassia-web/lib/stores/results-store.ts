@@ -445,8 +445,8 @@ export const useResultsStore = create<ResultsState>()(
           const authStore = useAuthStore.getState()
           if (authStore.isAuthenticated) {
             setTimeout(() => {
-              get().loadResults()
-              get().loadSessions()
+              useResultsStore.getState().loadResults()
+              useResultsStore.getState().loadSessions()
             }, 1000)
           }
         }
