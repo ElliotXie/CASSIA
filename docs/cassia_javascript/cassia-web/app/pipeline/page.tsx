@@ -41,8 +41,9 @@ export default function PipelinePage() {
     setAnalysisConfig
   } = useConfigStore()
   
-  const { provider, model, getApiKey, customBaseUrl } = useApiKeyStore()
+  const { provider, model, getApiKey, getCustomBaseUrl } = useApiKeyStore()
   const apiKey = getApiKey()
+  const customBaseUrl = getCustomBaseUrl()
 
   const {
     uploadedFile,

@@ -1,7 +1,7 @@
 Package: CASSIA
 Title: Collaborative Agent System for Single-Cell Interpretable Annotation
-Version: 0.1.0
-Authors@R: 
+Version: 0.99.0
+Authors@R:
     person("Elliot Yixuan", "Xie", email = "xie227@wisc.edu", role = c("aut", "cre"))
 Description: Provides R wrappers for a collaborative agent system designed for
     single-cell RNA sequencing cell type annotation. Uses 'reticulate' to interface
@@ -15,13 +15,19 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+biocViews: SingleCell, Annotation, Classification, GeneExpression,
+    Transcriptomics, RNASeq, Software
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.4.0)
 Imports:
     reticulate,
     Seurat
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    BiocStyle
 Config/testthat/edition: 3
 Config/reticulate:
     list(

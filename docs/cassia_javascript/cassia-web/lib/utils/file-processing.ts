@@ -1,5 +1,4 @@
-import * as XLSX from 'xlsx'
-import Papa from 'papaparse'
+// xlsx and papaparse are imported dynamically to reduce initial bundle size
 import { detectGeneIdFormat, type GeneIdDetectionResult } from './gene-id-detection'
 
 export interface FileData {
@@ -48,6 +47,7 @@ export async function processFile(file: File): Promise<FileData> {
 }
 
 async function processCsvFile(file: File): Promise<FileData> {
+  const Papa = await import('papaparse')
   return new Promise((resolve, reject) => {
     try {
       Papa.parse(file, {
@@ -106,10 +106,11 @@ async function processCsvFile(file: File): Promise<FileData> {
 }
 
 async function processExcelFile(file: File): Promise<FileData> {
+  const XLSX = await import('xlsx')
   return new Promise((resolve, reject) => {
     try {
       const reader = new FileReader()
-      
+
       reader.onload = (e) => {
         try {
           const data = e.target?.result as ArrayBuffer
@@ -117,7 +118,7 @@ async function processExcelFile(file: File): Promise<FileData> {
             reject(new Error('Failed to read Excel file data'))
             return
           }
-          
+
           const workbook = XLSX.read(data, { type: 'array' })
           
           if (!workbook.SheetNames || workbook.SheetNames.length === 0) {

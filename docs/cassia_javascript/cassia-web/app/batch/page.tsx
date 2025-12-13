@@ -47,8 +47,10 @@ export default function BatchPage() {
     getApiKey,
     setModel,
     setReasoningEffort,
-    customBaseUrl
+    getCustomBaseUrl
   } = useApiKeyStore()
+
+  const customBaseUrl = getCustomBaseUrl()
 
   const reasoningOptions = getReasoningEffortOptions()
   

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useDropzone } from 'react-dropzone';
-import Papa from 'papaparse';
+// papaparse is imported dynamically to reduce initial bundle size
 import { iterativeMarkerAnalysis, generateSummaryReport, extractConversationForCluster, getAvailableClusters, extractTopMarkerGenes } from '@/lib/cassia/annotationBoost';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -139,15 +139,16 @@ export default function AnnotationBoostPage() {
     }, [globalApiKey, globalProvider, globalModel, apiKey, provider, model, isInitialized]);
 
     // File upload handlers
-    const onConversationDrop = (acceptedFiles: File[]) => {
+    const onConversationDrop = async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file) {
             setConversationFile(file);
+            const Papa = await import('papaparse');
             const reader = new FileReader();
             reader.onload = (e) => {
                 const text = e.target?.result as string;
                 setConversationData(text);
-                
+
                 // Parse and get available columns
                 Papa.parse(text, {
                     header: true,
@@ -164,10 +165,11 @@ export default function AnnotationBoostPage() {
         }
     };
 
-    const onMarkerDrop = (acceptedFiles: File[]) => {
+    const onMarkerDrop = async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file) {
             setMarkerFile(file);
+            const Papa = await import('papaparse');
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
@@ -326,8 +328,8 @@ export default function AnnotationBoostPage() {
 
         try {
             await loadApiKeys();
-            // Get the loaded key for current provider
-            const loadedKey = useApiKeyStore.getState().apiKeys[provider];
+            // Get the loaded key for current provider (handles custom providers via getApiKey)
+            const loadedKey = useApiKeyStore.getState().getApiKey(provider);
             if (loadedKey) {
                 setApiKey(loadedKey);
                 setLoadKeyStatus('success');

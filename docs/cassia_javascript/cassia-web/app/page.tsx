@@ -68,7 +68,8 @@ export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
-  const { apiKeys, provider, model, setApiKey, setProvider, setModel, customBaseUrl, setCustomBaseUrl } = useApiKeyStore()
+  const { apiKeys, provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl } = useApiKeyStore()
+  const customBaseUrl = getCustomBaseUrl()
   const { isAuthenticated } = useAuthStore()
   const [tempApiKey, setTempApiKey] = useState(apiKeys[provider])
   const [tempProvider, setTempProvider] = useState(provider)
@@ -261,8 +262,11 @@ export default function HomePage() {
     }
 
     // Also load customBaseUrl if custom provider is selected
-    if (tempProvider === 'custom' && store.customBaseUrl) {
-      setTempCustomBaseUrl(store.customBaseUrl)
+    if (tempProvider === 'custom') {
+      const storedBaseUrl = store.getCustomBaseUrl()
+      if (storedBaseUrl) {
+        setTempCustomBaseUrl(storedBaseUrl)
+      }
     }
   }
 

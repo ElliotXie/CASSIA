@@ -39,6 +39,9 @@ CASSIA/CASSIA_python/CASSIA/test_results/
 # Test results folders (all results/ directories under Test/)
 Test/**/results/
 
+# Test data folder (large data files)
+Test/data/
+
 # Test reports folders (all reports/ directories under Test/)
 Test/**/reports/
 Test/reports/

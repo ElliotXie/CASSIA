@@ -19,7 +19,7 @@ export default function ScoringAgentPage() {
     const globalApiKey = useApiKeyStore((state) => state.getApiKey());
     const globalProvider = useApiKeyStore((state) => state.provider);
     const globalModel = useApiKeyStore((state) => state.model);
-    const globalCustomBaseUrl = useApiKeyStore((state) => state.customBaseUrl);
+    const globalCustomBaseUrl = useApiKeyStore((state) => state.getCustomBaseUrl());
     const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
 
     // Auth state

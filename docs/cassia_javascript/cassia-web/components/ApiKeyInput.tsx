@@ -6,7 +6,7 @@ import { testApiKey } from '@/lib/cassia/llm_utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useApiKeyStore } from '@/lib/stores/api-key-store'
+import { useApiKeyStore, CustomPresetKey } from '@/lib/stores/api-key-store-simple'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import modelSettings from '../public/examples/model_settings.json'
@@ -44,7 +44,7 @@ const CUSTOM_PROVIDER_PRESETS = {
     helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
   },
   zhipuai: {
-    name: 'Zhipu AI (智谱)',
+    name: 'Zhipu AI',
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     models: ['glm-4.6'],
     helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys'
@@ -56,8 +56,6 @@ const CUSTOM_PROVIDER_PRESETS = {
     helpUrl: '#'
   }
 } as const
-
-type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
 
 // Generate provider configurations from model_settings.json
 function generateProviders() {
@@ -99,12 +97,11 @@ export function ApiKeyInput() {
   const [validationStatus, setValidationStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
   const [loadStatus, setLoadStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [customPreset, setCustomPreset] = useState<CustomPresetKey>('deepseek')
   const [showPresetDropdown, setShowPresetDropdown] = useState(false)
   const [isTestingApi, setIsTestingApi] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [testErrorMessage, setTestErrorMessage] = useState<string>('')
-  
+
   // Get API key data directly from the API key store for proper reactivity
   const {
     provider,
@@ -113,8 +110,15 @@ export function ApiKeyInput() {
     setProvider,
     setModel: setApiModel,
     getApiKey,
-    customBaseUrl,
-    setCustomBaseUrl
+    // Custom provider specific
+    customProviders,
+    selectedCustomPreset,
+    setSelectedCustomPreset,
+    setCustomProviderKey,
+    setCustomProviderBaseUrl,
+    getCustomApiKey,
+    getCustomBaseUrl,
+    loadApiKeys: storeLoadApiKeys
   } = useApiKeyStore()
 
   // Get auth data for Load API Keys functionality
@@ -123,8 +127,13 @@ export function ApiKeyInput() {
   // Get pipeline model configuration functions
   const { setPipelineModel } = useConfigStore()
 
-  // Get the API key for the current provider
-  const apiKey = getApiKey(provider)
+  // Get the API key for the current provider (uses selected preset for custom)
+  const apiKey = provider === 'custom'
+    ? getCustomApiKey(selectedCustomPreset)
+    : getApiKey(provider)
+
+  // Get the custom base URL for the selected preset
+  const customBaseUrl = getCustomBaseUrl(selectedCustomPreset)
 
   const currentProvider = PROVIDERS.find(p => p.id === provider) || PROVIDERS[0]
 
@@ -144,26 +153,46 @@ export function ApiKeyInput() {
     if (providerConfig) {
       setApiModel(providerConfig.defaultModel)
     }
-    // Initialize custom provider with default preset
+    // Initialize custom provider with stored preset settings
     if (newProvider === 'custom') {
-      const defaultPreset = CUSTOM_PROVIDER_PRESETS.deepseek
-      setCustomBaseUrl(defaultPreset.baseUrl)
-      setApiModel(defaultPreset.models[0])
-      setCustomPreset('deepseek')
+      const preset = CUSTOM_PROVIDER_PRESETS[selectedCustomPreset]
+      if (preset.models.length > 0) {
+        setApiModel(preset.models[0])
+      }
     }
+    setValidationStatus('idle')
+  }
+
+  // Handle preset change - syncs to store and updates local state
+  const handlePresetChange = (key: CustomPresetKey) => {
+    setSelectedCustomPreset(key)
+    const preset = CUSTOM_PROVIDER_PRESETS[key as keyof typeof CUSTOM_PROVIDER_PRESETS]
+    if (preset.baseUrl) {
+      setCustomProviderBaseUrl(key, preset.baseUrl)
+    }
+    const firstModel = preset.models[0]
+    if (firstModel) {
+      setApiModel(firstModel)
+    }
+    setShowPresetDropdown(false)
     setValidationStatus('idle')
   }
 
   // Get the appropriate help URL for custom provider
   const getHelpUrl = () => {
     if (provider === 'custom') {
-      return CUSTOM_PROVIDER_PRESETS[customPreset].helpUrl
+      return CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].helpUrl
     }
     return currentProvider.helpUrl
   }
 
   const handleKeyChange = (value: string) => {
-    setApiKey(value, provider)
+    if (provider === 'custom') {
+      // Save to the specific custom preset
+      setCustomProviderKey(selectedCustomPreset, value)
+    } else {
+      setApiKey(value, provider)
+    }
     setValidationStatus('idle')
   }
 
@@ -174,7 +203,7 @@ export function ApiKeyInput() {
     }
 
     setIsValidating(true)
-    
+
     try {
       // Simple validation - just check if the key has a reasonable format
       // Real validation would require making an API call
@@ -212,44 +241,10 @@ export function ApiKeyInput() {
     setErrorMessage('')
 
     try {
-      // Import Supabase client
-      const { createClient } = await import('@/utils/supabase/client')
-      const supabase = createClient()
-
-      // Query user's API keys
-      const { data, error } = await supabase
-        .from('user_api_keys')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (error) {
-        throw error
-      }
-
-      // Decrypt and populate API keys
-      const hasLoadedKeys = data && data.length > 0
-
-      if (hasLoadedKeys) {
-        // Process keys and await all setApiKey calls
-        const keyPromises = data.map(async (keyData) => {
-          const provider = keyData.provider as 'openrouter' | 'anthropic' | 'openai' | 'custom'
-          try {
-            // Simple base64 decryption (same as in the Supabase store)
-            const decryptedKey = atob(keyData.encrypted_key)
-            await setApiKey(decryptedKey, provider)
-          } catch (decryptError) {
-            console.error(`Failed to decrypt key for ${provider}:`, decryptError)
-          }
-        })
-        await Promise.all(keyPromises)
-
-        setLoadStatus('success')
-        setTimeout(() => setLoadStatus('idle'), 3000)
-      } else {
-        setErrorMessage('No API keys found in your account')
-        setLoadStatus('error')
-        setTimeout(() => setLoadStatus('idle'), 5000)
-      }
+      // Use the store's loadApiKeys which handles both standard and custom providers
+      await storeLoadApiKeys()
+      setLoadStatus('success')
+      setTimeout(() => setLoadStatus('idle'), 3000)
     } catch (error) {
       console.error('Failed to load API keys:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Failed to load API keys')
@@ -274,7 +269,7 @@ export function ApiKeyInput() {
       // For custom provider, use the custom base URL and model from preset
       const baseUrl = provider === 'custom' ? customBaseUrl : null
       const customModel = provider === 'custom'
-        ? (model || CUSTOM_PROVIDER_PRESETS[customPreset]?.models?.[0])
+        ? (model || CUSTOM_PROVIDER_PRESETS[selectedCustomPreset]?.models?.[0])
         : null
       const result = await testApiKey(provider, apiKey, baseUrl, customModel)
 
@@ -293,6 +288,14 @@ export function ApiKeyInput() {
     } finally {
       setIsTestingApi(false)
     }
+  }
+
+  // Get the placeholder text for the API key input
+  const getPlaceholder = () => {
+    if (provider === 'custom') {
+      return `Enter your ${CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name} API key`
+    }
+    return `Enter your ${currentProvider.name} API key`
   }
 
   return (
@@ -336,35 +339,39 @@ export function ApiKeyInput() {
                   onClick={() => setShowPresetDropdown(!showPresetDropdown)}
                   className="w-full p-3 text-left border rounded-lg bg-background flex items-center justify-between hover:border-primary/50 transition-colors"
                 >
-                  <span>{CUSTOM_PROVIDER_PRESETS[customPreset].name}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name}</span>
+                    {customProviders[selectedCustomPreset]?.apiKey && (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    )}
+                  </div>
                   <ChevronDown className={`h-4 w-4 transition-transform ${showPresetDropdown ? 'rotate-180' : ''}`} />
                 </button>
                 {showPresetDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg">
-                    {Object.entries(CUSTOM_PROVIDER_PRESETS).map(([key, preset]) => (
-                      <button
-                        key={key}
-                        onClick={() => {
-                          setCustomPreset(key as CustomPresetKey)
-                          if (preset.baseUrl) {
-                            setCustomBaseUrl(preset.baseUrl)
-                            // Set first model as default
-                            if (preset.models.length > 0) {
-                              setApiModel(preset.models[0])
-                            }
-                          }
-                          setShowPresetDropdown(false)
-                        }}
-                        className={`w-full p-3 text-left hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                          customPreset === key ? 'bg-primary/10' : ''
-                        }`}
-                      >
-                        <div className="font-medium text-sm">{preset.name}</div>
-                        {preset.baseUrl && (
-                          <div className="text-xs text-muted-foreground truncate">{preset.baseUrl}</div>
-                        )}
-                      </button>
-                    ))}
+                  <div className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                    {Object.entries(CUSTOM_PROVIDER_PRESETS).map(([key, preset]) => {
+                      const presetKey = key as CustomPresetKey
+                      const hasKey = customProviders[presetKey]?.apiKey
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handlePresetChange(presetKey)}
+                          className={`w-full p-3 text-left hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                            selectedCustomPreset === key ? 'bg-primary/10' : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium text-sm">{preset.name}</div>
+                            {hasKey && (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                          {preset.baseUrl && (
+                            <div className="text-xs text-muted-foreground truncate">{preset.baseUrl}</div>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -373,25 +380,25 @@ export function ApiKeyInput() {
             {/* Base URL - editable for manual, readonly for presets */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Base URL</label>
-              {customPreset === 'manual' ? (
+              {selectedCustomPreset === 'manual' ? (
                 <Input
                   type="url"
                   placeholder="https://api.example.com/v1"
                   value={customBaseUrl}
-                  onChange={(e) => setCustomBaseUrl(e.target.value)}
+                  onChange={(e) => setCustomProviderBaseUrl('manual', e.target.value)}
                 />
               ) : (
                 <Input
                   type="url"
-                  value={CUSTOM_PROVIDER_PRESETS[customPreset].baseUrl}
+                  value={CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].baseUrl}
                   readOnly
                   className="bg-muted/50"
                 />
               )}
               <p className="text-xs text-muted-foreground">
-                {customPreset === 'manual'
+                {selectedCustomPreset === 'manual'
                   ? 'Enter any OpenAI-compatible endpoint URL'
-                  : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[customPreset].name}`
+                  : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name}`
                 }
               </p>
             </div>
@@ -474,11 +481,11 @@ export function ApiKeyInput() {
               </a>
             </div>
           </div>
-          
+
           <div className="relative">
             <Input
               type={showKey ? 'text' : 'password'}
-              placeholder={`Enter your ${currentProvider.name} API key`}
+              placeholder={getPlaceholder()}
               value={apiKey}
               onChange={(e) => handleKeyChange(e.target.value)}
               className="pr-20"
@@ -507,19 +514,19 @@ export function ApiKeyInput() {
               </button>
             </div>
           </div>
-          
+
           {validationStatus === 'invalid' && (
             <p className="text-xs text-red-600">
-              Please enter a valid {currentProvider.name} API key
+              Please enter a valid {provider === 'custom' ? CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name : currentProvider.name} API key
             </p>
           )}
-          
+
           {loadStatus === 'error' && errorMessage && (
             <p className="text-xs text-red-600">
               {errorMessage}
             </p>
           )}
-          
+
           {loadStatus === 'success' && (
             <p className="text-xs text-green-600">
               API keys loaded successfully from your account
@@ -548,9 +555,9 @@ export function ApiKeyInput() {
               ? 'bg-red-50 text-red-700 border border-red-200'
               : 'bg-blue-50 text-blue-700 border border-blue-200'
           }`}>
-            {validationStatus === 'valid' && '✅ API key is configured'}
-            {validationStatus === 'invalid' && '❌ API key validation failed'}
-            {validationStatus === 'idle' && '💡 Click the check icon to validate your API key'}
+            {validationStatus === 'valid' && 'API key is configured'}
+            {validationStatus === 'invalid' && 'API key validation failed'}
+            {validationStatus === 'idle' && 'Click the check icon to validate your API key'}
           </div>
         )}
       </CardContent>

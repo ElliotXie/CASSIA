@@ -169,8 +169,8 @@ export default function AnnotationMergingPage() {
 
     try {
       await loadApiKeys();
-      // Get the loaded key for current provider
-      const loadedKey = useApiKeyStore.getState().apiKeys[provider];
+      // Get the loaded key for current provider (handles custom providers via getApiKey)
+      const loadedKey = useApiKeyStore.getState().getApiKey(provider);
       if (loadedKey) {
         setApiKey(loadedKey);
         setLoadKeyStatus('success');
