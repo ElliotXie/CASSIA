@@ -266,6 +266,8 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
         sub_type = row.get('sub_cell_type', '')
         key_markers = row.get('key_markers', '')
         reason = row.get('reason', '')
+        # Convert markdown formatting to HTML for reasoning
+        reason_html = simple_markdown_to_html(reason)
         # Escape quotes for JavaScript
         escaped_markers = str(key_markers).replace('\\', '\\\\').replace("'", "\\'").replace('"', '&quot;').replace('\n', '<br>')
         escaped_cluster = str(cluster).replace("'", "\\'")
@@ -279,7 +281,7 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
             <td class="marker-col">
                 <button class="marker-toggle" onclick="showMarkerPopup('{escaped_cluster}', '{escaped_markers}')">Show Markers</button>
             </td>
-            <td class="reasoning-col"><div class="reasoning-box">{reason}</div></td>
+            <td class="reasoning-col"><div class="reasoning-box">{reason_html}</div></td>
         </tr>
         ''')
 

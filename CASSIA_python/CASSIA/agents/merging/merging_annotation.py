@@ -25,6 +25,7 @@ def merge_annotations(
     output_path: Optional[str] = None,
     provider: str = "openrouter",
     model: Optional[str] = None,
+    temperature: Optional[float] = None,
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
     batch_size: int = 20,
@@ -39,6 +40,7 @@ def merge_annotations(
         output_path: Path to save the results (if None, returns DataFrame without saving)
         provider: LLM provider to use ("openai", "anthropic", or "openrouter")
         model: Specific model to use (if None, uses provider's merging default)
+        temperature: Temperature for sampling (if None, uses provider's merging default)
         api_key: API key for the provider (if None, gets from environment)
         additional_context: Optional domain-specific context to help with annotation
         batch_size: Number of clusters to process in each LLM call (for efficiency)
@@ -51,10 +53,13 @@ def merge_annotations(
     Returns:
         DataFrame with original annotations and suggested cell groupings
     """
-    # Apply agent defaults if model not specified
-    if model is None:
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
         defaults = get_agent_default("merging", provider)
-        model = defaults["model"]
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
 
     # Validate detail_level parameter
     if detail_level not in ["broad", "detailed", "very_detailed"]:
@@ -317,8 +322,9 @@ def _parse_llm_response(response: str, indices: pd.Index) -> Dict[int, str]:
 def merge_annotations_all(
     csv_path: str,
     output_path: Optional[str] = None,
-    provider: str = "openai",
+    provider: str = "openrouter",
     model: Optional[str] = None,
+    temperature: Optional[float] = None,
     api_key: Optional[str] = None,
     additional_context: Optional[str] = None,
     batch_size: int = 20,
@@ -332,6 +338,7 @@ def merge_annotations_all(
         output_path: Path to save the results (if None, returns DataFrame without saving)
         provider: LLM provider to use ("openai", "anthropic", or "openrouter")
         model: Specific model to use (if None, uses default for provider)
+        temperature: Temperature for sampling (if None, uses provider's merging default)
         api_key: API key for the provider (if None, gets from environment)
         additional_context: Optional domain-specific context to help with annotation
         batch_size: Number of clusters to process in each LLM call (for efficiency)
@@ -353,6 +360,7 @@ def merge_annotations_all(
         output_path=None,  # We'll save the combined result at the end
         provider=provider,
         model=model,
+        temperature=temperature,
         api_key=api_key,
         additional_context=additional_context,
         batch_size=batch_size,

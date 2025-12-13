@@ -1117,7 +1117,7 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
+runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   # Convert marker_list to character vector if it's a data frame
   if (is.data.frame(marker_list)) {
     # Try common column names for gene markers
@@ -1202,7 +1202,7 @@ runCASSIA <- function(model = "google/gemini-2.5-flash-preview", temperature = 0
 #' @return A list containing results from multiple runs, each with analysis_result, conversation_history, and reference_info.
 #' @export
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list,
-                           model = "google/gemini-2.5-flash-preview", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
+                           model = "openai/gpt-5.1", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   tryCatch({
     result <- py_cassia$runCASSIA_n_times(
       n = as.integer(n),
@@ -1267,7 +1267,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
-runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature, marker_list, model = "google/gemini-2.5-flash-preview", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, generate_report = TRUE, report_output_path = NULL) {
+runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature = 0.3, marker_list, model = "openai/gpt-5.1", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, generate_report = TRUE, report_output_path = NULL) {
   tryCatch({
     # Call the Python function with the new parameter structure
     processed_results <- py_cassia$runCASSIA_n_times_similarity_score(
@@ -1341,7 +1341,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @return None. This function creates output files and prints execution time.
 #' @export
 runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.json",
-                          model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung",
+                          model = "openai/gpt-5.1", temperature = 0, tissue = "lung",
                           species = "human", additional_info = NULL,
                           celltype_column = NULL, gene_column_name = NULL,
                           max_workers = 10, provider = "openrouter", n_genes = 50,
@@ -1418,7 +1418,7 @@ if (is.data.frame(marker)) {
 #' @return None. This function creates output files and prints execution time.
 #' @export
 runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis_results",
-                                  model = "google/gemini-2.5-flash-preview", temperature = 0, tissue = "lung",
+                                  model = "openai/gpt-5.1", temperature = 0.3, tissue = "lung",
                                   species = "human", additional_info = NULL,
                                   celltype_column = NULL, gene_column_name = NULL,
                                   max_workers = 10, batch_max_workers = 5,
@@ -1475,7 +1475,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @return None. This function processes and saves results to a CSV file and prints execution time.
 #' @export
 runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
-                                               celltype_column = NULL, max_workers = 10, model = "google/gemini-2.5-flash-preview", provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
+                                               celltype_column = NULL, max_workers = 10, model = "openai/gpt-5.1", temperature = 0, provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
   if (is.data.frame(marker)) {
     # Determine the cluster column to check
     cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
@@ -1500,6 +1500,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
         celltype_column = celltype_column,
         max_workers = as.integer(max_workers),
         model = model,
+        temperature = as.numeric(temperature),
         provider = provider,
         main_weight = main_weight,
         sub_weight = sub_weight,
@@ -1549,9 +1550,9 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      major_cluster_info,
                                      output_name,
                                      num_iterations = 5,
-                                     model = "google/gemini-2.5-flash-preview",
+                                     model = "anthropic/claude-sonnet-4.5",
                                      provider = "openrouter",
-                                     temperature = 0,
+                                     temperature = 0.1,
                                      conversation_history_mode = "full",
                                      search_strategy = "breadth",
                                      report_style = "per_iteration",
@@ -1630,10 +1631,10 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      major_cluster_info,
                                                      output_name,
                                                      num_iterations = 5,
-                                                     model = "google/gemini-2.5-flash-preview",
+                                                     model = "anthropic/claude-sonnet-4.5",
                                                      provider = "openrouter",
                                                      additional_task = "check if this is a cancer cluster",
-                                                     temperature = 0,
+                                                     temperature = 0.1,
                                                      conversation_history_mode = "full",
                                                      search_strategy = "breadth",
                                                      report_style = "per_iteration",
@@ -1694,7 +1695,8 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
 runCASSIA_score_batch <- function(input_file,
                                     output_file = NULL,
                                     max_workers = 4,
-                                    model = "deepseek/deepseek-chat-v3-0324",
+                                    model = "anthropic/claude-sonnet-4.5",
+                                    temperature = 0,
                                     provider = "openrouter",
                                     max_retries = 1) {
   tryCatch({
@@ -1703,6 +1705,7 @@ runCASSIA_score_batch <- function(input_file,
       output_file = output_file,
       max_workers = as.integer(max_workers),
       model = model,
+      temperature = as.numeric(temperature),
       provider = provider,
       max_retries = as.integer(max_retries)
     )
@@ -2061,8 +2064,8 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 #'
 #' @return None. This function processes subclusters and saves results to a CSV file.
 #' @export
-runCASSIA_subclusters <- function(marker, major_cluster_info, output_name, 
-                               model = "google/gemini-2.5-flash-preview", temperature = 0, 
+runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
+                               model = "anthropic/claude-sonnet-4.5", temperature = 0,
                                provider = "openrouter", n_genes = 50L) {
   py_cassia$runCASSIA_subclusters(
     marker = marker,
@@ -2089,9 +2092,9 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #'
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
 #' @export
-runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name, 
-                                               model = "google/gemini-2.5-flash-preview", temperature = 0, 
-                                               provider = "openrouter", max_workers = 5,n_genes=50L) {
+runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name,
+                                               model = "anthropic/claude-sonnet-4.5", temperature = 0.3,
+                                               provider = "openrouter", max_workers = 5, n_genes = 50L) {
   py_cassia$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
@@ -2283,8 +2286,9 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
 #' @export
 merge_annotations <- function(csv_path,
                              output_path = NULL,
-                             provider = "openai",
-                             model = NULL,
+                             provider = "openrouter",
+                             model = "google/gemini-2.5-flash",
+                             temperature = 0,
                              api_key = NULL,
                              additional_context = NULL,
                              batch_size = 20L,
@@ -2295,6 +2299,7 @@ merge_annotations <- function(csv_path,
       output_path = output_path,
       provider = provider,
       model = model,
+      temperature = as.numeric(temperature),
       api_key = api_key,
       additional_context = additional_context,
       batch_size = as.integer(batch_size),
@@ -2338,8 +2343,9 @@ merge_annotations <- function(csv_path,
 #' @export
 merge_annotations_all <- function(csv_path,
                                   output_path = NULL,
-                                  provider = "openai",
-                                  model = NULL,
+                                  provider = "openrouter",
+                                  model = "google/gemini-2.5-flash",
+                                  temperature = 0,
                                   api_key = NULL,
                                   additional_context = NULL,
                                   batch_size = 20L) {
@@ -2349,6 +2355,7 @@ merge_annotations_all <- function(csv_path,
       output_path = output_path,
       provider = provider,
       model = model,
+      temperature = as.numeric(temperature),
       api_key = api_key,
       additional_context = additional_context,
       batch_size = as.integer(batch_size)

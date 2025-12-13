@@ -235,6 +235,19 @@ def extract_model_name(file_path: str) -> str:
         return model_name
     return "Unknown Model"
 
+def simple_markdown_to_html(text):
+    """Convert basic markdown to HTML (bold, italic, line breaks)."""
+    if not text or (isinstance(text, float) and pd.isna(text)):
+        return ""
+    text = str(text)
+    # Convert **bold** to <strong>bold</strong>
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    # Convert *italic* to <em>italic</em> (avoid matching ** which is already handled)
+    text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<em>\1</em>', text)
+    # Convert newlines to <br>
+    text = text.replace('\n', '<br>')
+    return text
+
 def generate_subclustering_report(csv_path, html_report_path=None, model_name=None):
     """
     Generate a beautiful HTML report for subclustering batch results, showing annotation, reasoning, and top marker.
@@ -253,6 +266,8 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
         sub_type = row.get('sub_cell_type', '')
         key_markers = row.get('key_markers', '')
         reason = row.get('reason', '')
+        # Convert markdown formatting to HTML for reasoning
+        reason_html = simple_markdown_to_html(reason)
         # Escape quotes for JavaScript
         escaped_markers = str(key_markers).replace('\\', '\\\\').replace("'", "\\'").replace('"', '&quot;').replace('\n', '<br>')
         escaped_cluster = str(cluster).replace("'", "\\'")
@@ -266,7 +281,7 @@ def generate_subclustering_report(csv_path, html_report_path=None, model_name=No
             <td class="marker-col">
                 <button class="marker-toggle" onclick="showMarkerPopup('{escaped_cluster}', '{escaped_markers}')">Show Markers</button>
             </td>
-            <td class="reasoning-col"><div class="reasoning-box">{reason}</div></td>
+            <td class="reasoning-col"><div class="reasoning-box">{reason_html}</div></td>
         </tr>
         ''')
 

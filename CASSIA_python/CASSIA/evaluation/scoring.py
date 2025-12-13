@@ -30,6 +30,14 @@ except ImportError:
         from progress_tracker import BatchProgressTracker
 
 try:
+    from CASSIA.core.model_settings import get_agent_default
+except ImportError:
+    try:
+        from ..core.model_settings import get_agent_default
+    except ImportError:
+        from model_settings import get_agent_default
+
+try:
     from CASSIA.core.utils import get_column_value, MARKER_COLUMN_OPTIONS, HISTORY_COLUMN_OPTIONS, CLUSTER_ID_COLUMN_OPTIONS
 except ImportError:
     try:
@@ -303,7 +311,7 @@ def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provide
         return (idx, None, f"Error: {str(e)}")
 
 
-def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None, reasoning=None):
+def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model=None, temperature=None, provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None, reasoning=None):
     """
     Run scoring on a batch of cell type annotations with progress tracking.
 
@@ -311,7 +319,8 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
         input_file (str): Path to input CSV file (with or without .csv extension)
         output_file (str, optional): Path to output CSV file (with or without .csv extension)
         max_workers (int): Maximum number of parallel workers
-        model (str): Model to use
+        model (str): Model to use (default: uses agent default from model_settings)
+        temperature (float): Temperature for sampling (default: uses agent default from model_settings)
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
         max_retries (int): Maximum number of retries for failed analyses
         generate_report (bool): Whether to generate HTML report (default True, set False when called from pipeline)
@@ -328,6 +337,14 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model="de
 
     if output_file and not output_file.lower().endswith('.csv'):
         output_file = output_file + '.csv'
+
+    # Apply agent defaults if model or temperature not specified
+    if model is None or temperature is None:
+        defaults = get_agent_default("scoring", provider)
+        if model is None:
+            model = defaults["model"]
+        if temperature is None:
+            temperature = defaults["temperature"]
 
     # Auto-detect conversations JSON if not provided
     if conversations_json_path is None:
