@@ -271,9 +271,12 @@ export function ApiKeyInput() {
     setTestErrorMessage('')
 
     try {
-      // For custom provider, use the custom base URL
+      // For custom provider, use the custom base URL and model from preset
       const baseUrl = provider === 'custom' ? customBaseUrl : null
-      const result = await testApiKey(provider, apiKey, baseUrl)
+      const customModel = provider === 'custom'
+        ? (model || CUSTOM_PROVIDER_PRESETS[customPreset]?.models?.[0])
+        : null
+      const result = await testApiKey(provider, apiKey, baseUrl, customModel)
 
       if (result.success) {
         setTestStatus('success')

@@ -202,7 +202,8 @@ export default function AnnotationMergingPage() {
 
     try {
       const baseUrl = provider === 'custom' ? customBaseUrl : null;
-      const result = await testApiKey(provider, apiKey, baseUrl);
+      const customModel = provider === 'custom' ? model : null;
+      const result = await testApiKey(provider, apiKey, baseUrl, customModel);
 
       if (result.success) {
         setTestStatus('success');

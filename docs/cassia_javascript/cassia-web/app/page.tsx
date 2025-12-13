@@ -130,7 +130,17 @@ export default function HomePage() {
           return
         }
 
-        const result = await testApiKeyFn('custom', tempApiKey, tempCustomBaseUrl)
+        // Get test model from the selected preset
+        const preset = CUSTOM_PROVIDER_PRESETS[customPreset]
+        const testModel = preset?.models?.[0] || tempModel
+        if (!testModel) {
+          setTestResult('error')
+          setTestMessage('Model is required for custom provider testing')
+          setIsTestingApi(false)
+          return
+        }
+
+        const result = await testApiKeyFn('custom', tempApiKey, tempCustomBaseUrl, testModel)
 
         if (result.success) {
           setTestResult('success')

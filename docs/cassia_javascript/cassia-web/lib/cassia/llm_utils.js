@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import axios from 'axios';
+import modelSettings from '../../public/examples/model_settings.json';
 
 /**
  * Call an LLM from various providers and return the generated text.
@@ -353,44 +354,63 @@ export async function callLLM(
 }
 
 /**
- * Cheapest models for each provider to use for API key testing.
- * These models are selected to minimize cost while still validating the API key.
+ * Get the cheapest/fastest model for a provider from model_settings.json.
+ * Uses provider_shortcuts.{provider}.cheap or .fast as the test model.
+ *
+ * @param {string} provider - One of "openai", "anthropic", "openrouter", or "custom"
+ * @returns {string} The model name to use for testing
  */
-const CHEAPEST_MODELS = {
-    openai: 'gpt-4o-mini',
-    anthropic: 'claude-haiku-4-20250514',
-    openrouter: 'google/gemini-2.5-flash',
-    custom: 'deepseek-chat'
-};
+function getTestModel(provider) {
+    const shortcuts = modelSettings.provider_shortcuts?.[provider];
+    if (shortcuts) {
+        // Prefer 'cheap' shortcut, fall back to 'fast', then 'default'
+        return shortcuts.cheap || shortcuts.fast || shortcuts.default || '';
+    }
+    return '';
+}
 
 /**
  * Test an API key by sending a minimal request to the provider.
- * Uses the cheapest model available for each provider to minimize cost.
+ * Uses the cheapest model from model_settings.json provider_shortcuts.
  *
  * @param {string} provider - One of "openai", "anthropic", "openrouter", or "custom"
  * @param {string} apiKey - The API key to test
  * @param {string} customBaseUrl - Base URL for custom provider (required if provider is "custom")
+ * @param {string} customModel - Model to use for custom provider (required if provider is "custom")
  * @returns {Promise<{success: boolean, error?: string}>} Result of the test
  */
-export async function testApiKey(provider, apiKey, customBaseUrl = null) {
+export async function testApiKey(provider, apiKey, customBaseUrl = null, customModel = null) {
     if (!apiKey || !apiKey.trim()) {
         return { success: false, error: 'API key is required' };
     }
 
     try {
         // Determine the model and provider URL to use
-        const model = CHEAPEST_MODELS[provider] || CHEAPEST_MODELS.custom;
-        const providerUrl = provider === 'custom' ? customBaseUrl : provider;
+        let model;
+        let providerUrl;
 
-        if (provider === 'custom' && !customBaseUrl) {
-            return { success: false, error: 'Base URL is required for custom provider' };
+        if (provider === 'custom') {
+            if (!customBaseUrl) {
+                return { success: false, error: 'Base URL is required for custom provider' };
+            }
+            if (!customModel) {
+                return { success: false, error: 'Model is required for custom provider' };
+            }
+            model = customModel;
+            providerUrl = customBaseUrl;
+        } else {
+            model = getTestModel(provider);
+            if (!model) {
+                return { success: false, error: `No test model configured for provider: ${provider}` };
+            }
+            providerUrl = provider;
         }
 
         // Send a minimal test request
         await callLLM(
             "say 'a'",      // Simple prompt
             providerUrl,    // Provider or custom URL
-            model,          // Cheapest model
+            model,          // Model from settings or custom
             apiKey,         // API key to test
             0.0,            // Temperature (deterministic)
             10,             // Minimal max tokens
