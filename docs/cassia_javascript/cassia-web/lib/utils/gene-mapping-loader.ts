@@ -2,10 +2,41 @@
  * Gene Mapping Loader
  *
  * Handles lazy loading and caching of gene ID mapping files.
- * Files are gzip compressed and decompressed in the browser using pako.
+ * Files are gzip compressed and decompressed in the browser.
+ * Uses native DecompressionStream when available, falls back to pako.
  */
 
-import pako from 'pako'
+// Dynamic import for pako (optional fallback)
+let pakoModule: typeof import('pako') | null = null
+
+/**
+ * Decompress gzip data using native API or pako fallback
+ */
+async function decompressGzip(compressedData: ArrayBuffer): Promise<string> {
+  // Try native DecompressionStream first (modern browsers)
+  if (typeof DecompressionStream !== 'undefined') {
+    try {
+      const ds = new DecompressionStream('gzip')
+      const decompressedStream = new Response(compressedData).body!.pipeThrough(ds)
+      const decompressedData = await new Response(decompressedStream).arrayBuffer()
+      return new TextDecoder().decode(decompressedData)
+    } catch (e) {
+      console.warn('Native decompression failed, trying pako:', e)
+    }
+  }
+
+  // Fallback to pako
+  if (!pakoModule) {
+    try {
+      pakoModule = await import('pako')
+    } catch (e) {
+      throw new Error('Failed to load decompression library. Please ensure pako is installed.')
+    }
+  }
+
+  const decompressed = pakoModule.ungzip(new Uint8Array(compressedData), { to: 'string' })
+  return decompressed
+}
 
 export interface MappingFile {
   version: string
@@ -76,8 +107,8 @@ export async function loadMappings(
       const compressed = await response.arrayBuffer()
       console.log(`Downloaded ${compressed.byteLength} bytes (compressed)`)
 
-      // Decompress using pako
-      const decompressed = pako.ungzip(new Uint8Array(compressed), { to: 'string' })
+      // Decompress using native API or pako fallback
+      const decompressed = await decompressGzip(compressed)
       console.log(`Decompressed to ${decompressed.length} characters`)
 
       const data: MappingFile = JSON.parse(decompressed)
