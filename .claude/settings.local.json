@@ -32,7 +32,10 @@
       "Bash(copy \"D:\\CASSIA\\docs\\decisionTree.jpeg\" \"D:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\public\\images\"\")",
       "Bash(python sync_python_files.py:*)",
       "Bash(npm cache clean:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e \"BiocManager::install(''BiocCheck'', ask=FALSE)\")",
+      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e:*)",
+      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" \"d:/CASSIA/Test/update_rds.R\")"
     ],
     "deny": []
   }

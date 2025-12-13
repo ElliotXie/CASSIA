@@ -68,7 +68,7 @@ export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
-  const { apiKeys, provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl } = useApiKeyStore()
+  const { apiKeys, provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl, selectedCustomPreset, setSelectedCustomPreset } = useApiKeyStore()
   const customBaseUrl = getCustomBaseUrl()
   const { isAuthenticated } = useAuthStore()
   const [tempApiKey, setTempApiKey] = useState(apiKeys[provider] || '')
@@ -80,8 +80,7 @@ export default function HomePage() {
   const [showApiKey, setShowApiKey] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
-  // Custom provider state
-  const [customPreset, setCustomPreset] = useState<CustomPresetKey>('deepseek')
+  // Custom provider state - showPresetDropdown for UI, selectedCustomPreset from store
   const [showPresetDropdown, setShowPresetDropdown] = useState(false)
   const [tempCustomBaseUrl, setTempCustomBaseUrl] = useState(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
 
@@ -101,10 +100,9 @@ export default function HomePage() {
     setTestMessage('')
 
     if (newProvider === 'custom') {
-      // Initialize with DeepSeek preset (model will be set in batch/pipeline pages)
-      const defaultPreset = CUSTOM_PROVIDER_PRESETS.deepseek
-      setTempCustomBaseUrl(defaultPreset.baseUrl)
-      setCustomPreset('deepseek')
+      // Initialize with current preset from store (model will be set in batch/pipeline pages)
+      const currentPreset = CUSTOM_PROVIDER_PRESETS[selectedCustomPreset]
+      setTempCustomBaseUrl(currentPreset.baseUrl)
     } else {
       setTempModel(getDefaultModel(newProvider))
     }
@@ -133,7 +131,7 @@ export default function HomePage() {
         }
 
         // Get test model from the selected preset
-        const preset = CUSTOM_PROVIDER_PRESETS[customPreset]
+        const preset = CUSTOM_PROVIDER_PRESETS[selectedCustomPreset]
         const testModel = preset?.models?.[0] || tempModel
         if (!testModel) {
           setTestResult('error')
@@ -321,8 +319,7 @@ export default function HomePage() {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
-                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
-                  setCustomPreset('deepseek')
+                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].baseUrl)
                   setShowPresetDropdown(false)
                   setTestResult(null)
                   setTestMessage('')
@@ -471,8 +468,7 @@ export default function HomePage() {
                   setTempApiKey(apiKey)
                   setTempProvider(provider)
                   setTempModel(model || getDefaultModel(provider))
-                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
-                  setCustomPreset('deepseek')
+                  setTempCustomBaseUrl(customBaseUrl || CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].baseUrl)
                   setShowPresetDropdown(false)
                   setTestResult(null)
                   setTestMessage('')
@@ -794,7 +790,7 @@ export default function HomePage() {
                         onClick={() => setShowPresetDropdown(!showPresetDropdown)}
                         className="w-full p-3 text-left border-2 border-purple-200 dark:border-purple-600 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-between hover:border-purple-400 transition-colors"
                       >
-                        <span className="text-gray-900 dark:text-white">{CUSTOM_PROVIDER_PRESETS[customPreset].name}</span>
+                        <span className="text-gray-900 dark:text-white">{CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name}</span>
                         <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showPresetDropdown ? 'rotate-180' : ''}`} />
                       </button>
                       {showPresetDropdown && (
@@ -804,7 +800,7 @@ export default function HomePage() {
                               key={key}
                               type="button"
                               onClick={() => {
-                                setCustomPreset(key as CustomPresetKey)
+                                setSelectedCustomPreset(key as CustomPresetKey)
                                 if (preset.baseUrl) {
                                   setTempCustomBaseUrl(preset.baseUrl)
                                 } else {
@@ -813,7 +809,7 @@ export default function HomePage() {
                                 setShowPresetDropdown(false)
                               }}
                               className={`w-full p-3 text-left hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors ${
-                                customPreset === key ? 'bg-purple-100 dark:bg-purple-900/50' : ''
+                                selectedCustomPreset === key ? 'bg-purple-100 dark:bg-purple-900/50' : ''
                               }`}
                             >
                               <div className="font-medium text-sm text-gray-900 dark:text-white">{preset.name}</div>
@@ -830,7 +826,7 @@ export default function HomePage() {
                   {/* Base URL */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-900 dark:text-white">Base URL</label>
-                    {customPreset === 'manual' ? (
+                    {selectedCustomPreset === 'manual' ? (
                       <input
                         type="url"
                         placeholder="https://api.example.com/v1"
@@ -841,28 +837,28 @@ export default function HomePage() {
                     ) : (
                       <input
                         type="url"
-                        value={CUSTOM_PROVIDER_PRESETS[customPreset].baseUrl}
+                        value={CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].baseUrl}
                         readOnly
                         className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-600 rounded-xl text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
                       />
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {customPreset === 'manual'
+                      {selectedCustomPreset === 'manual'
                         ? 'Enter any OpenAI-compatible endpoint URL'
-                        : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[customPreset].name}`
+                        : `Pre-configured for ${CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name}`
                       }
                     </p>
                   </div>
 
                   {/* Help Link */}
-                  {customPreset !== 'manual' && (
+                  {selectedCustomPreset !== 'manual' && (
                     <a
-                      href={CUSTOM_PROVIDER_PRESETS[customPreset].helpUrl}
+                      href={CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].helpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline"
                     >
-                      Get {CUSTOM_PROVIDER_PRESETS[customPreset].name} API Key
+                      Get {CUSTOM_PROVIDER_PRESETS[selectedCustomPreset].name} API Key
                       <ExternalLink className="h-3 w-3 ml-1" />
                     </a>
                   )}
