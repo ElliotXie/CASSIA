@@ -4,13 +4,13 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff, ChevronDown, ExternalLink } from 'lucide-react'
-import { useState, Suspense } from 'react'
+import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ExternalLink } from 'lucide-react'
+import { useState, Suspense, useEffect } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { AuthButton } from '@/components/auth/AuthButton'
 import { LoadApiKeysButton } from '@/components/LoadApiKeysButton'
-import modelSettings from '../public/examples/model_settings.json'
+import { loadModelSettings, preloadModelSettings, getCachedSettings, type ModelSettings } from '@/lib/utils/model-settings'
 import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
 import { FeedbackSection } from '@/components/FeedbackSection'
 import { testApiKey as testApiKeyFn } from '@/lib/cassia/llm_utils'
@@ -67,6 +67,14 @@ const CUSTOM_PROVIDER_PRESETS = {
 
 type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
 
+// Default models fallback (used before settings load)
+const DEFAULT_MODELS: Record<string, string> = {
+  openrouter: 'anthropic/claude-sonnet-4.5',
+  openai: 'gpt-5.1',
+  anthropic: 'claude-sonnet-4.5',
+  custom: ''
+}
+
 export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
@@ -87,13 +95,24 @@ export default function HomePage() {
   const [showPresetDropdown, setShowPresetDropdown] = useState(false)
   const [tempCustomBaseUrl, setTempCustomBaseUrl] = useState(customBaseUrl || CUSTOM_PROVIDER_PRESETS.deepseek.baseUrl)
 
+  // Lazy-loaded model settings
+  const [modelSettings, setModelSettings] = useState<ModelSettings | null>(getCachedSettings())
+
+  // Preload model settings on mount
+  useEffect(() => {
+    loadModelSettings().then(setModelSettings).catch(console.error)
+  }, [])
+
   // Get current API key
   const apiKey = apiKeys[provider] || ''
 
-  // Default models for each provider from model_settings.json
+  // Default models for each provider from model_settings.json (with fallback)
   const getDefaultModel = (providerName: string) => {
-    const providerData = modelSettings.providers[providerName as keyof typeof modelSettings.providers];
-    return providerData?.default_model || modelSettings.providers.openrouter.default_model;
+    if (modelSettings) {
+      const providerData = modelSettings.providers[providerName]
+      return providerData?.default_model || modelSettings.providers.openrouter?.default_model || DEFAULT_MODELS[providerName] || ''
+    }
+    return DEFAULT_MODELS[providerName] || DEFAULT_MODELS.openrouter
   }
 
   // Update model when provider changes
