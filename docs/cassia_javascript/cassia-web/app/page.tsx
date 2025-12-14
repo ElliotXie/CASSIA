@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -311,11 +312,14 @@ export default function HomePage() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg animate-glow">
-                  <span className="text-white font-bold text-lg">🧬</span>
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse-slow"></div>
+              <div className="relative shrink-0 w-[67px] h-[67px]">
+                <Image
+                  src="/images/cassia-icon.png"
+                  alt="CASSIA"
+                  width={67}
+                  height={67}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">CASSIA</h1>
@@ -751,9 +755,12 @@ export default function HomePage() {
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">🧬</span>
-              </div>
+              <Image
+                src="/images/cassia-icon.png"
+                alt="CASSIA"
+                width={32}
+                height={32}
+              />
               <h3 className="text-xl font-bold gradient-text">CASSIA v2.0</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
