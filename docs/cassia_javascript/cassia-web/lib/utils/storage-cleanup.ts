@@ -9,8 +9,7 @@ export const cleanupOldStorage = () => {
     // List of old storage keys that might cause conflicts
     const oldKeys = [
       'cassia-api-key-storage',
-      'cassia-auth-storage',
-      'cassia-results-storage'
+      'cassia-auth-storage'
     ]
     
     let cleaned = false

@@ -4,8 +4,6 @@ import { useState, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { useResultsStore } from '@/lib/stores/results-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
@@ -22,9 +20,6 @@ export default function ScoringAgentPage() {
     const globalCustomBaseUrl = useApiKeyStore((state) => state.getCustomBaseUrl());
     const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
 
-    // Auth state
-    const { isAuthenticated, user } = useAuthStore();
-    const { saveResult } = useResultsStore();
 
     // State management
     const [apiKey, setApiKey] = useState('');
@@ -108,13 +103,6 @@ export default function ScoringAgentPage() {
 
     // Load API keys from Supabase account
     const handleLoadApiKeys = async () => {
-        if (!isAuthenticated || !user) {
-            setLoadKeyError('Please sign in to load API keys');
-            setLoadKeyStatus('error');
-            setTimeout(() => setLoadKeyStatus('idle'), 5000);
-            return;
-        }
-
         setIsLoadingKeys(true);
         setLoadKeyStatus('idle');
         setLoadKeyError('');
@@ -206,22 +194,6 @@ export default function ScoringAgentPage() {
             
             setResults(result);
             console.log('Scoring completed:', result);
-
-            // Save to database for authenticated users
-            if (isAuthenticated) {
-                try {
-                    await saveResult({
-                        analysis_type: 'scoring',
-                        title: `Scoring - ${csvFile?.name || 'analysis'}`,
-                        description: `Scored ${csvData.length} annotations`,
-                        results: result,
-                        settings: { provider, model, maxWorkers }
-                    });
-                    console.log('Results saved to dashboard');
-                } catch (saveErr) {
-                    console.error('Failed to save results:', saveErr);
-                }
-            }
         } catch (err: any) {
             setError(`Scoring failed: ${err.message}`);
         } finally {
@@ -285,37 +257,35 @@ export default function ScoringAgentPage() {
                                         onChange={(e) => setApiKey(e.target.value)}
                                         placeholder="Enter your API key"
                                     />
-                                    {isAuthenticated && (
-                                        <Button
-                                            onClick={handleLoadApiKeys}
-                                            disabled={isLoadingKeys}
-                                            variant={loadKeyStatus === 'success' ? 'default' : loadKeyStatus === 'error' ? 'destructive' : 'outline'}
-                                            size="sm"
-                                            className="w-full"
-                                        >
-                                            {isLoadingKeys ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Loading Keys...
-                                                </>
-                                            ) : loadKeyStatus === 'success' ? (
-                                                <>
-                                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                                    API Key Loaded
-                                                </>
-                                            ) : loadKeyStatus === 'error' ? (
-                                                <>
-                                                    <AlertCircle className="mr-2 h-4 w-4" />
-                                                    Load Failed
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Load from Account
-                                                </>
-                                            )}
-                                        </Button>
-                                    )}
+                                    <Button
+                                        onClick={handleLoadApiKeys}
+                                        disabled={isLoadingKeys}
+                                        variant={loadKeyStatus === 'success' ? 'default' : loadKeyStatus === 'error' ? 'destructive' : 'outline'}
+                                        size="sm"
+                                        className="w-full"
+                                    >
+                                        {isLoadingKeys ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Loading Keys...
+                                            </>
+                                        ) : loadKeyStatus === 'success' ? (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                API Key Loaded
+                                            </>
+                                        ) : loadKeyStatus === 'error' ? (
+                                            <>
+                                                <AlertCircle className="mr-2 h-4 w-4" />
+                                                Load Failed
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="mr-2 h-4 w-4" />
+                                                Load from Account
+                                            </>
+                                        )}
+                                    </Button>
                                     {loadKeyStatus === 'error' && loadKeyError && (
                                         <p className="text-xs text-red-600">{loadKeyError}</p>
                                     )}

@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { useResultsStore } from '@/lib/stores/results-store';
 import { ReasoningEffort } from '@/lib/config/model-presets';
 import { mergeAnnotations, mergeAnnotationsAll } from '@/lib/cassia/mergingAnnotation';
 import { parseCSV } from '@/lib/utils/csv-parser';
@@ -52,9 +50,6 @@ export default function AnnotationMergingPage() {
   const globalApiKey = useApiKeyStore((state) => state.getApiKey());
   const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
 
-  // Auth state
-  const { isAuthenticated, user } = useAuthStore();
-  const { saveResult } = useResultsStore();
 
   // Initialize with global API key
   useEffect(() => {
@@ -156,13 +151,6 @@ export default function AnnotationMergingPage() {
 
   // Load API keys from Supabase account
   const handleLoadApiKeys = async () => {
-    if (!isAuthenticated || !user) {
-      setLoadKeyError('Please sign in to load API keys');
-      setLoadKeyStatus('error');
-      setTimeout(() => setLoadKeyStatus('idle'), 5000);
-      return;
-    }
-
     setIsLoadingKeys(true);
     setLoadKeyStatus('idle');
     setLoadKeyError('');
@@ -275,22 +263,6 @@ export default function AnnotationMergingPage() {
 
       setResults(result);
       setProgress('Annotation merging completed successfully!');
-
-      // Save to database for authenticated users
-      if (isAuthenticated) {
-        try {
-          await saveResult({
-            analysis_type: 'batch', // Use 'batch' as merging is not in the type enum
-            title: `Merged Annotations - ${uploadedFile?.name || 'analysis'}`,
-            description: `${processAllLevels ? 'All levels' : detailLevel} merging, ${csvData?.length || 0} rows`,
-            results: result,
-            settings: { provider, model, detailLevel, processAllLevels, batchSize }
-          });
-          console.log('Results saved to dashboard');
-        } catch (saveErr) {
-          console.error('Failed to save results:', saveErr);
-        }
-      }
     } catch (err) {
       setError(`Error during processing: ${err.message}`);
       setProgress('');
@@ -495,37 +467,35 @@ export default function AnnotationMergingPage() {
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="Enter your API key"
               />
-              {isAuthenticated && (
-                <Button
-                  onClick={handleLoadApiKeys}
-                  disabled={isLoadingKeys}
-                  variant={loadKeyStatus === 'success' ? 'default' : loadKeyStatus === 'error' ? 'destructive' : 'outline'}
-                  size="sm"
-                  className="w-full"
-                >
-                  {isLoadingKeys ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading Keys...
-                    </>
-                  ) : loadKeyStatus === 'success' ? (
-                    <>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      API Key Loaded
-                    </>
-                  ) : loadKeyStatus === 'error' ? (
-                    <>
-                      <AlertCircle className="mr-2 h-4 w-4" />
-                      Load Failed
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Load from Account
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                onClick={handleLoadApiKeys}
+                disabled={isLoadingKeys}
+                variant={loadKeyStatus === 'success' ? 'default' : loadKeyStatus === 'error' ? 'destructive' : 'outline'}
+                size="sm"
+                className="w-full"
+              >
+                {isLoadingKeys ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Keys...
+                  </>
+                ) : loadKeyStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    API Key Loaded
+                  </>
+                ) : loadKeyStatus === 'error' ? (
+                  <>
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Load Failed
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Load from Account
+                  </>
+                )}
+              </Button>
               {loadKeyStatus === 'error' && loadKeyError && (
                 <p className="text-xs text-red-600">{loadKeyError}</p>
               )}

@@ -79,94 +79,6 @@ export type Database = {
           }
         ]
       }
-      analysis_results: {
-        Row: {
-          id: string
-          user_id: string
-          analysis_type: string
-          title: string | null
-          description: string | null
-          input_data: Json | null
-          results: Json | null
-          settings: Json | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          analysis_type: string
-          title?: string | null
-          description?: string | null
-          input_data?: Json | null
-          results?: Json | null
-          settings?: Json | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          analysis_type?: string
-          title?: string | null
-          description?: string | null
-          input_data?: Json | null
-          results?: Json | null
-          settings?: Json | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "analysis_results_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      analysis_sessions: {
-        Row: {
-          id: string
-          user_id: string
-          session_name: string | null
-          analysis_type: string | null
-          status: string
-          progress: Json | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          session_name?: string | null
-          analysis_type?: string | null
-          status?: string
-          progress?: Json | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          session_name?: string | null
-          analysis_type?: string | null
-          status?: string
-          progress?: Json | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "analysis_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       feedback_comments: {
         Row: {
           id: string
@@ -232,13 +144,7 @@ export type Database = {
 
 export type Provider = 'openrouter' | 'anthropic' | 'openai'
 
-export type AnalysisType = 'batch' | 'symphony' | 'scoring' | 'subclustering' | 'annotation-boost'
-
-export type SessionStatus = 'active' | 'completed' | 'archived'
-
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type UserApiKey = Database['public']['Tables']['user_api_keys']['Row']
-export type AnalysisResult = Database['public']['Tables']['analysis_results']['Row']
-export type AnalysisSession = Database['public']['Tables']['analysis_sessions']['Row']
 export type FeedbackComment = Database['public']['Tables']['feedback_comments']['Row']
 export type CommentType = 'feature_request' | 'bug_report'

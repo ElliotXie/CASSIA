@@ -10,15 +10,15 @@ export const metadata: Metadata = {
   title: "CASSIA Documentation",
   description: "Comprehensive documentation for the CASSIA single cell analysis platform",
   generator: 'v0.dev',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' }
-  ]
 }
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' }
+  ],
 }
 
 export default function RootLayout({

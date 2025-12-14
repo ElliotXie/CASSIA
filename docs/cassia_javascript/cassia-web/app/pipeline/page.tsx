@@ -15,8 +15,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
-import { useResultsStore } from '@/lib/stores/results-store'
-import { useAuthStore } from '@/lib/stores/auth-store'
 import type { BatchReportData } from '@/components/reports'
 
 // Lazy-load components that are only shown after user interaction
@@ -61,8 +59,6 @@ export default function PipelinePage() {
     setResults
   } = useAnalysisStore()
 
-  const { saveResult } = useResultsStore()
-  const { isAuthenticated } = useAuthStore()
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
 
@@ -108,21 +104,6 @@ export default function PipelinePage() {
             finalResults
           })
 
-          // Save to database for authenticated users
-          if (isAuthenticated) {
-            try {
-              await saveResult({
-                analysis_type: 'batch',
-                title: `${tissue} - ${species} (${finalResults.summary.totalClusters} clusters)`,
-                description: outputName || 'Pipeline analysis',
-                results: finalResults,
-                settings: { provider, model, tissue, species, scoreThreshold }
-              })
-              addLog('💾 Results saved to your dashboard')
-            } catch (err) {
-              console.error('Failed to save results:', err)
-            }
-          }
         },
         onError: (error) => {
           console.error('Pipeline error:', error)
