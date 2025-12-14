@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Menu, X, Dna } from "lucide-react"
+import { Menu, X } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useTranslations, useLocale } from "next-intl"
@@ -169,9 +170,13 @@ export function Sidebar() {
         <div className="flex h-full flex-col border-r">
           <div className="flex h-20 items-center border-b px-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Dna className="h-6 w-6" />
-              </div>
+              <Image
+                src="/images/cassia-icon.png"
+                alt="CASSIA"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
               <span className="font-semibold text-xl tracking-tight">CASSIA</span>
             </Link>
           </div>

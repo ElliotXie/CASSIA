@@ -663,6 +663,12 @@ export default function HomePage() {
                   </Link>
                 </Button>
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+                More advanced agents (Subclustering, Uncertainty Quantification, Symphony Compare) are available in the{' '}
+                <a href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                  R and Python packages
+                </a>
+              </p>
             </CardContent>
           </Card>
         </div>

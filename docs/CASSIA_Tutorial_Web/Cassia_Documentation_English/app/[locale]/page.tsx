@@ -1,6 +1,7 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Dna, Microscope, FileSearch, CheckCircle } from "lucide-react"
+import { Microscope, FileSearch, CheckCircle } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { LanguageSwitcher } from "@/components/language-switcher"
 
@@ -15,9 +16,13 @@ export default function Home() {
         <LanguageSwitcher />
       </div>
       <div className="flex flex-col items-center justify-center px-4 py-16 text-center md:py-28">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-6">
-          <Dna className="h-12 w-12" />
-        </div>
+        <Image
+          src="/images/cassia-icon.png"
+          alt="CASSIA"
+          width={100}
+          height={100}
+          className="rounded-2xl mb-6 mt-4"
+        />
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">{t("title")}</h1>
         <p className="mt-4 text-xl text-muted-foreground max-w-2xl">
           {t("subtitle")}
