@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,10 +19,12 @@ import { useAnalysisStore } from '@/lib/stores/analysis-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { useResultsStore } from '@/lib/stores/results-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { ContactDialog } from '@/components/ContactDialog'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { ReportViewerModal } from '@/components/reports'
+
+// Lazy-load components that are only shown after user interaction
+const ContactDialog = dynamic(() => import('@/components/ContactDialog').then(mod => mod.ContactDialog), { ssr: false })
+const ReportViewerModal = dynamic(() => import('@/components/reports').then(mod => mod.ReportViewerModal), { ssr: false })
 
 export default function BatchPage() {
   const [showAdvanced, setShowAdvanced] = useState(false)

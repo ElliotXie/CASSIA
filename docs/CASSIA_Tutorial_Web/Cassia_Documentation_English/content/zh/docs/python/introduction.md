@@ -16,7 +16,7 @@ CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) 旨
 
 下面的热图显示，CASSIA 在各种物种和组织中都优于大多数其他无参考方法。
 
-![CASSIA Performance Comparison](/images/cassia-comparison.webp)
+![CASSIA Performance Comparison|width=480,height=240](/images/cassia-comparison.webp)
 
 *图 2：CASSIA 与其他细胞类型注释方法在不同数据集上的性能比较。数值越高（红色）表示性能越好。*
 

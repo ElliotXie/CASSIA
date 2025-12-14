@@ -1,20 +1,23 @@
 'use client'
 
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, FileText, Cpu, Github, FileX, Eye, EyeOff, ChevronDown, ExternalLink } from 'lucide-react'
 import { useState, Suspense } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { ContactDialog } from '@/components/ContactDialog'
 import { AuthButton } from '@/components/auth/AuthButton'
-import { UserDashboard } from '@/components/dashboard/UserDashboard'
 import { LoadApiKeysButton } from '@/components/LoadApiKeysButton'
 import modelSettings from '../public/examples/model_settings.json'
 import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
 import { FeedbackSection } from '@/components/FeedbackSection'
 import { testApiKey as testApiKeyFn } from '@/lib/cassia/llm_utils'
+
+// Lazy-load components that are only shown after user interaction
+const ContactDialog = dynamic(() => import('@/components/ContactDialog').then(mod => mod.ContactDialog), { ssr: false })
+const UserDashboard = dynamic(() => import('@/components/dashboard/UserDashboard').then(mod => mod.UserDashboard), { ssr: false })
 
 // Custom provider presets (same as ApiKeyInput.tsx)
 const CUSTOM_PROVIDER_PRESETS = {
@@ -564,19 +567,19 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center space-x-3 group/item">
                   <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Configurable worker count</span>
+                  <span className="text-gray-700 dark:text-gray-300">Multiple marker ranking methods supported</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Auto-convert gene IDs to gene symbols</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Beautiful interactive HTML reports</span>
                 </li>
                 <li className="flex items-center space-x-3 group/item">
                   <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
                   <span className="text-gray-700 dark:text-gray-300">Automatic retry on failures</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Comprehensive CSV reports</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Best for large datasets</span>
                 </li>
               </ul>
               <Button asChild className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white btn-modern">
@@ -738,6 +741,23 @@ export default function HomePage() {
               <a href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">GitHub</a>
               <button onClick={() => setShowContactModal(true)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Support</button>
             </div>
+
+            {/* Citation */}
+            <div className="mt-8 p-4 bg-white/10 dark:bg-white/5 rounded-xl max-w-3xl mx-auto border border-white/20">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Cite CASSIA:</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                Xie, E., Cheng, L., Shireman, J. et al. CASSIA: a multi-agent large language model for automated and interpretable cell annotation. <em>Nat Commun</em> (2025).{' '}
+                <a
+                  href="https://doi.org/10.1038/s41467-025-67084-x"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  https://doi.org/10.1038/s41467-025-67084-x
+                </a>
+              </p>
+            </div>
+
             <div className="mt-6 pt-6 border-t border-white/20">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 © 2024 CASSIA. All rights reserved. Built for the scientific community.

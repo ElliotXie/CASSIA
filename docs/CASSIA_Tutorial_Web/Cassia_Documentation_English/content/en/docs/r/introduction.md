@@ -16,7 +16,7 @@ CASSIA (Collaborative Agent System for Single-cell Interpretable Annotation) is 
 
 The heatmap below shows that CASSIA has outperformed most of the other reference-free methods in various species and tissues.
 
-![CASSIA Performance Comparison](/images/cassia-comparison.webp)
+![CASSIA Performance Comparison|width=480,height=240](/images/cassia-comparison.webp)
 
 *Figure 2: Performance comparison between CASSIA and other cell type annotation methods across different datasets. Higher values (red) indicate better performance.*
 

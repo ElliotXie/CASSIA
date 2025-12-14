@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,15 +12,18 @@ import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
 import { ResultsViewer } from '@/components/ResultsViewer'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { ModelSelectionMatrix } from '@/components/ModelSelectionMatrix'
-import { ResultsDownloader } from '@/components/ResultsDownloader'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 import { useResultsStore } from '@/lib/stores/results-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { ContactDialog } from '@/components/ContactDialog'
-import { ReportViewerModal, type BatchReportData } from '@/components/reports'
+import type { BatchReportData } from '@/components/reports'
+
+// Lazy-load components that are only shown after user interaction
+const ModelSelectionMatrix = dynamic(() => import('@/components/ModelSelectionMatrix').then(mod => mod.ModelSelectionMatrix), { ssr: false })
+const ResultsDownloader = dynamic(() => import('@/components/ResultsDownloader').then(mod => mod.ResultsDownloader), { ssr: false })
+const ContactDialog = dynamic(() => import('@/components/ContactDialog').then(mod => mod.ContactDialog), { ssr: false })
+const ReportViewerModal = dynamic(() => import('@/components/reports').then(mod => mod.ReportViewerModal), { ssr: false })
 
 export default function PipelinePage() {
   const [showAdvanced, setShowAdvanced] = useState(false)

@@ -9,6 +9,7 @@ import { notFound } from "next/navigation"
 import { ClassAttributes, HTMLAttributes } from "react"
 import { useTranslations } from "next-intl"
 import { type ProgrammingLang } from "@/lib/docs"
+import Image from "next/image"
 
 // Type for the doc object
 type DocType = {
@@ -160,7 +161,9 @@ export default function DocPageClient({ params, doc }: DocPageClientProps) {
       const altTextParts = (props.alt || "").split('|');
       const altText = altTextParts[0];
 
-      let imgStyle: { [key: string]: string } = {};
+      // Parse dimensions from alt text if provided (format: alt|width=800,height=400)
+      let width = 800;
+      let height = 400;
 
       if (altTextParts.length > 1) {
         const sizeInfo = altTextParts[1];
@@ -168,19 +171,23 @@ export default function DocPageClient({ params, doc }: DocPageClientProps) {
 
         sizeParts.forEach(part => {
           const [key, value] = part.split('=');
-          if (key && value) {
-            imgStyle[key.trim()] = value.trim();
-          }
+          if (key?.trim() === 'width') width = parseInt(value) || 800;
+          if (key?.trim() === 'height') height = parseInt(value) || 400;
         });
       }
 
+      // Use Next.js Image for optimized loading (WebP/AVIF, lazy loading, responsive)
+      const imgSrc = typeof props.src === 'string' ? props.src : '';
+
       return (
-        <img
-          {...props}
+        <Image
+          src={imgSrc}
           alt={altText}
-          style={imgStyle}
-          className="rounded-lg my-6 max-w-full"
+          width={width}
+          height={height}
+          className="rounded-lg my-6 max-w-full h-auto"
           loading="lazy"
+          style={{ maxWidth: '100%', height: 'auto' }}
         />
       );
     },

@@ -59,7 +59,7 @@ function parseMarkdownFile(filePath) {
     .replace(/\n+/g, ' ') // Replace newlines with spaces
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim()
-    .substring(0, 200) // First 200 chars
+    .substring(0, 100) // First 100 chars for smaller bundle
 
   // Skip "To Be Updated" pages
   if (title === 'To Be Updated' || cleanContent.length < 10) {
