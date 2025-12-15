@@ -62,6 +62,15 @@ install.packages("reticulate")
 devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 ```
 
+If you have network issues installing from GitHub, you can install from source:
+
+```R
+# Install from downloaded source package
+install.packages("path/to/CASSIA_0.1.0.tar.gz", repos = NULL, type = "source")
+```
+
+Download source package: [CASSIA_0.1.0.tar.gz](https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source_R/CASSIA_0.1.0.tar.gz)
+
 ***Note: If the environment is not set up correctly the first time, please restart R and run the code below***
 
 ```R
