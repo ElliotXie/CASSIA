@@ -39,7 +39,8 @@
       "Bash(copy \"D:\\CASSIA\\docs\\newlogoweb.svg\" \"D:\\CASSIA\\docs\\CASSIA_Tutorial_Web\\Cassia_Documentation_English\\public\\images\\cassia-icon.svg\")",
       "Bash(python -c:*)",
       "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e \"packageDescription(''reticulate'', fields=''Depends'')\")",
-      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e \"roxygen2::roxygenise(''d:/CASSIA/CASSIA_R'')\")"
+      "Bash(\"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe\" -e \"roxygen2::roxygenise(''d:/CASSIA/CASSIA_R'')\")",
+      "Bash(docker run:*)"
     ],
     "deny": []
   }

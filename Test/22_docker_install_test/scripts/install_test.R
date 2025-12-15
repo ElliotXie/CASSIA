@@ -20,6 +20,9 @@
 # Output: JSON to stdout with test results
 # =============================================================================
 
+# Null coalesce operator (if not already defined)
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 # Start timing
 start_time <- Sys.time()
 
@@ -29,12 +32,13 @@ provider <- Sys.getenv("CASSIA_PROVIDER", "openrouter")
 model <- Sys.getenv("CASSIA_MODEL", "google/gemini-2.0-flash-001")
 
 # Initialize results structure
+# Use as.character() and unname() to ensure JSON-serializable values
 results <- list(
   scenario = Sys.getenv("CASSIA_SCENARIO", "unknown"),
   timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
   platform = list(
-    os = Sys.info()["sysname"],
-    release = Sys.info()["release"],
+    os = as.character(unname(Sys.info()["sysname"])),
+    release = as.character(unname(Sys.info()["release"])),
     r_version = paste(R.version$major, R.version$minor, sep = ".")
   ),
   stages = list(
@@ -46,7 +50,7 @@ results <- list(
   ),
   overall_success = FALSE,
   total_duration = 0,
-  errors = list()
+  errors = character(0)  # Use character vector instead of list for errors
 )
 
 # Helper function to log messages
@@ -60,11 +64,12 @@ run_stage <- function(stage_name, expr) {
   stage_start <- Sys.time()
   result <- tryCatch({
     eval(expr)
-    list(success = TRUE, message = "OK", error = NULL)
+    list(success = TRUE, message = "OK")
   }, error = function(e) {
-    list(success = FALSE, message = conditionMessage(e), error = e)
+    # Don't store error object - just the message (for JSON serialization)
+    list(success = FALSE, message = as.character(conditionMessage(e)))
   }, warning = function(w) {
-    list(success = TRUE, message = paste("Warning:", conditionMessage(w)), error = NULL)
+    list(success = TRUE, message = paste("Warning:", as.character(conditionMessage(w))))
   })
   stage_end <- Sys.time()
   result$duration <- as.numeric(difftime(stage_end, stage_start, units = "secs"))
@@ -160,9 +165,10 @@ if (results$stages$stage3_load$success) {
     if (requireNamespace("reticulate", quietly = TRUE)) {
       tryCatch({
         py_config <- reticulate::py_config()
-        python_info$python_path <- py_config$python
-        python_info$python_version <- py_config$version
-        python_info$virtualenv <- py_config$virtualenv
+        # Convert all values to strings for JSON serialization
+        python_info$python_path <- as.character(py_config$python)
+        python_info$python_version <- as.character(py_config$version)
+        python_info$virtualenv <- as.character(py_config$virtualenv %||% "")
         python_info$conda <- !is.null(py_config$conda)
         log_msg("Python path:", python_info$python_path)
         log_msg("Python version:", python_info$python_version)
@@ -175,9 +181,11 @@ if (results$stages$stage3_load$success) {
     if (exists("check_python_env", mode = "function")) {
       tryCatch({
         cassia_py_info <- check_python_env()
-        python_info$cassia_check <- cassia_py_info
+        # Just record that check passed (avoid complex objects in JSON)
+        python_info$cassia_check_passed <- TRUE
         log_msg("CASSIA Python check passed")
       }, error = function(e) {
+        python_info$cassia_check_passed <- FALSE
         log_msg("CASSIA check_python_env failed:", conditionMessage(e))
       })
     }

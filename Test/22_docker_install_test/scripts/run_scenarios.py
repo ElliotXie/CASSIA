@@ -174,8 +174,18 @@ def run_container(
     cmd.append(tag)
 
     start_time = time.time()
-    code, stdout, stderr = run_command(cmd, timeout=timeout)
+
+    try:
+        code, stdout, stderr = run_command(cmd, timeout=timeout)
+    except Exception as e:
+        log(f"Error running container: {e}", "ERROR")
+        code, stdout, stderr = -1, "", str(e)
+
     duration = time.time() - start_time
+
+    # Ensure stdout/stderr are strings
+    stdout = stdout or ""
+    stderr = stderr or ""
 
     # Parse JSON results from output
     results = {
@@ -188,12 +198,12 @@ def run_container(
     }
 
     # Try to extract JSON results
-    json_match = re.search(r"---JSON_RESULTS_START---\s*(.*?)\s*---JSON_RESULTS_END---", stdout, re.DOTALL)
-    if json_match:
-        try:
+    try:
+        json_match = re.search(r"---JSON_RESULTS_START---\s*(.*?)\s*---JSON_RESULTS_END---", stdout, re.DOTALL)
+        if json_match:
             results["parsed_results"] = json.loads(json_match.group(1))
-        except json.JSONDecodeError as e:
-            log(f"Failed to parse JSON results: {e}", "WARN")
+    except (json.JSONDecodeError, TypeError) as e:
+        log(f"Failed to parse JSON results: {e}", "WARN")
 
     return results
 
@@ -392,10 +402,22 @@ def main():
             timeout=args.timeout,
         )
 
+        # Ensure result is not None
+        if result is None:
+            result = {
+                "scenario": scenario,
+                "exit_code": -1,
+                "duration": 0,
+                "raw_stdout": "",
+                "raw_stderr": "run_container returned None",
+                "parsed_results": None,
+            }
+
         all_results[scenario] = result
 
         # Log result
-        if result.get("parsed_results", {}).get("overall_success"):
+        parsed = result.get("parsed_results") or {}
+        if parsed.get("overall_success"):
             log(f"Scenario {scenario}: PASSED", "INFO")
         else:
             expected = config["expected_success"]
@@ -408,11 +430,12 @@ def main():
     report_dir = generate_report(all_results, args.output)
 
     # Return appropriate exit code
-    failed_unexpected = sum(
-        1 for s, r in all_results.items()
-        if not r.get("parsed_results", {}).get("overall_success", r["exit_code"] == 0)
-        and scenarios[s]["expected_success"]
-    )
+    failed_unexpected = 0
+    for s, r in all_results.items():
+        parsed = r.get("parsed_results") or {}
+        success = parsed.get("overall_success", r.get("exit_code", -1) == 0)
+        if not success and scenarios[s]["expected_success"]:
+            failed_unexpected += 1
 
     sys.exit(0 if failed_unexpected == 0 else 1)
 
