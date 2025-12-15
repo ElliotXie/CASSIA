@@ -1,0 +1,45 @@
+# CASSIA Installation Test: Windows Environment
+# Tests: Windows user with R + Python installed
+# Expected: PASS - tests Windows-specific installation paths
+#
+# IMPORTANT: This Dockerfile requires Docker Desktop to be in Windows container mode
+# To switch: Right-click Docker Desktop tray icon -> "Switch to Windows containers..."
+#
+# Build: docker build -t cassia-test-windows -f Dockerfile.windows .
+# Run: docker run --rm -e CASSIA_API_KEY=your_key cassia-test-windows
+
+# Use Windows Server Core as base
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+LABEL maintainer="CASSIA Team"
+LABEL description="Windows Server Core with R and Python"
+LABEL scenario="windows"
+
+# Install Chocolatey package manager
+RUN powershell -Command \
+    Set-ExecutionPolicy Bypass -Scope Process -Force; \
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; \
+    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# Install R and Python via Chocolatey
+RUN choco install -y r.project --version=4.4.1
+RUN choco install -y python310 --version=3.10.11
+RUN choco install -y git
+
+# Refresh environment variables
+RUN refreshenv
+
+# Add R and Python to PATH
+RUN setx /M PATH "%PATH%;C:\Program Files\R\R-4.4.1\bin;C:\Python310;C:\Python310\Scripts"
+
+# Verify installations
+RUN powershell -Command "R --version; python --version; git --version"
+
+# Create test directory
+WORKDIR C:\test
+
+# Copy the test script
+COPY scripts/install_test.R C:\test\
+
+# Default command
+CMD ["Rscript", "C:\\test\\install_test.R"]

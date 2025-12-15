@@ -1,0 +1,45 @@
+# CASSIA Installation Test: Virtualenv Environment
+# Tests: User with R + Python 3.10 + virtualenv installed
+# Expected: PASS - should detect and use virtualenv
+
+FROM rocker/r-ver:4.4.0
+
+LABEL maintainer="CASSIA Team"
+LABEL description="R with Python 3.10 and virtualenv"
+LABEL scenario="virtualenv"
+
+# Install R dependencies, Python 3.10, and virtualenv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    git \
+    python3.10 \
+    python3-pip \
+    python3.10-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python 3.10 as default
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+
+# Install virtualenv globally
+RUN pip3 install --no-cache-dir virtualenv
+
+# Verify installations
+RUN python3 --version && virtualenv --version
+
+# Create test directory
+WORKDIR /test
+
+# Copy the test script
+COPY scripts/install_test.R /test/
+
+# Default command
+CMD ["Rscript", "/test/install_test.R"]

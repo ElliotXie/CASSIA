@@ -1,0 +1,41 @@
+# CASSIA Installation Test: Conda Environment
+# Tests: User with Miniconda + R installed via conda
+# Expected: PASS - best compatibility scenario
+
+FROM continuumio/miniconda3:latest
+
+LABEL maintainer="CASSIA Team"
+LABEL description="Miniconda with R installed via conda-forge"
+LABEL scenario="conda"
+
+# Update conda and install R with dependencies from conda-forge
+RUN conda update -n base -c defaults conda && \
+    conda install -y -c conda-forge \
+    r-base=4.4.0 \
+    r-devtools \
+    r-jsonlite \
+    r-reticulate \
+    && conda clean -afy
+
+# Install system dependencies that might be needed
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify installations
+RUN R --version && python --version && conda --version
+
+# Create test directory
+WORKDIR /test
+
+# Copy the test script
+COPY scripts/install_test.R /test/
+
+# Initialize conda for shell
+RUN conda init bash
+
+# Default command (using conda's R)
+CMD ["Rscript", "/test/install_test.R"]

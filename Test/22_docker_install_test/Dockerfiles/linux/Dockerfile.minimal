@@ -1,0 +1,33 @@
+# CASSIA Installation Test: Minimal Environment
+# Tests: User with only R installed, no Python
+# Expected: Tests auto-setup capability / clear error messages
+
+FROM rocker/r-ver:4.4.0
+
+LABEL maintainer="CASSIA Team"
+LABEL description="Minimal R environment - no Python pre-installed"
+LABEL scenario="minimal"
+
+# Install only R dependencies (NO Python)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create test directory
+WORKDIR /test
+
+# Copy the test script (will be mounted or copied at runtime)
+COPY scripts/install_test.R /test/
+
+# Default command
+CMD ["Rscript", "/test/install_test.R"]

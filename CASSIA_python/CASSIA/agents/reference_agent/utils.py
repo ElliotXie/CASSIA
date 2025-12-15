@@ -8,7 +8,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 import yaml
 
 
@@ -66,7 +66,7 @@ def load_markdown_file(file_path: Path) -> str:
         return f.read()
 
 
-def parse_yaml_frontmatter(content: str) -> tuple[Dict, str]:
+def parse_yaml_frontmatter(content: str) -> Tuple[Dict, str]:
     """
     Parse YAML frontmatter from markdown content.
 

@@ -838,25 +838,26 @@ py_cassia <- NULL
   tryCatch({
     # Check if virtualenv already exists
     existing_envs <- tryCatch(reticulate::virtualenv_list(), error = function(e) character(0))
-    
+
     if (!env_name %in% existing_envs) {
-      # Create virtualenv
-      reticulate::virtualenv_create(envname = env_name, python_version = python_version)
+      # Create virtualenv with specified Python version
+      # The 'version' parameter uses virtualenv_starter() to find a suitable Python
+      reticulate::virtualenv_create(envname = env_name, version = python_version)
     }
-    
+
     # Use the virtualenv
     reticulate::use_virtualenv(env_name, required = TRUE)
-    
+
     # Install packages
     reticulate::virtualenv_install(envname = env_name, packages = pip_packages)
-    
+
     # Set options to track the environment and method
     options(CASSIA.env_name = env_name)
     options(CASSIA.env_method = "virtualenv")
-    
+
     message("Successfully set up CASSIA environment using virtualenv: ", env_name)
     return(TRUE)
-    
+
   }, error = function(e) {
     warning("Virtualenv setup failed: ", e$message)
     return(FALSE)
@@ -868,10 +869,10 @@ py_cassia <- NULL
   tryCatch({
     # Check if conda environment exists
     existing_envs <- tryCatch(reticulate::conda_list()$name, error = function(e) character(0))
-    
+
     if (!conda_env %in% existing_envs) {
-      # Create conda environment
-      reticulate::conda_create(envname = conda_env, python_version = python_version)
+      # Create conda environment with specified Python version
+      reticulate::conda_create(envname = conda_env, packages = paste0("python=", python_version))
     }
     
     # Use the conda environment
