@@ -8,7 +8,8 @@ runCASSIA_score_batch(
   input_file,
   output_file = NULL,
   max_workers = 4,
-  model = "deepseek/deepseek-chat-v3-0324",
+  model = "anthropic/claude-sonnet-4.5",
+  temperature = 0,
   provider = "openrouter",
   max_retries = 1
 )

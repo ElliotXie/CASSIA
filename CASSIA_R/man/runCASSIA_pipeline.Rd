@@ -10,25 +10,27 @@ runCASSIA_pipeline(
   species,
   marker,
   max_workers = 4,
-  annotation_model = "google/gemini-2.5-flash",
-  annotation_provider = "openrouter",
-  score_model = "google/gemini-2.5-flash",
-  score_provider = "openrouter",
-  annotationboost_model = "google/gemini-2.5-flash",
-  annotationboost_provider = "openrouter",
+  overall_provider = "openrouter",
+  annotation_model = NULL,
+  annotation_provider = NULL,
+  score_model = NULL,
+  score_provider = NULL,
+  annotationboost_model = NULL,
+  annotationboost_provider = NULL,
   score_threshold = 75,
   additional_info = NULL,
   max_retries = 1,
   do_merge_annotations = TRUE,
-  merge_model = "google/gemini-2.5-flash",
-  merge_provider = "openrouter",
+  merge_model = NULL,
+  merge_provider = NULL,
   conversation_history_mode = "final",
   search_strategy = "breadth",
   report_style = "per_iteration",
   ranking_method = "avg_log2FC",
   ascending = NULL,
   validator_involvement = "v1",
-  output_dir = NULL
+  output_dir = NULL,
+  validate_api_keys_before_start = TRUE
 )
 }
 \arguments{
@@ -42,17 +44,21 @@ runCASSIA_pipeline(
 
 \item{max_workers}{Maximum number of concurrent workers (default: 4)}
 
-\item{annotation_model}{Model to use for initial annotation (default: "google/gemini-2.5-flash-preview")}
+\item{overall_provider}{Main provider for all pipeline stages. One of "openai",
+"anthropic", or "openrouter". Sets default models for all stages.
+Individual model parameters can override specific stages. (default: "openrouter")}
 
-\item{annotation_provider}{Provider for initial annotation (default: "openrouter")}
+\item{annotation_model}{Override annotation model. If NULL, uses overall_provider's default.}
 
-\item{score_model}{Model to use for scoring (default: "deepseek/deepseek-chat-v3-0324")}
+\item{annotation_provider}{Override provider for annotation only.}
 
-\item{score_provider}{Provider for scoring (default: "openrouter")}
+\item{score_model}{Override scoring model. If NULL, uses overall_provider's default.}
 
-\item{annotationboost_model}{Model to use for boosting low-scoring annotations (default: "google/gemini-2.5-flash-preview")}
+\item{score_provider}{Override provider for scoring only.}
 
-\item{annotationboost_provider}{Provider for boosting low-scoring annotations (default: "openrouter")}
+\item{annotationboost_model}{Override boost model. If NULL, uses overall_provider's default.}
+
+\item{annotationboost_provider}{Override provider for boost only.}
 
 \item{score_threshold}{Threshold for identifying low-scoring clusters (default: 75)}
 
@@ -62,9 +68,9 @@ runCASSIA_pipeline(
 
 \item{do_merge_annotations}{Whether to run the merging annotations step (default: TRUE)}
 
-\item{merge_model}{Model to use for merging annotations (default: "deepseek/deepseek-chat-v3-0324")}
+\item{merge_model}{Override merge model. If NULL, uses overall_provider's default.}
 
-\item{merge_provider}{Provider to use for merging annotations (default: "openrouter")}
+\item{merge_provider}{Override provider for merging only.}
 
 \item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none") (default: "final")}
 
@@ -79,6 +85,9 @@ runCASSIA_pipeline(
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
 
 \item{output_dir}{Directory where the output folder will be created. If NULL, uses current working directory. (default: NULL)}
+
+\item{validate_api_keys_before_start}{Logical. If TRUE (default), validates the API key before starting.
+Fails fast with clear error message if the key is invalid.}
 }
 \value{
 None. Creates output files and generates reports.

@@ -11,13 +11,16 @@ runCASSIA_annotationboost(
   major_cluster_info,
   output_name,
   num_iterations = 5,
-  model = "google/gemini-2.5-flash-preview",
+  model = "anthropic/claude-sonnet-4.5",
   provider = "openrouter",
-  temperature = 0,
-  conversation_history_mode = "final",
+  temperature = 0.1,
+  conversation_history_mode = "full",
   search_strategy = "breadth",
   report_style = "per_iteration",
-  validator_involvement = "v1",
+  conversations_json_path = "auto",
+  species = "human",
+  auto_convert_ids = TRUE,
+  reasoning = NULL,
   ...
 )
 }
@@ -40,13 +43,19 @@ runCASSIA_annotationboost(
 
 \item{temperature}{Sampling temperature (0-1)}
 
-\item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none")}
+\item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none") (default: "full")}
 
 \item{search_strategy}{Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
 
 \item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
 
-\item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+\item{conversations_json_path}{Path to the conversations JSON file, or "auto" to auto-detect from full_result_path (default: "auto")}
+
+\item{species}{Species for the analysis (default: "human")}
+
+\item{auto_convert_ids}{Logical. Whether to auto-convert gene IDs (default: TRUE)}
+
+\item{reasoning}{Reasoning effort level: "high", "medium", or "low" (default: NULL, no extended reasoning)}
 
 \item{...}{Additional arguments passed to the Python function}
 }

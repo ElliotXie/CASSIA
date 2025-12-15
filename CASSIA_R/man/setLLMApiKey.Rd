@@ -4,12 +4,12 @@
 \alias{setLLMApiKey}
 \title{Set API Key for LLM Provider}
 \usage{
-setLLMApiKey(api_key, provider = "anthropic", persist = FALSE)
+setLLMApiKey(api_key = NULL, provider = "anthropic", persist = FALSE)
 }
 \arguments{
-\item{api_key}{Character string containing the API key}
+\item{api_key}{Character string containing the API key. Optional for localhost URLs (local LLMs like Ollama).}
 
-\item{provider}{Character string specifying the provider ('openai', 'anthropic', or 'openrouter')}
+\item{provider}{Character string specifying the provider ('openai', 'anthropic', 'openrouter', or an HTTP URL for custom endpoints)}
 
 \item{persist}{Logical indicating whether to save the key to .Renviron (default: FALSE)}
 }

@@ -5,8 +5,8 @@
 \title{Run Cell Type Analysis}
 \usage{
 runCASSIA(
-  model = "google/gemini-2.5-flash-preview",
-  temperature,
+  model = "openai/gpt-5.1",
+  temperature = 0,
   marker_list,
   tissue,
   species,

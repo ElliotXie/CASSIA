@@ -14,20 +14,14 @@ BugReports: https://github.com/ElliotXie/CASSIA/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-VignetteBuilder: knitr
-biocViews: SingleCell, Annotation, Classification, GeneExpression,
-    Transcriptomics, RNASeq, Software
+RoxygenNote: 7.3.3
 Depends:
-    R (>= 4.4.0)
+    R (>= 3.5.0)
 Imports:
-    reticulate,
-    Seurat
+    reticulate
 Suggests:
-    testthat (>= 3.0.0),
-    knitr,
-    rmarkdown,
-    BiocStyle
+    Seurat,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/reticulate:
     list(

@@ -11,14 +11,15 @@ runCASSIA_annotationboost_additional_task(
   major_cluster_info,
   output_name,
   num_iterations = 5,
-  model = "google/gemini-2.5-flash-preview",
+  model = "anthropic/claude-sonnet-4.5",
   provider = "openrouter",
   additional_task = "check if this is a cancer cluster",
-  temperature = 0,
-  conversation_history_mode = "final",
+  temperature = 0.1,
+  conversation_history_mode = "full",
   search_strategy = "breadth",
   report_style = "per_iteration",
   validator_involvement = "v1",
+  conversations_json_path = "auto",
   ...
 )
 }
@@ -43,13 +44,15 @@ runCASSIA_annotationboost_additional_task(
 
 \item{temperature}{Sampling temperature (0-1)}
 
-\item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none")}
+\item{conversation_history_mode}{Mode for extracting conversation history ("full", "final", or "none") (default: "full")}
 
 \item{search_strategy}{Search strategy - "breadth" (test multiple hypotheses) or "depth" (one hypothesis at a time) (default: "breadth")}
 
 \item{report_style}{Style of report ("per_iteration" or "total_summary") (default: "per_iteration")}
 
 \item{validator_involvement}{Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")}
+
+\item{conversations_json_path}{Path to the conversations JSON file, or "auto" to auto-detect from full_result_path (default: "auto")}
 
 \item{...}{Additional parameters for future compatibility}
 }

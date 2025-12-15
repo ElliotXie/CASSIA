@@ -7,8 +7,9 @@
 merge_annotations(
   csv_path,
   output_path = NULL,
-  provider = "openai",
-  model = NULL,
+  provider = "openrouter",
+  model = "google/gemini-2.5-flash",
+  temperature = 0,
   api_key = NULL,
   additional_context = NULL,
   batch_size = 20L,

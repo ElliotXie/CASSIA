@@ -11,7 +11,7 @@ runCASSIA_n_times(
   additional_info,
   temperature = 0.3,
   marker_list,
-  model = "google/gemini-2.5-flash-preview",
+  model = "openai/gpt-5.1",
   max_workers = 10,
   provider = "openrouter",
   validator_involvement = "v1",

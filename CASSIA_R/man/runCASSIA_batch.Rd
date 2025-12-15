@@ -7,7 +7,7 @@
 runCASSIA_batch(
   marker,
   output_name = "cell_type_analysis_results.json",
-  model = "google/gemini-2.5-flash-preview",
+  model = "openai/gpt-5.1",
   temperature = 0,
   tissue = "lung",
   species = "human",
@@ -21,7 +21,8 @@ runCASSIA_batch(
   validator_involvement = "v1",
   ranking_method = "avg_log2FC",
   ascending = NULL,
-  reasoning = NULL
+  reasoning = NULL,
+  validate_api_key_before_start = TRUE
 )
 }
 \arguments{
@@ -58,6 +59,10 @@ runCASSIA_batch(
 \item{ascending}{Logical value indicating sort direction. If NULL (default), uses method-specific default.}
 
 \item{reasoning}{Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)}
+
+\item{validate_api_key_before_start}{Logical. If TRUE (default), validates the API key before starting
+batch processing. This prevents confusing error messages when the key is invalid.
+Set to FALSE for custom HTTP endpoints or to skip validation.}
 }
 \value{
 None. This function creates output files and prints execution time.

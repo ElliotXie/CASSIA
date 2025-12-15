@@ -78,3 +78,7 @@ Test/17_manual_package_Test/
 
 # Claude Code session files
 claude-code-session/
+
+# R package build artifacts
+*.Rcheck/
+*.tar.gz

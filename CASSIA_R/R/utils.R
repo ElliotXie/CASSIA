@@ -177,7 +177,6 @@ set_python_env <- function(conda_env) {
 #'
 #' @return A Seurat object with CASSIA annotations added as metadata columns
 #' @importFrom utils read.csv
-#' @importFrom Seurat AddMetaData
 #' @export
 add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = "seurat_clusters",
                                 cassia_cluster_col = "Cluster ID", prefix = "CASSIA_", 
