@@ -15,6 +15,10 @@ __version__ = "0.3.18"
 # Import logging configuration (errors visible by default)
 from .core.logging_config import get_logger, set_log_level, warn_user
 
+# Track module availability for diagnostics
+_module_availability = {}
+_import_errors = {}
+
 # -----------------------------------------------------------------------------
 # CORE ANALYSIS FUNCTIONS (most commonly used)
 # -----------------------------------------------------------------------------
@@ -117,8 +121,10 @@ from .evaluation.cell_type_comparison import compareCelltypes
 # -----------------------------------------------------------------------------
 try:
     from .comparison import symphonyCompare, SymphonyCompare
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['comparison'] = True
+except ImportError as e:
+    _module_availability['comparison'] = False
+    _import_errors['comparison'] = str(e)
 
 # -----------------------------------------------------------------------------
 # REPORT GENERATION
@@ -133,26 +139,34 @@ try:
         generate_subclustering_report,
         calculate_evaluation_metrics
     )
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['reports'] = True
+except ImportError as e:
+    _module_availability['reports'] = False
+    _import_errors['reports'] = str(e)
 
 try:
     from .reports.generate_batch_report import generate_batch_html_report_from_data
-except ImportError:
-    pass
+    _module_availability['batch_report'] = True
+except ImportError as e:
+    _module_availability['batch_report'] = False
+    _import_errors['batch_report'] = str(e)
 
 try:
     from .reports.generate_report_uncertainty import generate_uq_html_report
-except ImportError:
-    pass
+    _module_availability['uncertainty_report'] = True
+except ImportError as e:
+    _module_availability['uncertainty_report'] = False
+    _import_errors['uncertainty_report'] = str(e)
 
 # -----------------------------------------------------------------------------
 # PIPELINE
 # -----------------------------------------------------------------------------
 try:
     from .pipeline.pipeline import runCASSIA_pipeline
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['pipeline'] = True
+except ImportError as e:
+    _module_availability['pipeline'] = False
+    _import_errors['pipeline'] = str(e)
 
 # -----------------------------------------------------------------------------
 # ANNOTATION BOOST AGENT
@@ -163,8 +177,10 @@ try:
         runCASSIA_annotationboost_additional_task,
         iterative_marker_analysis
     )
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['annotation_boost'] = True
+except ImportError as e:
+    _module_availability['annotation_boost'] = False
+    _import_errors['annotation_boost'] = str(e)
 
 # -----------------------------------------------------------------------------
 # MERGING AGENT
@@ -172,8 +188,10 @@ except ImportError:
 try:
     from .agents.merging.merging_annotation import merge_annotations, merge_annotations_all
     from .agents.merging.merging_annotation import _create_annotation_prompt, _parse_llm_response
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['merging'] = True
+except ImportError as e:
+    _module_availability['merging'] = False
+    _import_errors['merging'] = str(e)
 
 # -----------------------------------------------------------------------------
 # UNCERTAINTY QUANTIFICATION AGENT
@@ -185,8 +203,10 @@ try:
         runCASSIA_similarity_score_batch,
         runCASSIA_n_times_similarity_score
     )
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['uncertainty'] = True
+except ImportError as e:
+    _module_availability['uncertainty'] = False
+    _import_errors['uncertainty'] = str(e)
 
 # -----------------------------------------------------------------------------
 # SUBCLUSTERING AGENT
@@ -198,8 +218,10 @@ try:
         runCASSIA_n_subcluster,
         annotate_subclusters
     )
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['subclustering'] = True
+except ImportError as e:
+    _module_availability['subclustering'] = False
+    _import_errors['subclustering'] = str(e)
 
 # -----------------------------------------------------------------------------
 # REFERENCE AGENT (intelligent reference retrieval)
@@ -216,8 +238,10 @@ try:
         assess_complexity_step1,
         select_references_step2
     )
-except ImportError:
-    pass  # Reference agent module may not be available
+    _module_availability['reference_agent'] = True
+except ImportError as e:
+    _module_availability['reference_agent'] = False
+    _import_errors['reference_agent'] = str(e)
 
 # -----------------------------------------------------------------------------
 # HYPOTHESIS GENERATION
@@ -233,16 +257,20 @@ try:
         run_hypothesis_analysis,
         summarize_hypothesis_runs
     )
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['hypothesis'] = True
+except ImportError as e:
+    _module_availability['hypothesis'] = False
+    _import_errors['hypothesis'] = str(e)
 
 # -----------------------------------------------------------------------------
 # IMAGE ANALYSIS
 # -----------------------------------------------------------------------------
 try:
     from .imaging.llm_image import analyze_image, call_llm_with_image
-except ImportError:
-    pass  # Module may not be available
+    _module_availability['imaging'] = True
+except ImportError as e:
+    _module_availability['imaging'] = False
+    _import_errors['imaging'] = str(e)
 
 # -----------------------------------------------------------------------------
 # UTILITY FUNCTIONS
@@ -255,7 +283,64 @@ from .core.progress_tracker import BatchProgressTracker
 # -----------------------------------------------------------------------------
 try:
     from .core.anndata_utils import add_cassia_to_anndata, enhance_scanpy_markers
-except ImportError:
-    pass  # anndata not installed
+    _module_availability['anndata'] = True
+except ImportError as e:
+    _module_availability['anndata'] = False
+    _import_errors['anndata'] = str(e)
+
+
+# =============================================================================
+# DIAGNOSTIC FUNCTIONS
+# =============================================================================
+
+def get_available_modules():
+    """
+    Get a dictionary of available optional modules.
+
+    Returns:
+        dict: Module names mapped to boolean availability status.
+
+    Example:
+        >>> from CASSIA import get_available_modules
+        >>> modules = get_available_modules()
+        >>> if modules.get('pipeline'):
+        ...     from CASSIA import runCASSIA_pipeline
+    """
+    return _module_availability.copy()
+
+
+def get_import_errors():
+    """
+    Get detailed import error messages for modules that failed to load.
+
+    Returns:
+        dict: Module names mapped to error messages for failed imports.
+
+    Example:
+        >>> from CASSIA import get_import_errors
+        >>> errors = get_import_errors()
+        >>> for module, error in errors.items():
+        ...     print(f"{module}: {error}")
+    """
+    return _import_errors.copy()
+
+
+def check_module_available(module_name):
+    """
+    Check if a specific optional module is available.
+
+    Args:
+        module_name: Name of the module to check (e.g., 'pipeline', 'comparison')
+
+    Returns:
+        bool: True if module is available, False otherwise.
+
+    Example:
+        >>> from CASSIA import check_module_available
+        >>> if check_module_available('pipeline'):
+        ...     print("Pipeline is available!")
+    """
+    return _module_availability.get(module_name, False)
+
 
 # End of __init__.py

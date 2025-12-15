@@ -67,8 +67,8 @@ py_cassia <- NULL
   })
 }
 
-# Check if Python version meets requirements (>= 3.9)
-.check_python_version <- function(required_version = "3.9") {
+# Check if Python version meets requirements (>= 3.8)
+.check_python_version <- function(required_version = "3.8") {
   py_info <- .check_python_available()
   if (!py_info$available) {
     return(list(ok = FALSE, reason = "Python not found", current = NULL, required = required_version))
@@ -88,6 +88,55 @@ py_cassia <- NULL
   }, error = function(e) {
     return(list(ok = FALSE, reason = e$message, current = as.character(py_info$version), required = required_version))
   })
+}
+
+# Detect a usable Python version for environment setup
+.detect_python_version <- function(python_version = NULL) {
+  # If user specified, honor it
+  if (!is.null(python_version)) {
+    return(python_version)
+  }
+
+  versions_found <- character(0)
+
+  # Helper to add parsed major.minor string if present
+  .add_version <- function(ver_string) {
+    if (is.null(ver_string) || !nzchar(ver_string)) return()
+    parts <- strsplit(as.character(ver_string), "\\.")[[1]]
+    if (length(parts) >= 2) {
+      versions_found <<- c(versions_found, paste(parts[1:2], collapse = "."))
+    }
+  }
+
+  # Try reticulate discovery (non-initializing)
+  detected <- tryCatch({
+    cfg <- reticulate::py_discover_config(required_module = NULL, use_environment = NULL)
+    cfg$version
+  }, error = function(e) NULL)
+  .add_version(detected)
+
+  # Try python and python3 from PATH
+  for (cmd in c("python", "python3")) {
+    path <- Sys.which(cmd)
+    if (!nzchar(path)) next
+    ver_out <- tryCatch(system2(path, "--version", stdout = TRUE, stderr = TRUE), error = function(e) NULL)
+    if (!is.null(ver_out) && length(ver_out) > 0) {
+      ver_match <- regmatches(ver_out[1], regexpr("\\d+\\.\\d+", ver_out[1]))
+      if (length(ver_match) > 0) .add_version(ver_match)
+    }
+  }
+
+  # Choose highest detected version
+  if (length(versions_found) > 0) {
+    best <- as.character(max(package_version(versions_found)))
+    if (package_version(best) < package_version("3.8")) {
+      return("3.8")
+    }
+    return(best)
+  }
+
+  # Fallback
+  "3.8"
 }
 
 # Check if environment managers (virtualenv/conda) are available
@@ -113,7 +162,7 @@ py_cassia <- NULL
 .error_messages <- list(
   python_not_found = list(
     what = "Python is not installed or not found in your system PATH.",
-    why = "CASSIA requires Python 3.9+ to run its cell annotation engine.",
+    why = "CASSIA requires Python 3.8+ to run its cell annotation engine.",
     fix_windows = c(
       "1. Download Python from https://www.python.org/downloads/",
       "2. During installation, CHECK the box 'Add Python to PATH'",
@@ -142,7 +191,7 @@ py_cassia <- NULL
 
   python_version = list(
     what = "Your Python version is not compatible with CASSIA.",
-    why = "CASSIA requires Python 3.9 or higher.",
+    why = "CASSIA requires Python 3.8 or higher.",
     fix_windows = c(
       "1. Download Python 3.10+ from https://www.python.org/downloads/",
       "2. During installation, CHECK 'Add Python to PATH'",
@@ -361,8 +410,8 @@ py_cassia <- NULL
     return(invisible(NULL))
   }
 
-  # Check Python version (must be >= 3.9)
-  version_check <- .check_python_version("3.9")
+  # Check Python version (must be >= 3.8)
+  version_check <- .check_python_version("3.8")
   if (!version_check$ok) {
     .cassia_load_status$message <- "python_version"
     return(invisible(NULL))
@@ -460,8 +509,21 @@ py_cassia <- NULL
       .show_no_env_manager_message()
     } else if (.cassia_load_status$message == "setup_failed") {
       .show_setup_failed_message()
+    } else if (.cassia_load_status$message == "retry_setup") {
+      # Retry was attempted - if still not successful, show failed message
+      if (!.cassia_load_status$success) {
+        .show_setup_failed_message()
+      } else {
+        packageStartupMessage("CASSIA loaded successfully after retry! Happy annotating!")
+      }
     } else if (.cassia_load_status$message == "env_setup") {
       packageStartupMessage("Setting up CASSIA Python environment...")
+    } else {
+      # Unknown error state - show generic message
+      packageStartupMessage(
+        "CASSIA loaded with warnings. Some features may not be available.\n",
+        "Run setup_cassia_env() to set up the Python environment."
+      )
     }
   }
 }
@@ -476,7 +538,7 @@ py_cassia <- NULL
     "  CASSIA: Python Not Found",
     "===============================================================================",
     "",
-    "CASSIA requires Python 3.9+ to run. Python was not detected on your system.",
+    "CASSIA requires Python 3.8+ to run. Python was not detected on your system.",
     "",
     "STEP-BY-STEP INSTALLATION:",
     ""
@@ -547,7 +609,7 @@ py_cassia <- NULL
     "  CASSIA: Python Version Too Old",
     "===============================================================================",
     "",
-    paste0("Found Python ", current_version, ", but CASSIA requires Python 3.9 or higher."),
+    paste0("Found Python ", current_version, ", but CASSIA requires Python 3.8 or higher."),
     "",
     "STEP-BY-STEP UPGRADE:",
     ""
@@ -779,7 +841,7 @@ py_cassia <- NULL
       }
     } else {
       # Python installed but environment not set up
-      version_check <- .check_python_version("3.9")
+      version_check <- .check_python_version("3.8")
 
       if (!version_check$ok) {
         lines <- c(
@@ -789,7 +851,7 @@ py_cassia <- NULL
           "===============================================================================",
           "",
           paste0(func_context, "Found Python ", version_check$current,
-                 " but CASSIA requires Python 3.9+."),
+                " but CASSIA requires Python 3.8+."),
           "",
           "QUICK FIX:",
           "",
@@ -932,19 +994,23 @@ py_cassia <- NULL
 #' By default, it tries virtualenv first (simpler, more reliable), then falls back to conda.
 #' 
 #' @param conda_env The name of the environment to use. If NULL, uses the default from package configuration.
-#' @param python_version The Python version to use. Default is "3.10".
+#' @param python_version The Python version to use. Default is NULL (auto-detect
+#'   an installed Python >= 3.8; falls back to "3.8" if none detected).
 #' @param pip_packages A character vector of pip packages to install.
 #' @param method The method to use for environment setup. Options: "auto" (try virtualenv first, then conda), "virtualenv", "conda". Default is "auto".
 #'
 #' @return Invisible NULL. Called for side effects.
 #' @export
-setup_cassia_env <- function(conda_env = NULL, python_version = "3.10",
+setup_cassia_env <- function(conda_env = NULL, python_version = NULL,
                            pip_packages = c("openai", "pandas", "numpy",
-                                          "requests", "anthropic", "matplotlib", "seaborn"),
+                                          "requests", "anthropic", "matplotlib", "seaborn", "mygene"),
                            method = "auto") {
   
   # Get environment name
   env_name <- .get_env_name(conda_env)
+
+  # Detect Python version if not provided explicitly
+  python_version <- .detect_python_version(python_version)
   
   # Validate method parameter
   if (!method %in% c("auto", "virtualenv", "conda")) {
@@ -1035,11 +1101,38 @@ setLLMApiKey <- function(api_key = NULL, provider = "anthropic", persist = FALSE
   if (!is.null(py_cassia)) {
     py_cassia$set_api_key(api_key, provider)
   }
-  
+
+  # Validate the API key immediately (optional, non-blocking)
+  # Skip validation for custom HTTP endpoints
+  if (!is.null(py_cassia) && !startsWith(provider, "http")) {
+    tryCatch({
+      validation_provider <- switch(provider,
+        "openai" = "openai",
+        "anthropic" = "anthropic",
+        "openrouter" = "openrouter",
+        NULL
+      )
+      if (!is.null(validation_provider)) {
+        is_valid <- py_cassia$validate_api_keys(
+          provider = validation_provider,
+          api_key = api_key,
+          verbose = FALSE
+        )
+        if (!isTRUE(is_valid)) {
+          warning("API key validation failed. The key may be invalid or the provider may be unreachable.",
+                  call. = FALSE)
+        }
+      }
+    }, error = function(e) {
+      # Validation failed but don't block - key might still work
+      message("Note: Could not validate API key: ", e$message)
+    })
+  }
+
   # Persist to .Renviron if requested
   if (persist) {
     renviron_path <- path.expand("~/.Renviron")
-    
+
     # Read existing content
     if (file.exists(renviron_path)) {
       lines <- readLines(renviron_path)
@@ -1048,19 +1141,23 @@ setLLMApiKey <- function(api_key = NULL, provider = "anthropic", persist = FALSE
     } else {
       lines <- character()
     }
-    
+
     # Add new entry
     lines <- c(lines, paste0(env_var_name, "='", api_key, "'"))
-    
+
     # Write back to .Renviron
     writeLines(lines, renviron_path)
-    
-    # Reload .Renviron
-    readRenviron("~/.Renviron")
-    
+
+    # Reload .Renviron (wrapped in tryCatch for Windows compatibility)
+    tryCatch({
+      readRenviron("~/.Renviron")
+    }, error = function(e) {
+      message("Note: Could not reload .Renviron file. You may need to restart R for the API key to take effect.")
+    })
+
     message("API key has been saved to .Renviron and will be loaded in future sessions")
   }
-  
+
   invisible(NULL)
 }
 
@@ -1700,6 +1797,8 @@ runCASSIA_score_batch <- function(input_file,
                                     temperature = 0,
                                     provider = "openrouter",
                                     max_retries = 1) {
+  .require_python("runCASSIA_score_batch")
+
   tryCatch({
     results <- py_cassia$runCASSIA_score_batch(
       input_file = input_file,
@@ -1710,7 +1809,13 @@ runCASSIA_score_batch <- function(input_file,
       provider = provider,
       max_retries = as.integer(max_retries)
     )
-    
+
+    return(results)
+
+  }, error = function(e) {
+    error_msg <- paste("Error in runCASSIA_score_batch:", e$message, "\n",
+                      "Python traceback:", reticulate::py_last_error())
+    stop(error_msg)
   })
 }
 

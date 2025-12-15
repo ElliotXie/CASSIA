@@ -5,10 +5,30 @@
 #' @return Python CASSIA module (all functions available at package level)
 #' @keywords internal
 .get_py_model_settings <- function() {
-  # Use the py_cassia from annotator.R if available
+  # Use the py_cassia from package namespace if available
   # All model settings functions are exported at the CASSIA package level
-  if (exists("py_cassia", envir = .GlobalEnv) && !is.null(py_cassia)) {
-    return(py_cassia)
+
+  # First check if py_cassia exists in the package namespace
+  pkg_env <- tryCatch(asNamespace("CASSIA"), error = function(e) NULL)
+  if (!is.null(pkg_env) && exists("py_cassia", envir = pkg_env)) {
+    py_obj <- get("py_cassia", envir = pkg_env)
+    if (!is.null(py_obj)) {
+      return(py_obj)
+    }
+  }
+
+  # Also check parent frames (for interactive use / devtools::load_all)
+  py_obj <- get0("py_cassia", envir = parent.frame(), ifnotfound = NULL)
+  if (!is.null(py_obj)) {
+    return(py_obj)
+  }
+
+  # Check in global environment as fallback
+  if (exists("py_cassia", envir = .GlobalEnv)) {
+    py_obj <- get("py_cassia", envir = .GlobalEnv)
+    if (!is.null(py_obj)) {
+      return(py_obj)
+    }
   }
 
   # Otherwise, try to import directly
