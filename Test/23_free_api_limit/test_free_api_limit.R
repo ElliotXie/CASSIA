@@ -8,8 +8,8 @@
 # - Auto-selection of first N clusters when quota < total clusters
 # - "LIMIT REACHED" message when quota is exhausted
 #
-# WARNING: This test consumes free API quota (up to 2 cluster annotations
-# per machine, lifetime).
+# The test resets the machine's quota in Supabase before running,
+# so it always starts with a fresh quota of 2 clusters.
 #
 # Usage:
 #     Rscript test_free_api_limit.R
@@ -39,6 +39,58 @@ source(file.path(script_dir, "..", "shared", "r", "fixtures.R"))
 source(file.path(script_dir, "..", "shared", "r", "result_manager.R"))
 source(file.path(script_dir, "..", "shared", "r", "logging_manager.R"))
 
+# =============================================================================
+# SUPABASE QUOTA RESET
+# =============================================================================
+
+SUPABASE_URL <- "https://fauimshrishydpnactfc.supabase.co"
+SUPABASE_SERVICE_KEY <- paste0(
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.",
+  "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdWltc2hyaXNoeWRwbmFjdGZjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDgwMTE1MSwiZXhwIjoyMDgwMzc3MTUxfQ.",
+  "HiteG9WqKQnmACgHoT299c1LwymQB_t47JVeV9Cmip0"
+)
+
+#' Reset machine quota in Supabase by deleting the usage row
+#'
+#' @param machine_id The machine fingerprint hash
+#' @return TRUE if reset succeeded
+reset_machine_quota <- function(machine_id) {
+  tryCatch({
+    if (!requireNamespace("httr", quietly = TRUE)) {
+      # Fallback: use Python requests via reticulate
+      py_requests <- reticulate::import("requests")
+      resp <- py_requests$delete(
+        paste0(SUPABASE_URL, "/rest/v1/free_api_usage"),
+        params = list(machine_id = paste0("eq.", machine_id)),
+        headers = list(
+          apikey = SUPABASE_SERVICE_KEY,
+          Authorization = paste("Bearer", SUPABASE_SERVICE_KEY),
+          `Content-Type` = "application/json"
+        ),
+        timeout = 10L
+      )
+      return(resp$status_code %in% c(200L, 204L))
+    }
+
+    resp <- httr::DELETE(
+      paste0(SUPABASE_URL, "/rest/v1/free_api_usage"),
+      query = list(machine_id = paste0("eq.", machine_id)),
+      httr::add_headers(
+        apikey = SUPABASE_SERVICE_KEY,
+        Authorization = paste("Bearer", SUPABASE_SERVICE_KEY),
+        `Content-Type` = "application/json"
+      ),
+      httr::timeout(10)
+    )
+    return(httr::status_code(resp) %in% c(200, 204))
+  }, error = function(e) {
+    message("  Warning: Failed to reset quota: ", e$message)
+    return(FALSE)
+  })
+}
+
+# =============================================================================
+
 run_free_api_limit_test <- function() {
   print_test_header("23 - Free API Lifetime Limit (R)")
 
@@ -65,7 +117,40 @@ run_free_api_limit_test <- function() {
     return(FALSE)
   })
 
-  # Check remaining quota via Python
+  # Fix Python stdout encoding for reticulate (progress bar uses Unicode braille chars)
+  tryCatch({
+    reticulate::py_run_string("
+import sys, io
+if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+")
+  }, error = function(e) {
+    log_msg("Note: Could not set Python encoding:", e$message)
+  })
+
+  # ---------------------------------------------------------------------------
+  # Reset quota in Supabase so we always start fresh
+  # ---------------------------------------------------------------------------
+  machine_id <- tryCatch({
+    py_free_api <- reticulate::import("CASSIA.core.free_api")
+    py_free_api$`_generate_machine_id`()
+  }, error = function(e) {
+    log_msg("Warning: Could not get machine ID:", e$message)
+    ""
+  })
+
+  if (nchar(machine_id) > 0) {
+    log_msg("")
+    log_msg("Resetting quota for machine", substr(machine_id, 1, 8), "...")
+    if (reset_machine_quota(machine_id)) {
+      log_msg("  Quota reset successfully")
+    } else {
+      log_msg("  Warning: Could not reset quota, test may see stale data")
+    }
+  }
+
+  # Check remaining quota via Python (after reset)
   remaining_before <- tryCatch({
     py_cassia <- reticulate::import("CASSIA")
     py_free_api <- reticulate::import("CASSIA.core.free_api")

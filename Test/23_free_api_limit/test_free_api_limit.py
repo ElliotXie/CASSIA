@@ -10,9 +10,8 @@ This test deliberately does NOT load API keys. It validates:
 - "LIMIT REACHED" message when quota is exhausted
 - Post-run reminder with remaining quota
 
-WARNING: This test consumes free API quota (up to 2 cluster annotations
-per machine, lifetime). After quota is exhausted, the test will still
-PASS by validating the "limit reached" behavior.
+The test resets the machine's quota in Supabase before running,
+so it always starts with a fresh quota of 2 clusters.
 
 Usage:
     python test_free_api_limit.py
@@ -45,6 +44,53 @@ from result_manager import (
 setup_cassia_imports()
 
 
+# =============================================================================
+# SUPABASE QUOTA RESET
+# =============================================================================
+
+# Supabase credentials (same as cassia-web .env.local)
+SUPABASE_URL = "https://fauimshrishydpnactfc.supabase.co"
+SUPABASE_SERVICE_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdWltc2hyaXNoeWRwbmFjdGZjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDgwMTE1MSwiZXhwIjoyMDgwMzc3MTUxfQ."
+    "HiteG9WqKQnmACgHoT299c1LwymQB_t47JVeV9Cmip0"
+)
+
+
+def reset_machine_quota(machine_id: str) -> bool:
+    """
+    Delete this machine's row from Supabase free_api_usage table,
+    effectively resetting quota to MAX_FREE_CLUSTERS.
+
+    Uses urllib (standard library) to avoid dependency on 'requests'.
+
+    Returns:
+        True if reset succeeded, False otherwise
+    """
+    try:
+        import urllib.request
+        import urllib.parse
+
+        url = (
+            f"{SUPABASE_URL}/rest/v1/free_api_usage"
+            f"?machine_id=eq.{urllib.parse.quote(machine_id)}"
+        )
+        req = urllib.request.Request(
+            url,
+            method="DELETE",
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json",
+            }
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return response.status in (200, 204)
+    except Exception as e:
+        print(f"  Warning: Failed to reset quota: {e}")
+        return False
+
+
 def run_free_api_limit_test():
     """Run free API lifetime limit test on all clusters."""
     print_test_header("23 - Free API Lifetime Limit")
@@ -62,9 +108,22 @@ def run_free_api_limit_test():
 
     # Import CASSIA functions
     from CASSIA import runCASSIA_batch, get_remaining_free_clusters, MAX_FREE_CLUSTERS
-    from CASSIA.core.free_api import clear_free_api_cache
+    from CASSIA.core.free_api import clear_free_api_cache, _generate_machine_id
 
     # Clear any cached keys from previous runs
+    clear_free_api_cache()
+
+    # -------------------------------------------------------------------------
+    # Reset quota in Supabase so we always start fresh
+    # -------------------------------------------------------------------------
+    machine_id = _generate_machine_id()
+    print(f"\nResetting quota for machine {machine_id[:8]}...")
+    if reset_machine_quota(machine_id):
+        print("  Quota reset successfully")
+    else:
+        print("  Warning: Could not reset quota, test may see stale data")
+
+    # Clear cache again after reset
     clear_free_api_cache()
 
     # Check remaining quota BEFORE test

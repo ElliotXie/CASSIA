@@ -5,14 +5,14 @@ Usage:
     from model_settings import resolve_model_name
 
     # Use tier shortcuts
-    model, provider = resolve_model_name("best", "openai")      # -> ("gpt-5.1", "openai")
+    model, provider = resolve_model_name("best", "openai")      # -> ("gpt-5.2", "openai")
     model, provider = resolve_model_name("balanced", "anthropic") # -> ("claude-sonnet-4-5", "anthropic")
-    model, provider = resolve_model_name("fast", "openrouter")    # -> ("google/gemini-2.5-flash", "openrouter")
+    model, provider = resolve_model_name("fast", "openrouter")    # -> ("google/gemini-3-flash-preview", "openrouter")
 
-    # Use fuzzy aliases (prints: "Note: Resolved 'gpt' to 'gpt-5.1' for openai")
-    model, provider = resolve_model_name("gpt", "openai")         # -> ("gpt-5.1", "openai")
+    # Use fuzzy aliases (prints: "Note: Resolved 'gpt' to 'gpt-5.2' for openai")
+    model, provider = resolve_model_name("gpt", "openai")         # -> ("gpt-5.2", "openai")
     model, provider = resolve_model_name("claude", "anthropic")   # -> ("claude-sonnet-4-5", "anthropic")
-    model, provider = resolve_model_name("gemini", "openrouter")  # -> ("google/gemini-2.5-flash", "openrouter")
+    model, provider = resolve_model_name("gemini", "openrouter")  # -> ("google/gemini-3-flash-preview", "openrouter")
 
     # Or use exact model names (no resolution note printed)
     model, provider = resolve_model_name("gpt-4o", "openai")      # -> ("gpt-4o", "openai")
@@ -48,7 +48,9 @@ class ModelSettings:
         """
         if config_path is None:
             current_dir = Path(__file__).parent
+            package_dir = current_dir.parent  # CASSIA/ package root
             possible_paths = [
+                package_dir / "data" / "model_settings.json",
                 current_dir / "data" / "model_settings.json",
                 current_dir / "model_settings.json",
             ]
@@ -57,7 +59,7 @@ class ModelSettings:
                     config_path = path
                     break
             if config_path is None:
-                config_path = current_dir / "data" / "model_settings.json"
+                config_path = package_dir / "data" / "model_settings.json"
 
         self.config_path = Path(config_path)
         self.settings = self._load_settings()
@@ -75,10 +77,10 @@ class ModelSettings:
         return {
             "providers": {
                 "openai": {
-                    "best": "gpt-5.1",
+                    "best": "gpt-5.2",
                     "balanced": "gpt-4o",
                     "fast": "gpt-5-mini",
-                    "recommended": "gpt-5.1"
+                    "recommended": "gpt-5.2"
                 },
                 "anthropic": {
                     "best": "claude-opus-4-5",
@@ -88,8 +90,8 @@ class ModelSettings:
                 },
                 "openrouter": {
                     "best": "anthropic/claude-sonnet-4.5",
-                    "balanced": "openai/gpt-5.1",
-                    "fast": "google/gemini-2.5-flash",
+                    "balanced": "openai/gpt-5.2",
+                    "fast": "google/gemini-3-flash-preview",
                     "recommended": "anthropic/claude-sonnet-4.5"
                 }
             },
@@ -101,13 +103,13 @@ class ModelSettings:
         return {
             "provider_specific": {
                 "openai": {
-                    "gpt": "gpt-5.1",
+                    "gpt": "gpt-5.2",
                     "gpt4": "gpt-4o",
                     "gpt-4": "gpt-4o",
                     "4o": "gpt-4o",
                     "gpt4o": "gpt-4o",
-                    "gpt5": "gpt-5.1",
-                    "gpt-5": "gpt-5.1",
+                    "gpt5": "gpt-5.2",
+                    "gpt-5": "gpt-5.2",
                     "mini": "gpt-5-mini",
                     "gpt-mini": "gpt-5-mini"
                 },
@@ -118,13 +120,13 @@ class ModelSettings:
                     "haiku": "claude-haiku-4-5"
                 },
                 "openrouter": {
-                    "gpt": "openai/gpt-5.1",
+                    "gpt": "openai/gpt-5.2",
                     "claude": "anthropic/claude-sonnet-4.5",
                     "sonnet": "anthropic/claude-sonnet-4.5",
                     "opus": "anthropic/claude-opus-4.5",
                     "haiku": "anthropic/claude-haiku-4.5",
-                    "gemini": "google/gemini-2.5-flash",
-                    "flash": "google/gemini-2.5-flash",
+                    "gemini": "google/gemini-3-flash-preview",
+                    "flash": "google/gemini-3-flash-preview",
                     "deepseek": "deepseek/deepseek-chat"
                 }
             },
@@ -183,9 +185,9 @@ class ModelSettings:
 
         Examples:
             >>> resolve_model_name("best", "openai")
-            ("gpt-5.1", "openai")
-            >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.1' for openai
-            ("gpt-5.1", "openai")
+            ("gpt-5.2", "openai")
+            >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.2' for openai
+            ("gpt-5.2", "openai")
             >>> resolve_model_name("gpt-4o", "openai")  # exact name, no note
             ("gpt-4o", "openai")
         """
@@ -320,7 +322,7 @@ class ModelSettings:
 
         Examples:
             >>> get_pipeline_defaults("openai")
-            {'annotation': 'gpt-5.1', 'score': 'gpt-5.1', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+            {'annotation': 'gpt-5.2', 'score': 'gpt-5.2', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.2'}
             >>> get_pipeline_defaults("anthropic")
             {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
         """
@@ -349,9 +351,9 @@ class ModelSettings:
 
         Examples:
             >>> get_agent_default("annotation", "openrouter")
-            {'model': 'openai/gpt-5.1', 'temperature': 0}
+            {'model': 'openai/gpt-5.2', 'temperature': 0}
             >>> get_agent_default("scoring", "openai")
-            {'model': 'gpt-5.1', 'temperature': 0.3}
+            {'model': 'gpt-5.2', 'temperature': 0.3}
         """
         provider_lower = provider.lower().strip()
         agent_lower = agent_name.lower().strip()
@@ -370,22 +372,22 @@ class ModelSettings:
         """Fallback agent defaults if not in JSON config."""
         fallbacks = {
             "openrouter": {
-                "annotation": {"model": "openai/gpt-5.1", "temperature": 0},
+                "annotation": {"model": "openai/gpt-5.2", "temperature": 0},
                 "scoring": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "merging": {"model": "google/gemini-2.5-flash", "temperature": 0},
+                "merging": {"model": "google/gemini-3-flash-preview", "temperature": 0},
                 "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0},
                 "subclustering_n": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
                 "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "uncertainty": {"model": "openai/gpt-5.1", "temperature": 0.3}
+                "uncertainty": {"model": "openai/gpt-5.2", "temperature": 0.3}
             },
             "openai": {
-                "annotation": {"model": "gpt-5.1", "temperature": 0},
-                "scoring": {"model": "gpt-5.1", "temperature": 0.3},
+                "annotation": {"model": "gpt-5.2", "temperature": 0},
+                "scoring": {"model": "gpt-5.2", "temperature": 0.3},
                 "merging": {"model": "gpt-5-mini", "temperature": 0},
-                "subclustering": {"model": "gpt-5.1", "temperature": 0},
-                "subclustering_n": {"model": "gpt-5.1", "temperature": 0.3},
-                "annotation_boost": {"model": "gpt-5.1", "temperature": 0.3},
-                "uncertainty": {"model": "gpt-5.1", "temperature": 0.3}
+                "subclustering": {"model": "gpt-5.2", "temperature": 0},
+                "subclustering_n": {"model": "gpt-5.2", "temperature": 0.3},
+                "annotation_boost": {"model": "gpt-5.2", "temperature": 0.3},
+                "uncertainty": {"model": "gpt-5.2", "temperature": 0.3}
             },
             "anthropic": {
                 "annotation": {"model": "claude-sonnet-4-5", "temperature": 0},
@@ -398,16 +400,16 @@ class ModelSettings:
             }
         }
         provider_fallbacks = fallbacks.get(provider, fallbacks["openrouter"])
-        return provider_fallbacks.get(agent_name, {"model": "openai/gpt-5.1", "temperature": 0})
+        return provider_fallbacks.get(agent_name, {"model": "openai/gpt-5.2", "temperature": 0})
 
     def _get_fallback_pipeline_defaults(self, provider: str) -> Dict[str, str]:
         """Fallback pipeline defaults if not in JSON config."""
         fallbacks = {
             "openai": {
-                "annotation": "gpt-5.1",
-                "score": "gpt-5.1",
+                "annotation": "gpt-5.2",
+                "score": "gpt-5.2",
                 "merge": "gpt-5-mini",
-                "annotationboost": "gpt-5.1"
+                "annotationboost": "gpt-5.2"
             },
             "anthropic": {
                 "annotation": "claude-sonnet-4-5",
@@ -416,9 +418,9 @@ class ModelSettings:
                 "annotationboost": "claude-sonnet-4-5"
             },
             "openrouter": {
-                "annotation": "openai/gpt-5.1",
+                "annotation": "openai/gpt-5.2",
                 "score": "anthropic/claude-sonnet-4.5",
-                "merge": "google/gemini-2.5-flash",
+                "merge": "google/gemini-3-flash-preview",
                 "annotationboost": "anthropic/claude-sonnet-4.5"
             }
         }
@@ -459,13 +461,13 @@ def resolve_model_name(model_name: str, provider: str, verbose: bool = True) -> 
 
     Examples:
         >>> resolve_model_name("best", "openai")
-        ('gpt-5.1', 'openai')
-        >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.1' for openai
-        ('gpt-5.1', 'openai')
+        ('gpt-5.2', 'openai')
+        >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.2' for openai
+        ('gpt-5.2', 'openai')
         >>> resolve_model_name("claude", "anthropic")  # prints: Note: Resolved 'claude' to 'claude-sonnet-4-5' for anthropic
         ('claude-sonnet-4-5', 'anthropic')
-        >>> resolve_model_name("gemini", "openrouter")  # prints: Note: Resolved 'gemini' to 'google/gemini-2.5-flash' for openrouter
-        ('google/gemini-2.5-flash', 'openrouter')
+        >>> resolve_model_name("gemini", "openrouter")  # prints: Note: Resolved 'gemini' to 'google/gemini-3-flash-preview' for openrouter
+        ('google/gemini-3-flash-preview', 'openrouter')
         >>> resolve_model_name("gpt-4o", "openai")  # no message, exact match
         ('gpt-4o', 'openai')
     """
@@ -524,7 +526,7 @@ def get_pipeline_defaults(provider: str) -> Dict[str, str]:
 
     Examples:
         >>> get_pipeline_defaults("openai")
-        {'annotation': 'gpt-5.1', 'score': 'gpt-5.1', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.1'}
+        {'annotation': 'gpt-5.2', 'score': 'gpt-5.2', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.2'}
         >>> get_pipeline_defaults("anthropic")
         {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
     """
@@ -546,12 +548,12 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
 
     Examples:
         >>> get_agent_default("annotation", "openrouter")
-        {'model': 'openai/gpt-5.1', 'temperature': 0}
+        {'model': 'openai/gpt-5.2', 'temperature': 0}
         >>> get_agent_default("subclustering", "anthropic")
         {'model': 'claude-sonnet-4-5', 'temperature': 0}
         >>> get_agent_default("subclustering_n", "anthropic")
         {'model': 'claude-sonnet-4-5', 'temperature': 0.3}
         >>> get_agent_default("uncertainty", "openai")
-        {'model': 'gpt-5.1', 'temperature': 0.3}
+        {'model': 'gpt-5.2', 'temperature': 0.3}
     """
     return get_model_settings().get_agent_default(agent_name, provider)
