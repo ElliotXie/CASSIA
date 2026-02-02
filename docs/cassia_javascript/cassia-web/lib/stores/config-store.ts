@@ -65,17 +65,17 @@ const defaultConfig = {
   pipelineModels: {
     annotation: {
       provider: 'openrouter',
-      model: 'anthropic/claude-haiku-4.5',
+      model: 'anthropic/claude-sonnet-4.5',
       reasoningEffort: 'high' as ReasoningEffort // Anthropic default
     },
     scoring: {
       provider: 'openrouter',
-      model: 'google/gemini-2.5-flash',
-      reasoningEffort: 'high' as ReasoningEffort // Gemini default
+      model: 'openai/gpt-5.2',
+      reasoningEffort: 'medium' as ReasoningEffort // GPT-5 default
     },
     annotationBoost: {
       provider: 'openrouter',
-      model: 'anthropic/claude-haiku-4.5',
+      model: 'anthropic/claude-sonnet-4.5',
       reasoningEffort: 'high' as ReasoningEffort // Anthropic default
     }
   },

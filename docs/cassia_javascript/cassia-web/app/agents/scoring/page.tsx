@@ -24,7 +24,7 @@ export default function ScoringAgentPage() {
     // State management
     const [apiKey, setApiKey] = useState('');
     const [provider, setProvider] = useState<Provider>('openrouter');
-    const [model, setModel] = useState('google/gemini-2.5-flash');
+    const [model, setModel] = useState('google/gemini-3-flash-preview');
     const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [maxWorkers, setMaxWorkers] = useState(4);
@@ -110,7 +110,7 @@ export default function ScoringAgentPage() {
         try {
             await loadApiKeys();
             // Get the loaded key for current provider
-            const loadedKey = useApiKeyStore.getState().apiKeys[provider];
+            const loadedKey = useApiKeyStore.getState().getApiKey(provider);
             if (loadedKey) {
                 setApiKey(loadedKey);
                 setLoadKeyStatus('success');

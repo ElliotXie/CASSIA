@@ -33,7 +33,7 @@ export default function AnnotationMergingPage() {
   const [batchSize, setBatchSize] = useState(20);
   const [additionalContext, setAdditionalContext] = useState('');
   const [provider, setProvider] = useState<Provider>('openrouter');
-  const [model, setModel] = useState('google/gemini-2.5-flash');
+  const [model, setModel] = useState('google/gemini-3-flash-preview');
   const [customBaseUrl, setCustomBaseUrl] = useState('');
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
   const [apiKey, setApiKey] = useState('');

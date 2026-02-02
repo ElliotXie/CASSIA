@@ -40,7 +40,7 @@ export default function AnnotationBoostPage() {
             return state.model;
         } catch (error) {
             console.warn('Error accessing global model:', error);
-            return 'google/gemini-2.5-flash';
+            return 'google/gemini-3-flash-preview';
         }
     });
     const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
@@ -53,7 +53,7 @@ export default function AnnotationBoostPage() {
     const [markerData, setMarkerData] = useState<any[]>([]);
     const [apiKey, setApiKey] = useState('');
     const [provider, setProvider] = useState<Provider>('openrouter');
-    const [model, setModel] = useState('google/gemini-2.5-flash');
+    const [model, setModel] = useState('google/gemini-3-flash-preview');
     const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [majorClusterInfo, setMajorClusterInfo] = useState('Human PBMC');

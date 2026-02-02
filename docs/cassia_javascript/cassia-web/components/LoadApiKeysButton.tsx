@@ -14,7 +14,7 @@ interface LoadApiKeysButtonProps {
 
 export function LoadApiKeysButton({ onSuccess, className, size = 'default' }: LoadApiKeysButtonProps) {
   const { isAuthenticated, user } = useAuthStore()
-  const { loadApiKeys, isLoading, apiKeys, provider } = useApiKeyStore()
+  const { loadApiKeys, isLoading } = useApiKeyStore()
   const [loadStatus, setLoadStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
 
@@ -33,8 +33,10 @@ export function LoadApiKeysButton({ onSuccess, className, size = 'default' }: Lo
       await loadApiKeys()
       
       // Check if any API keys were loaded
-      const { apiKeys: newApiKeys } = useApiKeyStore.getState()
-      const hasLoadedKeys = Object.values(newApiKeys).some(key => key !== '')
+      const { apiKeys: newApiKeys, customProviders } = useApiKeyStore.getState()
+      const hasLoadedStandardKeys = Object.values(newApiKeys).some((key) => key !== '')
+      const hasLoadedCustomKeys = Object.values(customProviders).some((providerConfig) => providerConfig.apiKey !== '')
+      const hasLoadedKeys = hasLoadedStandardKeys || hasLoadedCustomKeys
       
       if (hasLoadedKeys) {
         setLoadStatus('success')

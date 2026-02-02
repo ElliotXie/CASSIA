@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from './auth-store'
 import modelSettings from '../../public/examples/model_settings.json'
 import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
 
+// ─── Public types (consumed by all pages/components) ───────────────────────
+
 export type Provider = 'openrouter' | 'anthropic' | 'openai' | 'custom'
 
-// Custom provider preset types
 export type CustomPresetKey = 'deepseek' | 'qwen' | 'kimi' | 'siliconflow' | 'minimax' | 'zhipuai' | 'manual'
 
 export interface CustomProviderConfig {
@@ -15,7 +15,8 @@ export interface CustomProviderConfig {
   baseUrl: string
 }
 
-// Default base URLs for each custom provider preset
+// ─── Constants ─────────────────────────────────────────────────────────────
+
 const DEFAULT_CUSTOM_PROVIDERS: Record<CustomPresetKey, CustomProviderConfig> = {
   deepseek: { apiKey: '', baseUrl: 'https://api.deepseek.com' },
   qwen: { apiKey: '', baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1' },
@@ -26,30 +27,164 @@ const DEFAULT_CUSTOM_PROVIDERS: Record<CustomPresetKey, CustomProviderConfig> = 
   manual: { apiKey: '', baseUrl: '' }
 }
 
-interface ApiKeyState {
-  // Standard provider API keys (openrouter, anthropic, openai)
-  apiKeys: {
-    openrouter: string
-    anthropic: string
-    openai: string
+// ─── Encryption (base64, demo-level) ──────────────────────────────────────
+
+const encryptKey = (key: string): string => btoa(key)
+const decryptKey = (enc: string): string => {
+  try { return atob(enc) } catch { return '' }
+}
+
+// ─── Supabase REST client ─────────────────────────────────────────────────
+//
+// Direct fetch against PostgREST — avoids @supabase/ssr client hangs.
+// Every function: returns data or throws on failure.
+
+const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+function getAuthHeaders(): Record<string, string> {
+  const token = useAuthStore.getState().session?.access_token
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'apikey': supabaseAnonKey(),
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
+function getAuthUserId(): string | null {
+  const state = useAuthStore.getState()
+  return state.userId ?? state.user?.id ?? null
+}
+
+/** Upsert a row. Throws on any failure. */
+async function dbUpsert(table: string, row: Record<string, unknown>, onConflict: string): Promise<void> {
+  const resp = await fetch(`${supabaseUrl()}/rest/v1/${table}?on_conflict=${onConflict}`, {
+    method: 'POST',
+    headers: { ...getAuthHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify(row),
+  })
+  if (!resp.ok) {
+    const body = await resp.text()
+    throw new Error(`Supabase upsert failed (HTTP ${resp.status}): ${body}`)
+  }
+}
+
+/** Select rows. Throws on failure, returns parsed JSON array. */
+async function dbSelect<T = any>(table: string, params: string): Promise<T[]> {
+  const resp = await fetch(`${supabaseUrl()}/rest/v1/${table}?${params}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+  if (!resp.ok) {
+    const body = await resp.text()
+    throw new Error(`Supabase select failed (HTTP ${resp.status}): ${body}`)
+  }
+  return resp.json()
+}
+
+/** Delete rows. Throws on failure. */
+async function dbDelete(table: string, params: string): Promise<void> {
+  const resp = await fetch(`${supabaseUrl()}/rest/v1/${table}?${params}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+  if (!resp.ok) {
+    const body = await resp.text()
+    throw new Error(`Supabase delete failed (HTTP ${resp.status}): ${body}`)
+  }
+}
+
+// ─── Supabase save/delete helpers (single source of truth) ────────────────
+
+/**
+ * Save an API key to Supabase.
+ * - If not authenticated at all: silently skips (local-only save).
+ * - If authenticated but userId/session is missing: throws so UI can show the error.
+ * - If Supabase errors: throws.
+ */
+async function saveKeyToSupabase(providerKey: string, rawKey: string): Promise<void> {
+  const authState = useAuthStore.getState()
+  const userId = authState.userId ?? authState.user?.id ?? null
+
+  // DEBUG — remove after diagnosing save issue
+  console.log('[CASSIA-DEBUG] saveKeyToSupabase:', {
+    providerKey,
+    userId,
+    isAuthenticated: authState.isAuthenticated,
+    hasSession: !!authState.session,
+    hasToken: !!authState.session?.access_token,
+    hasUser: !!authState.user,
+    storeUserId: authState.userId,
+    userObjId: authState.user?.id,
+  })
+
+  if (!userId) {
+    if (authState.isAuthenticated) {
+      throw new Error('Session error: signed in but user ID is unavailable. Please sign out and sign in again.')
+    }
+    console.log('[CASSIA-DEBUG] saveKeyToSupabase: SKIPPED (not authenticated)')
+    return // Not authenticated — local-only save
   }
 
-  // Per-preset custom provider storage
+  if (!authState.session?.access_token) {
+    throw new Error('Session expired. Please sign out and sign in again.')
+  }
+
+  console.log('[CASSIA-DEBUG] saveKeyToSupabase: calling dbUpsert...')
+  await dbUpsert('user_api_keys', {
+    user_id: userId,
+    provider: providerKey,
+    encrypted_key: encryptKey(rawKey),
+  }, 'user_id,provider')
+  console.log('[CASSIA-DEBUG] saveKeyToSupabase: SUCCESS')
+}
+
+/**
+ * Delete an API key from Supabase.
+ * Same auth-check logic as saveKeyToSupabase.
+ */
+async function deleteKeyFromSupabase(providerKey: string): Promise<void> {
+  const authState = useAuthStore.getState()
+  const userId = authState.userId ?? authState.user?.id ?? null
+
+  if (!userId) {
+    if (authState.isAuthenticated) {
+      throw new Error('Session error: signed in but user ID is unavailable. Please sign out and sign in again.')
+    }
+    return
+  }
+
+  if (!authState.session?.access_token) {
+    throw new Error('Session expired. Please sign out and sign in again.')
+  }
+
+  await dbDelete(
+    'user_api_keys',
+    `user_id=eq.${userId}&provider=eq.${encodeURIComponent(providerKey)}`
+  )
+}
+
+// ─── Store interface ──────────────────────────────────────────────────────
+
+interface ApiKeyState {
+  apiKeys: { openrouter: string; anthropic: string; openai: string }
   customProviders: Record<CustomPresetKey, CustomProviderConfig>
   selectedCustomPreset: CustomPresetKey
-
   provider: Provider
   model: string
   reasoningEffort: ReasoningEffort | null
   isLoading: boolean
   error: string | null
 
-  // Core API key actions
+  // Core actions
   setApiKey: (key: string, provider?: Provider) => Promise<void>
   loadApiKeys: () => Promise<void>
   clearApiKey: (provider?: Provider) => Promise<void>
 
-  // Custom provider specific actions
+  // Custom provider actions
   setCustomProviderKey: (preset: CustomPresetKey, key: string) => Promise<void>
   setCustomProviderBaseUrl: (preset: CustomPresetKey, url: string) => void
   setSelectedCustomPreset: (preset: CustomPresetKey) => void
@@ -59,11 +194,11 @@ interface ApiKeyState {
   getCustomApiKey: (preset?: CustomPresetKey) => string
   getCustomBaseUrl: (preset?: CustomPresetKey) => string
 
-  // UI state actions
+  // UI state
   setProvider: (provider: Provider) => void
   setModel: (model: string) => void
   setReasoningEffort: (effort: ReasoningEffort | null) => void
-  setCustomBaseUrl: (url: string) => void  // Legacy - updates selected preset's baseUrl
+  setCustomBaseUrl: (url: string) => void
   clearError: () => void
 
   // Helpers
@@ -71,24 +206,12 @@ interface ApiKeyState {
   apiKey: string
 }
 
-// Simple encryption/decryption for demo
-const encryptKey = (key: string): string => btoa(key)
-const decryptKey = (encryptedKey: string): string => {
-  try {
-    return atob(encryptedKey)
-  } catch {
-    return ''
-  }
-}
+// ─── Store implementation ─────────────────────────────────────────────────
 
 export const useApiKeyStore = create<ApiKeyState>()(
   persist(
     (set, get) => ({
-      apiKeys: {
-        openrouter: '',
-        anthropic: '',
-        openai: ''
-      },
+      apiKeys: { openrouter: '', anthropic: '', openai: '' },
       customProviders: { ...DEFAULT_CUSTOM_PROVIDERS },
       selectedCustomPreset: 'deepseek',
       provider: 'openrouter',
@@ -97,308 +220,160 @@ export const useApiKeyStore = create<ApiKeyState>()(
       isLoading: false,
       error: null,
 
+      // ── UI setters ────────────────────────────────────────────────
+
       clearError: () => set({ error: null }),
 
-      setProvider: (provider: Provider) => {
-        set({ provider })
+      setProvider: (provider) => set({ provider }),
+
+      setModel: (model) => {
+        set({ model, reasoningEffort: getDefaultReasoningEffort(get().provider, model) })
       },
 
-      setModel: (model: string) => {
-        const provider = get().provider
-        set({
-          model,
-          reasoningEffort: getDefaultReasoningEffort(provider, model)
-        })
-      },
+      setReasoningEffort: (effort) => set({ reasoningEffort: effort }),
 
-      setReasoningEffort: (effort: ReasoningEffort | null) => {
-        set({ reasoningEffort: effort })
-      },
-
-      // Legacy method - updates the currently selected custom preset's baseUrl
-      setCustomBaseUrl: (url: string) => {
+      setCustomBaseUrl: (url) => {
         const preset = get().selectedCustomPreset
-        set((state) => ({
-          customProviders: {
-            ...state.customProviders,
-            [preset]: { ...state.customProviders[preset], baseUrl: url }
-          }
+        set((s) => ({
+          customProviders: { ...s.customProviders, [preset]: { ...s.customProviders[preset], baseUrl: url } }
         }))
       },
 
-      setSelectedCustomPreset: (preset: CustomPresetKey) => {
-        set({ selectedCustomPreset: preset })
-      },
+      setSelectedCustomPreset: (preset) => set({ selectedCustomPreset: preset }),
 
-      setCustomProviderBaseUrl: (preset: CustomPresetKey, url: string) => {
-        set((state) => ({
-          customProviders: {
-            ...state.customProviders,
-            [preset]: { ...state.customProviders[preset], baseUrl: url }
-          }
+      setCustomProviderBaseUrl: (preset, url) => {
+        set((s) => ({
+          customProviders: { ...s.customProviders, [preset]: { ...s.customProviders[preset], baseUrl: url } }
         }))
       },
 
-      setCustomProviderKey: async (preset: CustomPresetKey, key: string) => {
-        const authStore = useAuthStore.getState()
+      // ── Custom provider getters ───────────────────────────────────
 
-        // Update local state immediately
-        set((state) => ({
-          customProviders: {
-            ...state.customProviders,
-            [preset]: { ...state.customProviders[preset], apiKey: key }
-          }
-        }))
-
-        // Save to Supabase if authenticated with custom:preset format
-        if (authStore.user) {
-          set({ isLoading: true, error: null })
-
-          try {
-            const supabase = createClient()
-            const encryptedKey = encryptKey(key)
-            const providerKey = `custom:${preset}`
-
-            const { error } = await supabase
-              .from('user_api_keys')
-              .upsert({
-                user_id: authStore.user.id,
-                provider: providerKey,
-                encrypted_key: encryptedKey
-              }, {
-                onConflict: 'user_id,provider'
-              })
-
-            if (error) throw error
-            console.log(`API key saved to Supabase for ${providerKey}`)
-          } catch (error) {
-            console.error('Error saving custom provider API key:', error)
-            set({ error: 'Failed to save API key to account' })
-          } finally {
-            set({ isLoading: false })
-          }
-        }
+      getCustomApiKey: (preset?) => {
+        const s = get()
+        return s.customProviders[preset || s.selectedCustomPreset]?.apiKey || ''
       },
 
-      clearCustomProviderKey: async (preset: CustomPresetKey) => {
-        const authStore = useAuthStore.getState()
-
-        // Clear local state
-        set((state) => ({
-          customProviders: {
-            ...state.customProviders,
-            [preset]: { ...state.customProviders[preset], apiKey: '' }
-          }
-        }))
-
-        // Delete from Supabase if authenticated
-        if (authStore.user) {
-          try {
-            const supabase = createClient()
-            const providerKey = `custom:${preset}`
-
-            const { error } = await supabase
-              .from('user_api_keys')
-              .delete()
-              .eq('user_id', authStore.user.id)
-              .eq('provider', providerKey)
-
-            if (error) throw error
-          } catch (error) {
-            console.error('Error deleting custom provider API key:', error)
-          }
-        }
+      getCustomBaseUrl: (preset?) => {
+        const s = get()
+        return s.customProviders[preset || s.selectedCustomPreset]?.baseUrl || ''
       },
 
-      getCustomApiKey: (preset?: CustomPresetKey) => {
-        const state = get()
-        const targetPreset = preset || state.selectedCustomPreset
-        return state.customProviders[targetPreset]?.apiKey || ''
+      getApiKey: (provider?) => {
+        const s = get()
+        const p = provider || s.provider
+        if (p === 'custom') return s.customProviders[s.selectedCustomPreset]?.apiKey || ''
+        return s.apiKeys[p as keyof typeof s.apiKeys] || ''
       },
 
-      getCustomBaseUrl: (preset?: CustomPresetKey) => {
-        const state = get()
-        const targetPreset = preset || state.selectedCustomPreset
-        return state.customProviders[targetPreset]?.baseUrl || ''
-      },
+      apiKey: '',
 
-      setApiKey: async (key: string, provider?: Provider) => {
+      // ── Save ──────────────────────────────────────────────────────
+
+      setApiKey: async (key, provider?) => {
         const targetProvider = provider || get().provider
-        const authStore = useAuthStore.getState()
 
-        // For custom provider, delegate to setCustomProviderKey
         if (targetProvider === 'custom') {
-          const preset = get().selectedCustomPreset
-          await get().setCustomProviderKey(preset, key)
+          await get().setCustomProviderKey(get().selectedCustomPreset, key)
           return
         }
 
-        // Update local state immediately for standard providers
-        set((state) => ({
-          apiKeys: {
-            ...state.apiKeys,
-            [targetProvider]: key
-          }
-        }))
+        // Update local state
+        set((s) => ({ apiKeys: { ...s.apiKeys, [targetProvider]: key } }))
 
-        // Save to Supabase if authenticated
-        if (authStore.user) {
-          set({ isLoading: true, error: null })
-
-          try {
-            const supabase = createClient()
-            const encryptedKey = encryptKey(key)
-
-            const { error } = await supabase
-              .from('user_api_keys')
-              .upsert({
-                user_id: authStore.user.id,
-                provider: targetProvider,
-                encrypted_key: encryptedKey
-              }, {
-                onConflict: 'user_id,provider'
-              })
-
-            if (error) throw error
-            console.log('API key saved to Supabase')
-          } catch (error) {
-            console.error('Error saving API key:', error)
-            set({ error: 'Failed to save API key to account' })
-          } finally {
-            set({ isLoading: false })
-          }
-        }
+        // Persist to Supabase (throws on failure)
+        await saveKeyToSupabase(targetProvider, key)
       },
 
-      loadApiKeys: async () => {
-        const authStore = useAuthStore.getState()
+      setCustomProviderKey: async (preset, key) => {
+        // Update local state
+        set((s) => ({
+          customProviders: { ...s.customProviders, [preset]: { ...s.customProviders[preset], apiKey: key } }
+        }))
 
-        if (!authStore.user) {
-          console.log('No user authenticated')
+        // Persist to Supabase (throws on failure)
+        await saveKeyToSupabase(`custom:${preset}`, key)
+      },
+
+      // ── Load ──────────────────────────────────────────────────────
+
+      loadApiKeys: async () => {
+        const authState = useAuthStore.getState()
+        const userId = authState.userId ?? authState.user?.id ?? null
+
+        if (!userId) {
+          if (authState.isAuthenticated) {
+            set({ error: 'Session error: signed in but user ID is unavailable. Please sign out and sign in again.' })
+          }
           return
         }
 
         set({ isLoading: true, error: null })
 
         try {
-          console.log('Loading API keys for user:', authStore.user.id)
-          const supabase = createClient()
+          const rows = await dbSelect<{ provider: string; encrypted_key: string }>(
+            'user_api_keys',
+            `select=provider,encrypted_key&user_id=eq.${userId}`
+          )
 
-          const { data, error } = await supabase
-            .from('user_api_keys')
-            .select('provider, encrypted_key')
-            .eq('user_id', authStore.user.id)
+          const loadedKeys = { openrouter: '', anthropic: '', openai: '' }
+          const loadedCustom = { ...DEFAULT_CUSTOM_PROVIDERS }
 
-          if (error) {
-            console.error('Supabase error:', error)
-            throw error
+          for (const row of rows) {
+            const p = row.provider
+            const decrypted = decryptKey(row.encrypted_key)
+
+            if (p.startsWith('custom:')) {
+              const preset = p.replace('custom:', '') as CustomPresetKey
+              if (preset in loadedCustom) {
+                loadedCustom[preset] = { ...loadedCustom[preset], apiKey: decrypted }
+              }
+            } else if (p === 'custom') {
+              // Legacy migration: bare 'custom' → manual preset
+              loadedCustom.manual = { ...loadedCustom.manual, apiKey: decrypted }
+            } else if (p in loadedKeys) {
+              loadedKeys[p as keyof typeof loadedKeys] = decrypted
+            }
           }
 
-          console.log('Loaded', data?.length || 0, 'API keys from Supabase')
+          set({ apiKeys: loadedKeys, customProviders: loadedCustom })
 
-          // Update local state with loaded keys
-          const loadedKeys = {
-            openrouter: '',
-            anthropic: '',
-            openai: ''
-          }
+          const hasAny =
+            Object.values(loadedKeys).some((k) => k !== '') ||
+            Object.values(loadedCustom).some((c) => c.apiKey !== '')
 
-          const loadedCustomProviders = { ...DEFAULT_CUSTOM_PROVIDERS }
-
-          data?.forEach((keyData) => {
-            const providerValue = keyData.provider
-
-            // Handle custom:preset format (e.g., custom:deepseek, custom:qwen)
-            if (providerValue.startsWith('custom:')) {
-              const preset = providerValue.replace('custom:', '') as CustomPresetKey
-              if (preset in loadedCustomProviders) {
-                loadedCustomProviders[preset] = {
-                  ...loadedCustomProviders[preset],
-                  apiKey: decryptKey(keyData.encrypted_key)
-                }
-              }
-            }
-            // Handle legacy 'custom' provider (migrate to manual)
-            else if (providerValue === 'custom') {
-              loadedCustomProviders.manual = {
-                ...loadedCustomProviders.manual,
-                apiKey: decryptKey(keyData.encrypted_key)
-              }
-            }
-            // Handle standard providers
-            else if (providerValue in loadedKeys) {
-              loadedKeys[providerValue as keyof typeof loadedKeys] = decryptKey(keyData.encrypted_key)
-            }
-          })
-
-          set({ apiKeys: loadedKeys, customProviders: loadedCustomProviders })
-
-          const hasStandardKeys = Object.values(loadedKeys).some(k => k !== '')
-          const hasCustomKeys = Object.values(loadedCustomProviders).some(c => c.apiKey !== '')
-
-          if (!hasStandardKeys && !hasCustomKeys) {
+          if (!hasAny) {
             set({ error: 'No API keys found in your account' })
           }
-
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Failed to load API keys'
-          set({ error: message })
-          throw error
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to load API keys'
+          set({ error: msg })
+          throw err
         } finally {
           set({ isLoading: false })
         }
       },
 
-      clearApiKey: async (provider?: Provider) => {
-        const targetProvider = provider || get().provider
-        const authStore = useAuthStore.getState()
+      // ── Delete ────────────────────────────────────────────────────
 
-        // For custom provider, delegate to clearCustomProviderKey
+      clearApiKey: async (provider?) => {
+        const targetProvider = provider || get().provider
+
         if (targetProvider === 'custom') {
-          const preset = get().selectedCustomPreset
-          await get().clearCustomProviderKey(preset)
+          await get().clearCustomProviderKey(get().selectedCustomPreset)
           return
         }
 
-        // Clear local state for standard providers
-        set((state) => ({
-          apiKeys: {
-            ...state.apiKeys,
-            [targetProvider]: ''
-          }
+        set((s) => ({ apiKeys: { ...s.apiKeys, [targetProvider]: '' } }))
+        await deleteKeyFromSupabase(targetProvider)
+      },
+
+      clearCustomProviderKey: async (preset) => {
+        set((s) => ({
+          customProviders: { ...s.customProviders, [preset]: { ...s.customProviders[preset], apiKey: '' } }
         }))
-
-        // Delete from Supabase if authenticated
-        if (authStore.user) {
-          try {
-            const supabase = createClient()
-            const { error } = await supabase
-              .from('user_api_keys')
-              .delete()
-              .eq('user_id', authStore.user.id)
-              .eq('provider', targetProvider)
-
-            if (error) throw error
-          } catch (error) {
-            console.error('Error deleting API key:', error)
-          }
-        }
+        await deleteKeyFromSupabase(`custom:${preset}`)
       },
-
-      getApiKey: (provider?: Provider) => {
-        const state = get()
-        const targetProvider = provider || state.provider
-
-        // For custom provider, return the selected preset's API key
-        if (targetProvider === 'custom') {
-          return state.customProviders[state.selectedCustomPreset]?.apiKey || ''
-        }
-
-        return state.apiKeys[targetProvider as keyof typeof state.apiKeys] || ''
-      },
-
-      // Placeholder, use getApiKey() for actual value
-      apiKey: ''
     }),
     {
       name: 'cassia-api-key-storage',
@@ -409,46 +384,34 @@ export const useApiKeyStore = create<ApiKeyState>()(
         reasoningEffort: state.reasoningEffort,
         customProviders: state.customProviders,
         selectedCustomPreset: state.selectedCustomPreset,
-        apiKeys: state.apiKeys
+        apiKeys: state.apiKeys,
       }),
-      // Migration from old format to new format
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>
 
         if (version < 2) {
-          console.log('Migrating API key store from version', version, 'to 2')
-
-          // Migrate legacy custom key to customProviders.manual
           const oldApiKeys = state.apiKeys as Record<string, string> | undefined
           const oldCustomBaseUrl = state.customBaseUrl as string | undefined
-
           const newCustomProviders = { ...DEFAULT_CUSTOM_PROVIDERS }
 
           if (oldApiKeys?.custom) {
-            newCustomProviders.manual = {
-              apiKey: oldApiKeys.custom,
-              baseUrl: oldCustomBaseUrl || ''
-            }
-            console.log('Migrated legacy custom key to manual preset')
-          }
-
-          // Build new apiKeys without custom field
-          const newApiKeys = {
-            openrouter: oldApiKeys?.openrouter || '',
-            anthropic: oldApiKeys?.anthropic || '',
-            openai: oldApiKeys?.openai || ''
+            newCustomProviders.manual = { apiKey: oldApiKeys.custom, baseUrl: oldCustomBaseUrl || '' }
           }
 
           return {
             ...state,
-            apiKeys: newApiKeys,
+            apiKeys: {
+              openrouter: oldApiKeys?.openrouter || '',
+              anthropic: oldApiKeys?.anthropic || '',
+              openai: oldApiKeys?.openai || '',
+            },
             customProviders: newCustomProviders,
-            selectedCustomPreset: oldApiKeys?.custom ? 'manual' : 'deepseek'
+            selectedCustomPreset: oldApiKeys?.custom ? 'manual' : 'deepseek',
           }
         }
 
         return state
-      }
+      },
     }
   )
 )

@@ -334,17 +334,6 @@ export default function PipelinePage() {
                   {isRunning ? 'Analysis Running...' : 'Start Pipeline Analysis'}
                 </Button>
 
-                {!canStartAnalysis && (
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Please complete the following to start analysis:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {!apiKey && <li>Set API key</li>}
-                      {!uploadedFile && <li>Upload marker data file</li>}
-                      {!tissue && <li>Enter tissue type</li>}
-                      {!species && <li>Enter species</li>}
-                    </ul>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

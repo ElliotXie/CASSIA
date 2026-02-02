@@ -17,7 +17,7 @@ const MODEL_PRESETS = {
         name: 'Balanced',
         description: 'Good quality with reasonable speed',
         provider: 'openrouter',
-        model: 'google/gemini-2.5-flash'
+        model: 'google/gemini-3-flash-preview'
     }
 };
 
@@ -28,7 +28,7 @@ const MODEL_PRESETS = {
  * @param {string} manualModel - Manual model if preset is null
  * @returns {Object} {provider, model} configuration
  */
-function applyModelPreset(preset, manualProvider = 'openrouter', manualModel = 'google/gemini-2.5-flash') {
+function applyModelPreset(preset, manualProvider = 'openrouter', manualModel = 'google/gemini-3-flash-preview') {
     if (preset && MODEL_PRESETS[preset]) {
         const presetConfig = MODEL_PRESETS[preset];
         return {
@@ -279,7 +279,7 @@ export async function runCASSIABatch({
     apiKey,
     outputName = "cell_type_analysis_results",
     nGenes = 50,
-    model = "google/gemini-2.5-flash",
+    model = "google/gemini-3-flash-preview",
     temperature = 0,
     tissue = "lung",
     species = "human",

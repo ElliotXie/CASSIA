@@ -38,6 +38,7 @@ export default function BatchPage() {
     tissue,
     species,
     maxWorkers,
+    additionalInfo,
     setAnalysisConfig
   } = useConfigStore()
   
@@ -85,9 +86,10 @@ export default function BatchPage() {
       { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
       { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
       { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
-      { id: 'openai/gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
+      { id: 'openai/gpt-5.2', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
       { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
       { id: 'openai/gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' },
+      { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', cost: 'high', speed: 'medium' },
       { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
@@ -95,7 +97,7 @@ export default function BatchPage() {
       { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', cost: 'medium', speed: 'fast' }
     ],
     openai: [
-      { id: 'gpt-5.1', name: 'GPT-5.1', cost: 'high', speed: 'medium' },
+      { id: 'gpt-5.2', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
       { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
       { id: 'gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' }
     ],
@@ -144,7 +146,7 @@ export default function BatchPage() {
         temperature: 0,
         tissue,
         species,
-        additionalInfo: '',
+        additionalInfo: additionalInfo || '',
         maxWorkers,
         provider,
         customBaseUrl,  // Custom provider base URL
@@ -323,11 +325,11 @@ export default function BatchPage() {
                     <button
                       onClick={() => {
                         setSelectedMode('balanced')
-                        setModel('google/gemini-2.5-flash')
+                        setModel('google/gemini-3-flash-preview')
                       }}
                       className={cn(
                         "relative p-4 rounded-lg border-2 transition-all text-left",
-                        selectedMode === 'balanced' && model === 'google/gemini-2.5-flash'
+                        selectedMode === 'balanced' && model === 'google/gemini-3-flash-preview'
                           ? "border-green-500 bg-green-50 dark:bg-green-950/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                       )}
@@ -344,7 +346,7 @@ export default function BatchPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">Model:</span>
-                          <span className="text-sm">Gemini 2.5 Flash</span>
+                          <span className="text-sm">Gemini 3 Flash</span>
                         </div>
                         <div className="flex gap-1 flex-wrap">
                           <Badge variant="secondary" className="text-xs">
@@ -358,7 +360,7 @@ export default function BatchPage() {
                           </Badge>
                         </div>
                       </div>
-                      {selectedMode === 'balanced' && model === 'google/gemini-2.5-flash' && (
+                      {selectedMode === 'balanced' && model === 'google/gemini-3-flash-preview' && (
                         <div className="absolute top-2 right-2">
                           <Badge className="bg-green-500">Selected</Badge>
                         </div>
@@ -576,7 +578,7 @@ export default function BatchPage() {
               </CardHeader>
               <CardContent>
                 <ErrorBoundary>
-                  <FileUpload />
+                  <FileUpload showSimpleFormat />
                 </ErrorBoundary>
               </CardContent>
             </Card>
@@ -652,6 +654,7 @@ export default function BatchPage() {
                   </Button>
 
                   {showAdvanced && (
+                    <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Max Retries</label>
@@ -679,7 +682,7 @@ export default function BatchPage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Format Type</label>
-                        <select 
+                        <select
                           value={batchConfig.formatType}
                           onChange={(e) => setBatchConfig({ ...batchConfig, formatType: e.target.value })}
                           className="w-full px-3 py-2 border border-input bg-background text-sm rounded-md"
@@ -690,6 +693,20 @@ export default function BatchPage() {
                         </select>
                       </div>
                     </div>
+                    <div className="space-y-2 mt-4">
+                      <label className="text-sm font-medium">Additional Information</label>
+                      <textarea
+                        placeholder="e.g., This dataset contains cells from a tumor microenvironment with expected immune infiltration..."
+                        value={additionalInfo}
+                        onChange={(e) => setAnalysisConfig({ additionalInfo: e.target.value })}
+                        className="w-full px-3 py-2 border border-input bg-background text-sm rounded-md min-h-[80px] resize-y"
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Provide any additional context about your dataset to help improve annotation accuracy (optional)
+                      </p>
+                    </div>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -711,17 +728,6 @@ export default function BatchPage() {
                   {isRunning ? 'Batch Analysis Running...' : 'Start Batch Analysis'}
                 </Button>
 
-                {!canStartAnalysis && (
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Please complete the following to start batch analysis:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {!apiKey && <li>Set API key</li>}
-                      {!uploadedFile && <li>Upload marker data file</li>}
-                      {!tissue && <li>Enter tissue type</li>}
-                      {!species && <li>Enter species</li>}
-                    </ul>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

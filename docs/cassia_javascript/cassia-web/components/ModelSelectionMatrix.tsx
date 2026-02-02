@@ -90,9 +90,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Best quality results',
         icon: <Zap className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'openai', model: 'gpt-5.1' },
-          scoring: { provider: 'openai', model: 'gpt-5.1' },
-          annotationBoost: { provider: 'openai', model: 'gpt-5.1' }
+          annotation: { provider: 'openai', model: 'gpt-5.2' },
+          scoring: { provider: 'openai', model: 'gpt-5.2' },
+          annotationBoost: { provider: 'openai', model: 'gpt-5.2' }
         }
       },
       balanced: {
@@ -138,7 +138,7 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         icon: <Zap className="h-4 w-4" />,
         models: {
           annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' },
-          scoring: { provider: 'openrouter', model: 'openai/gpt-5.1' },
+          scoring: { provider: 'openrouter', model: 'openai/gpt-5.2' },
           annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' }
         }
       },
@@ -148,7 +148,7 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         icon: <Settings className="h-4 w-4" />,
         models: {
           annotation: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' },
-          scoring: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
+          scoring: { provider: 'openrouter', model: 'google/gemini-3-flash-preview' },
           annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' }
         }
       }
@@ -188,7 +188,7 @@ export function ModelSelectionMatrix({ lockedProvider = null }: ModelSelectionMa
   // Auto-select balanced preset when OpenRouter is chosen (only once)
   useEffect(() => {
     if (provider === 'openrouter' && !hasAutoSelectedBalanced && selectedPreset === '' && !lockedProvider) {
-      applyPreset('balanced')
+      applyPreset('performance')
       setHasAutoSelectedBalanced(true)
     }
   }, [provider, hasAutoSelectedBalanced, selectedPreset, lockedProvider])
@@ -196,7 +196,7 @@ export function ModelSelectionMatrix({ lockedProvider = null }: ModelSelectionMa
   // Auto-apply balanced preset when lockedProvider changes
   useEffect(() => {
     if (lockedProvider && lockedProvider !== lastLockedProvider) {
-      applyPreset('balanced')
+      applyPreset('performance')
       setLastLockedProvider(lockedProvider)
     }
   }, [lockedProvider, lastLockedProvider])

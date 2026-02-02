@@ -71,7 +71,7 @@ type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
 // Default models fallback (used before settings load)
 const DEFAULT_MODELS: Record<string, string> = {
   openrouter: 'anthropic/claude-sonnet-4.5',
-  openai: 'gpt-5.1',
+  openai: 'gpt-5.2',
   anthropic: 'claude-sonnet-4.5',
   custom: ''
 }
@@ -80,10 +80,10 @@ export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
-  const { apiKeys, provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl, selectedCustomPreset, setSelectedCustomPreset } = useApiKeyStore()
+  const { provider, model, setApiKey, setProvider, setModel, setCustomBaseUrl, getCustomBaseUrl, getApiKey, selectedCustomPreset, setSelectedCustomPreset } = useApiKeyStore()
   const customBaseUrl = getCustomBaseUrl()
   const { isAuthenticated } = useAuthStore()
-  const [tempApiKey, setTempApiKey] = useState(apiKeys[provider] || '')
+  const [tempApiKey, setTempApiKey] = useState(getApiKey(provider) || '')
   const [tempProvider, setTempProvider] = useState(provider)
   const [tempModel, setTempModel] = useState(model)
   const [isTestingApi, setIsTestingApi] = useState(false)
@@ -104,8 +104,21 @@ export default function HomePage() {
     loadModelSettings().then(setModelSettings).catch(console.error)
   }, [])
 
+  // Lock/unlock background scroll when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = showApiKeyModal || showContactModal || showDashboard
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'auto'
+    }
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [showApiKeyModal, showContactModal, showDashboard])
+
   // Get current API key
-  const apiKey = apiKeys[provider] || ''
+  const apiKey = getApiKey(provider) || ''
 
   // Default models for each provider from model_settings.json (with fallback)
   const getDefaultModel = (providerName: string) => {
@@ -257,10 +270,9 @@ export default function HomePage() {
       }
 
       setSaveSuccess(true)
-      // Show success message briefly, then close modal
+      // Show success message briefly, keep modal open for additional actions
       setTimeout(() => {
         setSaveSuccess(false)
-        setShowApiKeyModal(false)
       }, 1500)
     } catch (error) {
       console.error('Failed to save API key:', error)
@@ -274,7 +286,7 @@ export default function HomePage() {
   const handleLoadApiKeysSuccess = () => {
     // Get the latest API keys from the store
     const store = useApiKeyStore.getState()
-    const loadedKey = store.apiKeys[tempProvider as keyof typeof store.apiKeys]
+    const loadedKey = store.getApiKey(tempProvider)
 
     if (loadedKey) {
       setTempApiKey(loadedKey)
@@ -382,8 +394,11 @@ export default function HomePage() {
             <span className="gradient-text">CASSIA</span>
           </h2>
 
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-2 leading-relaxed">
             <span className="font-semibold text-blue-600 dark:text-blue-400">Built for biologists, powered by cutting-edge language models.</span>
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic mb-10">
+            Validated in real-world single-cell studies and peer-reviewed publications
           </p>
           
           
@@ -406,13 +421,6 @@ export default function HomePage() {
               <div className="text-gray-600 dark:text-gray-300">Cell types benchmarked</div>
             </div>
           </div>
-          
-          {/* Validation Badge */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-              Validated in real-world single-cell studies and peer-reviewed publications
-            </p>
-          </div>
         </div>
 
         {/* Enhanced Quick Start Guide */}
@@ -424,47 +432,35 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center group">
-              <div className="relative mx-auto mb-4 w-16 h-16">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  1
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-400 rounded-full animate-pulse"></div>
+              <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                1
               </div>
               <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Configure API</h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">Set up your AI provider key</p>
             </div>
             
             <div className="text-center group">
-              <div className="relative mx-auto mb-4 w-16 h-16">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  2
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+              <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                2
               </div>
               <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Prepare Data</h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">FindAllMarkers CSV/XLSX file</p>
             </div>
-            
+
             <div className="text-center group">
-              <div className="relative mx-auto mb-4 w-16 h-16">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  3
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+              <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                3
               </div>
               <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Select Module</h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">Start with Pipeline or Batch</p>
             </div>
             
             <div className="text-center group">
-              <div className="relative mx-auto mb-4 w-16 h-16">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  4
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                4
               </div>
-              <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Optional Agents</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Enhance results with specialized tools</p>
+              <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Run & Save</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Run analysis and download results</p>
             </div>
           </div>
         </div>
@@ -488,7 +484,6 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              {isAuthenticated && <LoadApiKeysButton />}
               <Button
                 onClick={() => {
                   setTempApiKey(apiKey)
@@ -517,68 +512,17 @@ export default function HomePage() {
 
         {/* Enhanced Main Options */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {/* Full Pipeline */}
-          <Card className="relative overflow-hidden glass border border-white/20 card-hover group">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <CardHeader className="pb-4 relative z-10">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Zap className="h-7 w-7 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
-                </div>
-                <div>
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Pipeline</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">🚀 Recommended starting point</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 relative z-10">
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Automated cell type annotation</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Quality scoring and validation</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Annotation merging and grouping</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Boost analysis for challenging clusters</span>
-                </li>
-                <li className="flex items-center space-x-3 group/item">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
-                  <span className="text-gray-700 dark:text-gray-300">Interactive HTML reports</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white btn-modern">
-                <Link href="/pipeline">
-                  Run CASSIA Pipeline
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Batch Processing */}
           <Card className="relative overflow-hidden glass border border-white/20 card-hover group">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <CardHeader className="pb-4 relative z-10">
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Settings className="h-7 w-7 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Settings className="h-7 w-7 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Batch</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">🔄 Alternative starting point</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">🚀 Recommended starting point</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -613,16 +557,58 @@ export default function HomePage() {
             </CardContent>
           </Card>
 
+          {/* Full Pipeline */}
+          <Card className="relative overflow-hidden glass border border-white/20 card-hover group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="pb-4 relative z-10">
+              <div className="flex items-center space-x-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Zap className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Pipeline</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">🔄 Alternative starting point</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 relative z-10">
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Automated cell type annotation</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Quality scoring and validation</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Annotation merging and grouping</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Boost analysis for challenging clusters</span>
+                </li>
+                <li className="flex items-center space-x-3 group/item">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full group-hover/item:scale-125 transition-transform"></span>
+                  <span className="text-gray-700 dark:text-gray-300">Interactive HTML reports</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white btn-modern">
+                <Link href="/pipeline">
+                  Run CASSIA Pipeline
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Individual Agents */}
           <Card className="relative overflow-hidden glass border border-white/20 card-hover group">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <CardHeader className="pb-4 relative z-10">
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Settings className="h-7 w-7 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Settings className="h-7 w-7 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">Optional Agents</CardTitle>
@@ -765,8 +751,6 @@ export default function HomePage() {
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Collective Agent System for Single-cell Interpretable Annotation
-              <br />
-              <span className="text-sm">Built with Next.js, powered by Large Language Models</span>
             </p>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
               <a href="https://docs.cassia.bio/en" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Documentation</a>
@@ -801,8 +785,12 @@ export default function HomePage() {
 
       {/* Enhanced API Key Modal */}
       {showApiKeyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-lg w-full border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowApiKeyModal(false)
+          }
+        }}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-lg w-full max-h-[85vh] overflow-y-auto border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl animate-glow">
                 <Key className="h-10 w-10 text-white" />
@@ -1090,8 +1078,12 @@ export default function HomePage() {
 
       {/* Contact Dialog Modal */}
       {showContactModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-lg w-full border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowContactModal(false)
+          }
+        }}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-lg w-full max-h-[85vh] overflow-y-auto border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
             <ContactDialog />
             <div className="flex justify-end pt-4">
               <Button 
@@ -1109,7 +1101,7 @@ export default function HomePage() {
       {/* Dashboard Modal */}
       {showDashboard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-y-auto border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
             <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold gradient-text">User Dashboard</h2>

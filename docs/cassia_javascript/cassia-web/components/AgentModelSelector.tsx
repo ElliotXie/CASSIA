@@ -100,7 +100,7 @@ type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
 function getPresets(provider: Provider) {
   if (provider === 'openai') {
     return {
-      performance: { model: 'gpt-5.1', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      performance: { model: 'gpt-5.2', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
       balanced: { model: 'gpt-4o', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else if (provider === 'anthropic') {
@@ -117,7 +117,7 @@ function getPresets(provider: Provider) {
     // OpenRouter
     return {
       performance: { model: 'anthropic/claude-sonnet-4.5', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: 'google/gemini-2.5-flash', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      balanced: { model: 'google/gemini-3-flash-preview', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   }
 }

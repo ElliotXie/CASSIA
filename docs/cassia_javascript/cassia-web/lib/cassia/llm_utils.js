@@ -38,7 +38,7 @@ export async function callLLM(
     const defaultModels = {
         "openai": "gpt-3.5-turbo",
         "anthropic": "claude-3-sonnet-20240229",
-        "openrouter": "google/gemini-2.5-flash",
+        "openrouter": "google/gemini-3-flash-preview",
     };
     
     // Use default model if not specified

@@ -361,7 +361,7 @@ Please provide a structured summary following the format above:`;
         const summary = await callLLM(
             summarizationPrompt,
             provider,
-            model || "google/gemini-2.5-flash", // Match Python's default model
+            model || "google/gemini-3-flash-preview", // Match Python's default model
             apiKey,
             temperature
             // Python doesn't specify max_tokens for this call - uses default

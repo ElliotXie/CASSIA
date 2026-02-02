@@ -91,7 +91,7 @@ export async function runCASSIAPipeline(config) {
         species = 'human',
         models = {
             annotation: { provider: 'openrouter', model: 'meta-llama/llama-3.1-8b-instruct' },
-            scoring: { provider: 'openrouter', model: 'google/gemini-2.5-flash' },
+            scoring: { provider: 'openrouter', model: 'google/gemini-3-flash-preview' },
             annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-3.5-sonnet' }
         },
         scoreThreshold = 75,

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw } from 'lucide-react'
+import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw, Eye } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,9 +22,10 @@ import { getFormatLabel } from '@/lib/utils/gene-id-detection'
 
 interface FileUploadProps {
   onFileProcessed?: (file: File, data: FileData) => void
+  showSimpleFormat?: boolean
 }
 
-export function FileUpload({ onFileProcessed }: FileUploadProps) {
+export function FileUpload({ onFileProcessed, showSimpleFormat = false }: FileUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [fileData, setFileData] = useState<FileData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -39,6 +40,7 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
   const [conversionProgress, setConversionProgress] = useState(0)
   const [conversionStage, setConversionStage] = useState<'local' | 'api'>('local')
   const [conversionApplied, setConversionApplied] = useState(false)
+  const [showFormatPreview, setShowFormatPreview] = useState(false)
 
   const { setFile, uploadedFile } = useAnalysisStore()
 
@@ -413,9 +415,20 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
                 </div>
                 
                 <div className="flex gap-2 justify-center pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowFormatPreview(!showFormatPreview);
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    {showFormatPreview ? 'Hide Format' : 'View Example Format'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       loadAndDownloadExample('batch_raw_seurat_example.csv');
@@ -429,7 +442,94 @@ export function FileUpload({ onFileProcessed }: FileUploadProps) {
             )}
           </div>
         </div>
-        
+
+        {/* Example Format Preview */}
+        {showFormatPreview && (
+          <div className="mt-4 p-4 bg-muted/50 border border-muted-foreground/20 rounded-lg space-y-4" onClick={(e) => e.stopPropagation()}>
+            {/* Format 1: Seurat/FindAllMarkers */}
+            <div>
+              <h4 className="text-sm font-semibold mb-1">Format 1: Seurat FindAllMarkers output (recommended)</h4>
+              <p className="text-xs text-muted-foreground mb-2">
+                Full differential expression output. CASSIA will automatically filter and rank genes.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold">p_val</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold bg-amber-100 dark:bg-amber-900/30">avg_log2FC</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold">pct.1</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold">pct.2</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold">p_val_adj</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold bg-green-100 dark:bg-green-900/30">cluster</th>
+                      <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold bg-blue-100 dark:bg-blue-900/30">gene</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-muted-foreground/20 px-2 py-1">1.2e-50</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-amber-50 dark:bg-amber-900/10">2.45</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">0.95</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">0.12</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">3.6e-48</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-green-50 dark:bg-green-900/10">0</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-blue-50 dark:bg-blue-900/10">CD3D</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-muted-foreground/20 px-2 py-1">4.5e-40</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-amber-50 dark:bg-amber-900/10">1.89</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">0.82</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">0.08</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1">1.1e-37</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-green-50 dark:bg-green-900/10">0</td>
+                      <td className="border border-muted-foreground/20 px-2 py-1 bg-blue-50 dark:bg-blue-900/10">CD3E</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                <span className="inline-block w-3 h-3 bg-green-100 dark:bg-green-900/30 border border-muted-foreground/20 mr-1 align-middle rounded-sm"></span> Required: cluster &nbsp;
+                <span className="inline-block w-3 h-3 bg-blue-100 dark:bg-blue-900/30 border border-muted-foreground/20 mr-1 align-middle rounded-sm"></span> Required: gene &nbsp;
+                <span className="inline-block w-3 h-3 bg-amber-100 dark:bg-amber-900/30 border border-muted-foreground/20 mr-1 align-middle rounded-sm"></span> Required: avg_log2FC (default ranking)
+              </p>
+            </div>
+
+            {showSimpleFormat && (
+              <>
+                <hr className="border-muted-foreground/20" />
+
+                {/* Format 2: Simple pre-processed */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Format 2: Pre-processed marker list</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Simple 2-column format with cluster name and comma-separated ordered genes. Used as-is without filtering.
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold bg-green-100 dark:bg-green-900/30">cluster</th>
+                          <th className="border border-muted-foreground/20 px-2 py-1 text-left font-semibold bg-blue-100 dark:bg-blue-900/30">markers</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border border-muted-foreground/20 px-2 py-1 bg-green-50 dark:bg-green-900/10">0</td>
+                          <td className="border border-muted-foreground/20 px-2 py-1 bg-blue-50 dark:bg-blue-900/10">CD3D, CD3E, IL7R, LEF1, TCF7</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-muted-foreground/20 px-2 py-1 bg-green-50 dark:bg-green-900/10">1</td>
+                          <td className="border border-muted-foreground/20 px-2 py-1 bg-blue-50 dark:bg-blue-900/10">MS4A1, CD79A, CD79B, CD19, PAX5</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <div className="flex items-center space-x-2 text-red-800">
