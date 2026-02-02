@@ -3,7 +3,6 @@
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw, Eye } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { processFile, validateMarkerData, type FileData } from '@/lib/utils/file-processing'
@@ -299,87 +298,82 @@ export function FileUpload({ onFileProcessed, showSimpleFormat = false }: FileUp
 
   if (uploadedFile && fileData) {
     return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-medium text-sm">{uploadedFile.name}</h3>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>{fileData.rowCount?.toLocaleString() || 0} rows</div>
-                    <div>{fileData.clusterCount || 0} clusters</div>
-                    <div>{fileData.geneCount || 0} genes</div>
-                  </div>
-                </div>
-                
-                {/* Show preview of headers */}
-                {fileData.headers && fileData.headers.length > 0 && (
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    <strong>Columns:</strong> {fileData.headers.slice(0, 5).join(', ')}
-                    {fileData.headers.length > 5 && ` (+${fileData.headers.length - 5} more)`}
-                  </div>
-                )}
-                
-                {/* Show gene conversion info if applied */}
-                {conversionApplied && fileData.geneIdDetection && (
-                  <div className="mt-2 flex items-center space-x-2">
-                    <Badge variant="secondary" className="text-xs">
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Gene IDs Converted
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      from {getFormatLabel(fileData.geneIdDetection.detectedFormat)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Show validation warnings */}
-                {validationErrors.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {validationErrors.map((error, index) => (
-                      <div key={index} className={`text-xs flex items-center space-x-1 ${
-                        error.startsWith('Warning:') ? 'text-amber-600' :
-                        error.startsWith('Info:') ? 'text-blue-600' : 'text-red-600'
-                      }`}>
-                        {error.startsWith('Info:') ? (
-                          <CheckCircle className="h-3 w-3" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3" />
-                        )}
-                        <span>{error}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-3">
+          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-medium text-sm">{uploadedFile.name}</h3>
+            <div className="text-sm text-muted-foreground mt-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div>{fileData.rowCount?.toLocaleString() || 0} rows</div>
+                <div>{fileData.clusterCount || 0} clusters</div>
+                <div>{fileData.geneCount || 0} genes</div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFile}
-              className="ml-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+
+            {/* Show preview of headers */}
+            {fileData.headers && fileData.headers.length > 0 && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                <strong>Columns:</strong> {fileData.headers.slice(0, 5).join(', ')}
+                {fileData.headers.length > 5 && ` (+${fileData.headers.length - 5} more)`}
+              </div>
+            )}
+
+            {/* Show gene conversion info if applied */}
+            {conversionApplied && fileData.geneIdDetection && (
+              <div className="mt-2 flex items-center space-x-2">
+                <Badge variant="secondary" className="text-xs">
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Gene IDs Converted
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  from {getFormatLabel(fileData.geneIdDetection.detectedFormat)}
+                </span>
+              </div>
+            )}
+
+            {/* Show validation warnings */}
+            {validationErrors.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {validationErrors.map((error, index) => (
+                  <div key={index} className={`text-xs flex items-center space-x-1 ${
+                    error.startsWith('Warning:') ? 'text-amber-600' :
+                    error.startsWith('Info:') ? 'text-blue-600' : 'text-red-600'
+                  }`}>
+                    {error.startsWith('Info:') ? (
+                      <CheckCircle className="h-3 w-3" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3" />
+                    )}
+                    <span>{error}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFile}
+          className="ml-2"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     )
   }
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25 hover:border-primary/50'
-          } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
+    <div>
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          isDragActive
+            ? 'border-primary bg-primary/5'
+            : 'border-muted-foreground/25 hover:border-primary/50'
+        } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
           <input {...getInputProps()} />
           <div className="space-y-4">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -551,25 +545,24 @@ export function FileUpload({ onFileProcessed, showSimpleFormat = false }: FileUp
           </div>
         )}
 
-        {/* Gene Conversion Preview Dialog */}
-        {showConversionPreview && pendingFileData?.geneIdDetection && (
-          <GeneConversionPreview
-            isOpen={showConversionPreview}
-            onClose={() => {
-              setShowConversionPreview(false)
-              setPendingFile(null)
-              setPendingFileData(null)
-            }}
-            onConfirm={handleConversionConfirm}
-            detectionResult={pendingFileData.geneIdDetection}
-            previewData={conversionPreview}
-            totalGenes={pendingFileData.geneCount || 0}
-            isLoading={isConverting}
-            conversionProgress={conversionProgress}
-            conversionStage={conversionStage}
-          />
-        )}
-      </CardContent>
-    </Card>
+      {/* Gene Conversion Preview Dialog */}
+      {showConversionPreview && pendingFileData?.geneIdDetection && (
+        <GeneConversionPreview
+          isOpen={showConversionPreview}
+          onClose={() => {
+            setShowConversionPreview(false)
+            setPendingFile(null)
+            setPendingFileData(null)
+          }}
+          onConfirm={handleConversionConfirm}
+          detectionResult={pendingFileData.geneIdDetection}
+          previewData={conversionPreview}
+          totalGenes={pendingFileData.geneCount || 0}
+          isLoading={isConverting}
+          conversionProgress={conversionProgress}
+          conversionStage={conversionStage}
+        />
+      )}
+    </div>
   )
 }

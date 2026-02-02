@@ -29,7 +29,8 @@ export async function callLLM(
     maxTokens = 7000,
     systemPrompt = null,
     additionalParams = null,
-    reasoningConfig = null
+    reasoningConfig = null,
+    signal = null
 ) {
     provider = provider.toLowerCase();
     additionalParams = additionalParams || {};
@@ -101,7 +102,7 @@ export async function callLLM(
                     reasoning: { effort: reasoningConfig.effort.toLowerCase() },
                     ...additionalParams
                 };
-                const response = await client.responses.create(requestOptions);
+                const response = await client.responses.create(requestOptions, { signal });
                 return response.output_text;
             } else {
                 // Chat Completions API (default - more stable, widely supported)
@@ -113,10 +114,11 @@ export async function callLLM(
                     max_completion_tokens: maxTokens,
                     ...additionalParams
                 };
-                const response = await client.chat.completions.create(requestOptions);
+                const response = await client.chat.completions.create(requestOptions, { signal });
                 return response.choices[0].message.content;
             }
         } catch (error) {
+            if (error.name === 'AbortError' || signal?.aborted) throw error;
             throw new Error(`OpenAI API error: ${error.message}`);
         }
     }
@@ -163,6 +165,7 @@ export async function callLLM(
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
+                    ...(signal ? { signal } : {})
                 });
 
                 if (!response.ok) {
@@ -188,7 +191,7 @@ export async function callLLM(
                         reasoning: { effort: reasoningConfig.effort },
                         ...additionalParams
                     };
-                    const response = await client.responses.create(requestOptions);
+                    const response = await client.responses.create(requestOptions, { signal });
                     return response.output_text;
                 } else {
                     // Chat Completions API (default - more compatible)
@@ -199,11 +202,12 @@ export async function callLLM(
                         max_tokens: maxTokens,
                         ...additionalParams
                     };
-                    const response = await client.chat.completions.create(requestOptions);
+                    const response = await client.chat.completions.create(requestOptions, { signal });
                     return response.choices[0].message.content;
                 }
             }
         } catch (error) {
+            if (error.name === 'AbortError' || signal?.aborted) throw error;
             throw new Error(`Custom API error: ${error.message}`);
         }
     }
@@ -264,7 +268,7 @@ export async function callLLM(
             const response = await axios.post(
                 'https://api.anthropic.com/v1/messages',
                 messageParams,
-                { headers }
+                { headers, ...(signal ? { signal } : {}) }
             );
             
             // Extract the text content from the response
@@ -281,6 +285,7 @@ export async function callLLM(
                 return "No content returned from Anthropic API";
             }
         } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError' || signal?.aborted) throw error;
             throw new Error(`Anthropic API error: ${error.message}`);
         }
     }
