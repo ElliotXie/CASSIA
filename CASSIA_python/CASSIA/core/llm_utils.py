@@ -137,7 +137,7 @@ def call_llm(
     default_models = {
         "openai": "gpt-4o",
         "anthropic": "claude-3-5-sonnet-latest",
-        "openrouter": "google/gemini-2.5-flash",
+        "openrouter": "google/gemini-3-flash-preview",
     }
     
     # Use default model if not specified

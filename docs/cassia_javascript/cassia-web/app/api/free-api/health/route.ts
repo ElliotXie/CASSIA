@@ -11,8 +11,7 @@ export async function GET() {
         version: '1.0.0',
         timestamp: new Date().toISOString(),
         limits: {
-            max_jobs_per_day: 2,
-            max_clusters_per_job: 30,
+            max_free_clusters: 2,
             supported_providers: ['google', 'together', 'openrouter']
         }
     });

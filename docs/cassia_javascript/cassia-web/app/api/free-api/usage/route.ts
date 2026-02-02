@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const MAX_JOBS_PER_DAY = 2;
-const MAX_CLUSTERS_PER_JOB = 30;
+const MAX_FREE_CLUSTERS = 2;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /**
- * Get usage statistics for a machine
+ * Get lifetime usage statistics for a machine
  * Used by R/Python packages to check remaining quota
  */
 export async function GET(request: NextRequest) {
@@ -41,55 +40,26 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const today = new Date().toISOString().split('T')[0];
-
         const { data: usage, error } = await supabaseAdmin
             .from('free_api_usage')
-            .select('provider, job_count, cluster_count, last_job_at')
+            .select('clusters_used, last_used_at')
             .eq('machine_id', machine_id)
-            .eq('usage_date', today);
+            .single();
 
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
+            // PGRST116 = no rows found (new user), which is fine
             console.error('[usage] Failed to get usage:', error);
-            return NextResponse.json({ providers: {} });
         }
 
-        // Build response with usage per provider
-        const providers: Record<string, {
-            jobs_used: number;
-            jobs_remaining: number;
-            clusters_used: number;
-            last_job_at: string | null;
-        }> = {};
-
-        for (const row of usage || []) {
-            providers[row.provider] = {
-                jobs_used: row.job_count,
-                jobs_remaining: MAX_JOBS_PER_DAY - row.job_count,
-                clusters_used: row.cluster_count,
-                last_job_at: row.last_job_at
-            };
-        }
-
-        // Add providers with no usage
-        for (const provider of ['google', 'together', 'openrouter']) {
-            if (!providers[provider]) {
-                providers[provider] = {
-                    jobs_used: 0,
-                    jobs_remaining: MAX_JOBS_PER_DAY,
-                    clusters_used: 0,
-                    last_job_at: null
-                };
-            }
-        }
+        const clustersUsed = usage?.clusters_used || 0;
 
         return NextResponse.json({
-            machine_id: machine_id.substring(0, 8) + '...',  // Truncate for privacy
-            date: today,
-            providers,
+            machine_id: machine_id.substring(0, 8) + '...',
+            clusters_used: clustersUsed,
+            clusters_remaining: Math.max(0, MAX_FREE_CLUSTERS - clustersUsed),
+            last_used_at: usage?.last_used_at || null,
             limits: {
-                max_jobs_per_day: MAX_JOBS_PER_DAY,
-                max_clusters_per_job: MAX_CLUSTERS_PER_JOB
+                max_free_clusters: MAX_FREE_CLUSTERS
             }
         });
 

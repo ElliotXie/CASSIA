@@ -2,11 +2,10 @@
 Free API Access Module for CASSIA
 
 Provides automatic free API key fetching for users without configured keys.
-Keys are obtained from api.cassia.bio server with rate limiting.
+Keys are obtained from cassia.bio server with rate limiting.
 
 Limits:
-- 2 batch jobs per day per machine
-- 30 clusters per batch job
+- 2 cluster annotations per machine (lifetime)
 
 Supported providers:
 - google (Google AI Studio / Gemini)
@@ -38,9 +37,12 @@ FREE_API_ENDPOINT = f"{FREE_API_SERVER}/api/free-api/get-key"
 FREE_API_HEALTH_ENDPOINT = f"{FREE_API_SERVER}/api/free-api/health"
 FREE_API_USAGE_ENDPOINT = f"{FREE_API_SERVER}/api/free-api/usage"
 
-# Limits (must match server-side)
-MAX_CLUSTERS_PER_JOB = 30
-MAX_JOBS_PER_DAY = 2
+# Lifetime limit: 2 free cluster annotations per machine, total
+MAX_FREE_CLUSTERS = 2
+
+# Deprecated aliases (kept for backward compatibility)
+MAX_CLUSTERS_PER_JOB = MAX_FREE_CLUSTERS
+MAX_JOBS_PER_DAY = 1  # No longer used, kept to avoid import errors
 
 # Supported providers for free API
 FREE_API_PROVIDERS = {"google", "together", "openrouter"}
@@ -75,13 +77,13 @@ def _get_cached_key(provider: str) -> Optional[str]:
         return None
 
 
-def _cache_key(provider: str, api_key: str, remaining_jobs: int) -> None:
+def _cache_key(provider: str, api_key: str, remaining_clusters: int) -> None:
     """Cache a free API key for the session."""
     with _cache_lock:
         cache_key = f"free_api:{provider}"
         _free_key_cache[cache_key] = {
             'api_key': api_key,
-            'remaining_jobs': remaining_jobs,
+            'remaining_clusters': remaining_clusters,
             'cached_at': datetime.utcnow().isoformat()
         }
 
@@ -160,6 +162,34 @@ def _generate_machine_id() -> str:
 # MAIN API FUNCTIONS
 # =============================================================================
 
+def get_remaining_free_clusters() -> int:
+    """
+    Query the server for how many free cluster annotations remain for this machine.
+
+    Returns:
+        Number of remaining free clusters (0 to MAX_FREE_CLUSTERS).
+        Returns MAX_FREE_CLUSTERS if server is unreachable (optimistic default).
+    """
+    if requests is None:
+        return MAX_FREE_CLUSTERS  # Optimistic: let server decide
+
+    machine_id = _generate_machine_id()
+
+    try:
+        response = requests.get(
+            FREE_API_USAGE_ENDPOINT,
+            params={"machine_id": machine_id},
+            timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('clusters_remaining', 0)
+    except Exception:
+        pass
+
+    return MAX_FREE_CLUSTERS  # Optimistic default
+
+
 def get_free_api_key(
     provider: str,
     num_clusters: int = 1
@@ -181,11 +211,10 @@ def get_free_api_key(
         - On failure: (None, error_message_string)
 
     Rate Limits:
-        - Maximum 2 jobs per day per machine
-        - Maximum 30 clusters per job
+        - Maximum 2 cluster annotations per machine (lifetime)
 
     Example:
-        >>> key, error = get_free_api_key("openrouter", num_clusters=10)
+        >>> key, error = get_free_api_key("openrouter", num_clusters=2)
         >>> if error:
         ...     print(f"Failed: {error}")
         ... else:
@@ -205,15 +234,6 @@ def get_free_api_key(
             f"Free API access is not available for provider '{provider}'. "
             f"Supported providers: {', '.join(sorted(FREE_API_PROVIDERS))}. "
             f"Please set your own API key with CASSIA.set_api_key('{provider}', 'your-key')"
-        )
-
-    # Check cluster limit
-    if num_clusters > MAX_CLUSTERS_PER_JOB:
-        return None, (
-            f"Free API access is limited to {MAX_CLUSTERS_PER_JOB} clusters per batch job. "
-            f"Your request has {num_clusters} clusters. "
-            f"Please set your own API key with CASSIA.set_api_key('{provider}', 'your-key') "
-            f"for larger batch jobs."
         )
 
     # Check cache first (avoid unnecessary server calls)
@@ -243,33 +263,35 @@ def get_free_api_key(
         if response.status_code == 200:
             data = response.json()
             api_key = data.get('api_key')
-            remaining_jobs = data.get('remaining_jobs', 0)
+            remaining_clusters = data.get('remaining_clusters', 0)
 
             if api_key:
                 # Cache the key for this session
-                _cache_key(provider_lower, api_key, remaining_jobs)
+                _cache_key(provider_lower, api_key, remaining_clusters)
 
                 # Print info message (only once per provider)
                 print(f"[CASSIA] Using free API access for {provider_lower} "
-                      f"({remaining_jobs} job(s) remaining today)")
+                      f"({remaining_clusters} free cluster annotation(s) remaining)")
 
                 return api_key, None
             else:
                 return None, "Server returned invalid response (no api_key)"
 
         elif response.status_code == 429:
-            # Rate limited
+            # Rate limited (lifetime limit reached)
             try:
                 data = response.json()
-                error_msg = data.get('error', 'Rate limit exceeded')
-                reset_at = data.get('reset_at', 'midnight UTC')
+                error_msg = data.get('error', 'Free API limit reached')
                 return None, (
                     f"{error_msg}\n"
                     f"To continue using CASSIA, set your own API key:\n"
                     f"  CASSIA.set_api_key('{provider}', 'your-key')"
                 )
             except Exception:
-                return None, f"Daily limit reached ({MAX_JOBS_PER_DAY} jobs/day)"
+                return None, (
+                    f"Free API limit reached ({MAX_FREE_CLUSTERS} cluster annotations lifetime). "
+                    f"Set your own API key: CASSIA.set_api_key('{provider}', 'your-key')"
+                )
 
         elif response.status_code == 400:
             try:
@@ -326,23 +348,19 @@ def is_free_api_available() -> bool:
 
 def get_free_api_usage() -> Optional[Dict]:
     """
-    Get current usage statistics for this machine.
+    Get current lifetime usage statistics for this machine.
 
     Returns:
-        Dictionary with usage info per provider, or None if unavailable.
+        Dictionary with usage info, or None if unavailable.
 
         Example return value:
         {
             'machine_id': 'abc12345...',
-            'date': '2025-01-15',
-            'providers': {
-                'google': {'jobs_used': 1, 'jobs_remaining': 1, 'clusters_used': 15},
-                'together': {'jobs_used': 0, 'jobs_remaining': 2, 'clusters_used': 0},
-                'openrouter': {'jobs_used': 0, 'jobs_remaining': 2, 'clusters_used': 0}
-            },
+            'clusters_used': 1,
+            'clusters_remaining': 1,
+            'last_used_at': '2025-01-15T...',
             'limits': {
-                'max_jobs_per_day': 2,
-                'max_clusters_per_job': 30
+                'max_free_clusters': 2
             }
         }
     """
@@ -406,8 +424,7 @@ def get_free_api_info() -> Dict:
         'server': FREE_API_SERVER,
         'supported_providers': list(FREE_API_PROVIDERS),
         'limits': {
-            'max_jobs_per_day': MAX_JOBS_PER_DAY,
-            'max_clusters_per_job': MAX_CLUSTERS_PER_JOB
+            'max_free_clusters': MAX_FREE_CLUSTERS
         },
         'is_available': is_free_api_available()
     }

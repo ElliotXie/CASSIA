@@ -62,8 +62,10 @@ try:
         get_free_api_info,
         clear_free_api_cache,
         is_using_free_api,
-        MAX_CLUSTERS_PER_JOB,
-        MAX_JOBS_PER_DAY,
+        get_remaining_free_clusters,
+        MAX_FREE_CLUSTERS,
+        MAX_CLUSTERS_PER_JOB,  # Deprecated alias
+        MAX_JOBS_PER_DAY,      # Deprecated alias
         FREE_API_PROVIDERS
     )
 except ImportError:

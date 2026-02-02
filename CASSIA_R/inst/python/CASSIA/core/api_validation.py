@@ -146,6 +146,15 @@ def _validate_single_provider(
 
         api_key = os.environ.get(env_var)
         if not api_key:
+            # Check if free API access is available for this provider
+            try:
+                from .free_api import is_using_free_api, is_free_api_available
+                if is_using_free_api(provider) and is_free_api_available():
+                    if verbose:
+                        print(f"No API key set — will use free API access for {provider}")
+                    return True, None
+            except ImportError:
+                pass
             error_msg = (
                 f"API key not found. Environment variable {env_var} is not set. "
                 f"Set it with: CASSIA.set_api_key('{provider}', 'your-key')"
