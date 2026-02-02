@@ -1,7 +1,7 @@
 # CASSIA - Cell Annotation with Semantic Similarity for Intelligent Analysis
 # Root module with backward-compatible exports from reorganized submodules
 
-__version__ = "0.3.17"
+__version__ = "0.3.18"
 
 # =============================================================================
 # BACKWARD COMPATIBILITY LAYER
@@ -46,6 +46,24 @@ from .core.llm_utils import call_llm
 # API KEY VALIDATION
 # -----------------------------------------------------------------------------
 from .core.api_validation import validate_api_keys, clear_validation_cache
+
+# -----------------------------------------------------------------------------
+# FREE API ACCESS (for users without API keys)
+# -----------------------------------------------------------------------------
+try:
+    from .core.free_api import (
+        get_free_api_key,
+        is_free_api_available,
+        get_free_api_usage,
+        get_free_api_info,
+        clear_free_api_cache,
+        is_using_free_api,
+        MAX_CLUSTERS_PER_JOB,
+        MAX_JOBS_PER_DAY,
+        FREE_API_PROVIDERS
+    )
+except ImportError:
+    pass  # requests package may not be installed
 
 # -----------------------------------------------------------------------------
 # MODEL SETTINGS (with fuzzy alias support)
