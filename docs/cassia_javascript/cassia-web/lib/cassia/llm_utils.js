@@ -341,10 +341,11 @@ export async function callLLM(
                 }
             }
 
-            const response = await axios.post(url, data, { headers });
+            const response = await axios.post(url, data, { headers, ...(signal ? { signal } : {}) });
 
             return response.data.choices[0].message.content;
         } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError' || signal?.aborted) throw error;
             if (error.response) {
                 throw new Error(`OpenRouter API error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
             } else {

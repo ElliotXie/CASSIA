@@ -11,7 +11,7 @@ import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle, Eye, TrendingUp, Target } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
 
@@ -72,6 +72,7 @@ export default function AnnotationBoostPage() {
     const [error, setError] = useState<string | null>(null);
     const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
     const [showInstructions, setShowInstructions] = useState(true);
+    const [showFormatInfo, setShowFormatInfo] = useState(false);
     const [isTestingApi, setIsTestingApi] = useState(false);
     const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [testErrorMessage, setTestErrorMessage] = useState<string>('');
@@ -511,12 +512,23 @@ export default function AnnotationBoostPage() {
                             <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
                                 <Zap className="h-6 w-6 text-white" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Annotation Boost</h3>
-                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    Enhance your cell annotation confidence through iterative marker analysis. Upload conversation 
+                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                                    Enhance your cell annotation confidence through iterative marker analysis. Upload conversation
                                     history and marker genes to perform deep analysis with multiple search strategies and iterations.
                                 </p>
+                                {/* Performance highlight */}
+                                <div className="flex flex-wrap gap-3">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border border-green-300 dark:border-green-700">
+                                        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                        <span className="text-sm font-semibold text-green-700 dark:text-green-300">~85% improvement on low-quality annotations</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border border-blue-300 dark:border-blue-700">
+                                        <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">High accuracy refinement</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="flex space-x-2">
@@ -544,13 +556,11 @@ export default function AnnotationBoostPage() {
                                     <BookOpen className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                        <span>Quick Start Guide</span>
-                                        <span className="ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs rounded-full">New</span>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                        Quick Start Guide
                                     </h3>
-                                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                                        <p><strong>What is Annotation Boost?</strong> An iterative AI-powered analysis tool that examines marker genes and conversation history to provide detailed cell type annotations with high confidence.</p>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="flex items-start space-x-2">
                                                 <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                                     <span className="text-green-600 dark:text-green-400 text-xs font-bold">1</span>
@@ -760,12 +770,49 @@ export default function AnnotationBoostPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Conversation History CSV</label>
-                                        <div 
-                                            {...getConversationRootProps()} 
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-sm font-medium text-gray-900 dark:text-white">Conversation History CSV</label>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShowFormatInfo(!showFormatInfo)}
+                                                className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+                                            >
+                                                <Eye className="h-3 w-3 mr-1" />
+                                                {showFormatInfo ? 'Hide Format' : 'View Format'}
+                                            </Button>
+                                        </div>
+                                        {showFormatInfo && (
+                                            <div className="mb-3 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 text-xs space-y-2">
+                                                <p className="font-medium text-gray-900 dark:text-white">This is the output CSV from a CASSIA Batch run. Required columns:</p>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-blue-100/50 dark:bg-blue-900/30">
+                                                                <th className="border border-blue-200 dark:border-blue-700 px-2 py-1 text-left font-semibold">Column</th>
+                                                                <th className="border border-blue-200 dark:border-blue-700 px-2 py-1 text-left font-semibold">Description</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td className="border border-blue-200 dark:border-blue-700 px-2 py-1 font-mono bg-green-50 dark:bg-green-900/20">True Cell Type</td>
+                                                                <td className="border border-blue-200 dark:border-blue-700 px-2 py-1">Cluster identifier (or any cluster column)</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="border border-blue-200 dark:border-blue-700 px-2 py-1 font-mono bg-green-50 dark:bg-green-900/20">Conversation History</td>
+                                                                <td className="border border-blue-200 dark:border-blue-700 px-2 py-1">Full annotation conversation from CASSIA</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <p className="text-muted-foreground">Other columns (Predicted Main Cell Type, Marker List, etc.) are optional. Use <strong>Load Example</strong> above to see a complete sample.</p>
+                                            </div>
+                                        )}
+                                        <div
+                                            {...getConversationRootProps()}
                                             className={`glass border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300 ${
-                                                isConversationDragActive 
-                                                    ? 'border-orange-400 bg-orange-50/20' 
+                                                isConversationDragActive
+                                                    ? 'border-orange-400 bg-orange-50/20'
                                                     : 'border-white/30 hover:border-orange-300 hover:bg-white/10'
                                             }`}
                                         >
@@ -832,6 +879,10 @@ export default function AnnotationBoostPage() {
                                         <CardTitle className="text-lg">📜 History Configuration</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
+                                        <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 text-xs text-muted-foreground space-y-1">
+                                            <p><strong className="text-gray-900 dark:text-white">Cluster Column</strong> — which column in your CSV identifies each cluster (e.g. "True Cell Type").</p>
+                                            <p><strong className="text-gray-900 dark:text-white">Select Cluster</strong> — pick the cluster you want to boost. The conversation history for that cluster will be extracted automatically.</p>
+                                        </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">History Source</label>
                                             <select

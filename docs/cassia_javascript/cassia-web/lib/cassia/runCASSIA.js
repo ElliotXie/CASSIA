@@ -265,7 +265,7 @@ async function formatResults(agent, finalAnnotations) {
 // ----------------- Agent Class -----------------
 
 class Agent {
-    constructor(system = "", model = "google/gemini-2.5-flash-preview", temperature = 0, provider = "openrouter", apiKey = null, reasoningConfig = null) {
+    constructor(system = "", model = "google/gemini-2.5-flash-preview", temperature = 0, provider = "openrouter", apiKey = null, reasoningConfig = null, signal = null) {
         this.system = system;
         this.model = model;
         this.temperature = temperature;
@@ -273,6 +273,7 @@ class Agent {
         this.apiKey = apiKey;
         this.chatHistories = {};
         this.reasoningConfig = reasoningConfig;
+        this.signal = signal;
     }
     
     async call(message, otherAgentId) {
@@ -297,7 +298,8 @@ class Agent {
                 7000, // max_tokens
                 this.system,
                 { messages: this.chatHistories[otherAgentId] },
-                this.reasoningConfig
+                this.reasoningConfig,
+                this.signal
             );
             
             this.chatHistories[otherAgentId].push({ role: "assistant", content: response });
@@ -313,7 +315,7 @@ class Agent {
 // ----------------- Core Analysis Logic -----------------
 // Faithfully ported from Python _run_analysis_logic in main_function_code.py
 
-async function runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind) {
+async function runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind, signal = null) {
     const onboardingData = userData;
 
     // Construct initial prompt
@@ -328,6 +330,7 @@ async function runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, fo
 
     // Validation loop - matches Python logic
     while (!validationPassed && iteration < maxIterations) {
+        if (signal?.aborted) throw new DOMException('Analysis cancelled', 'AbortError');
         iteration++;
         console.log(`Starting iteration ${iteration}...`);
 
@@ -438,7 +441,7 @@ Please provide an updated annotation addressing the validation feedback.`;
 
 // ----------------- Provider-Specific Analysis Functions -----------------
 
-async function runCellTypeAnalysis(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null) {
+async function runCellTypeAnalysis(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null, signal = null) {
     // Determine if tissue-blind
     const isTissueBlind = tissue ? ['none', 'tissue blind'].includes(tissue.toLowerCase()) : true;
 
@@ -452,7 +455,8 @@ async function runCellTypeAnalysis(model, temperature, markerList, tissue, speci
         temperature,
         "openai",
         apiKey,
-        reasoningConfig
+        reasoningConfig,
+        signal
     );
 
     let validatorSystem;
@@ -464,9 +468,9 @@ async function runCellTypeAnalysis(model, temperature, markerList, tissue, speci
         validatorSystem = isTissueBlind ? couplingValidatorSystemV2 : couplingValidatorSystemV1;
     }
 
-    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openai", apiKey, reasoningConfig);
+    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openai", apiKey, reasoningConfig, signal);
     // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
-    const formattingAgent = new Agent("", model, temperature, "openai", apiKey, reasoningConfig);
+    const formattingAgent = new Agent("", model, temperature, "openai", apiKey, reasoningConfig, signal);
 
     // Prepare user data
     const userData = {
@@ -474,15 +478,15 @@ async function runCellTypeAnalysis(model, temperature, markerList, tissue, speci
         tissue_type: tissue,
         marker_list: markerList
     };
-    
+
     if (additionalInfo && additionalInfo.toLowerCase() !== "no") {
         userData.additional_info = additionalInfo;
     }
-    
-    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind);
+
+    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind, signal);
 }
 
-async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null) {
+async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null, signal = null) {
     const isTissueBlind = tissue ? ['none', 'tissue blind'].includes(tissue.toLowerCase()) : true;
 
     // Reasoning config for Anthropic models that support it (Claude Opus 4.5)
@@ -494,7 +498,8 @@ async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue,
         temperature,
         "anthropic",
         apiKey,
-        reasoningConfig
+        reasoningConfig,
+        signal
     );
 
     let validatorSystem;
@@ -506,26 +511,26 @@ async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue,
         validatorSystem = isTissueBlind ? couplingValidatorSystemV2 : couplingValidatorSystemV1;
     }
 
-    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "anthropic", apiKey, reasoningConfig);
+    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "anthropic", apiKey, reasoningConfig, signal);
     // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
-    const formattingAgent = new Agent("", model, temperature, "anthropic", apiKey, reasoningConfig);
+    const formattingAgent = new Agent("", model, temperature, "anthropic", apiKey, reasoningConfig, signal);
 
     const userData = {
         species: species,
         tissue_type: tissue,
         marker_list: markerList
     };
-    
+
     if (additionalInfo && additionalInfo.toLowerCase() !== "no") {
         userData.additional_info = additionalInfo;
     }
-    
-    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind);
+
+    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind, signal);
 }
 
-async function runCellTypeAnalysisOpenRouter(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null) {
+async function runCellTypeAnalysisOpenRouter(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null, signal = null) {
     const isTissueBlind = tissue ? ['none', 'tissue blind'].includes(tissue.toLowerCase()) : true;
-    
+
     // Reasoning config for OpenRouter models that support it
     // Use reasoningConfig passed as parameter
 
@@ -535,7 +540,8 @@ async function runCellTypeAnalysisOpenRouter(model, temperature, markerList, tis
         temperature,
         "openrouter",
         apiKey,
-        reasoningConfig
+        reasoningConfig,
+        signal
     );
 
     let validatorSystem;
@@ -547,24 +553,24 @@ async function runCellTypeAnalysisOpenRouter(model, temperature, markerList, tis
         validatorSystem = isTissueBlind ? couplingValidatorSystemV2 : couplingValidatorSystemV1;
     }
 
-    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openrouter", apiKey, reasoningConfig);
+    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, "openrouter", apiKey, reasoningConfig, signal);
     // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
-    const formattingAgent = new Agent("", model, temperature, "openrouter", apiKey, reasoningConfig);
+    const formattingAgent = new Agent("", model, temperature, "openrouter", apiKey, reasoningConfig, signal);
 
     const userData = {
         species: species,
         tissue_type: tissue,
         marker_list: markerList
     };
-    
+
     if (additionalInfo && additionalInfo.toLowerCase() !== "no") {
         userData.additional_info = additionalInfo;
     }
-    
-    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind);
+
+    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind, signal);
 }
 
-async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", reasoningConfig = null) {
+async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", reasoningConfig = null, signal = null) {
     const isTissueBlind = tissue ? ['none', 'tissue blind'].includes(tissue.toLowerCase()) : true;
 
     // Reasoning config for custom endpoints that support it
@@ -576,7 +582,8 @@ async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, ma
         temperature,
         baseUrl,
         apiKey,
-        reasoningConfig
+        reasoningConfig,
+        signal
     );
 
     let validatorSystem;
@@ -588,21 +595,21 @@ async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, ma
         validatorSystem = isTissueBlind ? couplingValidatorSystemV2 : couplingValidatorSystemV1;
     }
 
-    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, baseUrl, apiKey, reasoningConfig);
+    const couplingValidatorAgent = new Agent(validatorSystem, model, temperature, baseUrl, apiKey, reasoningConfig, signal);
     // Formatting agent system is set dynamically in runAnalysisLogic based on validation status
-    const formattingAgent = new Agent("", model, temperature, baseUrl, apiKey, reasoningConfig);
+    const formattingAgent = new Agent("", model, temperature, baseUrl, apiKey, reasoningConfig, signal);
 
     const userData = {
         species: species,
         tissue_type: tissue,
         marker_list: markerList
     };
-    
+
     if (additionalInfo && additionalInfo.toLowerCase() !== "no") {
         userData.additional_info = additionalInfo;
     }
-    
-    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind);
+
+    return await runAnalysisLogic(finalAnnotationAgent, couplingValidatorAgent, formattingAgent, userData, isTissueBlind, signal);
 }
 
 // ----------------- Main runCASSIA Function -----------------
@@ -630,7 +637,8 @@ export async function runCASSIA(
     provider = "openrouter",
     validatorInvolvement = "v1",
     apiKey = null,
-    reasoningEffort = null
+    reasoningEffort = null,
+    signal = null
 ) {
     // Build reasoning config from effort level (case-insensitive)
     const reasoningConfig = reasoningEffort && reasoningEffort.toLowerCase() !== 'none'
@@ -638,11 +646,11 @@ export async function runCASSIA(
         : null;
 
     if (provider.toLowerCase() === "openai") {
-        return await runCellTypeAnalysis(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig);
+        return await runCellTypeAnalysis(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig, signal);
     } else if (provider.toLowerCase() === "anthropic") {
-        return await runCellTypeAnalysisClaude(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig);
+        return await runCellTypeAnalysisClaude(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig, signal);
     } else if (provider.toLowerCase() === "openrouter") {
-        return await runCellTypeAnalysisOpenRouter(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig);
+        return await runCellTypeAnalysisOpenRouter(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement, apiKey, reasoningConfig, signal);
     } else if (provider.toLowerCase().startsWith("http")) {
         if (!apiKey) {
             throw new Error("API key is required for custom endpoint");
@@ -657,7 +665,8 @@ export async function runCASSIA(
             species,
             additionalInfo,
             validatorInvolvement,
-            reasoningConfig
+            reasoningConfig,
+            signal
         );
     } else {
         throw new Error("Provider must be either 'openai', 'anthropic', 'openrouter', or a base URL (http...)");

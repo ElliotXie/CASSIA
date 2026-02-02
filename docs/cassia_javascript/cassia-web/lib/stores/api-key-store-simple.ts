@@ -1,8 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAuthStore } from './auth-store'
-import modelSettings from '../../public/examples/model_settings.json'
 import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
+
+// Hardcoded defaults to avoid synchronous JSON import at module load.
+// These are only used as initial state before localStorage hydration overwrites them.
+const DEFAULT_OPENROUTER_MODEL = 'anthropic/claude-sonnet-4.5'
 
 // ─── Public types (consumed by all pages/components) ───────────────────────
 
@@ -215,8 +218,8 @@ export const useApiKeyStore = create<ApiKeyState>()(
       customProviders: { ...DEFAULT_CUSTOM_PROVIDERS },
       selectedCustomPreset: 'deepseek',
       provider: 'openrouter',
-      model: modelSettings.providers.openrouter.default_model,
-      reasoningEffort: getDefaultReasoningEffort('openrouter', modelSettings.providers.openrouter.default_model),
+      model: DEFAULT_OPENROUTER_MODEL,
+      reasoningEffort: getDefaultReasoningEffort('openrouter', DEFAULT_OPENROUTER_MODEL),
       isLoading: false,
       error: null,
 

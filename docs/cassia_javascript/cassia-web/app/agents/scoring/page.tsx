@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreAnnotationBatch } from '@/lib/cassia/scoring';
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store';
@@ -9,7 +9,7 @@ import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2, Square } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
 
@@ -38,6 +38,8 @@ export default function ScoringAgentPage() {
     const [isTestingApi, setIsTestingApi] = useState(false);
     const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [testErrorMessage, setTestErrorMessage] = useState<string>('');
+
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     // Load API key from account state
     const [isLoadingKeys, setIsLoadingKeys] = useState(false);
@@ -170,6 +172,9 @@ export default function ScoringAgentPage() {
             return;
         }
 
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsLoading(true);
         setError(null);
         setResults(null);
@@ -189,15 +194,27 @@ export default function ScoringAgentPage() {
                 reasoningEffort,
                 onProgress: (progressData: any) => {
                     setProgress(progressData);
-                }
+                },
+                signal: controller.signal
             } as any);
-            
+
             setResults(result);
             console.log('Scoring completed:', result);
         } catch (err: any) {
-            setError(`Scoring failed: ${err.message}`);
+            if (err.name === 'AbortError' || controller.signal.aborted) {
+                setError('Scoring stopped by user');
+            } else {
+                setError(`Scoring failed: ${err.message}`);
+            }
         } finally {
             setIsLoading(false);
+            abortControllerRef.current = null;
+        }
+    };
+
+    const handleStopScoring = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
         }
     };
 
@@ -417,24 +434,36 @@ export default function ScoringAgentPage() {
                             </Card>
 
                             {/* Run Analysis Button */}
-                            <Button
-                                onClick={handleRunScoring}
-                                disabled={isLoading || !csvData.length || !apiKey}
-                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white btn-modern"
-                                size="lg"
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Running Analysis...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="h-4 w-4 mr-2" />
-                                        Start Scoring Analysis
-                                    </>
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={handleRunScoring}
+                                    disabled={isLoading || !csvData.length || !apiKey}
+                                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white btn-modern"
+                                    size="lg"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Running Analysis...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="h-4 w-4 mr-2" />
+                                            Start Scoring Analysis
+                                        </>
+                                    )}
+                                </Button>
+                                {isLoading && (
+                                    <Button
+                                        onClick={handleStopScoring}
+                                        variant="destructive"
+                                        size="lg"
+                                    >
+                                        <Square className="h-4 w-4 mr-2" />
+                                        Stop
+                                    </Button>
                                 )}
-                            </Button>
+                            </div>
                         </div>
                     </div>
 

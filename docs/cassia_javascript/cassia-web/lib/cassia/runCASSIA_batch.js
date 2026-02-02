@@ -296,7 +296,8 @@ export async function runCASSIABatch({
     formatType = null,
     preset = null, // New parameter for model presets
     reasoningEffort = null, // Reasoning effort level ('high', 'medium', 'low', 'none')
-    onLog = null
+    onLog = null,
+    signal = null // AbortSignal for cancellation
 } = {}) {
     // Apply model preset if specified
     const modelConfig = applyModelPreset(preset, provider, model);
@@ -390,7 +391,8 @@ export async function runCASSIABatch({
                     finalProvider,
                     validatorInvolvement,
                     apiKey,
-                    reasoningEffort
+                    reasoningEffort,
+                    signal
                 );
                 
                 // Add metadata
@@ -433,7 +435,9 @@ export async function runCASSIABatch({
     const semaphore = new Semaphore(maxWorkers);
     
     const promises = tasks.map(async ({ cellType, markerList }, index) => {
+        if (signal?.aborted) return; // Skip if cancelled
         await semaphore.acquire();
+        if (signal?.aborted) { semaphore.release(); return; } // Check again after acquiring
         try {
             const startAnalysisMessage = `[${index + 1}/${tasks.length}] 🧬 Starting analysis for: ${cellType} (${markerList.length} markers)`;
             console.log(startAnalysisMessage);

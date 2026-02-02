@@ -256,14 +256,14 @@ export function AgentModelSelector({
               <button
                 key={p.id}
                 onClick={() => onProviderChange(p.id)}
-                className={`p-3 text-left border rounded-lg transition-colors ${
+                className={`p-3 text-left border rounded-lg transition-colors min-w-0 ${
                   provider === p.id
                     ? 'border-primary bg-primary/5'
                     : 'border-muted hover:border-primary/50'
                 }`}
               >
-                <div className="font-medium text-sm">{p.name}</div>
-                <div className="text-xs text-muted-foreground">{p.description}</div>
+                <div className="font-medium text-sm truncate">{p.name}</div>
+                <div className="text-xs text-muted-foreground line-clamp-2">{p.description}</div>
               </button>
             ))}
           </div>

@@ -135,7 +135,8 @@ export async function scoreSingleAnalysis(
     model = "deepseek/deepseek-chat-v3-0324",
     provider = "openrouter",
     apiKey,
-    reasoningEffort = null
+    reasoningEffort = null,
+    signal = null
 ) {
     const prompt = promptCreatorScore(majorClusterInfo, marker, annotationHistory);
 
@@ -152,7 +153,8 @@ export async function scoreSingleAnalysis(
         4096, // max_tokens - aligned with Python version
         null, // system_prompt
         null, // additionalParams
-        reasoningConfig
+        reasoningConfig,
+        signal
     );
     
     const { score, reasoning } = extractScoreAndReasoning(response);
@@ -174,7 +176,7 @@ export async function scoreSingleAnalysis(
  * @param {number} maxRetriesForNone - Max retries for None scores
  * @returns {Promise<Object>} {score, reasoning}
  */
-async function processSingleRow(row, idx, model = "deepseek/deepseek-chat-v3-0324", provider = "openrouter", apiKey, maxRetriesForNone = 3) {
+async function processSingleRow(row, idx, model = "deepseek/deepseek-chat-v3-0324", provider = "openrouter", apiKey, maxRetriesForNone = 3, signal = null) {
     try {
         // Robust column detection for Species and Tissue
         const findColumn = (options) => {
@@ -350,7 +352,9 @@ async function processSingleRow(row, idx, model = "deepseek/deepseek-chat-v3-032
                 annotationHistory,
                 model,
                 provider,
-                apiKey
+                apiKey,
+                null, // reasoningEffort
+                signal
             );
             
             score = result.score;
@@ -386,7 +390,8 @@ export async function scoreAnnotationBatch({
     provider = "openrouter",
     maxRetries = 1,
     onProgress = null,
-    onLog = null
+    onLog = null,
+    signal = null
 } = {}) {
     const logMessage = `🎯 Starting scoring process with ${maxWorkers} workers using ${provider} (${model})...`;
     console.log(logMessage);
@@ -484,7 +489,7 @@ export async function scoreAnnotationBatch({
             
             for (let attempt = 0; attempt <= maxRetries; attempt++) {
                 try {
-                    const result = await processSingleRow(row, idx, model, provider, apiKey);
+                    const result = await processSingleRow(row, idx, model, provider, apiKey, 3, signal);
                     
                     // Update the results array
                     results[idx].Score = result.score;
@@ -527,7 +532,9 @@ export async function scoreAnnotationBatch({
         
         // Process rows with controlled parallelism
         const promises = rowsToProcess.map(async (rowData) => {
+            if (signal?.aborted) return;
             await semaphore.acquire();
+            if (signal?.aborted) { semaphore.release(); return; }
             try {
                 return await processWithRetry(rowData);
             } finally {

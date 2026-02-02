@@ -89,7 +89,14 @@ function generateProviders() {
   });
 }
 
-const PROVIDERS = generateProviders()
+// Lazy singleton: defer computation until first access
+let _cachedProviders: ReturnType<typeof generateProviders> | null = null
+function getProviders() {
+  if (!_cachedProviders) {
+    _cachedProviders = generateProviders()
+  }
+  return _cachedProviders
+}
 
 export function ApiKeyInput() {
   const [showKey, setShowKey] = useState(false)
@@ -135,7 +142,7 @@ export function ApiKeyInput() {
   // Get the custom base URL for the selected preset
   const customBaseUrl = getCustomBaseUrl(selectedCustomPreset)
 
-  const currentProvider = PROVIDERS.find(p => p.id === provider) || PROVIDERS[0]
+  const currentProvider = getProviders().find(p => p.id === provider) || getProviders()[0]
 
   // Sync pipeline models with API model when non-OpenRouter provider is used
   useEffect(() => {
@@ -149,7 +156,7 @@ export function ApiKeyInput() {
 
   const handleProviderChange = (newProvider: typeof provider) => {
     setProvider(newProvider)
-    const providerConfig = PROVIDERS.find(p => p.id === newProvider)
+    const providerConfig = getProviders().find(p => p.id === newProvider)
     if (providerConfig) {
       setApiModel(providerConfig.defaultModel)
     }
@@ -311,7 +318,7 @@ export function ApiKeyInput() {
         <div className="space-y-2">
           <label className="text-sm font-medium">Provider</label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {PROVIDERS.map((p) => (
+            {getProviders().map((p) => (
               <button
                 key={p.id}
                 onClick={() => handleProviderChange(p.id)}

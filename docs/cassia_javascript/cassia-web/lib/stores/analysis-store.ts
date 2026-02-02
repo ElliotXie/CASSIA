@@ -6,19 +6,21 @@ interface AnalysisState {
   progress: number
   currentStep: string
   logs: string[]
-  
+  abortController: AbortController | null
+
   // File data
   uploadedFile: File | null
   fileData: any[] | null
   fileMetadata: any | null
-  
+
   // Results
   results: any | null
   downloadLinks: string[]
-  
+
   // Actions
   setFile: (file: File, data: any[], metadata?: any) => void
-  startAnalysis: () => void
+  startAnalysis: () => AbortController
+  stopAnalysis: () => void
   updateProgress: (progress: number, step: string) => void
   addLog: (log: string) => void
   setResults: (results: any) => void
@@ -32,6 +34,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   progress: 0,
   currentStep: '',
   logs: [],
+  abortController: null,
   uploadedFile: null,
   fileData: null,
   fileMetadata: null,
@@ -48,13 +51,31 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     logs: [`📁 Loaded file: ${file.name} (${data.length} rows)`],
   }),
   
-  startAnalysis: () => set({
-    isRunning: true,
-    progress: 0,
-    currentStep: 'Initializing analysis...',
-    results: null,
-    downloadLinks: [],
-  }),
+  startAnalysis: () => {
+    const controller = new AbortController()
+    set({
+      isRunning: true,
+      progress: 0,
+      currentStep: 'Initializing analysis...',
+      results: null,
+      downloadLinks: [],
+      abortController: controller,
+    })
+    return controller
+  },
+
+  stopAnalysis: () => {
+    const { abortController } = get()
+    if (abortController) {
+      abortController.abort()
+    }
+    set((state) => ({
+      isRunning: false,
+      currentStep: 'Analysis stopped by user',
+      abortController: null,
+      logs: [...state.logs, '🛑 Analysis stopped by user'],
+    }))
+  },
   
   updateProgress: (progress: number, step: string) => set((state) => ({
     progress,
@@ -71,6 +92,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     isRunning: false,
     progress: 100,
     currentStep: 'Analysis complete!',
+    abortController: null,
   }),
   
   addDownloadLink: (link: string) => set((state) => ({
@@ -82,6 +104,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     progress: 0,
     currentStep: '',
     logs: [],
+    abortController: null,
     uploadedFile: null,
     fileData: null,
     fileMetadata: null,

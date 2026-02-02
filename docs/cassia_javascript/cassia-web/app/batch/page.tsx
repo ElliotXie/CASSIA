@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText, Brain } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText, Brain, Square } from 'lucide-react'
 import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
-import { FileUpload } from '@/components/FileUpload'
-import { ApiKeyInput } from '@/components/ApiKeyInput'
-import { ProgressTracker } from '@/components/ProgressTracker'
-import { ResultsViewer } from '@/components/ResultsViewer'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+// Lazy-load heavy components to reduce initial page load time
+const FileUpload = dynamic(() => import('@/components/FileUpload').then(mod => ({ default: mod.FileUpload })), { ssr: false })
+const ApiKeyInput = dynamic(() => import('@/components/ApiKeyInput').then(mod => ({ default: mod.ApiKeyInput })), { ssr: false })
+const ProgressTracker = dynamic(() => import('@/components/ProgressTracker').then(mod => ({ default: mod.ProgressTracker })), { ssr: false })
+const ResultsViewer = dynamic(() => import('@/components/ResultsViewer').then(mod => ({ default: mod.ResultsViewer })), { ssr: false })
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useAnalysisStore } from '@/lib/stores/analysis-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
@@ -65,6 +67,7 @@ export default function BatchPage() {
     isRunning,
     results,
     startAnalysis,
+    stopAnalysis,
     updateProgress,
     addLog,
     setResults
@@ -114,8 +117,9 @@ export default function BatchPage() {
   const handleStartBatchAnalysis = async () => {
     if (!canStartAnalysis) return
 
-    startAnalysis()
-    
+    const controller = startAnalysis()
+    const signal = controller.signal
+
     try {
       updateProgress(5, 'Preparing batch analysis...')
       addLog('🚀 Starting CASSIA batch analysis in browser')
@@ -168,7 +172,8 @@ export default function BatchPage() {
       
       const results = await runCASSIABatch({
         ...config,
-        onLog: addLog
+        onLog: addLog,
+        signal
       } as any)
       
       updateProgress(95, 'Analysis complete, preparing results...')
@@ -195,9 +200,14 @@ export default function BatchPage() {
       })
 
     } catch (error) {
-      console.error('Batch analysis error:', error)
-      addLog(`❌ Error: ${(error as any).message}`)
-      updateProgress(0, 'Analysis failed')
+      if ((error as any).name === 'AbortError' || signal.aborted) {
+        addLog('🛑 Analysis was stopped by user')
+        updateProgress(0, 'Analysis stopped')
+      } else {
+        console.error('Batch analysis error:', error)
+        addLog(`❌ Error: ${(error as any).message}`)
+        updateProgress(0, 'Analysis failed')
+      }
     }
   }
 
@@ -718,16 +728,27 @@ export default function BatchPage() {
                 <CardTitle>🚀 Batch Analysis Control</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button
-                  onClick={handleStartBatchAnalysis}
-                  disabled={!canStartAnalysis || isRunning}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  size="lg"
-                >
-                  <Zap className="h-5 w-5 mr-2" />
-                  {isRunning ? 'Batch Analysis Running...' : 'Start Batch Analysis'}
-                </Button>
-
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleStartBatchAnalysis}
+                    disabled={!canStartAnalysis || isRunning}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    size="lg"
+                  >
+                    <Zap className="h-5 w-5 mr-2" />
+                    {isRunning ? 'Batch Analysis Running...' : 'Start Batch Analysis'}
+                  </Button>
+                  {isRunning && (
+                    <Button
+                      onClick={stopAnalysis}
+                      variant="destructive"
+                      size="lg"
+                    >
+                      <Square className="h-5 w-5 mr-2" />
+                      Stop
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
