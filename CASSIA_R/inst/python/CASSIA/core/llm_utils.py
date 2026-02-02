@@ -152,12 +152,39 @@ def call_llm(
             "openai": "OPENAI_API_KEY",
             "anthropic": "ANTHROPIC_API_KEY",
             "openrouter": "OPENROUTER_API_KEY",
+            "google": "GOOGLE_API_KEY",
+            "together": "TOGETHER_API_KEY",
         }
         env_var = env_var_names.get(provider)
         if env_var:
             api_key = os.environ.get(env_var)
-            if not api_key:
-                raise ValueError(f"API key not provided and {env_var} not found in environment")
+
+        # If no API key in environment, try free API fallback for supported providers
+        if not api_key:
+            try:
+                from .free_api import get_free_api_key, FREE_API_PROVIDERS, _thread_local
+
+                if provider in FREE_API_PROVIDERS:
+                    # Get cluster count from thread-local context (set by runCASSIA_batch)
+                    num_clusters = getattr(_thread_local, 'num_clusters', 1)
+                    api_key, error = get_free_api_key(provider, num_clusters)
+
+                    if error:
+                        raise ValueError(
+                            f"No API key configured and free API access unavailable:\n"
+                            f"{error}"
+                        )
+                else:
+                    env_var_display = env_var if env_var else f"{provider.upper()}_API_KEY"
+                    raise ValueError(
+                        f"API key not provided and {env_var_display} not found in environment.\n"
+                        f"Free API access is only available for: {', '.join(sorted(FREE_API_PROVIDERS))}.\n"
+                        f"Set your API key with: CASSIA.set_api_key('{provider}', 'your-key')"
+                    )
+            except ImportError:
+                # free_api module not available, raise original error
+                env_var_display = env_var if env_var else f"{provider.upper()}_API_KEY"
+                raise ValueError(f"API key not provided and {env_var_display} not found in environment")
     
     # Prepare messages format
     messages = []

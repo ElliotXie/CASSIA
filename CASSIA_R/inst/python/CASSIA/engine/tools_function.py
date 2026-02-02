@@ -696,6 +696,32 @@ def runCASSIA_batch(
 
     # Initialize progress tracker
     total_clusters = len(df)
+
+    # Check if using free API and enforce cluster limit
+    try:
+        from CASSIA.core.free_api import is_using_free_api, MAX_CLUSTERS_PER_JOB, _thread_local
+
+        if is_using_free_api(provider):
+            if total_clusters > MAX_CLUSTERS_PER_JOB:
+                raise ValueError(
+                    f"\n{'='*60}\n"
+                    f"FREE API CLUSTER LIMIT EXCEEDED\n"
+                    f"{'='*60}\n"
+                    f"Your batch has {total_clusters} clusters, but free API access\n"
+                    f"is limited to {MAX_CLUSTERS_PER_JOB} clusters per job.\n\n"
+                    f"Options:\n"
+                    f"1. Reduce your batch to {MAX_CLUSTERS_PER_JOB} clusters or fewer\n"
+                    f"2. Set your own API key:\n"
+                    f"   CASSIA.set_api_key('{provider}', 'your-key')\n"
+                    f"{'='*60}"
+                )
+            # Store cluster count in thread-local for free_api module
+            _thread_local.num_clusters = total_clusters
+            if verbose:
+                print(f"[CASSIA] Using free API access ({total_clusters}/{MAX_CLUSTERS_PER_JOB} clusters)")
+    except ImportError:
+        pass  # free_api module not available, skip check
+
     tracker = BatchProgressTracker(total_clusters)
 
     ref_status = "with reference retrieval" if use_reference else ""
