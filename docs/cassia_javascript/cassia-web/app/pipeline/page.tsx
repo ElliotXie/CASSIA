@@ -62,6 +62,11 @@ export default function PipelinePage() {
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
 
+  // Preload pipeline modules on button hover for instant start
+  const preloadPipelineModules = () => {
+    import('@/lib/cassia/runCASSIA_pipeline')
+  }
+
   const handleStartAnalysis = async () => {
     if (!canStartAnalysis) return
 
@@ -141,7 +146,6 @@ export default function PipelinePage() {
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
                     <span className="text-white font-bold text-lg">🧬</span>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold gradient-text">CASSIA Pipeline</h1>
@@ -326,6 +330,8 @@ export default function PipelinePage() {
               <CardContent className="space-y-4">
                 <Button
                   onClick={handleStartAnalysis}
+                  onMouseEnter={preloadPipelineModules}
+                  onFocus={preloadPipelineModules}
                   disabled={!canStartAnalysis || isRunning}
                   className="w-full"
                   size="lg"

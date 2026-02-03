@@ -114,6 +114,11 @@ export default function BatchPage() {
 
   const canStartAnalysis = uploadedFile && fileData && apiKey && tissue && species
 
+  // Preload analysis modules on button hover for instant start
+  const preloadAnalysisModules = () => {
+    import('@/lib/cassia/runCASSIA_batch.js')
+  }
+
   const handleStartBatchAnalysis = async () => {
     if (!canStartAnalysis) return
 
@@ -230,7 +235,6 @@ export default function BatchPage() {
                   <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
                     <span className="text-white font-bold text-lg">⚡</span>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold gradient-text">CASSIA Batch Processing</h1>
@@ -731,6 +735,8 @@ export default function BatchPage() {
                 <div className="flex gap-3">
                   <Button
                     onClick={handleStartBatchAnalysis}
+                    onMouseEnter={preloadAnalysisModules}
+                    onFocus={preloadAnalysisModules}
                     disabled={!canStartAnalysis || isRunning}
                     className="flex-1 bg-green-600 hover:bg-green-700"
                     size="lg"

@@ -550,7 +550,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <Button asChild className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white btn-modern">
-                <Link href="/batch">
+                <Link href="/batch" className="w-full block">
                   Run CASSIA Batch
                 </Link>
               </Button>
@@ -595,7 +595,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white btn-modern">
-                <Link href="/pipeline">
+                <Link href="/pipeline" className="w-full block">
                   Run CASSIA Pipeline
                 </Link>
               </Button>
