@@ -161,10 +161,17 @@ def run_subclustering_test():
 
     # For subclustering test, we'll create a simulated subcluster marker set
     # In real usage, these would come from re-clustering a major cell type cluster
-    marker_df = get_full_marker_dataframe()
+    # Load ALL clusters from the marker file (not just the first 2 for comprehensive testing)
+    from fixtures import load_markers
+    marker_df = load_markers()  # Load all clusters instead of just the first 2
 
-    # Create a subset as "subclusters" - use first 3 clusters as simulated subclusters
-    subcluster_df = marker_df.head(3).copy()
+    # Use ALL clusters as "subclusters" for comprehensive testing
+    subcluster_df = marker_df.copy()
+
+    # TEST: Recode Result ID column to numeric (0, 1, 2, ...) to verify fix works with numeric cluster IDs
+    # Original cluster names are preserved in the index, but we're testing with numeric IDs
+    subcluster_df.iloc[:, 0] = [str(i) for i in range(len(subcluster_df))]  # Replace cluster names with 0, 1, 2, ...
+
     subcluster_df = subcluster_df.reset_index(drop=True)
 
     # Run tests

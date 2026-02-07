@@ -77,28 +77,30 @@ def construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=50):
     else:
         print("Using input dataframe directly as it appears to be pre-processed (2 columns)")
         marker = marker.copy()
-    
+
     # Initialize the prompt with the major cluster information
     prompt = f"""
 
-You are an expert biologist specializing in cell type annotation, with deep expertise in immunology, cancer biology, and developmental biology.You will be given sets of highly expressed markers ranked by significance for some subclusters from the {major_cluster_info} cluster, identify what is the most likely top2 cell type each marker set implies.
+You are an expert biologist specializing in cell type annotation, with deep expertise in immunology, cancer biology, and developmental biology. You will be given sets of highly expressed markers ranked by significance for some subclusters from the {major_cluster_info} cluster, identify what is the most likely top2 cell type each marker set implies.
 
 Take a deep breath and work step by step. You'd better do a really good job or 1000 grandma are going to be in danger.
 You will be tipped $10,000 if you do a good job.
 
 For each output, provide:
-1.Key marker:
-2.Explanation:
-3.Most likely top2 cell types:
+1. Key marker:
+2. Explanation:
+3. Most likely top2 cell types:
 
 Remember these subclusters are from a {major_cluster_info} big cluster. You must include all clusters mentioned in the analysis.
+
+The clusters are identified by their Cluster ID below:
 """
 
-    # Iterate over each row in the DataFrame
-    for i, (index, row) in enumerate(marker.iterrows(), start=1):
-        cluster_name = row.iloc[0]  # Use iloc for positional indexing
-        markers = row.iloc[1]       # Use iloc for positional indexing
-        prompt += f"{i}.{markers}\n"
+    # Iterate over each row in the DataFrame using actual cluster IDs
+    for index, row in marker.iterrows():
+        cluster_id = row.iloc[0]  # Use iloc for positional indexing
+        markers = row.iloc[1]     # Use iloc for positional indexing
+        prompt += f"Cluster {cluster_id}: {markers}\n"
 
     return prompt
 
@@ -144,11 +146,13 @@ def extract_subcluster_results_with_llm_multiple_output(analysis_text, provider=
 
 Extract the cell type annotations from the following analysis. For each cluster, output in this exact XML format:
 
-<cluster id="1">
+<cluster id="CLUSTER_ID">
 <celltype1>first cell type</celltype1>
 <celltype2>second cell type</celltype2>
 <reason>brief reason</reason>
 </cluster>
+
+IMPORTANT: Use the exact Cluster ID from the analysis (e.g., if the analysis mentions "Cluster 0", use id="0"; if it mentions "Cluster ABC", use id="ABC"). Do not renumber the clusters.
 
 You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
 
@@ -179,11 +183,13 @@ def extract_subcluster_results_with_llm(analysis_text, provider="openrouter", mo
 
 Extract the cell type annotations from the following analysis. For each cluster, output in this exact XML format:
 
-<cluster id="1">
+<cluster id="CLUSTER_ID">
 <celltype1>first cell type</celltype1>
 <celltype2>second cell type</celltype2>
 <reason>the complete explanation from the analysis</reason>
 </cluster>
+
+IMPORTANT: Use the exact Cluster ID from the analysis (e.g., if the analysis mentions "Cluster 0", use id="0"; if it mentions "Cluster ABC", use id="ABC"). Do not renumber the clusters.
 
 You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
 
@@ -213,7 +219,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
     results_str = str(results)
 
     # Parse XML-tagged clusters: <cluster id="1">...</cluster>
-    cluster_pattern = r'<cluster[^>]*id=["\']?(\d+)["\']?[^>]*>(.*?)</cluster>'
+    cluster_pattern = r'<cluster[^>]*id=["\']?([^"\'>\s]+)["\']?[^>]*>(.*?)</cluster>'
     cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
 
     rows = []
@@ -346,7 +352,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         results_str = str(results)
 
         # Parse XML-tagged clusters: <cluster id="1">...</cluster>
-        cluster_pattern = r'<cluster[^>]*id=["\']?(\d+)["\']?[^>]*>(.*?)</cluster>'
+        cluster_pattern = r'<cluster[^>]*id=["\']?([^"\'>\s]+)["\']?[^>]*>(.*?)</cluster>'
         cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
 
         rows = []
@@ -376,7 +382,7 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
             )
 
         try:
-            # Try to get top markers, but handle the case where required columns are missing
+            # Get the marker dataframe with cluster IDs for validation
             try:
                 get_top_markers = _get_get_top_markers()
                 marker_df = get_top_markers(marker, n_genes=n_genes)
@@ -384,27 +390,30 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 # If get_top_markers fails due to missing columns, use the original marker dataframe
                 print(f"Warning: {str(e)}. Using original marker dataframe.")
                 marker_df = marker.copy()
-            
+
             # Convert types to ensure compatibility
             df['Result ID'] = df['Result ID'].astype(str)
 
-            # Make a copy of the original values before swapping
-            original_cluster_ids = df['Result ID'].copy()
+            # Validate cluster IDs instead of position-based swap
+            # Extract expected cluster IDs from marker_df
+            expected_cluster_ids = set(str(x) for x in marker_df.iloc[:, 0].tolist())
+            result_cluster_ids = set(str(x) for x in df['Result ID'].tolist())
 
-            # Check if marker_df has at least one row and one column
-            if marker_df.shape[0] > 0 and marker_df.shape[1] > 0:
-                original_marker_first_col = marker_df.iloc[:, 0].copy()
+            # Check for missing clusters
+            missing_clusters = expected_cluster_ids - result_cluster_ids
+            if missing_clusters:
+                print(f"Warning: Iteration {i+1} - LLM output missing cluster IDs: {missing_clusters}")
 
-                # Perform the swap safely - only if there are enough rows in both dataframes
-                min_rows = min(len(df), len(marker_df))
-                if min_rows > 0:
-                    df.loc[:min_rows-1, 'Result ID'] = original_marker_first_col[:min_rows].values
-                    # Only update marker_df if we're actually going to use it later
-                    # marker_df.iloc[:min_rows, 0] = original_true_cell_types[:min_rows].values
-            else:
-                print("Warning: Marker dataframe is empty or has no columns. Skipping column swap.")
+            # Check for unexpected clusters (LLM hallucinated IDs)
+            unexpected_clusters = result_cluster_ids - expected_cluster_ids
+            if unexpected_clusters:
+                print(f"Warning: Iteration {i+1} - LLM output has unexpected cluster IDs: {unexpected_clusters}")
+
+            # The Result ID already contains the correct cluster IDs from the LLM extraction
+            # No swap needed - just validate that they're correct
+
         except Exception as e:
-            print(f"Warning: Error during column swap: {str(e)}. Continuing without swapping.")
+            print(f"Warning: Error during cluster ID validation: {str(e)}. Continuing anyway.")
 
         # Write the DataFrame to a CSV file with an index
         indexed_csv_file_path = f'{base_output_name}_{i+1}.csv'
