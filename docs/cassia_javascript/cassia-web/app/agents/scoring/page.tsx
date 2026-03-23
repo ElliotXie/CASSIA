@@ -9,7 +9,7 @@ import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2, Square, Settings } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2, Square, Settings, FileText, Key } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
 import { MODELS } from '@/lib/config/model-data';
@@ -265,7 +265,7 @@ export default function ScoringAgentPage() {
                             {/* API Key */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🔑 API Key</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Key className="h-5 w-5" /> API Key</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     <Input
@@ -362,7 +362,7 @@ export default function ScoringAgentPage() {
                             {/* Analysis Settings */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🎯 Analysis Settings</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Target className="h-5 w-5" /> Analysis Settings</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
@@ -399,7 +399,7 @@ export default function ScoringAgentPage() {
                             {/* Data Upload */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">📁 Data Upload</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Upload className="h-5 w-5" /> Data Upload</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
@@ -471,7 +471,7 @@ export default function ScoringAgentPage() {
                     <div className="xl:col-span-3">
                         <div className="glass rounded-2xl p-6 border border-white/20">
                             <h2 className="text-xl font-bold gradient-text mb-6 flex items-center">
-                                📊 <span className="ml-2">Results</span>
+                                <Target className="h-5 w-5" /> <span className="ml-2">Results</span>
                             </h2>
 
                             {isLoading && (
@@ -522,7 +522,7 @@ export default function ScoringAgentPage() {
                                     {/* Results Display */}
                                     <Card>
                                         <CardHeader>
-                                            <CardTitle>📋 Scoring Results</CardTitle>
+                                            <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Scoring Results</CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">

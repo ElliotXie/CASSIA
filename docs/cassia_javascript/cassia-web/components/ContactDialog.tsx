@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Mail, Github, ExternalLink, HelpCircle, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, Github, ExternalLink, HelpCircle, Send, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -203,7 +203,7 @@ export function ContactDialog() {
 
         {/* Help Information */}
         <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-          <div className="text-sm font-medium text-blue-800 mb-2">💡 Before contacting support:</div>
+          <div className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1"><Lightbulb className="h-4 w-4" /> Before contacting support:</div>
           <ul className="text-xs text-blue-700 space-y-1">
             <li>• Check the documentation and examples</li>
             <li>• Verify your API key is correctly configured</li>

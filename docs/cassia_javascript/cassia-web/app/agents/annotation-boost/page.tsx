@@ -11,7 +11,7 @@ import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle, Eye, TrendingUp, Target, Settings } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle, Eye, TrendingUp, Target, Settings, Key, FolderOpen, ScrollText, Search, Microscope } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
 import { MODELS } from '@/lib/config/model-data';
@@ -627,7 +627,7 @@ export default function AnnotationBoostPage() {
                             {/* API Key */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🔑 API Key</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Key className="h-5 w-5" /> API Key</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     <Input
@@ -712,7 +712,7 @@ export default function AnnotationBoostPage() {
                             {/* Analysis Settings */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">🎯 Analysis Settings</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Target className="h-5 w-5" /> Analysis Settings</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
@@ -756,7 +756,7 @@ export default function AnnotationBoostPage() {
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center justify-between">
-                                        <span>📁 Data Upload</span>
+                                        <span className="flex items-center gap-2"><FolderOpen className="h-5 w-5" /> Data Upload</span>
                                         <Button
                                             onClick={loadExampleData}
                                             variant="outline"
@@ -876,7 +876,7 @@ export default function AnnotationBoostPage() {
                             {conversationFile && (
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-lg">📜 History Configuration</CardTitle>
+                                        <CardTitle className="text-lg flex items-center gap-2"><ScrollText className="h-5 w-5" /> History Configuration</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 text-xs text-muted-foreground space-y-1">
@@ -986,7 +986,7 @@ export default function AnnotationBoostPage() {
                         <div className="glass rounded-2xl p-6 border border-white/20">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-bold gradient-text flex items-center">
-                                    🔍 <span className="ml-2">Analysis Progress</span>
+                                    <Search className="h-5 w-5" /> <span className="ml-2">Analysis Progress</span>
                                 </h2>
                                 <Button
                                     onClick={clearConsole}
@@ -1080,7 +1080,7 @@ export default function AnnotationBoostPage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between">
-                                                <span>🔬 Analysis Results</span>
+                                                <span className="flex items-center gap-2"><Microscope className="h-5 w-5" /> Analysis Results</span>
                                                 <Button
                                                     onClick={() => {
                                                         const blob = new Blob([resultsHtml], { type: 'text/html' });

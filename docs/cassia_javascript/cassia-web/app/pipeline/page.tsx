@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Play, Settings, HelpCircle, FileText } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, FileText, Dna, FolderOpen, Rocket, BarChart3, Search, Zap } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
@@ -144,7 +144,7 @@ export default function PipelinePage() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
-                    <span className="text-white font-bold text-lg">🧬</span>
+                    <Dna className="h-6 w-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -183,7 +183,7 @@ export default function PipelinePage() {
             {/* File Upload */}
             <Card>
               <CardHeader>
-                <CardTitle>📁 Data Upload</CardTitle>
+                <CardTitle className="flex items-center gap-2"><FolderOpen className="h-5 w-5" /> Data Upload</CardTitle>
               </CardHeader>
               <CardContent>
                 <ErrorBoundary>
@@ -325,7 +325,7 @@ export default function PipelinePage() {
             {/* Start Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>🚀 Analysis Control</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Play className="h-5 w-5" /> Analysis Control</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button
@@ -364,7 +364,7 @@ export default function PipelinePage() {
             {/* Quick Info */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">📊 Analysis Info</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Analysis Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -383,15 +383,15 @@ export default function PipelinePage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs">🔍 Annotation:</span>
+                      <span className="text-muted-foreground text-xs flex items-center gap-1"><Search className="h-3 w-3" /> Annotation:</span>
                       <span className="font-medium text-xs">{pipelineModels.annotation.model}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs">📊 Scoring:</span>
+                      <span className="text-muted-foreground text-xs flex items-center gap-1"><BarChart3 className="h-3 w-3" /> Scoring:</span>
                       <span className="font-medium text-xs">{pipelineModels.scoring.model}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs">🚀 Boost:</span>
+                      <span className="text-muted-foreground text-xs flex items-center gap-1"><Zap className="h-3 w-3" /> Boost:</span>
                       <span className="font-medium text-xs">{pipelineModels.annotationBoost.model}</span>
                     </div>
                   </div>

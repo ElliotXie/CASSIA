@@ -5,7 +5,7 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ExternalLink } from 'lucide-react'
+import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ExternalLink, Rocket, RefreshCw, Wrench, Code, BarChart3, Bot, FileText, Package, Bug, Lock, Lightbulb } from 'lucide-react'
 import { useState, Suspense, useEffect } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -419,7 +419,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Batch</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">🚀 Recommended starting point</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><Rocket className="h-4 w-4" /> Recommended starting point</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -464,7 +464,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Pipeline</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">🔄 Alternative starting point</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Alternative starting point</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -509,7 +509,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">Optional Agents</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">🔧 Use after Pipeline/Batch</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><Wrench className="h-4 w-4" /> Use after Pipeline/Batch</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -576,25 +576,25 @@ export default function HomePage() {
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://docs.cassia.bio/en/docs/python/introduction" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">🐍</span>
+                  <span className="w-6 text-center flex-shrink-0"><Code className="h-4 w-4 inline" /></span>
                   <span className="ml-2">Python Documentation/Vignette</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://docs.cassia.bio/en/docs/r/introduction" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📊</span>
+                  <span className="w-6 text-center flex-shrink-0"><BarChart3 className="h-4 w-4 inline" /></span>
                   <span className="ml-2">R Documentation/Vignette</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://sc-llm-benchmark.com/methods/cassia" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">🤖</span>
+                  <span className="w-6 text-center flex-shrink-0"><Bot className="h-4 w-4 inline" /></span>
                   <span className="ml-2">LLMs Annotation Benchmark</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://doi.org/10.1038/s41467-025-67084-x" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📄</span>
+                  <span className="w-6 text-center flex-shrink-0"><FileText className="h-4 w-4 inline" /></span>
                   <span className="ml-2">Nature Communications Paper</span>
                 </Link>
               </Button>
@@ -615,13 +615,13 @@ export default function HomePage() {
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">📦</span>
+                  <span className="w-6 text-center flex-shrink-0"><Package className="h-4 w-4 inline" /></span>
                   <span className="ml-2">R & Python Package Installation</span>
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link href="https://github.com/ElliotXie/CASSIA/issues" target="_blank" rel="noopener noreferrer" className="flex items-center">
-                  <span className="w-6 text-center flex-shrink-0">🐛</span>
+                  <span className="w-6 text-center flex-shrink-0"><Bug className="h-4 w-4 inline" /></span>
                   <span className="ml-2">Report Issues</span>
                 </Link>
               </Button>
@@ -910,7 +910,7 @@ export default function HomePage() {
               <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-4">
                 <div className="flex items-start space-x-3">
                   <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-white text-sm font-bold">🔒</span>
+                    <Lock className="h-4 w-4 text-white" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Security & Privacy</h4>

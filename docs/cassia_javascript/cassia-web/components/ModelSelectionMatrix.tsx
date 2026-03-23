@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Zap, Clock, Brain } from 'lucide-react'
+import { Settings, Zap, Clock, Brain, Search, BarChart3, Rocket } from 'lucide-react'
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
@@ -59,21 +59,21 @@ const pipelineSteps = [
     id: 'annotation' as const, 
     name: 'Initial Annotation', 
     description: 'Identify cell types from marker genes',
-    icon: '🔍',
+    icon: <Search className="h-5 w-5" />,
     recommendedModels: [modelSettings.use_case_recommendations.annotation.best, ...modelSettings.use_case_recommendations.annotation.alternatives.slice(0, 1)]
   },
   { 
     id: 'scoring' as const, 
     name: 'Quality Scoring', 
     description: 'Evaluate annotation quality and confidence',
-    icon: '📊',
+    icon: <BarChart3 className="h-5 w-5" />,
     recommendedModels: [modelSettings.use_case_recommendations.scoring.best, ...modelSettings.use_case_recommendations.scoring.alternatives.slice(0, 1)]
   },
   { 
     id: 'annotationBoost' as const, 
     name: 'Annotation Boost', 
     description: 'Improve low-scoring annotations with advanced analysis',
-    icon: '🚀',
+    icon: <Rocket className="h-5 w-5" />,
     recommendedModels: [modelSettings.use_case_recommendations.annotation_boost.best, ...modelSettings.use_case_recommendations.annotation_boost.alternatives.slice(0, 1)]
   },
 ]

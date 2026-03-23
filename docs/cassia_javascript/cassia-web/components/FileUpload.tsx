@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw, Eye } from 'lucide-react'
+import { Upload, File, CheckCircle, AlertCircle, X, RefreshCw, Eye, FileText, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { processFile, validateMarkerData, type FileData } from '@/lib/utils/file-processing'
@@ -404,8 +404,8 @@ export function FileUpload({ onFileProcessed, showSimpleFormat = false }: FileUp
             {!isProcessing && (
               <>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <div>📄 Supported formats: CSV, XLSX</div>
-                  <div>📊 Expected: FindAllMarkers output with cluster and gene columns</div>
+                  <div className="flex items-center gap-1"><FileText className="h-3 w-3" /> Supported formats: CSV, XLSX</div>
+                  <div className="flex items-center gap-1"><BarChart3 className="h-3 w-3" /> Expected: FindAllMarkers output with cluster and gene columns</div>
                 </div>
                 
                 <div className="flex gap-2 justify-center pt-2">
