@@ -9,9 +9,10 @@ import { parseCSV } from '@/lib/utils/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2, Square } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Target, Upload, Download, Zap, CheckCircle, AlertCircle, Loader2, Square, Settings } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
+import { MODELS } from '@/lib/config/model-data';
 
 export default function ScoringAgentPage() {
     const globalApiKey = useApiKeyStore((state) => state.getApiKey());
@@ -24,7 +25,7 @@ export default function ScoringAgentPage() {
     // State management
     const [apiKey, setApiKey] = useState('');
     const [provider, setProvider] = useState<Provider>('openrouter');
-    const [model, setModel] = useState('google/gemini-3-flash-preview');
+    const [model, setModel] = useState<string>(MODELS.openrouter.fast);
     const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [maxWorkers, setMaxWorkers] = useState(4);
@@ -258,7 +259,7 @@ export default function ScoringAgentPage() {
                     <div className="xl:col-span-2">
                         <div className="glass rounded-2xl p-6 border border-white/20 sticky top-24 space-y-6">
                             <h2 className="text-xl font-bold gradient-text mb-6 flex items-center">
-                                ⚙️ <span className="ml-2">Configuration</span>
+                                <Settings className="h-5 w-5" /> <span className="ml-2">Configuration</span>
                             </h2>
 
                             {/* API Key */}

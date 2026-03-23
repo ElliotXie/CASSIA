@@ -242,49 +242,33 @@ def symphonyCompare(
     csv_file = os.path.join(output_dir, f"{output_basename}.csv")
     html_file = os.path.join(output_dir, f"{output_basename}_report.html") if generate_report else None
     
-    # Load model presets and personas from JSON config file
-    config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_config.json')
-
-    # Default fallback configuration
-    default_presets = {
-        "premium": [
-            "google/gemini-3-pro-preview",
-            "anthropic/claude-sonnet-4.5",
-            "openai/gpt-5.1",
-            "x-ai/grok-4"
-        ],
-        "budget": [
-            "deepseek/deepseek-v3.2",
-            "x-ai/grok-4-fast",
-            "moonshotai/kimi-k2-thinking",
-            "google/gemini-2.5-flash"
-        ]
-    }
-
-    default_personas = {
-        "google/gemini-3-pro-preview": "Dr. Emmy Noether",
-        "anthropic/claude-sonnet-4.5": "Dr. Claude Shannon",
-        "openai/gpt-5.1": "Dr. Albert Einstein",
-        "x-ai/grok-4": "Dr. Marie Curie",
-        "deepseek/deepseek-v3.2": "Dr. Alan Turing",
-        "x-ai/grok-4-fast": "Dr. Nikola Tesla",
-        "moonshotai/kimi-k2-thinking": "Dr. Ada Lovelace",
-        "google/gemini-2.5-flash": "Dr. Rosalind Franklin"
-    }
-
-    # Try to load from JSON config file
+    # Load model presets and personas from model_settings.json (single source of truth)
+    # Falls back to local model_config.json if model_settings.json doesn't have the data
     try:
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-        model_presets = config.get('presets', default_presets)
-        model_personas = config.get('personas', default_personas)
-        if verbose:
-            print(f"  Loaded model configuration from: {config_file}")
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        model_presets = default_presets
-        model_personas = default_personas
-        if verbose:
-            print(f"  Using default model configuration (config file not found or invalid)")
+        from ..core.model_settings import get_model_settings
+        settings = get_model_settings()
+        model_presets = settings.get_symphony_presets()
+        model_personas = settings.get_model_personas()
+        if model_presets.get("premium") and model_personas:
+            if verbose:
+                print(f"  Loaded model configuration from: {settings.config_path}")
+        else:
+            raise ValueError("Symphony presets not found in model_settings.json")
+    except Exception:
+        # Fallback: try local model_config.json
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_config.json')
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+            model_presets = config.get('presets', {})
+            model_personas = config.get('personas', {})
+            if verbose:
+                print(f"  Loaded model configuration from: {config_file}")
+        except (FileNotFoundError, json.JSONDecodeError):
+            model_presets = {"premium": [], "budget": []}
+            model_personas = {}
+            if verbose:
+                print(f"  Warning: No model configuration found")
     
     # Select models based on preset or custom list
     if model_preset == "custom" and custom_models:

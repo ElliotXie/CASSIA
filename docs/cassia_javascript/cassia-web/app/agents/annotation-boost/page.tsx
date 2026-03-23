@@ -11,9 +11,10 @@ import { useConfigStore } from '@/lib/stores/config-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle, Eye, TrendingUp, Target } from 'lucide-react';
+import { ArrowLeft, Play, HelpCircle, Zap, Upload, Download, FileText, History, BookOpen, Database, AlertCircle, Loader2, CheckCircle, Eye, TrendingUp, Target, Settings } from 'lucide-react';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { testApiKey } from '@/lib/cassia/llm_utils';
+import { MODELS } from '@/lib/config/model-data';
 
 export default function AnnotationBoostPage() {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -40,7 +41,7 @@ export default function AnnotationBoostPage() {
             return state.model;
         } catch (error) {
             console.warn('Error accessing global model:', error);
-            return 'google/gemini-3-flash-preview';
+            return MODELS.openrouter.fast;
         }
     });
     const loadApiKeys = useApiKeyStore((state) => state.loadApiKeys);
@@ -53,7 +54,7 @@ export default function AnnotationBoostPage() {
     const [markerData, setMarkerData] = useState<any[]>([]);
     const [apiKey, setApiKey] = useState('');
     const [provider, setProvider] = useState<Provider>('openrouter');
-    const [model, setModel] = useState('google/gemini-3-flash-preview');
+    const [model, setModel] = useState<string>(MODELS.openrouter.fast);
     const [customBaseUrl, setCustomBaseUrl] = useState('');
     const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
     const [majorClusterInfo, setMajorClusterInfo] = useState('Human PBMC');
@@ -608,7 +609,7 @@ export default function AnnotationBoostPage() {
                     <div className="xl:col-span-2">
                         <div className="glass rounded-2xl p-6 border border-white/20 sticky top-24 space-y-6">
                             <h2 className="text-xl font-bold gradient-text mb-6 flex items-center">
-                                ⚙️ <span className="ml-2">Configuration</span>
+                                <Settings className="h-5 w-5" /> <span className="ml-2">Configuration</span>
                             </h2>
 
                             {/* Model Selection */}
@@ -1031,7 +1032,7 @@ export default function AnnotationBoostPage() {
                         {/* Results */}
                         <div className="glass rounded-2xl p-6 border border-white/20">
                             <h2 className="text-xl font-bold gradient-text mb-6 flex items-center">
-                                ⚡ <span className="ml-2">Boost Results</span>
+                                <Zap className="h-5 w-5" /> <span className="ml-2">Boost Results</span>
                             </h2>
 
                             {isLoading && (
@@ -1069,7 +1070,7 @@ export default function AnnotationBoostPage() {
                                 <div className="space-y-6">
                                     <div className="glass rounded-lg p-4 border border-green-400/30 bg-green-50/20">
                                         <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-2">
-                                            Annotation Boost Complete! ⚡
+                                            Annotation Boost Complete!
                                         </h3>
                                         <p className="text-green-700 dark:text-green-300">
                                             Iterative analysis completed with {numIterations} iterations using {searchStrategy}-first strategy.

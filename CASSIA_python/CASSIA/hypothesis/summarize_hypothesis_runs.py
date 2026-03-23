@@ -11,8 +11,8 @@ try:
     from CASSIA.reports.generate_hypothesis_report import create_html_report, HTML_TEMPLATE, CLUSTER_TEMPLATE
 except ImportError:
     try:
-        from .llm_utils import call_llm
-        from .generate_hypothesis_report import create_html_report, HTML_TEMPLATE, CLUSTER_TEMPLATE
+        from ..core.llm_utils import call_llm
+        from ..reports.generate_hypothesis_report import create_html_report, HTML_TEMPLATE, CLUSTER_TEMPLATE
     except ImportError:
         from llm_utils import call_llm
         from generate_hypothesis_report import create_html_report, HTML_TEMPLATE, CLUSTER_TEMPLATE
@@ -81,7 +81,7 @@ def _consolidate_one_cluster(cluster_name: str, runs: List[Dict], **kwargs) -> D
     summary_response = call_llm(
         prompt=prompt,
         provider="openrouter",
-        model="google/gemini-2.5-flash",
+        model="google/gemini-3-flash-preview",
         temperature=0.1
     )
     return {

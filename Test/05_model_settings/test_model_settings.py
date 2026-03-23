@@ -74,9 +74,9 @@ def run_model_settings_test():
 
     tier_tests = [
         # (tier, provider, expected_contains)
-        ("best", "openai", "gpt-5.1"),
+        ("best", "openai", "gpt-5.4"),
         ("balanced", "openai", "gpt-4o"),
-        ("fast", "openai", "gpt-5-mini"),
+        ("fast", "openai", "gpt-5.4-mini"),
         ("best", "anthropic", "opus"),
         ("balanced", "anthropic", "sonnet"),
         ("fast", "anthropic", "haiku"),
@@ -127,23 +127,23 @@ def run_model_settings_test():
 
     alias_tests = [
         # (alias, provider, expected_contains, should_print_note)
-        ("gpt", "openai", "gpt-5.1", True),
+        ("gpt", "openai", "gpt-5.4", True),
         ("gpt", "openrouter", "openai/gpt", True),
-        ("claude", "anthropic", "claude-sonnet-4-5", True),
+        ("claude", "anthropic", "claude-sonnet-4-6", True),
         ("claude", "openrouter", "anthropic/claude-sonnet", True),
         ("gemini", "openrouter", "google/gemini", True),
-        ("flash", "openrouter", "gemini-2.5-flash", True),
+        ("flash", "openrouter", "gemini-3-flash-preview", True),
         ("sonnet", "anthropic", "sonnet", True),
         ("opus", "anthropic", "opus", True),
         ("haiku", "anthropic", "haiku", True),
         ("4o", "openai", "gpt-4o", True),
         ("deepseek", "openrouter", "deepseek", True),
         # Case insensitivity
-        ("GPT", "openai", "gpt-5.1", True),
+        ("GPT", "openai", "gpt-5.4", True),
         ("Claude", "anthropic", "claude-sonnet", True),
         # Exact match passthrough (no note)
         ("gpt-4o", "openai", "gpt-4o", False),
-        ("claude-sonnet-4-5", "anthropic", "claude-sonnet-4-5", False),
+        ("claude-sonnet-4-6", "anthropic", "claude-sonnet-4-6", False),
     ]
 
     alias_passed = 0
@@ -212,10 +212,10 @@ def run_model_settings_test():
 
     provider_aware_tests = [
         # Same alias resolves differently per provider
-        ("claude", "anthropic", "claude-sonnet-4-5"),
-        ("claude", "openrouter", "anthropic/claude-sonnet-4.5"),
-        ("gpt", "openai", "gpt-5.1"),
-        ("gpt", "openrouter", "openai/gpt-5.1"),
+        ("claude", "anthropic", "claude-sonnet-4-6"),
+        ("claude", "openrouter", "anthropic/claude-sonnet-4.6"),
+        ("gpt", "openai", "gpt-5.4"),
+        ("gpt", "openrouter", "openai/gpt-5.4"),
     ]
 
     provider_aware_passed = 0
@@ -279,7 +279,7 @@ def run_model_settings_test():
         errors.append(f"get_recommended_model failed: {e}")
         print(f"  [X] ERROR: {e}")
 
-    # Test 6: Practical test with gemini-2.5-flash via OpenRouter
+    # Test 6: Practical test with gemini-3-flash-preview via OpenRouter
     print("\n" + "="*40)
     print("Testing Practical Annotation with OpenRouter")
     print("="*40)
@@ -288,12 +288,12 @@ def run_model_settings_test():
     marker_df = get_marker_dataframe_for_cluster("plasma cell", 20)
 
     try:
-        print(f"  Model: google/gemini-2.5-flash")
+        print(f"  Model: google/gemini-3-flash-preview")
         print(f"  Provider: openrouter")
         print(f"  Running annotation...")
 
         result, _, _ = runCASSIA(
-            model="google/gemini-2.5-flash",
+            model="google/gemini-3-flash-preview",
             temperature=0.3,
             marker_list=marker_df,
             tissue=data_config.get('tissue', 'large intestine'),

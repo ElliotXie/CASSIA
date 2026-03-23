@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText, Brain, Square } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, Users, Zap, Sparkles, FileText, Brain, Square, FolderOpen } from 'lucide-react'
 import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { MODELS } from '@/lib/config/model-data'
 
 // Lazy-load heavy components to reduce initial page load time
 const FileUpload = dynamic(() => import('@/components/FileUpload').then(mod => ({ default: mod.FileUpload })), { ssr: false })
@@ -86,28 +87,28 @@ export default function BatchPage() {
   // Model options for each provider (same as CASSIA Pipeline)
   const modelOptions = {
     openrouter: [
-      { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
       { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
-      { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
-      { id: 'openai/gpt-5.2', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
-      { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
+      { id: 'openai/gpt-5.4', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
+      { id: 'openai/gpt-5.4-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
       { id: 'openai/gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' },
       { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
-      { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
+      { id: 'google/gemini-3-flash-preview', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', cost: 'high', speed: 'medium' },
       { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
       { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', cost: 'low', speed: 'fast' },
       { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', cost: 'medium', speed: 'fast' }
     ],
     openai: [
-      { id: 'gpt-5.2', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
-      { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'gpt-5.4', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
+      { id: 'gpt-5.4-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
       { id: 'gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' }
     ],
     anthropic: [
-      { id: 'claude-sonnet-4.5', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
       { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
-      { id: 'claude-opus-4.5', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' }
+      { id: 'claude-opus-4.6', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' }
     ],
     custom: []  // User enters model name manually
   }
@@ -233,7 +234,7 @@ export default function BatchPage() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
-                    <span className="text-white font-bold text-lg">⚡</span>
+                    <Zap className="h-6 w-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -293,11 +294,11 @@ export default function BatchPage() {
                     <button
                       onClick={() => {
                         setSelectedMode('performance')
-                        setModel('anthropic/claude-sonnet-4.5')
+                        setModel(MODELS.openrouter.recommended)
                       }}
                       className={cn(
                         "relative p-4 rounded-lg border-2 transition-all text-left",
-                        selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5'
+                        selectedMode === 'performance' && model === MODELS.openrouter.recommended
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                       )}
@@ -328,7 +329,7 @@ export default function BatchPage() {
                           </Badge>
                         </div>
                       </div>
-                      {selectedMode === 'performance' && model === 'anthropic/claude-sonnet-4.5' && (
+                      {selectedMode === 'performance' && model === MODELS.openrouter.recommended && (
                         <div className="absolute top-2 right-2">
                           <Badge className="bg-blue-500">Selected</Badge>
                         </div>
@@ -339,11 +340,11 @@ export default function BatchPage() {
                     <button
                       onClick={() => {
                         setSelectedMode('balanced')
-                        setModel('google/gemini-3-flash-preview')
+                        setModel(MODELS.openrouter.fast)
                       }}
                       className={cn(
                         "relative p-4 rounded-lg border-2 transition-all text-left",
-                        selectedMode === 'balanced' && model === 'google/gemini-3-flash-preview'
+                        selectedMode === 'balanced' && model === MODELS.openrouter.fast
                           ? "border-green-500 bg-green-50 dark:bg-green-950/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                       )}
@@ -374,7 +375,7 @@ export default function BatchPage() {
                           </Badge>
                         </div>
                       </div>
-                      {selectedMode === 'balanced' && model === 'google/gemini-3-flash-preview' && (
+                      {selectedMode === 'balanced' && model === MODELS.openrouter.fast && (
                         <div className="absolute top-2 right-2">
                           <Badge className="bg-green-500">Selected</Badge>
                         </div>
@@ -588,7 +589,7 @@ export default function BatchPage() {
             {/* File Upload */}
             <Card>
               <CardHeader>
-                <CardTitle>📁 Marker Data Upload</CardTitle>
+                <CardTitle className="flex items-center gap-2"><FolderOpen className="h-5 w-5" /> Marker Data Upload</CardTitle>
               </CardHeader>
               <CardContent>
                 <ErrorBoundary>
@@ -600,7 +601,7 @@ export default function BatchPage() {
             {/* Basic Configuration */}
             <Card>
               <CardHeader>
-                <CardTitle>⚙️ Batch Configuration</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Settings className="h-5 w-5" /> Batch Configuration</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -729,7 +730,7 @@ export default function BatchPage() {
             {/* Start Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>🚀 Batch Analysis Control</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Play className="h-5 w-5" /> Batch Analysis Control</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-3">
@@ -769,7 +770,7 @@ export default function BatchPage() {
             {/* Batch Info */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">⚡ Batch Settings</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2"><Settings className="h-4 w-4" /> Batch Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">

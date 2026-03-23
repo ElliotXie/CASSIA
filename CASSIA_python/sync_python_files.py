@@ -256,6 +256,20 @@ def main():
         if success:
             # Verify the sync
             verify_sync()
+
+            # Also sync model config to JS web app
+            print()
+            print("--- Syncing model config to JS web app ---")
+            try:
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                sync_model_script = os.path.join(script_dir, "sync_model_config.py")
+                if os.path.exists(sync_model_script):
+                    os.system(f'python "{sync_model_script}"')
+                else:
+                    print(f"  Skipped: {sync_model_script} not found")
+            except Exception as e:
+                print(f"  Warning: Model config sync failed: {e}")
+
             print()
             print("All done! The CASSIA Python package has been synced to the R package.")
             print("The R package can now import it via:")

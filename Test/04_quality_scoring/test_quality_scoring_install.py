@@ -85,7 +85,7 @@ def run_quality_scoring_test(results_dir):
             marker=marker_df,
             output_name=batch_output,
             n_genes=data_config.get('n_genes', 30),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             tissue=data_config.get('tissue', 'large intestine'),
             species=data_config.get('species', 'human'),
@@ -112,7 +112,7 @@ def run_quality_scoring_test(results_dir):
             input_file=input_file,
             output_file=output_file,
             max_workers=llm_config.get('max_workers', 3),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             provider=llm_config.get('provider', 'openrouter')
         )
 

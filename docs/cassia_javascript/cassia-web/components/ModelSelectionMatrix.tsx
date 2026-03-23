@@ -10,6 +10,7 @@ import { useConfigStore } from '@/lib/stores/config-store'
 import { useApiKeyStore } from '@/lib/stores/api-key-store'
 import { modelSupportsReasoning, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
 import modelSettings from '../public/examples/model_settings.json'
+import { MODELS, PIPELINE_DEFAULTS } from '@/lib/config/model-data'
 
 interface ModelOption {
   id: string
@@ -90,9 +91,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Best quality results',
         icon: <Zap className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'openai', model: 'gpt-5.2' },
-          scoring: { provider: 'openai', model: 'gpt-5.2' },
-          annotationBoost: { provider: 'openai', model: 'gpt-5.2' }
+          annotation: { provider: 'openai', model: PIPELINE_DEFAULTS.openai.annotation },
+          scoring: { provider: 'openai', model: PIPELINE_DEFAULTS.openai.score },
+          annotationBoost: { provider: 'openai', model: PIPELINE_DEFAULTS.openai.annotationBoost }
         }
       },
       balanced: {
@@ -100,9 +101,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Good quality with reasonable speed',
         icon: <Settings className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'openai', model: 'gpt-4o' },
-          scoring: { provider: 'openai', model: 'gpt-5-mini' },
-          annotationBoost: { provider: 'openai', model: 'gpt-4o' }
+          annotation: { provider: 'openai', model: MODELS.openai.balanced },
+          scoring: { provider: 'openai', model: MODELS.openai.fast },
+          annotationBoost: { provider: 'openai', model: MODELS.openai.balanced }
         }
       }
     }
@@ -113,9 +114,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Best quality results',
         icon: <Zap className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'anthropic', model: 'claude-sonnet-4.5' },
-          scoring: { provider: 'anthropic', model: 'claude-sonnet-4.5' },
-          annotationBoost: { provider: 'anthropic', model: 'claude-sonnet-4.5' }
+          annotation: { provider: 'anthropic', model: PIPELINE_DEFAULTS.anthropic.annotation },
+          scoring: { provider: 'anthropic', model: PIPELINE_DEFAULTS.anthropic.score },
+          annotationBoost: { provider: 'anthropic', model: PIPELINE_DEFAULTS.anthropic.annotationBoost }
         }
       },
       balanced: {
@@ -123,9 +124,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Good quality with reasonable speed',
         icon: <Settings className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'anthropic', model: 'claude-haiku-4.5' },
-          scoring: { provider: 'anthropic', model: 'claude-haiku-4.5' },
-          annotationBoost: { provider: 'anthropic', model: 'claude-haiku-4.5' }
+          annotation: { provider: 'anthropic', model: MODELS.anthropic.fast },
+          scoring: { provider: 'anthropic', model: MODELS.anthropic.fast },
+          annotationBoost: { provider: 'anthropic', model: MODELS.anthropic.fast }
         }
       }
     }
@@ -137,9 +138,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Best quality results',
         icon: <Zap className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' },
-          scoring: { provider: 'openrouter', model: 'openai/gpt-5.2' },
-          annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5' }
+          annotation: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.annotation },
+          scoring: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.score },
+          annotationBoost: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.annotationBoost }
         }
       },
       balanced: {
@@ -147,9 +148,9 @@ function getPresets(lockedProvider: 'openai' | 'anthropic' | null) {
         description: 'Good quality with reasonable speed',
         icon: <Settings className="h-4 w-4" />,
         models: {
-          annotation: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' },
-          scoring: { provider: 'openrouter', model: 'google/gemini-3-flash-preview' },
-          annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-haiku-4.5' }
+          annotation: { provider: 'openrouter', model: MODELS.openrouter.fast },
+          scoring: { provider: 'openrouter', model: MODELS.openrouter.fast },
+          annotationBoost: { provider: 'openrouter', model: MODELS.openrouter.fast }
         }
       }
     }
@@ -230,7 +231,7 @@ export function ModelSelectionMatrix({ lockedProvider = null }: ModelSelectionMa
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          ⚙️ Model Configuration
+          <Settings className="h-5 w-5" /> Model Configuration
           {lockedProvider && (
             <Badge variant="secondary" className="ml-2">
               Using: {getProviderDisplayName(lockedProvider)}

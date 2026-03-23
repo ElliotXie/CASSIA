@@ -5,6 +5,7 @@
  */
 import { callLLM } from './llm_utils.js';
 import { parseCSV } from '../utils/csv-parser.js';
+import { MODELS, PIPELINE_DEFAULTS } from '../config/model-data.ts';
 
 // ----------------- CSV Processing Functions -----------------
 
@@ -361,7 +362,7 @@ Please provide a structured summary following the format above:`;
         const summary = await callLLM(
             summarizationPrompt,
             provider,
-            model || "google/gemini-3-flash-preview", // Match Python's default model
+            model || MODELS.openrouter.fast, // Match Python's default model
             apiKey,
             temperature
             // Python doesn't specify max_tokens for this call - uses default
@@ -848,7 +849,7 @@ export async function iterativeMarkerAnalysis(
  * @param {string} apiKey - API key
  * @returns {Promise<string>} HTML report content
  */
-export async function generateSummaryReport(messages, searchStrategy = "breadth", reportStyle = "per_iteration", provider = "openrouter", model = "anthropic/claude-3.5-sonnet", apiKey, reasoningEffort = null) {
+export async function generateSummaryReport(messages, searchStrategy = "breadth", reportStyle = "per_iteration", provider = "openrouter", model = PIPELINE_DEFAULTS.openrouter.annotationBoost, apiKey, reasoningEffort = null) {
     try {
         // Ensure messages is an array
         if (!Array.isArray(messages)) {

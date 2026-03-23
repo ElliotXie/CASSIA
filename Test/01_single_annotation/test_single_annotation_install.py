@@ -86,7 +86,7 @@ def run_single_annotation_test(results_dir):
     try:
         print("\nRunning runCASSIA (pip install mode)...")
         result, conversation_history, _ = CASSIA.runCASSIA(
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             marker_list=marker_list,
             tissue=data_config.get('tissue', 'large intestine'),

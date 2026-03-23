@@ -13,6 +13,7 @@ import { scoreAnnotationBatch } from './scoring.js';
 import { iterativeMarkerAnalysis, generateSummaryReport } from './annotationBoost.js';
 import { parseCSV, formatAsCSV } from '../utils/csv-parser.js';
 import { generateBatchHtmlReportFromData } from './generateBatchReport.js';
+import { PIPELINE_DEFAULTS } from '../config/model-data.ts';
 
 /**
  * Pipeline execution state for progress tracking
@@ -90,9 +91,9 @@ export async function runCASSIAPipeline(config) {
         tissue = 'large_intestine',
         species = 'human',
         models = {
-            annotation: { provider: 'openrouter', model: 'meta-llama/llama-3.1-8b-instruct' },
-            scoring: { provider: 'openrouter', model: 'google/gemini-3-flash-preview' },
-            annotationBoost: { provider: 'openrouter', model: 'anthropic/claude-3.5-sonnet' }
+            annotation: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.annotation },
+            scoring: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.score },
+            annotationBoost: { provider: 'openrouter', model: PIPELINE_DEFAULTS.openrouter.annotationBoost }
         },
         scoreThreshold = 75,
         maxWorkers = 4,

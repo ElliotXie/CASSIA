@@ -676,15 +676,12 @@ REMEMBER: Always use <results></results> tags around your output and maintain th
     
     # Select default model based on provider if not specified
     if model is None:
-        if provider == "openai":
-            model = "gpt-4o"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20241022"
-        elif provider == "openrouter":
-            model = "anthropic/claude-3.5-sonnet"
-        elif provider.startswith("http"):
-            # For custom API endpoints, use a default model if none specified
-            model = model or "deepseek-chat"
+        try:
+            from ...core.model_settings import get_agent_default
+            defaults = get_agent_default("uncertainty", provider)
+            model = defaults["model"]
+        except Exception:
+            model = "deepseek-chat" if provider.startswith("http") else None
     
     # Call LLM using the unified function
     call_llm = _get_call_llm()
@@ -747,15 +744,12 @@ Output in JSON format:
     """
     # Select default model based on provider if not specified
     if model is None:
-        if provider == "openai":
-            model = "gpt-4o"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20241022"
-        elif provider == "openrouter":
-            model = "anthropic/claude-3.5-sonnet"
-        elif provider.startswith("http"):
-            # For custom API endpoints, use a default model if none specified
-            model = model or "deepseek-chat"
+        try:
+            from ...core.model_settings import get_agent_default
+            defaults = get_agent_default("uncertainty", provider)
+            model = defaults["model"]
+        except Exception:
+            model = "deepseek-chat" if provider.startswith("http") else None
             
     # Modify system prompt for all providers to include JSON tags
     # This helps standardize the output format across all providers
@@ -1021,15 +1015,12 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     
     # Default model based on provider if not specified
     if model is None:
-        if provider == "openai":
-            model = "gpt-4o"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20241022"
-        elif provider == "openrouter":
-            model = "anthropic/claude-3.5-sonnet"
-        elif provider.startswith("http"):
-            # For custom API endpoints, use a default model if none specified
-            model = model or "deepseek-chat"
+        try:
+            from ...core.model_settings import get_agent_default
+            defaults = get_agent_default("uncertainty", provider)
+            model = defaults["model"]
+        except Exception:
+            model = "deepseek-chat" if provider.startswith("http") else None
     
     # Extract and format results using the unified agent_unification function
     try:

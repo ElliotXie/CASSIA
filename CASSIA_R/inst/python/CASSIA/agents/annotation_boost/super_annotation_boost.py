@@ -74,7 +74,7 @@ try:
     from CASSIA.core.llm_utils import call_llm
 except ImportError:
     try:
-        from .llm_utils import call_llm
+        from ...core.llm_utils import call_llm
     except ImportError:
         try:
             from llm_utils import call_llm
@@ -2728,7 +2728,7 @@ if __name__ == "__main__":
             additional_info="Cluster enriched in lymphoid markers from peripheral blood",
             initial_markers=["CD3D", "CD3E"],  # Optional initial markers
             provider="openrouter",
-            model="google/gemini-2.5-flash-preview-05-20",
+            model="google/gemini-3-flash-preview",
             max_iterations=10,       # One tool per iteration
             output_file="super_annotation_results.json"
         )
@@ -2765,6 +2765,6 @@ results = runSuperAnnotationBoost(
     initial_markers=["SNAP25", "SYT1"],  # optional starting markers
     max_iterations=12,          # adaptive tool selection per iteration
     provider="openrouter",
-    model="google/gemini-2.5-flash-preview-05-20"
+    model="google/gemini-3-flash-preview"
 )
 """)

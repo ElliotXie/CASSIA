@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { useApiKeyStore } from './api-key-store'
 import modelSettings from '../../public/examples/model_settings.json'
 import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
+import { PIPELINE_DEFAULTS } from '../config/model-data'
 
 export interface PipelineStepConfig {
   provider: string
@@ -65,18 +66,18 @@ const defaultConfig = {
   pipelineModels: {
     annotation: {
       provider: 'openrouter',
-      model: 'anthropic/claude-sonnet-4.5',
-      reasoningEffort: 'high' as ReasoningEffort // Anthropic default
+      model: PIPELINE_DEFAULTS.openrouter.annotation,
+      reasoningEffort: getDefaultReasoningEffort('openrouter', PIPELINE_DEFAULTS.openrouter.annotation)
     },
     scoring: {
       provider: 'openrouter',
-      model: 'openai/gpt-5.2',
-      reasoningEffort: 'medium' as ReasoningEffort // GPT-5 default
+      model: PIPELINE_DEFAULTS.openrouter.score,
+      reasoningEffort: getDefaultReasoningEffort('openrouter', PIPELINE_DEFAULTS.openrouter.score)
     },
     annotationBoost: {
       provider: 'openrouter',
-      model: 'anthropic/claude-sonnet-4.5',
-      reasoningEffort: 'high' as ReasoningEffort // Anthropic default
+      model: PIPELINE_DEFAULTS.openrouter.annotationBoost,
+      reasoningEffort: getDefaultReasoningEffort('openrouter', PIPELINE_DEFAULTS.openrouter.annotationBoost)
     }
   },
   outputName: 'cassia_analysis',

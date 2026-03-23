@@ -12,9 +12,9 @@ try:
     from CASSIA.core.model_settings import get_agent_default
 except ImportError:
     try:
-        from .llm_utils import call_llm
-        from .progress_tracker import BatchProgressTracker
-        from ..core.model_settings import get_agent_default
+        from ...core.llm_utils import call_llm
+        from ...core.progress_tracker import BatchProgressTracker
+        from ...core.model_settings import get_agent_default
     except ImportError:
         from llm_utils import call_llm
         from progress_tracker import BatchProgressTracker

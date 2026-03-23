@@ -3,22 +3,22 @@
   "last_updated": "2025-01-24",
   "providers": {
     "openai": {
-      "best": "gpt-5.1",
+      "best": "gpt-5.4",
       "balanced": "gpt-4o",
-      "fast": "gpt-5-mini",
-      "recommended": "gpt-5.1"
+      "fast": "gpt-5.4-mini",
+      "recommended": "gpt-5.4"
     },
     "anthropic": {
-      "best": "claude-opus-4-5",
-      "balanced": "claude-sonnet-4-5",
+      "best": "claude-opus-4-6",
+      "balanced": "claude-sonnet-4-6",
       "fast": "claude-haiku-4-5",
-      "recommended": "claude-sonnet-4-5"
+      "recommended": "claude-sonnet-4-6"
     },
     "openrouter": {
-      "best": "anthropic/claude-sonnet-4.5",
-      "balanced": "openai/gpt-5.1",
-      "fast": "google/gemini-2.5-flash",
-      "recommended": "anthropic/claude-sonnet-4.5"
+      "best": "anthropic/claude-sonnet-4.6",
+      "balanced": "openai/gpt-5.4",
+      "fast": "google/gemini-3-flash-preview",
+      "recommended": "anthropic/claude-sonnet-4.6"
     }
   }
 }

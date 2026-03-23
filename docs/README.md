@@ -137,7 +137,7 @@ runCASSIA_batch(
     output_name = "cassia_results",              # Output file name
     tissue = "Large Intestine",                  # Tissue type
     species = "Human",                           # Species
-    model = "anthropic/claude-sonnet-4.5",       # Model to use
+    model = "anthropic/claude-sonnet-4.6",       # Model to use
     provider = "openrouter",                     # API provider
     max_workers = 4                              # Number of parallel workers
 )
@@ -154,23 +154,23 @@ Some classic models are listed below. OpenRouter supports most popular models â€
 
 
 ### OpenAI
-- `gpt-5.1`: Balanced option (Recommended)
+- `gpt-5.4`: Balanced option (Recommended)
 - `gpt-4o`: Used in the benchmark
 
 ### OpenRouter
-- `openai/gpt-5.1`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API) (Recommended)
-- `anthropic/claude-sonnet-4.5`: Best-performing model via OpenRouter (Recommended)
-- `google/gemini-2.5-flash`: One of the best-performing low-cost models
-- `x-ai/grok-4-fast`: One of the best-performing low-cost models.
+- `openai/gpt-5.4`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API) (Recommended)
+- `anthropic/claude-sonnet-4.6`: Best-performing model via OpenRouter (Recommended)
+- `google/gemini-3-flash-preview`: One of the best-performing low-cost models
+- `x-ai/grok-4.20-beta`: One of the best-performing low-cost models.
 
 ### Anthropic
-- `claude-sonnet-4-5`: The latest best-performing model (Most recommended)
+- `claude-sonnet-4-6`: The latest best-performing model (Most recommended)
 
 ### Other Providers
 These models can be used via their own APIs. See [Custom API Providers](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#custom-api-providers) for setup.
 - `deepseek-chat` (DeepSeek v3.2): High performance, very affordable. Provider: `https://api.deepseek.com`
-- `glm-4.6` (GLM 4.6): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
-- `kimi-k2` (Kimi K2): Strong reasoning capabilities. Provider: `https://api.moonshot.cn/v1`
+- `glm-5` (GLM 5): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
+- `kimi-k2.5` (Kimi K2.5): Strong reasoning capabilities. Provider: `https://api.moonshot.ai/v1`
 
 ### Local LLMs
 - `gpt-oss:20b`: Can run locally via Ollama. Good for large bulk analysis with acceptable accuracy. See [Local LLMs](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#local-llms-ollama-lm-studio) for setup.

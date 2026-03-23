@@ -25,12 +25,15 @@ from .llm_utils import call_llm
 # Module logger
 logger = get_logger(__name__)
 
-# Validation models (cheapest options for each provider)
-VALIDATION_MODELS = {
-    "openai": "gpt-5-nano",
-    "anthropic": "claude-3-haiku-20240307",
-    "openrouter": "google/gemini-2.5-flash-lite"
-}
+# Validation models loaded from model_settings.json (cheapest options for each provider)
+def _get_validation_models():
+    try:
+        from .model_settings import get_model_settings
+        return get_model_settings().get_validation_models()
+    except Exception:
+        return {"openai": "gpt-5-nano", "anthropic": "claude-3-haiku-20240307", "openrouter": "google/gemini-3-flash-preview"}
+
+VALIDATION_MODELS = _get_validation_models()
 
 # Test prompt configuration
 VALIDATION_PROMPT = "Reply: OK"

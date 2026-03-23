@@ -1,4 +1,5 @@
 import { callLLM } from './llm_utils.js';
+import { DEFAULT_MODELS, MODELS } from '../config/model-data.ts';
 
 // ----------------- System Prompts -----------------
 // These prompts are faithfully ported from Python main_function_code.py
@@ -265,7 +266,7 @@ async function formatResults(agent, finalAnnotations) {
 // ----------------- Agent Class -----------------
 
 class Agent {
-    constructor(system = "", model = "google/gemini-2.5-flash-preview", temperature = 0, provider = "openrouter", apiKey = null, reasoningConfig = null, signal = null) {
+    constructor(system = "", model = MODELS.openrouter.fast, temperature = 0, provider = "openrouter", apiKey = null, reasoningConfig = null, signal = null) {
         this.system = system;
         this.model = model;
         this.temperature = temperature;
@@ -628,7 +629,7 @@ async function runCellTypeAnalysisCustom(baseUrl, apiKey, model, temperature, ma
  * @returns {Promise<Array>} [analysis_result, conversation_history]
  */
 export async function runCASSIA(
-    model = "google/gemini-2.5-flash-preview",
+    model = MODELS.openrouter.fast,
     temperature = 0,
     markerList = null,
     tissue = "lung",

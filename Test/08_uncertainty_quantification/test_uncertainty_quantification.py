@@ -96,7 +96,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
         # Test: Run n times with similarity score
         print(f"\n--- Test: runCASSIA_n_times_similarity_score ---")
         print(f"  Cluster: {test_cluster}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+        print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
         print(f"  N iterations: 5")
 
@@ -106,7 +106,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
             additional_info=None,
             temperature=llm_config.get('temperature', 0.3),
             marker_list=markers,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             max_workers=llm_config.get('max_workers', 3),
             n=5,
             provider=llm_config.get('provider', 'openrouter'),
@@ -181,7 +181,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
             print(f"\n--- Test: runCASSIA_batch_n_times ---")
 
             print(f"  Clusters: {batch_clusters_tested}")
-            print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+            print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
             print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
             print(f"  N iterations: 5")
 
@@ -193,7 +193,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
                 n=5,
                 marker=test_markers,
                 output_name=batch_output_name,
-                model=llm_config.get('model', 'google/gemini-2.5-flash'),
+                model=llm_config.get('model', 'google/gemini-3-flash-preview'),
                 temperature=llm_config.get('temperature', 0.3),
                 tissue=data_config.get('tissue', 'large intestine'),
                 species=data_config.get('species', 'human'),
@@ -324,7 +324,7 @@ def run_uncertainty_quantification_test(run_batch_generation=False):
                 output_name=similarity_output_name,
                 celltype_column='Broad.cell.type',
                 max_workers=3,
-                model=llm_config.get('model', 'google/gemini-2.5-flash'),
+                model=llm_config.get('model', 'google/gemini-3-flash-preview'),
                 provider=llm_config.get('provider', 'openrouter'),
                 generate_report=True,
                 report_output_path=similarity_report_path

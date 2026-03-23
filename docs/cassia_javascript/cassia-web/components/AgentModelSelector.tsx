@@ -10,6 +10,7 @@ import { Settings, Zap, ChevronDown, Brain } from 'lucide-react'
 import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store'
 import modelSettings from '../public/examples/model_settings.json'
 import { modelSupportsReasoning, getDefaultReasoningEffort, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
+import { MODELS } from '@/lib/config/model-data'
 
 interface ModelOption {
   id: string
@@ -55,58 +56,19 @@ const PROVIDERS = [
   { id: 'custom' as const, name: 'Custom', description: 'Custom API endpoint' },
 ]
 
-// Custom provider presets
-const CUSTOM_PROVIDER_PRESETS = {
-  deepseek: {
-    name: 'DeepSeek',
-    baseUrl: 'https://api.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
-  },
-  qwen: {
-    name: 'Qwen (Alibaba)',
-    baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
-    models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
-  },
-  kimi: {
-    name: 'Kimi (Moonshot)',
-    baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-  },
-  siliconflow: {
-    name: 'SiliconFlow',
-    baseUrl: 'https://api.siliconflow.cn/v1',
-    models: ['Pro/deepseek-ai/DeepSeek-V3', 'deepseek-ai/DeepSeek-V3', 'Qwen/Qwen2.5-72B-Instruct'],
-  },
-  minimax: {
-    name: 'MiniMax',
-    baseUrl: 'https://api.minimax.io/v1',
-    models: ['MiniMax-M2'],
-  },
-  zhipuai: {
-    name: 'Zhipu AI (智谱)',
-    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-4-plus', 'glm-4-flash', 'glm-4-long'],
-  },
-  manual: {
-    name: 'Manual Entry',
-    baseUrl: '',
-    models: [],
-  }
-} as const
-
-type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
+import { CUSTOM_PROVIDER_PRESETS, type CustomPresetKey } from '@/lib/config/custom-providers'
 
 // Presets per provider
 function getPresets(provider: Provider) {
   if (provider === 'openai') {
     return {
-      performance: { model: 'gpt-5.2', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: 'gpt-4o', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.openai.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.openai.balanced, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else if (provider === 'anthropic') {
     return {
-      performance: { model: 'claude-sonnet-4.5', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: 'claude-haiku-4.5', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.anthropic.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.anthropic.fast, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else if (provider === 'custom') {
     return {
@@ -116,8 +78,8 @@ function getPresets(provider: Provider) {
   } else {
     // OpenRouter
     return {
-      performance: { model: 'anthropic/claude-sonnet-4.5', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: 'google/gemini-3-flash-preview', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.openrouter.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.openrouter.fast, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   }
 }
@@ -228,7 +190,7 @@ export function AgentModelSelector({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          ⚙️ {title}
+          <Settings className="h-5 w-5" /> {title}
         </CardTitle>
         {provider !== 'custom' && (
           <div className="flex gap-2 flex-wrap">

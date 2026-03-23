@@ -2,10 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAuthStore } from './auth-store'
 import { ReasoningEffort, getDefaultReasoningEffort } from '../config/model-presets'
+import { DEFAULT_MODELS } from '../config/model-data'
 
-// Hardcoded defaults to avoid synchronous JSON import at module load.
-// These are only used as initial state before localStorage hydration overwrites them.
-const DEFAULT_OPENROUTER_MODEL = 'anthropic/claude-sonnet-4.5'
+const DEFAULT_OPENROUTER_MODEL = DEFAULT_MODELS.openrouter
 
 // ─── Public types (consumed by all pages/components) ───────────────────────
 

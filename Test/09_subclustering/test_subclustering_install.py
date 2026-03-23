@@ -78,7 +78,7 @@ def run_subclustering_test(results_dir):
         print(f"\n--- Test: runCASSIA_subclusters ---")
         print(f"  Major cluster: {major_cluster_info}")
         print(f"  Subclusters to annotate: {len(subcluster_df)}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+        print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
 
         output_name = str(results_dir['outputs'] / "subcluster_results")
@@ -87,7 +87,7 @@ def run_subclustering_test(results_dir):
             marker=subcluster_df,
             major_cluster_info=major_cluster_info,
             output_name=output_name,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             provider=llm_config.get('provider', 'openrouter'),
             n_genes=data_config.get('n_genes', 30)

@@ -19,6 +19,7 @@ import { useDropzone } from 'react-dropzone';
 import { AgentModelSelector } from '@/components/AgentModelSelector';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { testApiKey } from '@/lib/cassia/llm_utils';
+import { MODELS } from '@/lib/config/model-data';
 
 export default function AnnotationMergingPage() {
   const [csvData, setCsvData] = useState(null);
@@ -33,7 +34,7 @@ export default function AnnotationMergingPage() {
   const [batchSize, setBatchSize] = useState(20);
   const [additionalContext, setAdditionalContext] = useState('');
   const [provider, setProvider] = useState<Provider>('openrouter');
-  const [model, setModel] = useState('google/gemini-3-flash-preview');
+  const [model, setModel] = useState<string>(MODELS.openrouter.fast);
   const [customBaseUrl, setCustomBaseUrl] = useState('');
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort | null>(null);
   const [apiKey, setApiKey] = useState('');

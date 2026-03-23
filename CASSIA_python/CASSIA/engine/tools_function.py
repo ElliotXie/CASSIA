@@ -11,13 +11,16 @@ from openai import OpenAI
 try:
     from CASSIA.engine.main_function_code import *
     from CASSIA.core.model_settings import ModelSettings, get_agent_default
+    from CASSIA.core.proxy_config import set_proxy, get_proxy
 except ImportError:
     try:
         from .main_function_code import *
         from ..core.model_settings import ModelSettings, get_agent_default
+        from ..core.proxy_config import set_proxy, get_proxy
     except ImportError:
         from main_function_code import *
         from model_settings import ModelSettings, get_agent_default
+        from proxy_config import set_proxy, get_proxy
 
 import requests
 import threading
@@ -271,7 +274,9 @@ def runCASSIA(
     reference_provider=None,
     reference_model=None,
     skip_reference_llm=False,
-    verbose=False
+    verbose=False,
+    # Proxy parameter for regions where US API providers are blocked
+    proxy=None
 ):
     """
     Run cell type analysis using OpenAI, Anthropic, OpenRouter, or a custom OpenAI-compatible provider.
@@ -298,6 +303,9 @@ def runCASSIA(
         reference_model (str): Model for reference complexity assessment (default: fast model)
         skip_reference_llm (bool): Skip LLM complexity assessment, use rules only
         verbose (bool): Print reference retrieval info (default: False)
+        proxy (str): Proxy preset for regions where US API providers are blocked.
+            Set to "china" to route all API calls through a Cloudflare Worker proxy.
+            Users still provide their own API keys (BYOK). Default: None (direct connection).
 
     Returns:
         tuple: (analysis_result, conversation_history, reference_info)
@@ -307,6 +315,35 @@ def runCASSIA(
     Raises:
         CASSIAValidationError: If input validation fails
     """
+    # Activate proxy if specified (e.g., proxy="china" for China users)
+    previous_proxy = get_proxy()
+    if proxy is not None:
+        set_proxy(proxy)
+
+    try:
+        return _runCASSIA_inner(
+            model=model, temperature=temperature, marker_list=marker_list,
+            tissue=tissue, species=species, additional_info=additional_info,
+            provider=provider, validator_involvement=validator_involvement,
+            reasoning=reasoning, use_reference=use_reference,
+            reference_threshold=reference_threshold, reference_provider=reference_provider,
+            reference_model=reference_model, skip_reference_llm=skip_reference_llm,
+            verbose=verbose
+        )
+    finally:
+        # Always restore previous proxy state
+        if proxy is not None:
+            set_proxy(previous_proxy)
+
+
+def _runCASSIA_inner(
+    model=None, temperature=None, marker_list=None,
+    tissue="lung", species="human", additional_info=None,
+    provider="openrouter", validator_involvement="v1", reasoning=None,
+    use_reference=False, reference_threshold=40, reference_provider=None,
+    reference_model=None, skip_reference_llm=False, verbose=False
+):
+    """Internal implementation of runCASSIA (proxy is already set by the caller)."""
     # Normalize reasoning parameter (accept string or dict)
     reasoning = _normalize_reasoning(reasoning)
 
@@ -339,7 +376,7 @@ def runCASSIA(
     model = validated['model']
     validator_involvement = validated['validator_involvement']
 
-    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.1")
+    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.4")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=False)
 
@@ -538,7 +575,9 @@ def runCASSIA_batch(
     # API validation parameters
     validate_api_key_before_start=True,
     # Gene ID conversion
-    auto_convert_ids=True
+    auto_convert_ids=True,
+    # Proxy parameter for regions where US API providers are blocked
+    proxy=None
 ):
     """
     Run cell type analysis on multiple clusters in parallel.
@@ -577,6 +616,9 @@ def runCASSIA_batch(
         auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
             If True (default), detects and converts IDs in the marker data before processing.
             Requires the 'mygene' package to be installed for conversion.
+        proxy (str): Proxy preset for regions where US API providers are blocked.
+            Set to "china" to route all API calls through a Cloudflare Worker proxy.
+            Users still provide their own API keys (BYOK). Default: None (direct connection).
 
     Returns:
         dict: Results dictionary containing analysis results for each cell type
@@ -585,6 +627,40 @@ def runCASSIA_batch(
         CASSIAValidationError: If input validation fails
         ValueError: If API key validation fails (when validate_api_key_before_start=True)
     """
+    # Activate proxy if specified (e.g., proxy="china" for China users)
+    previous_proxy = get_proxy()
+    if proxy is not None:
+        set_proxy(proxy)
+
+    try:
+        return _runCASSIA_batch_inner(
+            marker=marker, output_name=output_name, n_genes=n_genes,
+            model=model, temperature=temperature, tissue=tissue, species=species,
+            additional_info=additional_info, celltype_column=celltype_column,
+            gene_column_name=gene_column_name, max_workers=max_workers,
+            provider=provider, max_retries=max_retries, ranking_method=ranking_method,
+            ascending=ascending, validator_involvement=validator_involvement,
+            reasoning=reasoning, use_reference=use_reference,
+            reference_model=reference_model, verbose=verbose,
+            validate_api_key_before_start=validate_api_key_before_start,
+            auto_convert_ids=auto_convert_ids
+        )
+    finally:
+        # Always restore previous proxy state
+        if proxy is not None:
+            set_proxy(previous_proxy)
+
+
+def _runCASSIA_batch_inner(
+    marker, output_name="cell_type_analysis_results.json", n_genes=50,
+    model=None, temperature=None, tissue="lung", species="human",
+    additional_info=None, celltype_column=None, gene_column_name=None,
+    max_workers=10, provider="openrouter", max_retries=1,
+    ranking_method="avg_log2FC", ascending=None, validator_involvement="v1",
+    reasoning=None, use_reference=False, reference_model=None, verbose=True,
+    validate_api_key_before_start=True, auto_convert_ids=True
+):
+    """Internal implementation of runCASSIA_batch (proxy is already set by the caller)."""
     # Normalize reasoning parameter (accept string or dict)
     reasoning = _normalize_reasoning(reasoning)
 
@@ -625,7 +701,7 @@ def runCASSIA_batch(
     ranking_method = validated['ranking_method']
     validator_involvement = validated['validator_involvement']
 
-    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.1")
+    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.4")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=True)
 

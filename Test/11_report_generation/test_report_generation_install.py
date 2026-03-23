@@ -64,7 +64,7 @@ def create_sample_batch_data():
             'Marker Number': str(len(markers[:15])),
             'Marker List': marker_list,
             'Iterations': '1',
-            'Model': 'google/gemini-2.5-flash',
+            'Model': 'google/gemini-3-flash-preview',
             'Provider': 'openrouter',
             'Tissue': 'large intestine',
             'Species': 'human',

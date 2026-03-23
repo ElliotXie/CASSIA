@@ -980,6 +980,9 @@ def iterative_marker_analysis(
             )
             
             # Check if the analysis is complete
+            if conversation is None:
+                print(f"Warning: LLM returned None in iteration {iteration + 1}, retrying...")
+                continue
             if completion_marker in conversation:
                 print(f"Final annotation completed in iteration {iteration + 1}.")
                 messages.append({"role": "assistant", "content": conversation})
@@ -1292,8 +1295,14 @@ def prepare_analysis_data(full_result_path: str, marker_path: str, cluster_name:
                 with open(conversations_json_path, 'r', encoding='utf-8') as f:
                     conversations_data = json.load(f)
 
-                if cluster_name in conversations_data:
-                    cluster_conv = conversations_data[cluster_name]
+                # Try both original and string-converted key (JSON keys are always strings,
+                # but cluster_name may be an integer from pandas DataFrame)
+                lookup_key = cluster_name
+                if cluster_name not in conversations_data and str(cluster_name) in conversations_data:
+                    lookup_key = str(cluster_name)
+
+                if lookup_key in conversations_data:
+                    cluster_conv = conversations_data[lookup_key]
                     # Get only the last (final) annotation - this is what annotation boost needs
                     annotations = cluster_conv.get('annotations', [])
                     if annotations:
@@ -1394,7 +1403,7 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
         return filename
 
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
-    validator_involvement: str = "v1", model: str = "google/gemini-2.5-flash", provider: str = "openrouter", reasoning: Optional[str] = None) -> str:
+    validator_involvement: str = "v1", model: str = "google/gemini-3-flash-preview", provider: str = "openrouter", reasoning: Optional[str] = None) -> str:
     """
     Generate a summarized report from the raw conversation history.
 

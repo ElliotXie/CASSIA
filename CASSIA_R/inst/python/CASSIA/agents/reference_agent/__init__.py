@@ -9,7 +9,7 @@ for cell type annotation tasks. The agent analyzes marker genes to:
 4. Select and extract relevant reference content
 """
 
-from .reference_agent import ReferenceAgent, get_reference_content
+from .reference_agent import ReferenceAgent, get_reference_content, format_reference_for_prompt
 from .complexity_scorer import assess_complexity
 from .reference_selector import select_references
 from .section_extractor import extract_sections, parse_markdown

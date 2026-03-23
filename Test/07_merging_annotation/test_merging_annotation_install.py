@@ -86,7 +86,7 @@ def run_merging_annotation_test(results_dir):
             marker=marker_df,
             output_name=batch_output,
             n_genes=data_config.get('n_genes', 30),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             tissue=data_config.get('tissue', 'large intestine'),
             species=data_config.get('species', 'human'),
@@ -111,7 +111,7 @@ def run_merging_annotation_test(results_dir):
             csv_path=batch_results_file,
             output_path=broad_output,
             provider=llm_config.get('provider', 'openrouter'),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             detail_level="broad",
             batch_size=10
         )
@@ -136,7 +136,7 @@ def run_merging_annotation_test(results_dir):
             csv_path=batch_results_file,
             output_path=all_output,
             provider=llm_config.get('provider', 'openrouter'),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             batch_size=10
         )
 

@@ -10,52 +10,7 @@ import { useApiKeyStore, CustomPresetKey } from '@/lib/stores/api-key-store-simp
 import { useConfigStore } from '@/lib/stores/config-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import modelSettings from '../public/examples/model_settings.json'
-
-// Custom provider presets
-const CUSTOM_PROVIDER_PRESETS = {
-  deepseek: {
-    name: 'DeepSeek',
-    baseUrl: 'https://api.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
-    helpUrl: 'https://platform.deepseek.com/api_keys'
-  },
-  qwen: {
-    name: 'Qwen (Alibaba)',
-    baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
-    models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
-    helpUrl: 'https://dashscope.console.aliyun.com/apiKey'
-  },
-  kimi: {
-    name: 'Kimi (Moonshot)',
-    baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['kimi-k2-turbo-preview'],
-    helpUrl: 'https://platform.moonshot.cn/console/api-keys'
-  },
-  siliconflow: {
-    name: 'SiliconFlow',
-    baseUrl: 'https://api.siliconflow.cn/v1',
-    models: ['deepseek-ai/DeepSeek-V3.2'],
-    helpUrl: 'https://cloud.siliconflow.cn/account/ak'
-  },
-  minimax: {
-    name: 'MiniMax',
-    baseUrl: 'https://api.minimax.io/v1',
-    models: ['MiniMax-M2'],
-    helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
-  },
-  zhipuai: {
-    name: 'Zhipu AI',
-    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-4.6'],
-    helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys'
-  },
-  manual: {
-    name: 'Manual Entry',
-    baseUrl: '',
-    models: [],
-    helpUrl: '#'
-  }
-} as const
+import { CUSTOM_PROVIDER_PRESETS } from '@/lib/config/custom-providers'
 
 // Generate provider configurations from model_settings.json
 function generateProviders() {

@@ -97,7 +97,7 @@ def run_annotation_boost_test():
             marker=marker_df,
             output_name=batch_output,
             n_genes=data_config.get('n_genes', 30),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             tissue=data_config.get('tissue', 'large intestine'),
             species=data_config.get('species', 'human'),
@@ -148,7 +148,7 @@ def run_annotation_boost_test():
 
         print(f"\nRunning annotation boost...")
         print(f"  Cluster: {test_cluster}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+        print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
         print(f"  Search strategy: {search_strategy}")
         print(f"  Max iterations: {num_iterations}")
@@ -161,7 +161,7 @@ def run_annotation_boost_test():
             major_cluster_info=f"{data_config.get('species', 'human')} {data_config.get('tissue', 'large intestine')}",
             output_name=output_name,
             num_iterations=num_iterations,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             provider=llm_config.get('provider', 'openrouter'),
             temperature=llm_config.get('temperature', 0.3),
             conversation_history_mode=conversation_history_mode,

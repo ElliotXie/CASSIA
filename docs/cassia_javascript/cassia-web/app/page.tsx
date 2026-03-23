@@ -15,66 +15,13 @@ import { loadModelSettings, preloadModelSettings, getCachedSettings, type ModelS
 import { EmailConfirmationHandler } from '@/components/EmailConfirmationHandler'
 import { FeedbackSection } from '@/components/FeedbackSection'
 import { testApiKey as testApiKeyFn } from '@/lib/cassia/llm_utils'
+import { DEFAULT_MODELS } from '@/lib/config/model-data'
 
 // Lazy-load components that are only shown after user interaction
 const ContactDialog = dynamic(() => import('@/components/ContactDialog').then(mod => mod.ContactDialog), { ssr: false })
 const UserDashboard = dynamic(() => import('@/components/dashboard/UserDashboard').then(mod => mod.UserDashboard), { ssr: false })
 
-// Custom provider presets (same as ApiKeyInput.tsx)
-const CUSTOM_PROVIDER_PRESETS = {
-  deepseek: {
-    name: 'DeepSeek',
-    baseUrl: 'https://api.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
-    helpUrl: 'https://platform.deepseek.com/api_keys'
-  },
-  qwen: {
-    name: 'Qwen (Alibaba)',
-    baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
-    models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
-    helpUrl: 'https://dashscope.console.aliyun.com/apiKey'
-  },
-  kimi: {
-    name: 'Kimi (Moonshot)',
-    baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-    helpUrl: 'https://platform.moonshot.cn/console/api-keys'
-  },
-  siliconflow: {
-    name: 'SiliconFlow',
-    baseUrl: 'https://api.siliconflow.cn/v1',
-    models: ['Pro/deepseek-ai/DeepSeek-V3', 'deepseek-ai/DeepSeek-V3', 'Qwen/Qwen2.5-72B-Instruct'],
-    helpUrl: 'https://cloud.siliconflow.cn/account/ak'
-  },
-  minimax: {
-    name: 'MiniMax',
-    baseUrl: 'https://api.minimax.io/v1',
-    models: ['MiniMax-M2'],
-    helpUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key'
-  },
-  zhipuai: {
-    name: 'Zhipu AI (智谱)',
-    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-4-plus', 'glm-4-flash', 'glm-4-long'],
-    helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys'
-  },
-  manual: {
-    name: 'Manual Entry',
-    baseUrl: '',
-    models: [],
-    helpUrl: '#'
-  }
-} as const
-
-type CustomPresetKey = keyof typeof CUSTOM_PROVIDER_PRESETS
-
-// Default models fallback (used before settings load)
-const DEFAULT_MODELS: Record<string, string> = {
-  openrouter: 'anthropic/claude-sonnet-4.5',
-  openai: 'gpt-5.2',
-  anthropic: 'claude-sonnet-4.5',
-  custom: ''
-}
+import { CUSTOM_PROVIDER_PRESETS, type CustomPresetKey } from '@/lib/config/custom-providers'
 
 export default function HomePage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
@@ -189,65 +136,15 @@ export default function HomePage() {
         return
       }
 
-      let testUrl = ''
-      let testHeaders: any = {}
-      let testBody: any = {}
+      // Use testApiKeyFn which routes through proxy automatically for China users
+      const result = await testApiKeyFn(tempProvider, tempApiKey, null, tempModel)
 
-      switch (tempProvider) {
-        case 'openai':
-          testUrl = 'https://api.openai.com/v1/chat/completions'
-          testHeaders = {
-            'Authorization': `Bearer ${tempApiKey}`,
-            'Content-Type': 'application/json'
-          }
-          testBody = {
-            model: tempModel,
-            messages: [{ role: 'user', content: 'Hello' }],
-            max_tokens: 5
-          }
-          break
-        case 'anthropic':
-          testUrl = 'https://api.anthropic.com/v1/messages'
-          testHeaders = {
-            'x-api-key': tempApiKey,
-            'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01'
-          }
-          testBody = {
-            model: tempModel,
-            max_tokens: 5,
-            messages: [{ role: 'user', content: 'Hello' }]
-          }
-          break
-        case 'openrouter':
-          testUrl = 'https://openrouter.ai/api/v1/chat/completions'
-          testHeaders = {
-            'Authorization': `Bearer ${tempApiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'CASSIA'
-          }
-          testBody = {
-            model: tempModel,
-            messages: [{ role: 'user', content: 'Hello' }],
-            max_tokens: 5
-          }
-          break
-      }
-
-      const response = await fetch(testUrl, {
-        method: 'POST',
-        headers: testHeaders,
-        body: JSON.stringify(testBody)
-      })
-
-      if (response.ok) {
+      if (result.success) {
         setTestResult('success')
         setTestMessage('API key is valid and working!')
       } else {
-        const errorData = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
         setTestResult('error')
-        setTestMessage(`API test failed: ${errorData.error?.message || response.statusText}`)
+        setTestMessage(`API test failed: ${result.error || 'Unknown error'}`)
       }
     } catch (error: any) {
       setTestResult('error')

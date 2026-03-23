@@ -112,7 +112,7 @@ def test_batch_gpt5_no_reasoning(output_dir):
     marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
 
     print(f"\nProvider: openai")
-    print(f"Model: gpt-5.1")
+    print(f"Model: gpt-5.4")
     print(f"Reasoning: None (Chat Completions API)")
     print(f"Clusters: {test_clusters}")
 
@@ -128,7 +128,7 @@ def test_batch_gpt5_no_reasoning(output_dir):
             marker=marker_df,
             output_name=output_name,
             n_genes=15,
-            model="gpt-5.1",
+            model="gpt-5.4",
             temperature=0.3,
             tissue="blood",
             species="human",
@@ -312,7 +312,7 @@ def run_reasoning_effort_test():
         config={
             "tests": {
                 "single_low": {"model": "openai/gpt-4o", "reasoning": {"effort": "low"}, "provider": "openrouter"},
-                "batch_gpt5": {"model": "gpt-5.1", "reasoning": None, "provider": "openai", "type": "batch"},
+                "batch_gpt5": {"model": "gpt-5.4", "reasoning": None, "provider": "openai", "type": "batch"},
                 "batch_low": {"model": "openai/gpt-4o", "reasoning": {"effort": "low"}, "provider": "openrouter", "type": "batch"}
             }
         },

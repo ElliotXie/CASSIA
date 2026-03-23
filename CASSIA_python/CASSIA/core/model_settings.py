@@ -1,21 +1,24 @@
 """
 Simplified model settings for CASSIA with fuzzy model name matching.
 
+All model configuration is stored in data/model_settings.json (the single source of truth).
+No hardcoded model names exist in this file — everything is read from the JSON config.
+
 Usage:
     from model_settings import resolve_model_name
 
     # Use tier shortcuts
-    model, provider = resolve_model_name("best", "openai")      # -> ("gpt-5.2", "openai")
-    model, provider = resolve_model_name("balanced", "anthropic") # -> ("claude-sonnet-4-5", "anthropic")
-    model, provider = resolve_model_name("fast", "openrouter")    # -> ("google/gemini-3-flash-preview", "openrouter")
+    model, provider = resolve_model_name("best", "openai")
+    model, provider = resolve_model_name("balanced", "anthropic")
+    model, provider = resolve_model_name("fast", "openrouter")
 
-    # Use fuzzy aliases (prints: "Note: Resolved 'gpt' to 'gpt-5.2' for openai")
-    model, provider = resolve_model_name("gpt", "openai")         # -> ("gpt-5.2", "openai")
-    model, provider = resolve_model_name("claude", "anthropic")   # -> ("claude-sonnet-4-5", "anthropic")
-    model, provider = resolve_model_name("gemini", "openrouter")  # -> ("google/gemini-3-flash-preview", "openrouter")
+    # Use fuzzy aliases (prints: "Note: Resolved 'gpt' to '...' for openai")
+    model, provider = resolve_model_name("gpt", "openai")
+    model, provider = resolve_model_name("claude", "anthropic")
+    model, provider = resolve_model_name("gemini", "openrouter")
 
     # Or use exact model names (no resolution note printed)
-    model, provider = resolve_model_name("gpt-4o", "openai")      # -> ("gpt-4o", "openai")
+    model, provider = resolve_model_name("gpt-4o", "openai")
 
 Resolution Priority:
     1. Tier shortcuts (best, balanced, fast, recommended)
@@ -25,7 +28,7 @@ Resolution Priority:
 """
 
 import json
-from typing import Dict, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 
 
@@ -37,7 +40,7 @@ VALID_PROVIDERS = {"openai", "anthropic", "openrouter"}
 
 
 class ModelSettings:
-    """Simple model settings manager."""
+    """Simple model settings manager. Reads all config from model_settings.json."""
 
     def __init__(self, config_path: Optional[str] = None):
         """
@@ -65,77 +68,21 @@ class ModelSettings:
         self.settings = self._load_settings()
 
     def _load_settings(self) -> Dict:
-        """Load settings from JSON file."""
+        """Load settings from JSON file. Raises error if file is missing or invalid."""
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return self._get_fallback_settings()
-
-    def _get_fallback_settings(self) -> Dict:
-        """Fallback settings if JSON file is not available."""
-        return {
-            "providers": {
-                "openai": {
-                    "best": "gpt-5.2",
-                    "balanced": "gpt-4o",
-                    "fast": "gpt-5-mini",
-                    "recommended": "gpt-5.2"
-                },
-                "anthropic": {
-                    "best": "claude-opus-4-5",
-                    "balanced": "claude-sonnet-4-5",
-                    "fast": "claude-haiku-4-5",
-                    "recommended": "claude-sonnet-4-5"
-                },
-                "openrouter": {
-                    "best": "anthropic/claude-sonnet-4.5",
-                    "balanced": "openai/gpt-5.2",
-                    "fast": "google/gemini-3-flash-preview",
-                    "recommended": "anthropic/claude-sonnet-4.5"
-                }
-            },
-            "aliases": self._get_fallback_aliases()
-        }
-
-    def _get_fallback_aliases(self) -> Dict:
-        """Fallback aliases if not in JSON config."""
-        return {
-            "provider_specific": {
-                "openai": {
-                    "gpt": "gpt-5.2",
-                    "gpt4": "gpt-4o",
-                    "gpt-4": "gpt-4o",
-                    "4o": "gpt-4o",
-                    "gpt4o": "gpt-4o",
-                    "gpt5": "gpt-5.2",
-                    "gpt-5": "gpt-5.2",
-                    "mini": "gpt-5-mini",
-                    "gpt-mini": "gpt-5-mini"
-                },
-                "anthropic": {
-                    "claude": "claude-sonnet-4-5",
-                    "sonnet": "claude-sonnet-4-5",
-                    "opus": "claude-opus-4-5",
-                    "haiku": "claude-haiku-4-5"
-                },
-                "openrouter": {
-                    "gpt": "openai/gpt-5.2",
-                    "claude": "anthropic/claude-sonnet-4.5",
-                    "sonnet": "anthropic/claude-sonnet-4.5",
-                    "opus": "anthropic/claude-opus-4.5",
-                    "haiku": "anthropic/claude-haiku-4.5",
-                    "gemini": "google/gemini-3-flash-preview",
-                    "flash": "google/gemini-3-flash-preview",
-                    "deepseek": "deepseek/deepseek-chat"
-                }
-            },
-            "global": {
-                "sonnet": "claude-sonnet-4-5",
-                "opus": "claude-opus-4-5",
-                "haiku": "claude-haiku-4-5"
-            }
-        }
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Model settings file not found: {self.config_path}\n"
+                f"This file is required for CASSIA to work. "
+                f"Please reinstall the package or restore data/model_settings.json."
+            )
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Invalid JSON in model settings file: {self.config_path}\n"
+                f"Error: {e}"
+            )
 
     def _resolve_alias(self, model_name: str, provider: str) -> Tuple[Optional[str], bool]:
         """
@@ -151,7 +98,7 @@ class ModelSettings:
             - was_resolved: True if an alias was matched
         """
         model_lower = model_name.lower().strip()
-        aliases = self.settings.get("aliases", self._get_fallback_aliases())
+        aliases = self.settings.get("aliases", {})
 
         # Try provider-specific alias first
         provider_aliases = aliases.get("provider_specific", {}).get(provider, {})
@@ -182,14 +129,6 @@ class ModelSettings:
 
         Returns:
             Tuple of (resolved_model_name, provider)
-
-        Examples:
-            >>> resolve_model_name("best", "openai")
-            ("gpt-5.2", "openai")
-            >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.2' for openai
-            ("gpt-5.2", "openai")
-            >>> resolve_model_name("gpt-4o", "openai")  # exact name, no note
-            ("gpt-4o", "openai")
         """
         if not model_name:
             raise ValueError("Model name cannot be empty")
@@ -268,7 +207,7 @@ class ModelSettings:
         Returns:
             Dictionary of aliases
         """
-        aliases = self.settings.get("aliases", self._get_fallback_aliases())
+        aliases = self.settings.get("aliases", {})
 
         if provider:
             provider = provider.lower()
@@ -293,7 +232,7 @@ class ModelSettings:
     def print_available_aliases(self):
         """Print all available aliases in a readable format."""
         print("\n=== Available Model Aliases ===\n")
-        aliases = self.settings.get("aliases", self._get_fallback_aliases())
+        aliases = self.settings.get("aliases", {})
 
         print("Provider-Specific Aliases:")
         for provider, provider_aliases in aliases.get("provider_specific", {}).items():
@@ -314,25 +253,21 @@ class ModelSettings:
             provider: Provider name ("openai", "anthropic", "openrouter")
 
         Returns:
-            Dict mapping stage names to model names:
-            - annotation: Model for annotation stage
-            - score: Model for scoring stage
-            - merge: Model for merging stage
-            - annotationboost: Model for annotation boost stage
-
-        Examples:
-            >>> get_pipeline_defaults("openai")
-            {'annotation': 'gpt-5.2', 'score': 'gpt-5.2', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.2'}
-            >>> get_pipeline_defaults("anthropic")
-            {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
+            Dict mapping stage names to model names
         """
         provider_lower = provider.lower().strip()
         defaults = self.settings.get("pipeline_defaults", {})
         provider_defaults = defaults.get(provider_lower, {})
 
         if not provider_defaults:
-            # Fallback to hardcoded defaults if not in JSON
-            return self._get_fallback_pipeline_defaults(provider_lower)
+            # Build from provider tiers as fallback
+            providers = self.settings.get("providers", {}).get(provider_lower, {})
+            return {
+                "annotation": providers.get("recommended", providers.get("best", "")),
+                "score": providers.get("recommended", providers.get("best", "")),
+                "merge": providers.get("fast", ""),
+                "annotationboost": providers.get("recommended", providers.get("best", ""))
+            }
 
         return provider_defaults
 
@@ -346,85 +281,49 @@ class ModelSettings:
             provider: Provider name ("openai", "anthropic", "openrouter")
 
         Returns:
-            Dict with 'model' and 'temperature' keys:
-            {'model': str, 'temperature': float}
-
-        Examples:
-            >>> get_agent_default("annotation", "openrouter")
-            {'model': 'openai/gpt-5.2', 'temperature': 0}
-            >>> get_agent_default("scoring", "openai")
-            {'model': 'gpt-5.2', 'temperature': 0.3}
+            Dict with 'model' and 'temperature' keys
         """
         provider_lower = provider.lower().strip()
         agent_lower = agent_name.lower().strip()
 
-        # Try agent_defaults first (new format with model+temperature)
+        # Try agent_defaults from JSON
         agent_defaults = self.settings.get("agent_defaults", {})
         provider_agents = agent_defaults.get(provider_lower, {})
 
         if agent_lower in provider_agents:
             return provider_agents[agent_lower]
 
-        # Fallback to hardcoded defaults
-        return self._get_fallback_agent_default(agent_lower, provider_lower)
+        # Build from provider tiers as fallback
+        providers = self.settings.get("providers", {}).get(provider_lower, {})
+        default_model = providers.get("recommended", providers.get("best", ""))
+        return {"model": default_model, "temperature": 0}
 
-    def _get_fallback_agent_default(self, agent_name: str, provider: str) -> Dict[str, any]:
-        """Fallback agent defaults if not in JSON config."""
-        fallbacks = {
-            "openrouter": {
-                "annotation": {"model": "openai/gpt-5.2", "temperature": 0},
-                "scoring": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "merging": {"model": "google/gemini-3-flash-preview", "temperature": 0},
-                "subclustering": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0},
-                "subclustering_n": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "annotation_boost": {"model": "anthropic/claude-sonnet-4.5", "temperature": 0.3},
-                "uncertainty": {"model": "openai/gpt-5.2", "temperature": 0.3}
-            },
-            "openai": {
-                "annotation": {"model": "gpt-5.2", "temperature": 0},
-                "scoring": {"model": "gpt-5.2", "temperature": 0.3},
-                "merging": {"model": "gpt-5-mini", "temperature": 0},
-                "subclustering": {"model": "gpt-5.2", "temperature": 0},
-                "subclustering_n": {"model": "gpt-5.2", "temperature": 0.3},
-                "annotation_boost": {"model": "gpt-5.2", "temperature": 0.3},
-                "uncertainty": {"model": "gpt-5.2", "temperature": 0.3}
-            },
-            "anthropic": {
-                "annotation": {"model": "claude-sonnet-4-5", "temperature": 0},
-                "scoring": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "merging": {"model": "claude-haiku-4-5", "temperature": 0},
-                "subclustering": {"model": "claude-sonnet-4-5", "temperature": 0},
-                "subclustering_n": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "annotation_boost": {"model": "claude-sonnet-4-5", "temperature": 0.3},
-                "uncertainty": {"model": "claude-sonnet-4-5", "temperature": 0.3}
-            }
-        }
-        provider_fallbacks = fallbacks.get(provider, fallbacks["openrouter"])
-        return provider_fallbacks.get(agent_name, {"model": "openai/gpt-5.2", "temperature": 0})
+    def get_symphony_presets(self) -> Dict[str, List[str]]:
+        """
+        Get symphony compare model presets.
 
-    def _get_fallback_pipeline_defaults(self, provider: str) -> Dict[str, str]:
-        """Fallback pipeline defaults if not in JSON config."""
-        fallbacks = {
-            "openai": {
-                "annotation": "gpt-5.2",
-                "score": "gpt-5.2",
-                "merge": "gpt-5-mini",
-                "annotationboost": "gpt-5.2"
-            },
-            "anthropic": {
-                "annotation": "claude-sonnet-4-5",
-                "score": "claude-sonnet-4-5",
-                "merge": "claude-haiku-4-5",
-                "annotationboost": "claude-sonnet-4-5"
-            },
-            "openrouter": {
-                "annotation": "openai/gpt-5.2",
-                "score": "anthropic/claude-sonnet-4.5",
-                "merge": "google/gemini-3-flash-preview",
-                "annotationboost": "anthropic/claude-sonnet-4.5"
-            }
-        }
-        return fallbacks.get(provider.lower(), fallbacks["openrouter"])
+        Returns:
+            Dict with 'premium' and 'budget' keys, each containing a list of model IDs
+        """
+        return self.settings.get("symphony_presets", {"premium": [], "budget": []})
+
+    def get_model_personas(self) -> Dict[str, str]:
+        """
+        Get model persona mappings (model ID -> scientist name).
+
+        Returns:
+            Dict mapping model IDs to persona names
+        """
+        return self.settings.get("model_personas", {})
+
+    def get_validation_models(self) -> Dict[str, str]:
+        """
+        Get validation models for API key testing (cheapest models per provider).
+
+        Returns:
+            Dict mapping provider names to validation model IDs
+        """
+        return self.settings.get("validation_models", {})
 
 
 # Global instance with thread-safe initialization
@@ -458,18 +357,6 @@ def resolve_model_name(model_name: str, provider: str, verbose: bool = True) -> 
 
     Returns:
         Tuple of (resolved_model_name, provider)
-
-    Examples:
-        >>> resolve_model_name("best", "openai")
-        ('gpt-5.2', 'openai')
-        >>> resolve_model_name("gpt", "openai")  # prints: Note: Resolved 'gpt' to 'gpt-5.2' for openai
-        ('gpt-5.2', 'openai')
-        >>> resolve_model_name("claude", "anthropic")  # prints: Note: Resolved 'claude' to 'claude-sonnet-4-5' for anthropic
-        ('claude-sonnet-4-5', 'anthropic')
-        >>> resolve_model_name("gemini", "openrouter")  # prints: Note: Resolved 'gemini' to 'google/gemini-3-flash-preview' for openrouter
-        ('google/gemini-3-flash-preview', 'openrouter')
-        >>> resolve_model_name("gpt-4o", "openai")  # no message, exact match
-        ('gpt-4o', 'openai')
     """
     return get_model_settings().resolve_model_name(model_name, provider, verbose)
 
@@ -518,17 +405,7 @@ def get_pipeline_defaults(provider: str) -> Dict[str, str]:
         provider: Provider name ("openai", "anthropic", "openrouter")
 
     Returns:
-        Dict mapping stage names to model names:
-        - annotation: Model for annotation stage
-        - score: Model for scoring stage
-        - merge: Model for merging stage
-        - annotationboost: Model for annotation boost stage
-
-    Examples:
-        >>> get_pipeline_defaults("openai")
-        {'annotation': 'gpt-5.2', 'score': 'gpt-5.2', 'merge': 'gpt-5-mini', 'annotationboost': 'gpt-5.2'}
-        >>> get_pipeline_defaults("anthropic")
-        {'annotation': 'claude-sonnet-4-5', 'score': 'claude-sonnet-4-5', 'merge': 'claude-haiku-4-5', 'annotationboost': 'claude-sonnet-4-5'}
+        Dict mapping stage names to model names
     """
     return get_model_settings().get_pipeline_defaults(provider)
 
@@ -543,17 +420,6 @@ def get_agent_default(agent_name: str, provider: str) -> Dict[str, any]:
         provider: Provider name ("openai", "anthropic", "openrouter")
 
     Returns:
-        Dict with 'model' and 'temperature' keys:
-        {'model': str, 'temperature': float}
-
-    Examples:
-        >>> get_agent_default("annotation", "openrouter")
-        {'model': 'openai/gpt-5.2', 'temperature': 0}
-        >>> get_agent_default("subclustering", "anthropic")
-        {'model': 'claude-sonnet-4-5', 'temperature': 0}
-        >>> get_agent_default("subclustering_n", "anthropic")
-        {'model': 'claude-sonnet-4-5', 'temperature': 0.3}
-        >>> get_agent_default("uncertainty", "openai")
-        {'model': 'gpt-5.2', 'temperature': 0.3}
+        Dict with 'model' and 'temperature' keys
     """
     return get_model_settings().get_agent_default(agent_name, provider)

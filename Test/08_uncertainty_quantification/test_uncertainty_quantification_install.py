@@ -78,7 +78,7 @@ def run_uncertainty_quantification_test(results_dir):
     try:
         print(f"\n--- Test: runCASSIA_n_times_similarity_score ---")
         print(f"  Cluster: {test_cluster}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+        print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
         print(f"  N iterations: 3 (reduced for testing)")
 
@@ -88,7 +88,7 @@ def run_uncertainty_quantification_test(results_dir):
             additional_info=None,
             temperature=llm_config.get('temperature', 0.3),
             marker_list=markers,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             max_workers=llm_config.get('max_workers', 3),
             n=3,
             provider=llm_config.get('provider', 'openrouter'),
@@ -143,7 +143,7 @@ def run_uncertainty_quantification_test(results_dir):
         batch_clusters_tested = test_markers['Broad.cell.type'].tolist()
 
         print(f"  Clusters: {batch_clusters_tested}")
-        print(f"  Model: {llm_config.get('model', 'google/gemini-2.5-flash')}")
+        print(f"  Model: {llm_config.get('model', 'google/gemini-3-flash-preview')}")
         print(f"  Provider: {llm_config.get('provider', 'openrouter')}")
         print(f"  N iterations: 2 (reduced for testing)")
 
@@ -155,7 +155,7 @@ def run_uncertainty_quantification_test(results_dir):
             n=2,  # 2 iterations for testing
             marker=test_markers,
             output_name=batch_output_name,
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             tissue=data_config.get('tissue', 'large intestine'),
             species=data_config.get('species', 'human'),

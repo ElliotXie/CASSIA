@@ -1,5 +1,6 @@
 import { callLLM } from './llm_utils.js';
 import { parseCSV, formatAsCSV } from '../utils/csv-parser.js';
+import { PIPELINE_DEFAULTS } from '../config/model-data.ts';
 
 // ----------------- Core Scoring Functions -----------------
 
@@ -132,7 +133,7 @@ export async function scoreSingleAnalysis(
     majorClusterInfo,
     marker,
     annotationHistory,
-    model = "deepseek/deepseek-chat-v3-0324",
+    model = PIPELINE_DEFAULTS.openrouter.score,
     provider = "openrouter",
     apiKey,
     reasoningEffort = null,
@@ -176,7 +177,7 @@ export async function scoreSingleAnalysis(
  * @param {number} maxRetriesForNone - Max retries for None scores
  * @returns {Promise<Object>} {score, reasoning}
  */
-async function processSingleRow(row, idx, model = "deepseek/deepseek-chat-v3-0324", provider = "openrouter", apiKey, maxRetriesForNone = 3, signal = null) {
+async function processSingleRow(row, idx, model = PIPELINE_DEFAULTS.openrouter.score, provider = "openrouter", apiKey, maxRetriesForNone = 3, signal = null) {
     try {
         // Robust column detection for Species and Tissue
         const findColumn = (options) => {
@@ -386,7 +387,7 @@ export async function scoreAnnotationBatch({
     csvData,
     apiKey,
     maxWorkers = 4,
-    model = "deepseek/deepseek-chat-v3-0324",
+    model = PIPELINE_DEFAULTS.openrouter.score,
     provider = "openrouter",
     maxRetries = 1,
     onProgress = null,

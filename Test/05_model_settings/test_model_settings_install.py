@@ -125,12 +125,12 @@ def run_model_settings_test(results_dir):
     marker_df = get_marker_dataframe_for_cluster("plasma cell", 20)
 
     try:
-        print(f"  Model: google/gemini-2.5-flash")
+        print(f"  Model: google/gemini-3-flash-preview")
         print(f"  Provider: openrouter")
         print(f"  Running annotation...")
 
         result, _, _ = CASSIA.runCASSIA(
-            model="google/gemini-2.5-flash",
+            model="google/gemini-3-flash-preview",
             temperature=0.3,
             marker_list=marker_df,
             tissue=data_config.get('tissue', 'large intestine'),

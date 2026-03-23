@@ -1,5 +1,6 @@
 import { runCASSIA } from './runCASSIA.js';
 import { generateBatchHtmlReportFromData } from './generateBatchReport.js';
+import { MODELS } from '../config/model-data.ts';
 
 // ----------------- Model Presets -----------------
 
@@ -11,13 +12,13 @@ const MODEL_PRESETS = {
         name: 'Performance',
         description: 'Best quality results',
         provider: 'openrouter',
-        model: 'anthropic/claude-sonnet-4'
+        model: MODELS.openrouter.best
     },
     balanced: {
         name: 'Balanced',
         description: 'Good quality with reasonable speed',
         provider: 'openrouter',
-        model: 'google/gemini-3-flash-preview'
+        model: MODELS.openrouter.fast
     }
 };
 
@@ -28,7 +29,7 @@ const MODEL_PRESETS = {
  * @param {string} manualModel - Manual model if preset is null
  * @returns {Object} {provider, model} configuration
  */
-function applyModelPreset(preset, manualProvider = 'openrouter', manualModel = 'google/gemini-3-flash-preview') {
+function applyModelPreset(preset, manualProvider = 'openrouter', manualModel = MODELS.openrouter.fast) {
     if (preset && MODEL_PRESETS[preset]) {
         const presetConfig = MODEL_PRESETS[preset];
         return {
@@ -279,7 +280,7 @@ export async function runCASSIABatch({
     apiKey,
     outputName = "cell_type_analysis_results",
     nGenes = 50,
-    model = "google/gemini-3-flash-preview",
+    model = MODELS.openrouter.fast,
     temperature = 0,
     tissue = "lung",
     species = "human",

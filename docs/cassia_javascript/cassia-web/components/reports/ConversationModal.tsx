@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Search, CheckCircle, FileText, Star, Users } from 'lucide-react'
+import { Search, CheckCircle, FileText, Star, Users, AlertTriangle } from 'lucide-react'
 import { ScoreBadge } from './ScoreBadge'
 import { cn } from '@/lib/utils'
 
@@ -367,8 +367,8 @@ export function ConversationModal({ open, onOpenChange, data }: ConversationModa
                     <details className="mb-3 p-3 bg-red-50 border-l-4 border-red-400 rounded">
                       <summary className="cursor-pointer text-red-700 font-semibold">
                         {validationPassed
-                          ? `⚠️ ${sections.validators.length - 1} failed validation attempt(s) - click to expand`
-                          : `⚠️ All ${sections.validators.length} validation attempts failed - click to expand previous attempts`}
+                          ? <><AlertTriangle className="h-4 w-4 inline mr-1" />{sections.validators.length - 1} failed validation attempt(s) - click to expand</>
+                          : <><AlertTriangle className="h-4 w-4 inline mr-1" />All {sections.validators.length} validation attempts failed - click to expand previous attempts</>}
                       </summary>
                       <div className="mt-3 space-y-3">
                         {sections.validators.slice(0, -1).map((v, i) => (

@@ -207,7 +207,7 @@ def test_runCASSIA_batch_with_scanpy(marker_df):
             marker=marker_df,
             output_name=output_name,
             n_genes=data_config.get('n_genes', 30),
-            model=llm_config.get('model', 'google/gemini-2.5-flash'),
+            model=llm_config.get('model', 'google/gemini-3-flash-preview'),
             temperature=llm_config.get('temperature', 0.3),
             tissue=data_config.get('tissue', 'blood'),
             species=data_config.get('species', 'human'),

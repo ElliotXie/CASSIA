@@ -19,6 +19,13 @@ except ImportError:
     def resolve_model_name(model_name: str, provider: str = None):
         return model_name, provider or "openrouter"
 
+# Import proxy configuration
+try:
+    from .proxy_config import resolve_proxy_url
+except ImportError:
+    def resolve_proxy_url(provider):
+        return None
+
 
 def _handle_api_error(exc: Exception, provider: str, model: str) -> None:
     """
@@ -59,7 +66,7 @@ def _handle_api_error(exc: Exception, provider: str, model: str) -> None:
         logger.error(
             f"Model '{model}' not found for {provider}. "
             f"Run CASSIA.print_available_models('{provider}') to see available models. "
-            f"Or try a common model like 'gpt-4o' or 'claude-sonnet-4-5'."
+            f"Or try a common model like 'gpt-4o' or 'claude-sonnet-4-6'."
         )
 
     # Insufficient quota/credits
@@ -133,16 +140,15 @@ def call_llm(
             # If resolution fails, warn and continue with original model name
             print(f"Warning: Model resolution failed for '{model}': {str(e)}. Using original name.")
     
-    # Default models for each provider if not specified
-    default_models = {
-        "openai": "gpt-4o",
-        "anthropic": "claude-3-5-sonnet-latest",
-        "openrouter": "google/gemini-3-flash-preview",
-    }
-    
-    # Use default model if not specified
+    # Use default model from model_settings.json if not specified
     if not model:
-        model = default_models.get(provider)
+        try:
+            from .model_settings import get_model_settings
+            providers = get_model_settings().settings.get("providers", {})
+            provider_settings = providers.get(provider, {})
+            model = provider_settings.get("balanced") or provider_settings.get("recommended")
+        except Exception:
+            pass
         if not model:
             raise ValueError(f"No model specified and no default available for provider: {provider}")
     
@@ -200,7 +206,12 @@ def call_llm(
         except ImportError:
             raise ImportError("Please install openai package: pip install openai")
 
-        client = openai.OpenAI(api_key=api_key)
+        # Use proxy base URL if active (e.g., Cloudflare Worker for China users)
+        proxy_url = resolve_proxy_url("openai")
+        client_kwargs = {"api_key": api_key}
+        if proxy_url:
+            client_kwargs["base_url"] = proxy_url
+        client = openai.OpenAI(**client_kwargs)
 
         # Handle message history from additional_params (for conversation history)
         params_copy = additional_params.copy() if additional_params else {}
@@ -313,7 +324,12 @@ def call_llm(
         except ImportError:
             raise ImportError("Please install anthropic package: pip install anthropic")
 
-        client = anthropic.Anthropic(api_key=api_key)
+        # Use proxy base URL if active (e.g., Cloudflare Worker for China users)
+        proxy_url = resolve_proxy_url("anthropic")
+        client_kwargs = {"api_key": api_key}
+        if proxy_url:
+            client_kwargs["base_url"] = proxy_url
+        client = anthropic.Anthropic(**client_kwargs)
 
         # Handle message history from additional_params (for conversation history)
         params_copy = additional_params.copy() if additional_params else {}
@@ -395,7 +411,9 @@ def call_llm(
     
     # OpenRouter API call
     elif provider == "openrouter":
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        # Use proxy URL if active (e.g., Cloudflare Worker for China users)
+        proxy_url = resolve_proxy_url("openrouter")
+        url = f"{proxy_url}/chat/completions" if proxy_url else "https://openrouter.ai/api/v1/chat/completions"
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -418,7 +436,7 @@ def call_llm(
         uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
 
         # Auto-default reasoning to "medium" for GPT-5 series models if not explicitly set
-        # Covers: gpt-5, gpt5, gpt-5.1, openai/gpt-5.1, etc.
+        # Covers: gpt-5, gpt5, gpt-5.4, openai/gpt-5.4, etc.
         if reasoning is None and ("gpt-5" in model_lower or "gpt5" in model_lower):
             reasoning = {"effort": "medium"}
 
@@ -435,9 +453,12 @@ def call_llm(
         else:
             data["max_tokens"] = max_tokens
 
-        # Add reasoning configuration if provided (for models that support it)
+        # Add reasoning configuration only for models that support it
+        # OpenRouter's Anthropic Claude models do not accept the reasoning parameter
         if reasoning:
-            data["reasoning"] = reasoning
+            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+            if supports_reasoning:
+                data["reasoning"] = reasoning
 
         try:
             response = requests.post(url, headers=headers, data=json.dumps(data), timeout=180)

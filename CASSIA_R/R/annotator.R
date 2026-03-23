@@ -400,6 +400,20 @@ py_cassia <- NULL
   }
 
   # =========================================================================
+  # Workaround for reticulate >= 1.45 managed Python
+  # reticulate 1.45+ uses uv-based managed Python by default, which can
+  # override user-configured conda/virtualenv environments and cause
+  # missing dependency errors (e.g., pandas). Disable managed Python so
+  # that user environments are respected.
+  # =========================================================================
+  if (is.na(Sys.getenv("RETICULATE_USE_MANAGED_PYTHON", unset = NA))) {
+    ret_version <- tryCatch(utils::packageVersion("reticulate"), error = function(e) NULL)
+    if (!is.null(ret_version) && ret_version >= "1.45") {
+      Sys.setenv(RETICULATE_USE_MANAGED_PYTHON = "FALSE")
+    }
+  }
+
+  # =========================================================================
   # Step 1: Pre-flight checks - Verify Python is available and compatible
   # =========================================================================
 
@@ -1195,6 +1209,32 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 }
 
 
+#' Set API Proxy for Regions Where US Providers Are Blocked
+#'
+#' Routes all CASSIA API calls through a Cloudflare Worker proxy.
+#' Users still provide their own API keys (BYOK) — only network traffic is relayed.
+#'
+#' Note: CASSIA auto-detects China timezone and enables the proxy automatically.
+#' Use this function to override: set_proxy(NULL) to disable, set_proxy("china") to re-enable.
+#'
+#' @param proxy Character string specifying the proxy preset (e.g., "china"), or NULL to disable.
+#' @return Invisible NULL. Called for side effects.
+#' @export
+#' @examples
+#' \dontrun{
+#' set_proxy(NULL)      # Disable auto-detected proxy
+#' set_proxy("china")   # Re-enable proxy
+#' }
+set_proxy <- function(proxy = NULL) {
+  .require_python("set_proxy")
+  py_cassia$set_proxy(proxy)
+  if (!is.null(proxy)) {
+    message(paste0("CASSIA proxy set to '", proxy, "'. All API calls will be routed through the proxy."))
+  } else {
+    message("CASSIA proxy disabled. API calls will use direct connections.")
+  }
+  invisible(NULL)
+}
 
 
 
@@ -1213,9 +1253,10 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 #' @param validator_involvement Validator involvement level: "v0" for high involvement (stronger validation), "v1" for moderate involvement (default: "v1")
 #' @param use_reference Logical. Whether to use reference-based annotation for complex cases (default: FALSE)
 #' @param reasoning Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)
+#' @param proxy Proxy preset for regions where US API providers are blocked. Set to "china" to route through Cloudflare proxy. Default: NULL (direct connection).
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
+runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL, proxy = NULL) {
   # Convert marker_list to character vector if it's a data frame
   if (is.data.frame(marker_list)) {
     # Try common column names for gene markers
@@ -1244,7 +1285,8 @@ runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, ti
       provider = provider,
       validator_involvement = validator_involvement,
       use_reference = use_reference,
-      reasoning = reasoning
+      reasoning = reasoning,
+      proxy = proxy
     )
 
     # Convert structured_output (result[[1]])
@@ -1435,6 +1477,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @param validate_api_key_before_start Logical. If TRUE (default), validates the API key before starting
 #'   batch processing. This prevents confusing error messages when the key is invalid.
 #'   Set to FALSE for custom HTTP endpoints or to skip validation.
+#' @param proxy Proxy preset for regions where US API providers are blocked. Set to "china" to route through Cloudflare proxy. Default: NULL (direct connection).
 #'
 #' @return None. This function creates output files and prints execution time.
 #' @export
@@ -1445,7 +1488,7 @@ runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.js
                           max_workers = 10, provider = "openrouter", n_genes = 50,
                           max_retries = 1, validator_involvement = "v1",
                           ranking_method = "avg_log2FC", ascending = NULL, reasoning = NULL,
-                          validate_api_key_before_start = TRUE) {
+                          validate_api_key_before_start = TRUE, proxy = NULL) {
   .require_python("runCASSIA_batch")
 
   execution_time <- system.time({
@@ -1483,10 +1526,11 @@ if (is.data.frame(marker)) {
       ranking_method = ranking_method,
       ascending = ascending,
       reasoning = reasoning,
-      validate_api_key_before_start = validate_api_key_before_start
+      validate_api_key_before_start = validate_api_key_before_start,
+      proxy = proxy
     )
   })
-  
+
   print(paste("Execution time for runCASSIA_batch:"))
   print(execution_time)
 }
@@ -2167,12 +2211,14 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
 #' @param n_genes Number of top genes to use (default: 50)
+#' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
 #'
 #' @return None. This function processes subclusters and saves results to a CSV file.
 #' @export
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
                                model = "anthropic/claude-sonnet-4.5", temperature = 0,
-                               provider = "openrouter", n_genes = 50L) {
+                               provider = "openrouter", n_genes = 50L,
+                               additional_context = NULL) {
   py_cassia$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
@@ -2180,7 +2226,8 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
     model = model,
     temperature = as.numeric(temperature),
     provider = provider,
-    n_genes = as.integer(n_genes)
+    n_genes = as.integer(n_genes),
+    additional_context = additional_context
   )
 }
 
@@ -2195,12 +2242,14 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' @param provider AI provider to use (default: "anthropic")
 #' @param max_workers Maximum number of workers for parallel processing (default: 5)
 #' @param n_genes Number of top genes to use (default: 50)
+#' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
 #'
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
 #' @export
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name,
                                                model = "anthropic/claude-sonnet-4.5", temperature = 0.3,
-                                               provider = "openrouter", max_workers = 5, n_genes = 50L) {
+                                               provider = "openrouter", max_workers = 5, n_genes = 50L,
+                                               additional_context = NULL) {
   py_cassia$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
@@ -2210,7 +2259,8 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
     temperature = temperature,
     provider = provider,
     max_workers = as.integer(max_workers),
-    n_genes = as.integer(n_genes)
+    n_genes = as.integer(n_genes),
+    additional_context = additional_context
   )
 }
 

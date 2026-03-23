@@ -33,6 +33,23 @@ from .engine.tools_function import (
     set_openrouter_api_key,
 )
 
+# Proxy configuration (for users in regions where US API providers are blocked)
+# Auto-detects China timezone and enables proxy automatically.
+# Users can disable with: CASSIA.set_proxy(None)
+from .core.proxy_config import set_proxy, get_proxy
+
+# Trigger auto-detection and notify user
+_detected_proxy = get_proxy()
+if _detected_proxy:
+    import sys as _sys
+    print(
+        f"[CASSIA] Detected region '{_detected_proxy}' — API calls will be routed through proxy.\n"
+        f"         To disable: CASSIA.set_proxy(None)",
+        file=_sys.stderr
+    )
+    del _sys
+del _detected_proxy
+
 # Main function code exports
 from .engine.main_function_code import *
 

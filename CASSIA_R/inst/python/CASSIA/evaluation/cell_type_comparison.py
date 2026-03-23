@@ -816,14 +816,14 @@ def compareCelltypes(tissue, celltypes, marker_set, species="human", model_prese
             "google/gemini-2.5-pro-preview"
         ],
         "budget": [
-            "google/gemini-2.5-flash",
+            "google/gemini-3-flash-preview",
             "deepseek/deepseek-chat-v3-0324",
             "x-ai/grok-3-mini-beta"
         ]
     }
     # Researcher persona names for each model
     model_personas = {
-        "google/gemini-2.5-flash": "Ada",
+        "google/gemini-3-flash-preview": "Ada",
         "deepseek/deepseek-chat-v3-0324": "Turing",
         "x-ai/grok-3-mini-beta": "Curie",
         "anthropic/claude-3.7-sonnet": "Shannon",

@@ -80,9 +80,9 @@ def run_fuzzy_batch_test():
     # Define fuzzy model name test cases - one per provider
     # Each tuple: (fuzzy_name, provider, expected_resolved_contains)
     fuzzy_test_cases = [
-        ("gpt", "openai", "gpt-5.1"),
-        ("claude", "anthropic", "claude-sonnet-4-5"),
-        ("gemini", "openrouter", "google/gemini-2.5-flash"),
+        ("gpt", "openai", "gpt-5.4"),
+        ("claude", "anthropic", "claude-sonnet-4-6"),
+        ("gemini", "openrouter", "google/gemini-3-flash-preview"),
     ]
 
     passed_count = 0

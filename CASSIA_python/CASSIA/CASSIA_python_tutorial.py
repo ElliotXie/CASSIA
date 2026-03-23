@@ -63,7 +63,7 @@ except ImportError as e:
 # Setup configuration variables
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_name = "intestine_detailed"
-model_name = "google/gemini-2.5-flash-preview"
+model_name = "google/gemini-3-flash-preview"
 provider = "openrouter"
 tissue = "large intestine"
 species = "human"
@@ -327,7 +327,7 @@ def run_uncertainty_quantification(marker_data, provider_test=None):
     
     # If using a custom provider, set a default model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -387,7 +387,7 @@ def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provide
     
     # If using a custom provider, set a default model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -1226,7 +1226,7 @@ def test_validator_involvement(marker_data, provider_test=None):
     
     # If using a custom provider, adjust model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -1353,7 +1353,7 @@ def test_single_annotation_validators(marker_list=None, provider_test=None):
     
     # If using a custom provider, adjust model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-2.5-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
     
@@ -1721,8 +1721,8 @@ maintaining control over API keys. Key features:
     print("\n=== Test 6: Exact Model Names ===")
     exact_tests = [
         ("gpt-4o", "openai"),
-        ("claude-sonnet-4-5", "anthropic"),
-        ("google/gemini-2.5-flash", "openrouter"),
+        ("claude-sonnet-4-6", "anthropic"),
+        ("google/gemini-3-flash-preview", "openrouter"),
     ]
     for model, provider in exact_tests:
         resolved = resolve_model_name(model, provider)
@@ -1744,21 +1744,21 @@ HOW TO USE MODEL SETTINGS IN YOUR CODE:
    runCASSIA_batch(
        marker=markers,
        model="fast",          # Fastest/cheapest option
-       provider="openrouter"  # -> google/gemini-2.5-flash
+       provider="openrouter"  # -> google/gemini-3-flash-preview
    )
 
 3. BEST QUALITY ANALYSIS:
    runCASSIA_batch(
        marker=markers,
        model="best",          # Best model for provider
-       provider="anthropic"   # -> claude-opus-4-5
+       provider="anthropic"   # -> claude-opus-4-6
    )
 
 4. BALANCED ANALYSIS:
    runCASSIA_batch(
        marker=markers,
        model="balanced",      # Good balance of cost/quality
-       provider="openrouter"  # -> openai/gpt-5.1
+       provider="openrouter"  # -> openai/gpt-5.4
    )
 
 5. EXACT MODEL NAME:
@@ -1783,22 +1783,22 @@ HOW TO USE MODEL SETTINGS IN YOUR CODE:
 Available tiers: best, balanced, fast, recommended
 
 OPENAI:
-  best        -> gpt-5.1
+  best        -> gpt-5.4
   balanced    -> gpt-4o
-  fast        -> gpt-5-mini
-  recommended -> gpt-5.1
+  fast        -> gpt-5.4-mini
+  recommended -> gpt-5.4
 
 ANTHROPIC:
-  best        -> claude-opus-4-5
-  balanced    -> claude-sonnet-4-5
+  best        -> claude-opus-4-6
+  balanced    -> claude-sonnet-4-6
   fast        -> claude-haiku-4-5
-  recommended -> claude-sonnet-4-5
+  recommended -> claude-sonnet-4-6
 
 OPENROUTER:
-  best        -> anthropic/claude-sonnet-4.5
-  balanced    -> openai/gpt-5.1
-  fast        -> google/gemini-2.5-flash
-  recommended -> anthropic/claude-sonnet-4.5
+  best        -> anthropic/claude-sonnet-4.6
+  balanced    -> openai/gpt-5.4
+  fast        -> google/gemini-3-flash-preview
+  recommended -> anthropic/claude-sonnet-4.6
 """)
     
     # Test 9: Create comprehensive test results
@@ -1881,7 +1881,7 @@ def main():
                 os.environ["CUSTOMIZED_API_KEY"] = api_key
                 print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
         # Optionally, set a default model for deepseek
-        if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
+        if provider == "https://api.deepseek.com" and model_name == "google/gemini-3-flash-preview":
             model_name = "deepseek-chat"
     elif args.provider:
         provider = args.provider
@@ -1896,7 +1896,7 @@ def main():
                 os.environ["CUSTOMIZED_API_KEY"] = api_key
                 print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
             # Set default model for deepseek
-            if provider == "https://api.deepseek.com" and model_name == "google/gemini-2.5-flash-preview":
+            if provider == "https://api.deepseek.com" and model_name == "google/gemini-3-flash-preview":
                 model_name = "deepseek-chat"
     
     # Setup API keys first
@@ -2077,7 +2077,7 @@ if __name__ == "__main__":
     # Global configuration
     species = "human"
     tissue = "large intestine"
-    model_name = "google/gemini-2.5-flash-preview"  # Using specified model
+    model_name = "google/gemini-3-flash-preview"  # Using specified model
     output_name = f"CASSIA_{tissue.replace(' ', '_')}_{species}"
 
     

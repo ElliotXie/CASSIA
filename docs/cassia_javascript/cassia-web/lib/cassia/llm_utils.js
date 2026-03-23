@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import axios from 'axios';
 import modelSettings from '../../public/examples/model_settings.json';
+import { DEFAULT_MODELS } from '../config/model-data.ts';
+import { getProviderBaseUrl } from './proxy-config.js';
 
 /**
  * Call an LLM from various providers and return the generated text.
@@ -35,16 +37,9 @@ export async function callLLM(
     provider = provider.toLowerCase();
     additionalParams = additionalParams || {};
     
-    // Default models for each provider if not specified
-    const defaultModels = {
-        "openai": "gpt-3.5-turbo",
-        "anthropic": "claude-3-sonnet-20240229",
-        "openrouter": "google/gemini-3-flash-preview",
-    };
-    
     // Use default model if not specified
     if (!model) {
-        model = defaultModels[provider];
+        model = DEFAULT_MODELS[provider];
         if (!model) {
             throw new Error(`No model specified and no default available for provider: ${provider}`);
         }
@@ -65,10 +60,10 @@ export async function callLLM(
     // OpenAI API call - uses Chat Completions by default, Responses API for reasoning
     if (provider === "openai") {
         try {
-            const client = new OpenAI({
-                apiKey,
-                dangerouslyAllowBrowser: true
-            });
+            const { baseUrl: proxyUrl } = getProviderBaseUrl('openai');
+            const clientOpts = { apiKey, dangerouslyAllowBrowser: true };
+            if (proxyUrl) clientOpts.baseURL = proxyUrl;
+            const client = new OpenAI(clientOpts);
 
             // Handle message history properly for OpenAI
             let apiMessages = [...messages];
@@ -264,9 +259,13 @@ export async function callLLM(
             // Add any additional parameters
             Object.assign(messageParams, additionalParams);
 
-            // Call the API
+            // Call the API (use proxy if active for China users)
+            const { baseUrl: anthropicProxy } = getProviderBaseUrl('anthropic');
+            const anthropicApiUrl = anthropicProxy
+                ? `${anthropicProxy}/v1/messages`
+                : 'https://api.anthropic.com/v1/messages';
             const response = await axios.post(
-                'https://api.anthropic.com/v1/messages',
+                anthropicApiUrl,
                 messageParams,
                 { headers, ...(signal ? { signal } : {}) }
             );
@@ -293,7 +292,10 @@ export async function callLLM(
     // OpenRouter API call
     else if (provider === "openrouter") {
         try {
-            const url = "https://openrouter.ai/api/v1/chat/completions";
+            const { baseUrl: openrouterProxy } = getProviderBaseUrl('openrouter');
+            const url = openrouterProxy
+                ? `${openrouterProxy}/chat/completions`
+                : "https://openrouter.ai/api/v1/chat/completions";
             
             const headers = {
                 "Authorization": `Bearer ${apiKey}`,

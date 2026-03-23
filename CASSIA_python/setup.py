@@ -5,7 +5,7 @@ setup(
     version="0.3.18",
     packages=find_packages(),
     package_data={
-        'CASSIA': ['data/*.csv'],  # Include all CSV files in data directory
+        'CASSIA': ['data/*.csv', 'data/*.json', 'data/*.md'],
     },
     include_package_data=True,  # This tells setuptools to include package_data
     install_requires=[

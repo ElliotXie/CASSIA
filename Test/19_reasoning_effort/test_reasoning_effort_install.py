@@ -106,7 +106,7 @@ def test_openai_gpt5_no_reasoning():
     marker_list = get_cluster_markers('monocyte', n_genes=15)
 
     print(f"\nProvider: openai (direct)")
-    print(f"Model: gpt-5.1")
+    print(f"Model: gpt-5.4")
     print(f"Reasoning: None (Chat Completions API)")
     print(f"Markers: {len(marker_list)} genes")
 
@@ -118,7 +118,7 @@ def test_openai_gpt5_no_reasoning():
         print("\nRunning runCASSIA...")
         result, conv, extra = runCASSIA(
             marker_list=marker_list,
-            model="gpt-5.1",
+            model="gpt-5.4",
             temperature=0.3,
             tissue="blood",
             species="human",
@@ -164,7 +164,7 @@ def test_batch_gpt5_no_reasoning(output_dir):
     marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
 
     print(f"\nProvider: openai (direct)")
-    print(f"Model: gpt-5.1")
+    print(f"Model: gpt-5.4")
     print(f"Reasoning: None (Chat Completions API)")
     print(f"Clusters: {test_clusters}")
 
@@ -180,7 +180,7 @@ def test_batch_gpt5_no_reasoning(output_dir):
             marker=marker_df,
             output_name=output_name,
             n_genes=15,
-            model="gpt-5.1",
+            model="gpt-5.4",
             temperature=0.3,
             tissue="blood",
             species="human",
@@ -239,7 +239,7 @@ def test_openrouter_reasoning_effort(output_dir, effort_level: str):
     marker_df = full_df[full_df['Broad.cell.type'].isin(test_clusters)].copy()
 
     print(f"\nProvider: openrouter")
-    print(f"Model: openai/gpt-5.1")
+    print(f"Model: openai/gpt-5.4")
     print(f"Reasoning: '{effort_level}'")
     print(f"Clusters: {test_clusters}")
 
@@ -255,7 +255,7 @@ def test_openrouter_reasoning_effort(output_dir, effort_level: str):
             marker=marker_df,
             output_name=output_name,
             n_genes=15,
-            model="openai/gpt-5.1",
+            model="openai/gpt-5.4",
             temperature=0.3,
             tissue="blood",
             species="human",
@@ -392,10 +392,10 @@ def run_reasoning_effort_test():
             "pip_install_info": pip_info,
             "tests": {
                 "gpt4o": {"model": "gpt-4o", "reasoning": None, "api": "Chat Completions"},
-                "gpt5_no_reasoning": {"model": "gpt-5.1", "reasoning": None, "api": "Chat Completions"},
+                "gpt5_no_reasoning": {"model": "gpt-5.4", "reasoning": None, "api": "Chat Completions"},
                 "gpt5_with_reasoning": {"model": "gpt-5", "reasoning": "medium", "api": "Responses", "status": "skipped"},
-                "batch_gpt5": {"model": "gpt-5.1", "reasoning": None, "api": "Chat Completions", "type": "batch"},
-                "openrouter_low": {"model": "openai/gpt-5.1", "reasoning": "low", "provider": "openrouter"}
+                "batch_gpt5": {"model": "gpt-5.4", "reasoning": None, "api": "Chat Completions", "type": "batch"},
+                "openrouter_low": {"model": "openai/gpt-5.4", "reasoning": "low", "provider": "openrouter"}
             }
         },
         duration_seconds=total_duration,

@@ -1,0 +1,8 @@
+name = "cassia-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Bind to your custom domain (requires cassia.bio DNS on Cloudflare)
+# routes = [
+#   { pattern = "proxy.cassia.bio/*", zone_name = "cassia.bio" }
+# ]

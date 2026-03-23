@@ -3,8 +3,8 @@ try:
     from CASSIA.core.model_settings import get_agent_default
 except ImportError:
     try:
-        from .tools_function import *
-        from ..core.model_settings import get_agent_default
+        from ...engine.tools_function import *
+        from ...core.model_settings import get_agent_default
     except ImportError:
         from tools_function import *
         from model_settings import get_agent_default
@@ -13,7 +13,7 @@ try:
     from CASSIA.core.llm_utils import *
 except ImportError:
     try:
-        from .llm_utils import *
+        from ...core.llm_utils import *
     except ImportError:
         from llm_utils import *
 
@@ -68,7 +68,7 @@ def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=N
 
 
 
-def construct_prompt_from_csv_subcluster(marker, major_cluster_info,n_genes=50):
+def construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=50, additional_context=None):
     # Process DataFrame if it has more than 2 columns
     if len(marker.columns) > 2:
         print(f"Processing input dataframe to get top {n_genes} markers")
@@ -102,11 +102,14 @@ The clusters are identified by their Cluster ID below:
         markers = row.iloc[1]     # Use iloc for positional indexing
         prompt += f"Cluster {cluster_id}: {markers}\n"
 
+    if additional_context:
+        prompt += f"\n\nAdditional context that may help with the analysis:\n{additional_context}"
+
     return prompt
 
 
 
-def annotate_subclusters(marker, major_cluster_info, model=None, temperature=None, provider="openrouter", n_genes=50):
+def annotate_subclusters(marker, major_cluster_info, model=None, temperature=None, provider="openrouter", n_genes=50, additional_context=None):
     """
     Annotate subclusters using an LLM.
 
@@ -121,7 +124,7 @@ def annotate_subclusters(marker, major_cluster_info, model=None, temperature=Non
     Returns:
         The generated annotation as a string
     """
-    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes)
+    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes, additional_context=additional_context)
     output_text = subcluster_agent_annotate_subcluster(prompt, model=model, temperature=temperature, provider=provider)
     return output_text
 
@@ -201,13 +204,14 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 
 
 
-def write_results_to_csv(results, output_name='subcluster_results'):
+def write_results_to_csv(results, output_name='subcluster_results', marker_map=None):
     """
     Extract cell type results from LLM output (XML format) and write to CSV file
 
     Args:
         results (str): LLM analysis results with XML-tagged clusters
         output_name (str): Base name for output file (will add .csv if not present)
+        marker_map (dict): Optional mapping of cluster_id (str) -> marker genes string
 
     Returns:
         pandas.DataFrame: DataFrame containing the extracted results
@@ -237,7 +241,8 @@ def write_results_to_csv(results, output_name='subcluster_results'):
             reason_match = re.search(r'<reason>(.*?)</reason>', content, re.DOTALL | re.IGNORECASE)
             reason = reason_match.group(1).strip() if reason_match else ''
 
-            rows.append([cluster_id, celltype1, celltype2, '', reason])
+            markers = marker_map.get(str(cluster_id), '') if marker_map else ''
+            rows.append([cluster_id, celltype1, celltype2, markers, reason])
 
     if rows:
         df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
@@ -262,7 +267,7 @@ def write_results_to_csv(results, output_name='subcluster_results'):
 
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name,
-                       model=None, temperature=None, provider="openrouter", n_genes=50):
+                       model=None, temperature=None, provider="openrouter", n_genes=50, additional_context=None):
     """
     Process subclusters from marker data and generate annotated results.
 
@@ -287,15 +292,22 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
             temperature = defaults["temperature"]
 
     # Construct prompt and get analysis from LLM
-    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes)
+    prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes, additional_context=additional_context)
     output_text = subcluster_agent_annotate_subcluster(prompt, model=model, temperature=temperature, provider=provider)
 
     # Extract structured results from the analysis text
     results = extract_subcluster_results_with_llm(output_text, provider=provider, model=model, temperature=temperature)
-    # print(results)  # Remove or comment out this line to avoid showing conversation history
-    
+
+    # Build marker_map from input data for populating key_markers column
+    try:
+        get_top_markers = _get_get_top_markers()
+        marker_df = get_top_markers(marker, n_genes=n_genes) if len(marker.columns) > 2 else marker.copy()
+    except Exception:
+        marker_df = marker.copy()
+    marker_map = {str(row.iloc[0]): str(row.iloc[1]) for _, row in marker_df.iterrows()}
+
     # Save results to CSV
-    write_results_to_csv(results, output_name)
+    write_results_to_csv(results, output_name, marker_map=marker_map)
 
     # --- Generate HTML report for the single run CSV ---
     try:
@@ -316,7 +328,8 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                           model=None, temperature=None,
-                          provider="openrouter", max_workers=5, n_genes=50):
+                          provider="openrouter", max_workers=5, n_genes=50,
+                          additional_context=None):
     """
     Run multiple subcluster analyses in parallel and save results.
 
@@ -342,10 +355,19 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         if temperature is None:
             temperature = defaults["temperature"]
     
+    # Build marker_map from input data for populating key_markers column
+    try:
+        get_top_markers = _get_get_top_markers()
+        marker_df_for_map = get_top_markers(marker, n_genes=n_genes) if len(marker.columns) > 2 else marker.copy()
+    except Exception:
+        marker_df_for_map = marker.copy()
+    marker_map = {str(row.iloc[0]): str(row.iloc[1]) for _, row in marker_df_for_map.iterrows()}
+
     def run_single_analysis(i):
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info,
-                                         model=model, temperature=temperature, provider=provider, n_genes=n_genes)
+                                         model=model, temperature=temperature, provider=provider, n_genes=n_genes,
+                                         additional_context=additional_context)
 
         # Extract results using XML format
         results = extract_subcluster_results_with_llm_multiple_output(output_text, provider=provider, model=model, temperature=temperature)
@@ -370,7 +392,8 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                 reason_match = re.search(r'<reason>(.*?)</reason>', content, re.DOTALL | re.IGNORECASE)
                 reason = reason_match.group(1).strip() if reason_match else ''
 
-                rows.append([cluster_id, celltype1, celltype2, '', reason])
+                markers = marker_map.get(str(cluster_id), '')
+                rows.append([cluster_id, celltype1, celltype2, markers, reason])
 
         if rows:
             df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])

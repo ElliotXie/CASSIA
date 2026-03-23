@@ -21,7 +21,7 @@ def run_full_pipeline_test():
     tissue = "bone marrow"
     num_runs = 3
     generator_model_name = "openai/gpt-4o-2024-11-20"
-    formatter_model_name = "google/gemini-2.5-flash"
+    formatter_model_name = "google/gemini-3-flash-preview"
     # -----------------------
 
     # --- Step 1: Run the multi-analysis ---

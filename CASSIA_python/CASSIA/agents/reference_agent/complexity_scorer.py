@@ -12,14 +12,11 @@ from typing import Dict, List, Optional
 
 # Handle both package and direct imports
 try:
-    from ..llm_utils import call_llm
+    from CASSIA.core.llm_utils import call_llm
 except ImportError:
     try:
-        from CASSIA.llm_utils import call_llm
+        from ...core.llm_utils import call_llm
     except ImportError:
-        # Fallback for direct script execution
-        import sys
-        sys.path.insert(0, str(Path(__file__).parent.parent))
         from llm_utils import call_llm
 
 
@@ -103,12 +100,11 @@ def assess_complexity_step1(
     """
     # Use fast model by default for cost efficiency
     if model is None:
-        default_models = {
-            "openrouter": "google/gemini-2.5-flash",
-            "openai": "gpt-4o-mini",
-            "anthropic": "claude-3-haiku-20240307"
-        }
-        model = default_models.get(provider, "google/gemini-2.5-flash")
+        try:
+            from ...core.model_settings import get_model_settings
+            model = get_model_settings().settings.get("providers", {}).get(provider, {}).get("fast", "google/gemini-3-flash-preview")
+        except Exception:
+            model = "google/gemini-3-flash-preview"
 
     # Format markers
     markers_str = ", ".join(markers[:20])
@@ -276,12 +272,11 @@ def select_references_step2(
     """
     # Use fast model by default
     if model is None:
-        default_models = {
-            "openrouter": "google/gemini-2.5-flash",
-            "openai": "gpt-4o-mini",
-            "anthropic": "claude-3-haiku-20240307"
-        }
-        model = default_models.get(provider, "google/gemini-2.5-flash")
+        try:
+            from ...core.model_settings import get_model_settings
+            model = get_model_settings().settings.get("providers", {}).get(provider, {}).get("fast", "google/gemini-3-flash-preview")
+        except Exception:
+            model = "google/gemini-3-flash-preview"
 
     # Load router content
     router_content = _load_router_content()

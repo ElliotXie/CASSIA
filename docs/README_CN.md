@@ -130,7 +130,7 @@ runCASSIA_batch(
     output_name = "cassia_results",              # 输出文件名
     tissue = "Large Intestine",                  # 组织类型
     species = "Human",                           # 物种
-    model = "anthropic/claude-sonnet-4.5",       # 使用的模型
+    model = "anthropic/claude-sonnet-4.6",       # 使用的模型
     provider = "openrouter",                     # API 提供商
     max_workers = 4                              # 并行工作线程数
 )
@@ -147,23 +147,23 @@ runCASSIA_batch(
 
 
 ### OpenAI
-- `gpt-5.1`: 均衡选择（推荐）
+- `gpt-5.4`: 均衡选择（推荐）
 - `gpt-4o`: 用于文章的基准测试
 
 ### OpenRouter
-- `openai/gpt-5.1`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）（推荐）
-- `anthropic/claude-sonnet-4.5`: OpenRouter 上表现最好的模型（推荐）
-- `google/gemini-2.5-flash`: 最好的低费率大模型之一
-- `x-ai/grok-4-fast`: 最好的低费率大模型之一
+- `openai/gpt-5.4`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）（推荐）
+- `anthropic/claude-sonnet-4.6`: OpenRouter 上表现最好的模型（推荐）
+- `google/gemini-3-flash-preview`: 最好的低费率大模型之一
+- `x-ai/grok-4.20-beta`: 最好的低费率大模型之一
 
 ### Anthropic
-- `claude-sonnet-4-5`: 最新的高性能模型（最推荐）
+- `claude-sonnet-4-6`: 最新的高性能模型（最推荐）
 
 ### 其他提供商
 这些模型可以通过其自有 API 使用。设置方法请参阅 [自定义 API 提供商](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#自定义-api-提供商)。
 - `deepseek-chat` (DeepSeek v3.2): 高性能，价格实惠。提供商：`https://api.deepseek.com`
-- `glm-4.6` (GLM 4.6): 快速且经济实惠。提供商：`https://api.z.ai/api/paas/v4/`
-- `kimi-k2` (Kimi K2): 强大的推理能力。提供商：`https://api.moonshot.cn/v1`
+- `glm-5` (GLM 5): 快速且经济实惠。提供商：`https://api.z.ai/api/paas/v4/`
+- `kimi-k2.5` (Kimi K2.5): 强大的推理能力。提供商：`https://api.moonshot.ai/v1`
 
 ### 本地 LLM
 - `gpt-oss:20b`: 可通过 Ollama 在本地运行。适合大批量分析，准确率可接受。设置方法请参阅 [本地 LLM](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#本地-llmollama-lm-studio)。

@@ -19,28 +19,28 @@ class TestPipelineDefaults:
         """Test OpenAI provider defaults."""
         defaults = get_pipeline_defaults("openai")
 
-        assert defaults["annotation"] == "gpt-5.1"
-        assert defaults["score"] == "gpt-5.1"
-        assert defaults["merge"] == "gpt-5-mini"
-        assert defaults["annotationboost"] == "gpt-5.1"
+        assert defaults["annotation"] == "gpt-5.4"
+        assert defaults["score"] == "gpt-5.4"
+        assert defaults["merge"] == "gpt-5.4-mini"
+        assert defaults["annotationboost"] == "gpt-5.4"
 
     def test_anthropic_defaults(self):
         """Test Anthropic provider defaults."""
         defaults = get_pipeline_defaults("anthropic")
 
-        assert defaults["annotation"] == "claude-sonnet-4-5"
-        assert defaults["score"] == "claude-sonnet-4-5"
+        assert defaults["annotation"] == "claude-sonnet-4-6"
+        assert defaults["score"] == "claude-sonnet-4-6"
         assert defaults["merge"] == "claude-haiku-4-5"
-        assert defaults["annotationboost"] == "claude-sonnet-4-5"
+        assert defaults["annotationboost"] == "claude-sonnet-4-6"
 
     def test_openrouter_defaults(self):
         """Test OpenRouter provider defaults."""
         defaults = get_pipeline_defaults("openrouter")
 
-        assert defaults["annotation"] == "openai/gpt-5.1"
-        assert defaults["score"] == "anthropic/claude-sonnet-4.5"
-        assert defaults["merge"] == "google/gemini-2.5-flash"
-        assert defaults["annotationboost"] == "anthropic/claude-sonnet-4.5"
+        assert defaults["annotation"] == "openai/gpt-5.4"
+        assert defaults["score"] == "anthropic/claude-sonnet-4.6"
+        assert defaults["merge"] == "google/gemini-3-flash-preview"
+        assert defaults["annotationboost"] == "anthropic/claude-sonnet-4.6"
 
     def test_case_insensitive(self):
         """Test that provider names are case-insensitive."""
@@ -71,7 +71,7 @@ class TestPipelineDefaults:
         settings = get_model_settings()
 
         defaults = settings.get_pipeline_defaults("openai")
-        assert defaults["annotation"] == "gpt-5.1"
+        assert defaults["annotation"] == "gpt-5.4"
 
     def test_defaults_not_empty(self):
         """Test that no default values are empty strings."""
