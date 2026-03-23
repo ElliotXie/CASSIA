@@ -32,7 +32,7 @@
             "gpt-5mini",
             "mini"
           ],
-          "description": "GPT-5 Mini - fast efficient model",
+          "description": "GPT-5.4 Mini - fast efficient model",
           "recommended": false,
           "cost_tier": "low",
           "context_window": 128000,
@@ -213,7 +213,7 @@
             "gpt5mini",
             "mini"
           ],
-          "description": "GPT-5 Mini - fast efficient model",
+          "description": "GPT-5.4 Mini - fast efficient model",
           "recommended": false,
           "cost_tier": "low",
           "context_window": 128000,
@@ -248,7 +248,7 @@
             "gemini-3-flash-preview",
             "gemini25flash"
           ],
-          "description": "Gemini 2.5 Flash - fast low-cost model",
+          "description": "Gemini 3 Flash - fast low-cost model",
           "recommended": false,
           "cost_tier": "low",
           "context_window": 1000000,

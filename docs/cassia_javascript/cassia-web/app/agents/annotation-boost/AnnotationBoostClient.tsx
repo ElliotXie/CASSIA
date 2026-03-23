@@ -115,7 +115,7 @@ export default function AnnotationBoostClient() {
                 if (globalProvider && provider !== globalProvider) {
                     setProvider(globalProvider as Provider);
                 }
-                // For annotation boost, we prefer Gemini 2.5 Flash as default
+                // For annotation boost, we prefer Gemini 3 Flash as default
                 const savedModel = localStorage.getItem('annotation-boost-model');
                 if (savedModel && savedModel !== model) {
                     setModel(savedModel);

@@ -490,7 +490,7 @@ async function runCellTypeAnalysis(model, temperature, markerList, tissue, speci
 async function runCellTypeAnalysisClaude(model, temperature, markerList, tissue, species, additionalInfo, validatorInvolvement = "v1", apiKey = null, reasoningConfig = null, signal = null) {
     const isTissueBlind = tissue ? ['none', 'tissue blind'].includes(tissue.toLowerCase()) : true;
 
-    // Reasoning config for Anthropic models that support it (Claude Opus 4.5)
+    // Reasoning config for Anthropic models that support it (Claude Opus 4.6)
     // Use reasoningConfig passed as parameter
 
     const finalAnnotationAgent = new Agent(

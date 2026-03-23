@@ -87,28 +87,28 @@ export default function BatchClient() {
   // Model options for each provider (same as CASSIA Pipeline)
   const modelOptions = {
     openrouter: [
-      { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.6', cost: 'high', speed: 'medium' },
       { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
-      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' },
-      { id: 'openai/gpt-5.4', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
-      { id: 'openai/gpt-5.4-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6', cost: 'high', speed: 'slow' },
+      { id: 'openai/gpt-5.4', name: 'GPT-5.4', cost: 'high', speed: 'medium' },
+      { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini', cost: 'low', speed: 'fast' },
       { id: 'openai/gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' },
       { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
-      { id: 'google/gemini-3-flash-preview', name: 'Gemini 2.5 Flash', cost: 'low', speed: 'fast' },
+      { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro', cost: 'high', speed: 'medium' },
       { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
       { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', cost: 'low', speed: 'fast' },
       { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', cost: 'medium', speed: 'fast' }
     ],
     openai: [
-      { id: 'gpt-5.4', name: 'GPT-5.2', cost: 'high', speed: 'medium' },
-      { id: 'gpt-5.4-mini', name: 'GPT-5 Mini', cost: 'low', speed: 'fast' },
+      { id: 'gpt-5.4', name: 'GPT-5.4', cost: 'high', speed: 'medium' },
+      { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini', cost: 'low', speed: 'fast' },
       { id: 'gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' }
     ],
     anthropic: [
-      { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.5', cost: 'high', speed: 'medium' },
+      { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.6', cost: 'high', speed: 'medium' },
       { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', cost: 'low', speed: 'fast' },
-      { id: 'claude-opus-4.6', name: 'Claude Opus 4.5', cost: 'high', speed: 'slow' }
+      { id: 'claude-opus-4.6', name: 'Claude Opus 4.6', cost: 'high', speed: 'slow' }
     ],
     custom: []  // User enters model name manually
   }
@@ -315,7 +315,7 @@ export default function BatchClient() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">Model:</span>
-                          <span className="text-sm">Claude Sonnet 4.5</span>
+                          <span className="text-sm">Claude Sonnet 4.6</span>
                         </div>
                         <div className="flex gap-1 flex-wrap">
                           <Badge variant="default" className="text-xs">
