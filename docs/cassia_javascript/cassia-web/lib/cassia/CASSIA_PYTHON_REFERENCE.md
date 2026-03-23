@@ -210,8 +210,8 @@ def call_llm(
 ```
 
 **Supported Providers**:
-- OpenAI (gpt-4o, gpt-5-mini, gpt-5.1)
-- Anthropic (claude-sonnet-4-5, claude-opus-4.5)
+- OpenAI (gpt-4o, gpt-5.4-mini, gpt-5.4)
+- Anthropic (claude-sonnet-4-6, claude-opus-4.6)
 - OpenRouter (gemini, llama, deepseek)
 - Custom OpenAI-compatible endpoints
 
@@ -226,9 +226,9 @@ def call_llm(
 **Tier Shortcuts**:
 | Tier | Purpose | Example Models |
 |------|---------|----------------|
-| `"best"` | Highest quality | gpt-5.1, claude-opus-4.5, gemini-2.5-pro |
-| `"balanced"` | Good quality/speed | gpt-4o, claude-sonnet-4-5 |
-| `"fast"` | Quick responses | gpt-5-mini, gemini-flash |
+| `"best"` | Highest quality | gpt-5.4, claude-opus-4.6, gemini-3-pro-preview |
+| `"balanced"` | Good quality/speed | gpt-4o, claude-sonnet-4-6 |
+| `"fast"` | Quick responses | gpt-5.4-mini, gemini-flash |
 | `"recommended"` | Internal defaults | Provider-specific |
 
 **Method**: `resolve_model_name(name, provider) → (model, provider)`

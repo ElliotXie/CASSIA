@@ -14,7 +14,7 @@
             "gpt5",
             "gpt51"
           ],
-          "description": "GPT-5.1 - high-performance model",
+          "description": "GPT-5.4 - high-performance model",
           "recommended": false,
           "cost_tier": "high",
           "context_window": 128000,
@@ -73,12 +73,12 @@
           "actual_name": "claude-sonnet-4.6",
           "aliases": [
             "claude-4.5-sonnet",
-            "claude45sonnet",
+            "claude46sonnet",
             "sonnet",
             "claude-sonnet",
-            "sonnet-4.5"
+            "sonnet-4.6"
           ],
-          "description": "Claude Sonnet 4.5 - high-performance model",
+          "description": "Claude Sonnet 4.6 - high-performance model",
           "recommended": true,
           "cost_tier": "high",
           "context_window": 200000,
@@ -93,7 +93,7 @@
           "actual_name": "claude-haiku-4.5",
           "aliases": [
             "claude-4.5-haiku",
-            "claude45haiku",
+            "claude46haiku",
             "haiku",
             "claude-haiku"
           ],
@@ -112,11 +112,11 @@
           "actual_name": "claude-opus-4.6",
           "aliases": [
             "claude-4.5-opus",
-            "claude45opus",
+            "claude46opus",
             "opus",
             "claude-opus"
           ],
-          "description": "Claude Opus 4.5 - most capable model",
+          "description": "Claude Opus 4.6 - most capable model",
           "recommended": false,
           "cost_tier": "high",
           "context_window": 200000,
@@ -139,10 +139,10 @@
           "actual_name": "anthropic/claude-sonnet-4.6",
           "aliases": [
             "claude-sonnet-4.6",
-            "claude45-sonnet",
-            "sonnet-4.5"
+            "claude46-sonnet",
+            "sonnet-4.6"
           ],
-          "description": "Claude Sonnet 4.5 - high-performance model",
+          "description": "Claude Sonnet 4.6 - high-performance model",
           "recommended": true,
           "cost_tier": "high",
           "context_window": 200000,
@@ -157,7 +157,7 @@
           "actual_name": "anthropic/claude-haiku-4.5",
           "aliases": [
             "claude-haiku-4.5",
-            "claude45haiku",
+            "claude46haiku",
             "haiku"
           ],
           "description": "Claude Haiku 4.5 - fast efficient model",
@@ -175,10 +175,10 @@
           "actual_name": "anthropic/claude-opus-4.6",
           "aliases": [
             "claude-opus-4.6",
-            "claude45opus",
+            "claude46opus",
             "opus"
           ],
-          "description": "Claude Opus 4.5 - most capable model",
+          "description": "Claude Opus 4.6 - most capable model",
           "recommended": false,
           "cost_tier": "high",
           "context_window": 200000,
@@ -195,7 +195,7 @@
             "gpt-5.4",
             "gpt51"
           ],
-          "description": "GPT-5.1 - high-performance model",
+          "description": "GPT-5.4 - high-performance model",
           "recommended": false,
           "cost_tier": "high",
           "context_window": 128000,
@@ -259,14 +259,14 @@
             "merging"
           ]
         },
-        "google/gemini-2.5-pro": {
-          "actual_name": "google/gemini-2.5-pro",
+        "google/gemini-3-pro-preview": {
+          "actual_name": "google/gemini-3-pro-preview",
           "aliases": [
-            "gemini-2.5-pro",
+            "gemini-3-pro-preview",
             "gemini25pro",
             "gemini-pro"
           ],
-          "description": "Gemini 2.5 Pro - high-performance model",
+          "description": "Gemini 3 Pro - high-performance model",
           "recommended": true,
           "cost_tier": "high",
           "context_window": 2000000,
@@ -402,7 +402,7 @@
     "annotation_boost": {
       "best": "anthropic/claude-sonnet-4.6",
       "alternatives": [
-        "google/gemini-2.5-pro",
+        "google/gemini-3-pro-preview",
         "openai/gpt-5.4"
       ],
       "description": "Models optimized for deep annotation analysis"
@@ -446,7 +446,7 @@
         "anthropic/claude-sonnet-4.6",
         "anthropic/claude-opus-4.6",
         "openai/gpt-5.4",
-        "google/gemini-2.5-pro",
+        "google/gemini-3-pro-preview",
         "gpt-5.4",
         "claude-sonnet-4.6",
         "claude-opus-4.6"
