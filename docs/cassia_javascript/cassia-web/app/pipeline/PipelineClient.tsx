@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Play, Settings, HelpCircle, FileText, Dna, FolderOpen, Rocket, BarChart3, Search, Zap } from 'lucide-react'
+import { ArrowLeft, Play, Settings, HelpCircle, FileText, Workflow, FolderOpen, Rocket, BarChart3, Search, Zap } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { ProgressTracker } from '@/components/ProgressTracker'
@@ -144,7 +144,7 @@ export default function PipelineClient() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg animate-glow">
-                    <Dna className="h-6 w-6 text-white" />
+                    <Workflow className="h-6 w-6 text-white" />
                   </div>
                 </div>
                 <div>
