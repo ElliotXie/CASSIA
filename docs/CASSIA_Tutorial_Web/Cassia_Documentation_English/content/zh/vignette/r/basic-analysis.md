@@ -93,12 +93,12 @@ results <- runCASSIA_pipeline(
     species = "human", # 指定"human"或"mouse"
     marker = markers,
     max_workers = 4, # 根据您计算机的性能调整
-    annotation_model = "anthropic/claude-sonnet-4.5", # 用于初始注释的模型
+    annotation_model = "anthropic/claude-sonnet-4.6", # 用于初始注释的模型
     annotation_provider = "openrouter",
-    score_model = "anthropic/claude-sonnet-4.5", # 用于质量评分的模型
+    score_model = "anthropic/claude-sonnet-4.6", # 用于质量评分的模型
     score_provider = "openrouter",
     score_threshold = 75, # 高质量注释的最低分数
-    annotationboost_model = "anthropic/claude-sonnet-4.5", # 用于注释增强的模型
+    annotationboost_model = "anthropic/claude-sonnet-4.6", # 用于注释增强的模型
     annotationboost_provider = "openrouter",
     do_merge_annotations = TRUE, # 启用注释合并
     validator_involvement = "v1" # 验证器参与级别 (v0=高, v1=中等)
@@ -114,7 +114,7 @@ results <- runCASSIA_pipeline(
 batch_results <- runCASSIA_batch(
     marker = markers,
     output_name = "StepByStep",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "blood",
     species = "human",
     max_workers = 4,
@@ -128,7 +128,7 @@ quality_scores <- runCASSIA_score_batch(
     input_file = "StepByStep_summary.csv",  # JSON 自动检测
     output_file = "StepByStep_scored.csv",
     max_workers = 4,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 

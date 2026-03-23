@@ -19,7 +19,7 @@ CASSIA.runCASSIA_annotationboost(
     cluster_name = "CD4+ T cell",
     major_cluster_info = "Human PBMC",
     output_name = "Cluster1_report",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
 )
 ```
@@ -49,7 +49,7 @@ CASSIA.runCASSIA_annotationboost(
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `num_iterations` | 5 | Number of validation rounds |
-| `model` | - | LLM model to use. Recommended: `anthropic/claude-sonnet-4.5` or better |
+| `model` | - | LLM model to use. Recommended: `anthropic/claude-sonnet-4.6` or better |
 | `provider` | - | API provider for the model |
 | `conversations_json_path` | `"auto"` | Path to the conversations JSON file, or `"auto"` to auto-detect from `full_result_path` (e.g., `batch_summary.csv` → `batch_conversations.json`) |
 | `conversation_history_mode` | `"full"` | How to use prior conversation history: `"full"`, `"final"`, or `"none"` |

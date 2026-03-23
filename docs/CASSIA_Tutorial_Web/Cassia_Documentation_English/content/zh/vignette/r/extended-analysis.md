@@ -72,7 +72,7 @@ runCASSIA_annotationboost(
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
     conversations_json_path = paste0(output_name, "_conversations.json")  # 提供注释上下文
 )

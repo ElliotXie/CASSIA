@@ -15,7 +15,7 @@ For detailed information on model settings and recommendations, please refer to 
 import CASSIA
 
 # Parameters
-model = "anthropic/claude-sonnet-4.5"  # Model to use
+model = "anthropic/claude-sonnet-4.6"  # Model to use
 temperature = 0
 marker_list = ["CD3D", "CD3E", "CD2", "TRAC"]
 tissue = "blood"

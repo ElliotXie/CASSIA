@@ -47,13 +47,13 @@ runCASSIA_pipeline(
 | `additional_info` | NULL | 可选的实验上下文（如 "药物X处理"） |
 | `validator_involvement` | "v1" | 验证严格程度（"v1" = 中等，"v0" = 高） |
 | `merge_annotations` | TRUE | 如果为TRUE，将详细细胞类型合并为更广泛的类别 |
-| `annotation_model` | "anthropic/claude-sonnet-4.5" | 用于初始细胞类型注释的模型 |
+| `annotation_model` | "anthropic/claude-sonnet-4.6" | 用于初始细胞类型注释的模型 |
 | `annotation_provider` | "openrouter" | 注释模型的提供商 |
-| `score_model` | "openai/gpt-5.1" | 用于质量评分的模型 |
+| `score_model` | "openai/gpt-5.4" | 用于质量评分的模型 |
 | `score_provider` | "openrouter" | 评分模型的提供商 |
-| `annotationboost_model` | "anthropic/claude-sonnet-4.5" | 用于优化低置信度注释的模型 |
+| `annotationboost_model` | "anthropic/claude-sonnet-4.6" | 用于优化低置信度注释的模型 |
 | `annotationboost_provider` | "openrouter" | 注释增强模型的提供商 |
-| `merge_model` | "google/gemini-2.5-flash" | 用于合并步骤的模型 |
+| `merge_model` | "google/gemini-3-flash-preview" | 用于合并步骤的模型 |
 | `merge_provider` | "openrouter" | 合并模型的提供商 |
 | `overall_reasoning` | NULL | 所有阶段的推理深度（"low"、"medium"、"high"） |
 | `annotation_reasoning` | NULL | 仅覆盖注释阶段的推理级别 |

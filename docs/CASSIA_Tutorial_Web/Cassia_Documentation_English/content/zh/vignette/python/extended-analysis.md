@@ -18,7 +18,7 @@ iteration_results = CASSIA.runCASSIA_batch_n_times(
     n=2,
     marker=unprocessed_markers,
     output_name=output_name + "_Uncertainty",
-    model="anthropic/claude-sonnet-4.5",
+    model="anthropic/claude-sonnet-4.6",
     provider="openrouter",
     tissue="large intestine",
     species="human",
@@ -33,7 +33,7 @@ similarity_scores = CASSIA.runCASSIA_similarity_score_batch(
     file_pattern=output_name + "_Uncertainty_*_summary.csv",
     output_name="intestine_uncertainty",
     max_workers=6,
-    model="openai/gpt-5.1",
+    model="openai/gpt-5.4",
     provider="openrouter",
     main_weight=0.5,
     sub_weight=0.5
@@ -55,7 +55,7 @@ CASSIA.runCASSIA_annotationboost(
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
     conversations_json_path = output_name + "_conversations.json"  # 提供注释上下文
 )
@@ -117,7 +117,7 @@ print(f"Consensus: {results['consensus']} (confidence: {results['confidence']:.1
 CASSIA.runCASSIA_subclusters(marker = subcluster_results,
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter")
 ```
 
@@ -129,7 +129,7 @@ CASSIA.runCASSIA_n_subcluster(
     marker=subcluster_results,
     major_cluster_info="cd8 t cell", 
     base_output_name="subclustering_results_n",
-    model="anthropic/claude-sonnet-4.5",
+    model="anthropic/claude-sonnet-4.6",
     temperature=0,
     provider="openrouter",
     max_workers=5,
@@ -142,7 +142,7 @@ CASSIA.runCASSIA_similarity_score_batch(
     file_pattern = "subclustering_results_n_*.csv",
     output_name = "subclustering_uncertainty",
     max_workers = 6,
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter",
     main_weight = 0.5,
     sub_weight = 0.5

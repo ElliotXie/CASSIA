@@ -257,7 +257,7 @@ results = CASSIA.runCASSIA_batch(
     tissue="blood",
     species="human",
     output_name="pbmc_annotation",
-    model="anthropic/claude-sonnet-4.5",
+    model="anthropic/claude-sonnet-4.6",
     provider="openrouter"
 )
 

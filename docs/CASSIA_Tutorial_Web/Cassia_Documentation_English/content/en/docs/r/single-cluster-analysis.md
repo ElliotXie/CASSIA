@@ -15,7 +15,7 @@ Note: CASSIA is designed to handle multiple clusters at once via [Batch Processi
 ```R
 result <- runCASSIA(
     marker_list = c("CD3D", "CD3E", "CD2", "TRAC"),
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "blood",
     species = "human",
     provider = "openrouter"
@@ -50,7 +50,7 @@ These should be the top differentially expressed genes that characterize your cl
 | Parameter | Description |
 |-----------|-------------|
 | `marker_list` | Character vector of marker gene names for the cluster |
-| `model` | LLM model ID (e.g., `"anthropic/claude-sonnet-4.5"`) |
+| `model` | LLM model ID (e.g., `"anthropic/claude-sonnet-4.6"`) |
 | `tissue` | Tissue type (e.g., `"blood"`, `"brain"`) |
 | `species` | Species (e.g., `"human"`, `"mouse"`) |
 | `provider` | API provider (`"openrouter"`, `"openai"`, `"anthropic"`) |
@@ -67,8 +67,8 @@ These should be the top differentially expressed genes that characterize your cl
 ### Parameter Details
 
 **Model Selection**
-- Default: `anthropic/claude-sonnet-4.5` for best performance
-- Alternative: `google/gemini-2.5-flash` for faster analysis
+- Default: `anthropic/claude-sonnet-4.6` for best performance
+- Alternative: `google/gemini-3-flash-preview` for faster analysis
 - When using OpenRouter, specify the complete model ID
 - See [How to Select Models and Providers](setting-up-cassia.md#how-to-select-models-and-providers) for detailed recommendations
 

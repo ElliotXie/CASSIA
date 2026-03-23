@@ -14,7 +14,7 @@ title: 批量处理
 CASSIA.runCASSIA_batch(
     marker = markers,
     output_name = "my_annotation",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "brain",
     species = "human",
     provider = "openrouter"
@@ -121,8 +121,8 @@ print(markers.head())
 ### 参数详情
 
 **模型选择**
-- 默认为 `anthropic/claude-sonnet-4.5` 以获得最佳性能
-- 使用 `google/gemini-2.5-flash` 进行更快的初步分析
+- 默认为 `anthropic/claude-sonnet-4.6` 以获得最佳性能
+- 使用 `google/gemini-3-flash-preview` 进行更快的初步分析
 - 详细的模型推荐请参阅 [如何选择模型和提供商](setting-up-cassia.md#如何选择模型和提供商)
 
 **标记基因选择**

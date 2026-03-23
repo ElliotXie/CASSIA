@@ -158,14 +158,14 @@ results = CASSIA.runCASSIA_pipeline(
     species = "Human",
     marker = markers,
     max_workers = 6,
-    annotation_model = "openai/gpt-5.1",
+    annotation_model = "openai/gpt-5.4",
     annotation_provider = "openrouter",
-    score_model = "anthropic/claude-sonnet-4.5",
+    score_model = "anthropic/claude-sonnet-4.6",
     score_provider = "openrouter",
     score_threshold = 75,
-    annotationboost_model = "openai/gpt-5.1",
+    annotationboost_model = "openai/gpt-5.4",
     annotationboost_provider = "openrouter",
-    merge_model = "google/gemini-2.5-flash",
+    merge_model = "google/gemini-3-flash-preview",
     merge_provider = "openrouter"
 )
 ```

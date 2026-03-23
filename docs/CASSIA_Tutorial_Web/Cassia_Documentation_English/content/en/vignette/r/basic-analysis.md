@@ -93,12 +93,12 @@ results <- runCASSIA_pipeline(
     species = "human", # Specify "human" or "mouse"
     marker = markers,
     max_workers = 4, # Adjust based on your computer's capabilities
-    annotation_model = "anthropic/claude-sonnet-4.5", # Model for initial annotation
+    annotation_model = "anthropic/claude-sonnet-4.6", # Model for initial annotation
     annotation_provider = "openrouter",
-    score_model = "anthropic/claude-sonnet-4.5", # Model for quality scoring
+    score_model = "anthropic/claude-sonnet-4.6", # Model for quality scoring
     score_provider = "openrouter",
     score_threshold = 75, # Minimum score for high-quality annotations
-    annotationboost_model = "anthropic/claude-sonnet-4.5", # Model for annotation boost
+    annotationboost_model = "anthropic/claude-sonnet-4.6", # Model for annotation boost
     annotationboost_provider = "openrouter",
     do_merge_annotations = TRUE, # Enable merging of annotations
     validator_involvement = "v1" # Validator involvement level (v0=high, v1=moderate)
@@ -114,7 +114,7 @@ If you prefer more control, you can run each step separately:
 batch_results <- runCASSIA_batch(
     marker = markers,
     output_name = "StepByStep",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "blood",
     species = "human",
     max_workers = 4,
@@ -128,7 +128,7 @@ quality_scores <- runCASSIA_score_batch(
     input_file = "StepByStep_summary.csv",  # JSON auto-detected
     output_file = "StepByStep_scored.csv",
     max_workers = 4,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 

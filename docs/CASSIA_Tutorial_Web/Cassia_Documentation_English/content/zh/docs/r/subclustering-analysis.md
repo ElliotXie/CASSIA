@@ -13,7 +13,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 ```
@@ -110,7 +110,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell mixed with other celltypes",
     output_name = "subclustering_results2",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 ```
@@ -127,7 +127,7 @@ runCASSIA_n_subcluster(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     base_output_name = "subclustering_results_n",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     temperature = 0,
     provider = "openrouter",
     max_workers = 5,
@@ -149,7 +149,7 @@ similarity_scores <- runCASSIA_similarity_score_batch(
     file_pattern = "subclustering_results_n_*.csv",
     output_name = "subclustering_uncertainty",
     max_workers = 6,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
     main_weight = 0.5,
     sub_weight = 0.5

@@ -47,13 +47,13 @@ runCASSIA_pipeline(
 | `additional_info` | NULL | Optional experimental context (e.g., "treated with drug X") |
 | `validator_involvement` | "v1" | Validation strictness ("v1" = moderate, "v0" = high) |
 | `merge_annotations` | TRUE | If TRUE, merges detailed cell types into broader categories |
-| `annotation_model` | "anthropic/claude-sonnet-4.5" | Model for initial cell type annotation |
+| `annotation_model` | "anthropic/claude-sonnet-4.6" | Model for initial cell type annotation |
 | `annotation_provider` | "openrouter" | Provider for annotation model |
-| `score_model` | "openai/gpt-5.1" | Model for quality scoring |
+| `score_model` | "openai/gpt-5.4" | Model for quality scoring |
 | `score_provider` | "openrouter" | Provider for score model |
-| `annotationboost_model` | "anthropic/claude-sonnet-4.5" | Model for refining low-confidence annotations |
+| `annotationboost_model` | "anthropic/claude-sonnet-4.6" | Model for refining low-confidence annotations |
 | `annotationboost_provider` | "openrouter" | Provider for annotation boost model |
-| `merge_model` | "google/gemini-2.5-flash" | Model for the merging step |
+| `merge_model` | "google/gemini-3-flash-preview" | Model for the merging step |
 | `merge_provider` | "openrouter" | Provider for merge model |
 | `overall_reasoning` | NULL | Reasoning effort for all stages ("low", "medium", "high") |
 | `annotation_reasoning` | NULL | Override reasoning level for annotation stage only |

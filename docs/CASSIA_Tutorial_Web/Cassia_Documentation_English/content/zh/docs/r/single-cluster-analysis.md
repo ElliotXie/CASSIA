@@ -15,7 +15,7 @@ title: 单簇分析
 ```R
 result <- runCASSIA(
     marker_list = c("CD3D", "CD3E", "CD2", "TRAC"),
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "blood",
     species = "human",
     provider = "openrouter"
@@ -50,7 +50,7 @@ marker_list <- c("CD3D", "CD3E", "CD2", "TRAC", "IL7R")
 | 参数 | 描述 |
 |------|------|
 | `marker_list` | 簇的标记基因名称字符向量 |
-| `model` | LLM 模型 ID（例如 `"anthropic/claude-sonnet-4.5"`） |
+| `model` | LLM 模型 ID（例如 `"anthropic/claude-sonnet-4.6"`） |
 | `tissue` | 组织类型（例如 `"blood"`、`"brain"`） |
 | `species` | 物种（例如 `"human"`、`"mouse"`） |
 | `provider` | API 提供商（`"openrouter"`、`"openai"`、`"anthropic"`） |
@@ -67,8 +67,8 @@ marker_list <- c("CD3D", "CD3E", "CD2", "TRAC", "IL7R")
 ### 参数详情
 
 **模型选择**
-- 默认：`anthropic/claude-sonnet-4.5` 以获得最佳性能
-- 替代：`google/gemini-2.5-flash` 以获得更快分析
+- 默认：`anthropic/claude-sonnet-4.6` 以获得最佳性能
+- 替代：`google/gemini-3-flash-preview` 以获得更快分析
 - 使用 OpenRouter 时，请指定完整的模型 ID
 - 详细推荐请参阅[如何选择模型和提供商](setting-up-cassia.md#how-to-select-models-and-providers)
 

@@ -70,7 +70,7 @@ batch_results <- runCASSIA_batch(
     output_name = output_name,
     tissue = "large intestine",
     species = "human",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 ```

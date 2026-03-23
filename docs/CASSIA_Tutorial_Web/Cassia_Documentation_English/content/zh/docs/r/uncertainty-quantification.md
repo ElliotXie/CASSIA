@@ -22,7 +22,7 @@ runCASSIA_batch_n_times(
     n = 5,
     marker = marker_data,
     output_name = "my_annotation",
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter",
     tissue = "brain",
     species = "human",
@@ -34,7 +34,7 @@ runCASSIA_similarity_score_batch(
     marker = marker_data,
     file_pattern = "my_annotation_*_summary.csv",
     output_name = "similarity_results",
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter",
     reasoning = "medium"
 )

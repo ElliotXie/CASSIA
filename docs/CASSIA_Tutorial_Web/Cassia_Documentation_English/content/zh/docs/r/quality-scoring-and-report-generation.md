@@ -14,7 +14,7 @@ title: 质量评分
 runCASSIA_score_batch(
     input_file = "my_annotation_summary.csv",  # JSON 自动检测
     output_file = "my_annotation_scored.csv",
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter"
 )
 ```
@@ -54,7 +54,7 @@ runCASSIA_score_batch(
 ### 参数详情
 
 **模型选择**
-- 强烈推荐：`openai/gpt-5.1` 或 `anthropic/claude-sonnet-4.5` 以获得最佳准确性
+- 强烈推荐：`openai/gpt-5.4` 或 `anthropic/claude-sonnet-4.6` 以获得最佳准确性
 - 评分需要强大的推理能力来评估注释质量
 
 ---

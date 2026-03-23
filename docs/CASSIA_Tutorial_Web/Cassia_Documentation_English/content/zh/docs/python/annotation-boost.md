@@ -19,7 +19,7 @@ CASSIA.runCASSIA_annotationboost(
     cluster_name = "CD4+ T cell",
     major_cluster_info = "Human PBMC",
     output_name = "Cluster1_report",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
 )
 ```
@@ -49,7 +49,7 @@ CASSIA.runCASSIA_annotationboost(
 | 参数 | 默认值 | 描述 |
 |------|--------|------|
 | `num_iterations` | 5 | 验证轮数 |
-| `model` | - | 使用的 LLM 模型。推荐：`anthropic/claude-sonnet-4.5` 或更好的模型 |
+| `model` | - | 使用的 LLM 模型。推荐：`anthropic/claude-sonnet-4.6` 或更好的模型 |
 | `provider` | - | 模型的 API 提供商 |
 | `conversations_json_path` | `"auto"` | 对话 JSON 文件路径，或 `"auto"` 从 `full_result_path` 自动检测（例如，`batch_summary.csv` → `batch_conversations.json`） |
 | `conversation_history_mode` | `"full"` | 如何使用先前的对话历史：`"full"`、`"final"` 或 `"none"` |

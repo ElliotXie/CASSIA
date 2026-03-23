@@ -77,25 +77,25 @@ There are three providers to choose from: `openrouter`, `openai`, and `anthropic
 
 OpenRouter is a platform that offers access to almost all the models supported by major providers. It is recommended to use OpenRouter due to its higher rate limits and access to a variety of models including open source options.
 
-- `anthropic/claude-sonnet-4.5`: Current default high-performance model.
-- `openai/gpt-5.1`: Balanced option.
-- `google/gemini-2.5-flash`: One of the best-performed low-cost models.
+- `anthropic/claude-sonnet-4.6`: Current default high-performance model.
+- `openai/gpt-5.4`: Balanced option.
+- `google/gemini-3-flash-preview`: One of the best-performed low-cost models.
 
 ### OpenAI
 
-- `gpt-5.1`: High-performance model.
+- `gpt-5.4`: High-performance model.
 
 ### Anthropic
 
-- `claude-sonnet-4.5`: High-performance model.
+- `claude-sonnet-4.6`: High-performance model.
 
 ### Other Providers
 
 These models can be used via their own APIs. See **[Custom API Providers](#custom-api-providers)** for setup.
 
 - `deepseek-chat` (DeepSeek v3.2): High performance, very affordable. Provider: `https://api.deepseek.com`
-- `glm-4.6` (GLM 4.6): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
-- `kimi-k2` (Kimi K2): Strong reasoning capabilities. Provider: `https://api.moonshot.cn/v1`
+- `glm-5` (GLM 4.6): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
+- `kimi-k2.5` (Kimi K2): Strong reasoning capabilities. Provider: `https://api.moonshot.cn/v1`
 
 ### Local LLMs
 
@@ -108,22 +108,22 @@ CASSIA includes a smart model selection system that allows you to use simple ali
 ### Tier Shortcuts
 You can use these shortcuts with any provider to get the appropriate model for your needs:
 
-- `"best"`: Selects the highest performing model (e.g., `gpt-5.1`, `claude-opus-4.5`)
-- `"balanced"`: Selects a good balance of performance and cost (e.g., `gpt-4o`, `claude-sonnet-4.5`)
-- `"fast"`: Selects the fastest/cheapest model (e.g., `gpt-5-mini`, `claude-haiku-4.5`)
+- `"best"`: Selects the highest performing model (e.g., `gpt-5.4`, `claude-opus-4.6`)
+- `"balanced"`: Selects a good balance of performance and cost (e.g., `gpt-4o`, `claude-sonnet-4.6`)
+- `"fast"`: Selects the fastest/cheapest model (e.g., `gpt-5.4-mini`, `claude-haiku-4.5`)
 
 Example:
 ```r
-# This will automatically select the best model for OpenAI (gpt-5.1)
+# This will automatically select the best model for OpenAI (gpt-5.4)
 runCASSIA_pipeline(..., model = "best", provider = "openai")
 ```
 
 ### Fuzzy Matching & Aliases
 You can also use common names, and CASSIA will resolve them to the correct version:
 
-- `"gpt"` -> resolves to `gpt-5.1` (for OpenAI)
-- `"claude"` -> resolves to `claude-sonnet-4.5` (for Anthropic)
-- `"gemini"` -> resolves to `google/gemini-2.5-flash` (for OpenRouter)
+- `"gpt"` -> resolves to `gpt-5.4` (for OpenAI)
+- `"claude"` -> resolves to `claude-sonnet-4.6` (for Anthropic)
+- `"gemini"` -> resolves to `google/gemini-3-flash-preview` (for OpenRouter)
 
 This makes your code more robust to model version updates.
 
@@ -197,7 +197,7 @@ runCASSIA_batch(
 
 ## Reasoning Effort Parameter
 
-**Note:** This parameter is only meaningful for OpenAI GPT-5 series models (e.g., `gpt-5.1`). Use via OpenRouter (recommended) or as a verified OpenAI user.
+**Note:** This parameter is only meaningful for OpenAI GPT-5 series models (e.g., `gpt-5.4`). Use via OpenRouter (recommended) or as a verified OpenAI user.
 
 The `reasoning` parameter controls the model's reasoning depth for compatible models.
 
@@ -230,7 +230,7 @@ Example:
 runCASSIA_batch(
     marker = markers,
     output_name = "results",
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter",
     reasoning = "medium",  # Recommended for balanced speed/quality
     tissue = "brain",

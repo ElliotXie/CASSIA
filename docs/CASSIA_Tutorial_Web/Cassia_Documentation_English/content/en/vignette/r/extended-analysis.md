@@ -28,7 +28,7 @@ runCASSIA_batch_n_times(
     output_name = "CASSIA_Uncertainty",
     tissue = "large intestine",
     species = "human",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
     max_workers = 6, # How many workers to use for each batch
     batch_max_workers = 1  # How many batches to run in parallel
@@ -42,7 +42,7 @@ runCASSIA_similarity_score_batch(
     file_pattern = paste0(output_name, "_Uncertainty_*_summary.csv"), # The file pattern of the uncertainty results
     output_name = "cs_results",
     max_workers = 6,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 ```
@@ -76,7 +76,7 @@ runCASSIA_annotationboost(
     cluster_name = "monocyte",
     major_cluster_info = "Human Large Intestine",
     num_iterations = 5,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter",
     conversations_json_path = paste0(output_name, "_conversations.json")  # Provides annotation context
 )
@@ -147,7 +147,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 
@@ -160,7 +160,7 @@ runCASSIA_subclusters(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell mixed with other celltypes",
     output_name = "subclustering_results2",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     provider = "openrouter"
 )
 
@@ -180,7 +180,7 @@ runCASSIA_n_subcluster(
     marker = marker_sub,
     major_cluster_info = "cd8 t cell",
     base_output_name = "subclustering_results_n",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     temperature = 0,
     provider = "openrouter",
     max_workers = 5,

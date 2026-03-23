@@ -15,7 +15,7 @@ title: 单聚类分析
 import CASSIA
 
 # 参数
-model = "anthropic/claude-sonnet-4.5"  # 使用的模型
+model = "anthropic/claude-sonnet-4.6"  # 使用的模型
 temperature = 0
 marker_list = ["CD3D", "CD3E", "CD2", "TRAC"]
 tissue = "blood"

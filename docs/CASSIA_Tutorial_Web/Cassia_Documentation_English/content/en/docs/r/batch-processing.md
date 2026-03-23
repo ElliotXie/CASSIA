@@ -14,7 +14,7 @@ Batch processing allows you to annotate all clusters in your single-cell dataset
 runCASSIA_batch(
     marker = markers,
     output_name = "my_annotation",
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "brain",
     species = "human",
     provider = "openrouter"
@@ -117,8 +117,8 @@ head(markers)
 ### Parameter Details
 
 **Model Selection**
-- Default is `anthropic/claude-sonnet-4.5` for best performance
-- Use `google/gemini-2.5-flash` for faster, preliminary analysis
+- Default is `anthropic/claude-sonnet-4.6` for best performance
+- Use `google/gemini-3-flash-preview` for faster, preliminary analysis
 - For detailed model recommendations, see [How to Select Models and Providers](setting-up-cassia.md#how-to-select-models-and-providers)
 
 **Marker Gene Selection**

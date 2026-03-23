@@ -58,14 +58,14 @@ CASSIA.runCASSIA_pipeline(
     species = "human",
     marker = unprocessed_markers,
     max_workers = 6,  # 与数据集中的聚类数匹配
-    annotation_model = "anthropic/claude-sonnet-4.5",
+    annotation_model = "anthropic/claude-sonnet-4.6",
     annotation_provider = "openrouter",
-    score_model = "openai/gpt-5.1",
+    score_model = "openai/gpt-5.4",
     score_provider = "openrouter",
     score_threshold = 75,
-    annotationboost_model="anthropic/claude-sonnet-4.5",
+    annotationboost_model="anthropic/claude-sonnet-4.6",
     annotationboost_provider="openrouter",
-    merge_model = "google/gemini-2.5-flash",
+    merge_model = "google/gemini-3-flash-preview",
     merge_provider = "openrouter"
 )
 ```
@@ -81,7 +81,7 @@ output_name="intestine_detailed"
 CASSIA.runCASSIA_batch(
     marker = unprocessed_markers,
     output_name = output_name,
-    model = "anthropic/claude-sonnet-4.5",
+    model = "anthropic/claude-sonnet-4.6",
     tissue = "large intestine",
     species = "human",
     max_workers = 6,  # 匹配聚类数
@@ -106,7 +106,7 @@ CASSIA.runCASSIA_score_batch(
     input_file = output_name + "_summary.csv",  # JSON 自动检测
     output_file = output_name + "_scored.csv",
     max_workers = 6,
-    model = "openai/gpt-5.1",
+    model = "openai/gpt-5.4",
     provider = "openrouter"
 )
 ```

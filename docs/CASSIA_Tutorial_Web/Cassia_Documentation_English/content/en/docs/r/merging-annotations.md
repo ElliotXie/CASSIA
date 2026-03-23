@@ -28,7 +28,7 @@ result_df <- merge_annotations(
     csv_path = "annotation_results_summary.csv",
     output_path = "merged_broad.csv",
     provider = "openrouter",
-    model = "google/gemini-2.5-flash",
+    model = "google/gemini-3-flash-preview",
     detail_level = "broad",  # Options: "broad", "detailed", "very_detailed"
     batch_size = 10
 )
@@ -47,7 +47,7 @@ result_df <- merge_annotations_all(
     csv_path = "annotation_results_summary.csv",
     output_path = "merged_all.csv",
     provider = "openrouter",
-    model = "google/gemini-2.5-flash",
+    model = "google/gemini-3-flash-preview",
     batch_size = 10,
     reasoning = "low"  # Optional: "low", "medium", "high"
 )
@@ -64,7 +64,7 @@ print(result_df[, c("main_cell_type", "Merged_Grouping_1", "Merged_Grouping_2", 
 - **`model`**: LLM model to use for grouping decisions.
 - **`detail_level`**: Level of grouping ("broad", "detailed", "very_detailed") - only for `merge_annotations()`.
 - **`batch_size`**: Number of cell types to process per LLM call (default: 10).
-- **`reasoning`**: (Optional) Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.1`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
+- **`reasoning`**: (Optional) Reasoning effort level ("low", "medium", "high"). Controls how much the model "thinks" before responding. Only supported by OpenAI GPT-5 series models (e.g., `gpt-5.4`). Via OpenRouter, no additional verification needed. Via direct OpenAI API, identity verification (KYC) is required.
 
 ### Example Output
 
@@ -98,7 +98,7 @@ Merging is automatically available in `runCASSIA_pipeline()` via the `do_merge_a
 runCASSIA_pipeline(
     ...,
     do_merge_annotations = TRUE,  # Enable automatic merging
-    merge_model = "google/gemini-2.5-flash",
+    merge_model = "google/gemini-3-flash-preview",
     merge_provider = "openrouter"
 )
 ```
