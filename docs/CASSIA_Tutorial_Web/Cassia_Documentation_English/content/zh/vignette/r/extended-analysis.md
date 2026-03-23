@@ -134,7 +134,9 @@ marker_sub=loadExampleMarkers_subcluster()
 
 runCASSIA_subclusters(marker = marker_sub,
     major_cluster_info = "cd8 t cell",
-    output_name = "subclustering_results")
+    output_name = "subclustering_results",
+    tissue = "lung",
+    species = "human")
 
 
 
@@ -143,7 +145,9 @@ runCASSIA_subclusters(marker = marker_sub,
 
 runCASSIA_subclusters(marker = marker_sub,
     major_cluster_info = "cd8 t cell mixed with other celltypes",
-    output_name = "subclustering_results2")
+    output_name = "subclustering_results2",
+    tissue = "lung",
+    species = "human")
 
 ```
 
@@ -156,7 +160,7 @@ runCASSIA_subclusters(marker = marker_sub,
 建议对亚聚类运行CS评分以获得更可靠的答案。
 ```r
 
-runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell", "subclustering_results_n", max_workers = 5,n_genes=50L)
+runCASSIA_n_subcluster(n=5, marker_sub, "cd8 t cell", "subclustering_results_n", max_workers = 5, n_genes=50L, tissue = "lung", species = "human")
 
 
 # 计算相似度评分

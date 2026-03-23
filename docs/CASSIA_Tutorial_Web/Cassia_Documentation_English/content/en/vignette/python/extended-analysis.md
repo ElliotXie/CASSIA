@@ -118,22 +118,26 @@ CASSIA.runCASSIA_subclusters(marker = subcluster_results,
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter")
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human")
 ```
 
 It is recommended to run the CS score for the subclustering to get a more confident answer.
 
 ```python
 CASSIA.runCASSIA_n_subcluster(
-    n=5, 
+    n=5,
     marker=subcluster_results,
-    major_cluster_info="cd8 t cell", 
+    major_cluster_info="cd8 t cell",
     base_output_name="subclustering_results_n",
     model="anthropic/claude-sonnet-4.6",
     temperature=0,
     provider="openrouter",
     max_workers=5,
-    n_genes=50
+    n_genes=50,
+    tissue="lung",
+    species="human"
 )
 
 # Calculate similarity scores

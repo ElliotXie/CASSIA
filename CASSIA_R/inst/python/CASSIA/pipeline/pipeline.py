@@ -40,6 +40,7 @@ def runCASSIA_pipeline(
     output_dir: str = None,
     validate_api_keys_before_start: bool = True,
     auto_convert_ids: bool = True,
+    n_genes: int = 50,
     # Reasoning parameters
     overall_reasoning: Optional[str] = None,
     annotation_reasoning: Optional[str] = None,
@@ -79,6 +80,7 @@ def runCASSIA_pipeline(
         output_dir (str): Directory where the output folder will be created. If None, uses current working directory.
         validate_api_keys_before_start (bool): If True, validates the API key before starting.
             Fails fast with clear error message if the key is invalid. Default: True.
+        n_genes (int): Number of top genes to extract per cluster for annotation. Default: 50.
         auto_convert_ids (bool): Automatically convert Ensembl/Entrez gene IDs to gene symbols.
             If True (default), detects and converts IDs in the marker data before processing.
             Requires the 'mygene' package to be installed for conversion.
@@ -254,6 +256,7 @@ def runCASSIA_pipeline(
     runCASSIA_batch(
         marker=marker,
         output_name=annotation_output,
+        n_genes=n_genes,
         model=annotation_model,
         tissue=tissue,
         species=species,

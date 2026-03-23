@@ -14,7 +14,9 @@ CASSIA.runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 ```
 
@@ -50,6 +52,8 @@ We recommend applying the default CASSIA first. Then, on a target cluster, apply
 |-----------|---------|-------------|
 | `temperature` | 0 | Sampling temperature (0-1) |
 | `n_genes` | 50 | Number of top marker genes to use |
+| `tissue` | None | Tissue type being analyzed (e.g., "lung", "brain") |
+| `species` | None | Species being analyzed (e.g., "human", "mouse") |
 
 ### Uncertainty Assessment Functions
 
@@ -67,7 +71,9 @@ CASSIA.runCASSIA_n_subcluster(
     temperature=0,
     provider="openrouter",
     max_workers=5,
-    n_genes=50
+    n_genes=50,
+    tissue="lung",
+    species="human"
 )
 ```
 

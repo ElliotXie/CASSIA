@@ -148,7 +148,9 @@ runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 
 
@@ -161,7 +163,9 @@ runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell mixed with other celltypes",
     output_name = "subclustering_results2",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 
 ```
@@ -184,7 +188,9 @@ runCASSIA_n_subcluster(
     temperature = 0,
     provider = "openrouter",
     max_workers = 5,
-    n_genes = 50L
+    n_genes = 50L,
+    tissue = "lung",
+    species = "human"
 )
 
 

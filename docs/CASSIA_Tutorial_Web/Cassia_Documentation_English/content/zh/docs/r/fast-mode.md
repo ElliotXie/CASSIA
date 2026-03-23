@@ -60,6 +60,7 @@ runCASSIA_pipeline(
 | `score_reasoning` | NULL | 仅覆盖评分阶段的推理级别 |
 | `annotationboost_reasoning` | NULL | 仅覆盖注释增强阶段的推理级别 |
 | `merge_reasoning` | NULL | 仅覆盖合并阶段的推理级别 |
+| `n_genes` | 50 | 每个聚类提取的顶部标记基因数量 |
 
 ## 输出
 

@@ -1934,6 +1934,7 @@ runCASSIA_generate_score_report <- function(csv_path, output_name = "CASSIA_repo
 #' @param output_dir Directory where the output folder will be created. If NULL, uses current working directory. (default: NULL)
 #' @param validate_api_keys_before_start Logical. If TRUE (default), validates the API key before starting.
 #'   Fails fast with clear error message if the key is invalid.
+#' @param n_genes Number of top genes to extract per cluster for annotation (default: 50)
 #'
 #' @return None. Creates output files and generates reports.
 #' @export
@@ -1963,7 +1964,8 @@ runCASSIA_pipeline <- function(
     ascending = NULL,
     validator_involvement = "v1",
     output_dir = NULL,
-    validate_api_keys_before_start = TRUE
+    validate_api_keys_before_start = TRUE,
+    n_genes = 50L
 ) {
   .require_python("runCASSIA_pipeline")
 
@@ -2014,7 +2016,8 @@ runCASSIA_pipeline <- function(
       report_style = report_style,
       validator_involvement = validator_involvement,
       output_dir = output_dir,
-      validate_api_keys_before_start = validate_api_keys_before_start
+      validate_api_keys_before_start = validate_api_keys_before_start,
+      n_genes = as.integer(n_genes)
     )
     
     invisible(NULL)
@@ -2211,6 +2214,8 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
 #' @param n_genes Number of top genes to use (default: 50)
+#' @param tissue Tissue type being analyzed (e.g., "lung", "brain"). Optional (default: NULL)
+#' @param species Species being analyzed (e.g., "human", "mouse"). Optional (default: NULL)
 #' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
 #'
 #' @return None. This function processes subclusters and saves results to a CSV file.
@@ -2218,6 +2223,7 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
                                model = "anthropic/claude-sonnet-4.5", temperature = 0,
                                provider = "openrouter", n_genes = 50L,
+                               tissue = NULL, species = NULL,
                                additional_context = NULL) {
   py_cassia$runCASSIA_subclusters(
     marker = marker,
@@ -2227,6 +2233,8 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
     temperature = as.numeric(temperature),
     provider = provider,
     n_genes = as.integer(n_genes),
+    tissue = tissue,
+    species = species,
     additional_context = additional_context
   )
 }
@@ -2242,6 +2250,8 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' @param provider AI provider to use (default: "anthropic")
 #' @param max_workers Maximum number of workers for parallel processing (default: 5)
 #' @param n_genes Number of top genes to use (default: 50)
+#' @param tissue Tissue type being analyzed (e.g., "lung", "brain"). Optional (default: NULL)
+#' @param species Species being analyzed (e.g., "human", "mouse"). Optional (default: NULL)
 #' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
 #'
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
@@ -2249,6 +2259,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name,
                                                model = "anthropic/claude-sonnet-4.5", temperature = 0.3,
                                                provider = "openrouter", max_workers = 5, n_genes = 50L,
+                                               tissue = NULL, species = NULL,
                                                additional_context = NULL) {
   py_cassia$runCASSIA_n_subcluster(
     n = as.integer(n),
@@ -2260,6 +2271,8 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
     provider = provider,
     max_workers = as.integer(max_workers),
     n_genes = as.integer(n_genes),
+    tissue = tissue,
+    species = species,
     additional_context = additional_context
   )
 }

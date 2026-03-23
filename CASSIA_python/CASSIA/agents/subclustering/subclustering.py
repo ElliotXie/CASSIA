@@ -267,7 +267,8 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
 
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name,
-                       model=None, temperature=None, provider="openrouter", n_genes=50, additional_context=None):
+                       model=None, temperature=None, provider="openrouter", n_genes=50,
+                       tissue=None, species=None, additional_context=None):
     """
     Process subclusters from marker data and generate annotated results.
 
@@ -279,10 +280,24 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
         temperature: Temperature parameter for API calls (0-1)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         n_genes: Number of top genes to use for analysis
+        tissue: Tissue type being analyzed (e.g., "lung", "brain"). Optional.
+        species: Species being analyzed (e.g., "human", "mouse"). Optional.
 
     Returns:
         None: Results are saved to a CSV file
     """
+    # Build tissue/species context and prepend to additional_context if provided
+    context_parts = []
+    if tissue:
+        context_parts.append(f"Tissue: {tissue}")
+    if species:
+        context_parts.append(f"Species: {species}")
+    if context_parts:
+        tissue_species_context = ". ".join(context_parts) + "."
+        if additional_context:
+            additional_context = tissue_species_context + " " + additional_context
+        else:
+            additional_context = tissue_species_context
     # Apply agent defaults if model or temperature not specified
     if model is None or temperature is None:
         defaults = get_agent_default("subclustering", provider)
@@ -329,7 +344,7 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                           model=None, temperature=None,
                           provider="openrouter", max_workers=5, n_genes=50,
-                          additional_context=None):
+                          tissue=None, species=None, additional_context=None):
     """
     Run multiple subcluster analyses in parallel and save results.
 
@@ -343,10 +358,24 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         max_workers: Maximum number of parallel workers
         n_genes: Number of top genes to use for analysis
+        tissue: Tissue type being analyzed (e.g., "lung", "brain"). Optional.
+        species: Species being analyzed (e.g., "human", "mouse"). Optional.
 
     Returns:
         None: Results are saved to CSV files
     """
+    # Build tissue/species context and prepend to additional_context if provided
+    context_parts = []
+    if tissue:
+        context_parts.append(f"Tissue: {tissue}")
+    if species:
+        context_parts.append(f"Species: {species}")
+    if context_parts:
+        tissue_species_context = ". ".join(context_parts) + "."
+        if additional_context:
+            additional_context = tissue_species_context + " " + additional_context
+        else:
+            additional_context = tissue_species_context
     # Apply agent defaults for n-times subclustering (uses subclustering_n for variability)
     if model is None or temperature is None:
         defaults = get_agent_default("subclustering_n", provider)

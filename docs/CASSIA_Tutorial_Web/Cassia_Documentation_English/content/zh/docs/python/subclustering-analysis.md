@@ -14,7 +14,9 @@ CASSIA.runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 ```
 
@@ -50,6 +52,8 @@ CASSIA.runCASSIA_subclusters(
 |------|--------|------|
 | `temperature` | 0 | 采样温度 (0-1) |
 | `n_genes` | 50 | 要使用的顶部标记基因数 |
+| `tissue` | None | 分析的组织类型（例如 "lung"、"brain"） |
+| `species` | None | 分析的物种（例如 "human"、"mouse"） |
 
 ### 不确定性评估函数
 
@@ -67,7 +71,9 @@ CASSIA.runCASSIA_n_subcluster(
     temperature=0,
     provider="openrouter",
     max_workers=5,
-    n_genes=50
+    n_genes=50,
+    tissue="lung",
+    species="human"
 )
 ```
 

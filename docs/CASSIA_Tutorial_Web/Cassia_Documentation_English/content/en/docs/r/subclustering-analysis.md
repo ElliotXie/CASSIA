@@ -14,7 +14,9 @@ runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell",
     output_name = "subclustering_results",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 ```
 
@@ -101,6 +103,8 @@ write.csv(cd8_markers, "cd8_subcluster_markers.csv")
 |-----------|---------|-------------|
 | `temperature` | 0 | Sampling temperature (0-1) |
 | `n_genes` | 50 | Number of top marker genes to use |
+| `tissue` | NULL | Tissue type being analyzed (e.g., "lung", "brain") |
+| `species` | NULL | Species being analyzed (e.g., "human", "mouse") |
 
 ### Example: Mixed Populations
 
@@ -111,7 +115,9 @@ runCASSIA_subclusters(
     major_cluster_info = "cd8 t cell mixed with other celltypes",
     output_name = "subclustering_results2",
     model = "anthropic/claude-sonnet-4.6",
-    provider = "openrouter"
+    provider = "openrouter",
+    tissue = "lung",
+    species = "human"
 )
 ```
 
@@ -131,7 +137,9 @@ runCASSIA_n_subcluster(
     temperature = 0,
     provider = "openrouter",
     max_workers = 5,
-    n_genes = 50
+    n_genes = 50,
+    tissue = "lung",
+    species = "human"
 )
 ```
 

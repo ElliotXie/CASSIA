@@ -60,6 +60,7 @@ CASSIA.runCASSIA_pipeline(
 | `score_reasoning` | None | Override reasoning level for scoring stage only |
 | `annotationboost_reasoning` | None | Override reasoning level for annotation boost stage only |
 | `merge_reasoning` | None | Override reasoning level for merging stage only |
+| `n_genes` | 50 | Number of top marker genes to extract per cluster for annotation |
 
 ## Output
 
