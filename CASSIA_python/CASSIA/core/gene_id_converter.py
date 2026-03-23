@@ -2,19 +2,47 @@
 Gene ID Converter for CASSIA.
 
 This module provides automatic conversion of Ensembl and Entrez gene IDs
-to gene symbols. Uses the mygene library for ID mapping.
+to gene symbols. Uses the mygene library for ID mapping, with Ensembl REST
+API as a fallback.
 
-If mygene is not installed, conversion is not available and the module
-will return the original IDs with a warning.
+Features:
+- Auto-detect species from Ensembl ID prefix (ENSG=human, ENSMUSG=mouse, etc.)
+- Strip version suffixes from Ensembl IDs (e.g., ENSG00000141510.17)
+- Warn when ID prefix doesn't match the specified species
+- Fall back to Ensembl REST API when mygene fails
 """
 
 import re
 import warnings
 from typing import List, Tuple, Dict, Optional, Set
 
-# Gene ID patterns
-ENSEMBL_PATTERN = re.compile(r'^ENS[A-Z]*G\d{11}', re.IGNORECASE)
+# Gene ID patterns - also captures optional version suffix
+ENSEMBL_PATTERN = re.compile(r'^ENS[A-Z]*G\d{11}(\.\d+)?$', re.IGNORECASE)
+ENSEMBL_STRIP_VERSION = re.compile(r'^(ENS[A-Z]*G\d{11})\.\d+$', re.IGNORECASE)
 ENTREZ_PATTERN = re.compile(r'^\d+$')
+
+# Ensembl ID prefix -> (species name for mygene, common name)
+ENSEMBL_PREFIX_TO_SPECIES = {
+    'ENSG':      ('human', 'human'),
+    'ENSMUSG':   ('mouse', 'mouse'),
+    'ENSRNOG':   ('rat', 'rat'),
+    'ENSSSCG':   ('pig', 'pig'),
+    'ENSBTAG':   ('bovine', 'cow'),
+    'ENSCAFG':   ('dog', 'dog'),
+    'ENSFELG':   ('cat', 'cat'),           # Felis catus (not always in mygene)
+    'ENSGALG':   ('chicken', 'chicken'),    # Gallus gallus
+    'ENSDARG':   ('zebrafish', 'zebrafish'),
+    'ENSXETG':   ('frog', 'frog'),          # Xenopus tropicalis
+    'ENSOARG':   ('sheep', 'sheep'),        # Ovis aries
+    'ENSECAG':   ('horse', 'horse'),        # Equus caballus
+    'ENSOCUG':   ('rabbit', 'rabbit'),      # Oryctolagus cuniculus
+    'ENSMMUG':   ('macaque', 'macaque'),     # Macaca mulatta (rhesus)
+    'ENSPTRG':   ('chimpanzee', 'chimpanzee'),
+    'ENSGGOG':   ('gorilla', 'gorilla'),
+    'ENSPANG':   ('olive baboon', 'baboon'),
+    'FBgn':      ('fruitfly', 'fruit fly'),  # Drosophila
+    'WBGene':    ('nematode', 'C. elegans'),
+}
 
 # Try to import mygene
 MYGENE_AVAILABLE = False
@@ -23,6 +51,112 @@ try:
     MYGENE_AVAILABLE = True
 except ImportError:
     mygene = None
+
+
+def strip_ensembl_version(gene_id: str) -> str:
+    """Strip version suffix from Ensembl ID (e.g., ENSG00000141510.17 -> ENSG00000141510)."""
+    m = ENSEMBL_STRIP_VERSION.match(gene_id)
+    return m.group(1) if m else gene_id
+
+
+def detect_species_from_ids(ensembl_ids: List[str]) -> Optional[str]:
+    """
+    Auto-detect species from Ensembl ID prefixes.
+
+    Looks at the prefix pattern (e.g., ENSG, ENSMUSG, ENSSSCG) and maps
+    to a mygene-compatible species name.
+
+    Returns:
+        Species string if detected, None if ambiguous or unknown.
+    """
+    if not ensembl_ids:
+        return None
+
+    # Sort prefixes longest-first to avoid e.g. ENSG matching before ENSGALG
+    sorted_prefixes = sorted(ENSEMBL_PREFIX_TO_SPECIES.items(), key=lambda x: -len(x[0]))
+
+    detected = {}
+    for eid in ensembl_ids:
+        eid_upper = eid.upper()
+        for prefix, (species, _) in sorted_prefixes:
+            if eid_upper.startswith(prefix.upper()):
+                detected[species] = detected.get(species, 0) + 1
+                break
+
+    if not detected:
+        return None
+
+    # Return the most common species
+    best = max(detected, key=detected.get)
+    return best
+
+
+def warn_species_mismatch(user_species: str, detected_species: str, ensembl_ids: List[str]):
+    """Warn user if specified species doesn't match Ensembl ID prefix."""
+    if user_species.lower() == detected_species.lower():
+        return
+
+    # Get the common name for display
+    common_name = detected_species
+    for _, (sp, cn) in ENSEMBL_PREFIX_TO_SPECIES.items():
+        if sp == detected_species:
+            common_name = cn
+            break
+
+    sample = ensembl_ids[:3]
+    warnings.warn(
+        f"[CASSIA] Species mismatch: you specified species='{user_species}', "
+        f"but Ensembl ID prefixes (e.g., {', '.join(sample)}) suggest '{common_name}'. "
+        f"Auto-correcting to species='{detected_species}' for better conversion results. "
+        f"If this is wrong, pass the correct species parameter explicitly.",
+        UserWarning
+    )
+
+
+def _ensembl_rest_convert(ensembl_ids: List[str], species: str = 'human') -> Dict[str, str]:
+    """
+    Fallback: convert Ensembl IDs to gene symbols via Ensembl REST API.
+
+    Uses POST /lookup/id to batch-query Ensembl IDs.
+    Returns a mapping of ensembl_id -> symbol for successful lookups.
+    """
+    try:
+        import urllib.request
+        import json
+    except ImportError:
+        return {}
+
+    if not ensembl_ids:
+        return {}
+
+    mapping = {}
+    # Ensembl REST API accepts up to 1000 IDs per request
+    batch_size = 1000
+    for i in range(0, len(ensembl_ids), batch_size):
+        batch = ensembl_ids[i:i + batch_size]
+        try:
+            url = "https://rest.ensembl.org/lookup/id"
+            payload = json.dumps({"ids": batch}).encode('utf-8')
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+
+            for eid, info in data.items():
+                if isinstance(info, dict) and info.get('display_name'):
+                    mapping[eid] = info['display_name']
+        except Exception:
+            # Silently continue — this is a fallback
+            continue
+
+    return mapping
 
 
 def detect_id_type(gene_id: str) -> str:
@@ -72,60 +206,101 @@ def convert_ensembl_to_symbols(
     species: str = 'human'
 ) -> Tuple[Dict[str, str], List[str]]:
     """
-    Convert Ensembl gene IDs to gene symbols using mygene.
+    Convert Ensembl gene IDs to gene symbols using mygene, with Ensembl REST fallback.
+
+    Handles version-suffixed IDs (e.g., ENSG00000141510.17) by stripping versions
+    before querying and mapping results back to original IDs.
 
     Args:
-        ensembl_ids: List of Ensembl gene IDs
-        species: Species for gene lookup ('human' or 'mouse')
+        ensembl_ids: List of Ensembl gene IDs (may include version suffixes)
+        species: Species for gene lookup ('human', 'mouse', 'pig', etc.)
 
     Returns:
-        Tuple of (mapping dict, list of failed IDs)
+        Tuple of (mapping dict {original_id: symbol}, list of failed original IDs)
     """
-    if not MYGENE_AVAILABLE:
-        return {}, ensembl_ids
-
     if not ensembl_ids:
         return {}, []
 
-    try:
-        mg = mygene.MyGeneInfo()
+    # Step 1: Strip version suffixes and build original -> stripped mapping
+    original_to_stripped = {}
+    stripped_to_originals = {}  # stripped can map to multiple originals
+    for eid in ensembl_ids:
+        stripped = strip_ensembl_version(eid)
+        original_to_stripped[eid] = stripped
+        if stripped not in stripped_to_originals:
+            stripped_to_originals[stripped] = []
+        stripped_to_originals[stripped].append(eid)
 
-        # Query mygene for the Ensembl IDs
-        results = mg.querymany(
-            ensembl_ids,
-            scopes='ensembl.gene',
-            fields='symbol',
-            species=species,
-            returnall=True
-        )
+    unique_stripped = list(stripped_to_originals.keys())
 
-        mapping = {}
-        failed = []
+    # Step 2: Auto-detect species from ID prefixes
+    detected_species = detect_species_from_ids(unique_stripped)
+    effective_species = species
+    if detected_species and detected_species.lower() != species.lower():
+        warn_species_mismatch(species, detected_species, unique_stripped)
+        effective_species = detected_species
 
-        for result in results.get('out', []):
-            query_id = result.get('query', '')
-            symbol = result.get('symbol')
+    # Step 3: Try mygene first
+    stripped_mapping = {}
+    mygene_failed = list(unique_stripped)  # assume all failed initially
 
-            if symbol:
-                mapping[query_id] = symbol
-            else:
-                failed.append(query_id)
+    if MYGENE_AVAILABLE:
+        try:
+            mg = mygene.MyGeneInfo()
+            results = mg.querymany(
+                unique_stripped,
+                scopes='ensembl.gene',
+                fields='symbol',
+                species=effective_species,
+                returnall=True
+            )
 
-        # Add any IDs that weren't in the results
-        queried_ids = {r.get('query', '') for r in results.get('out', [])}
-        for eid in ensembl_ids:
-            if eid not in queried_ids:
-                failed.append(eid)
+            mygene_failed = []
+            for result in results.get('out', []):
+                query_id = result.get('query', '')
+                symbol = result.get('symbol')
+                if symbol:
+                    stripped_mapping[query_id] = symbol
+                else:
+                    mygene_failed.append(query_id)
 
-        return mapping, failed
+            # Add any IDs that weren't in the results
+            queried_ids = {r.get('query', '') for r in results.get('out', [])}
+            for sid in unique_stripped:
+                if sid not in queried_ids:
+                    mygene_failed.append(sid)
 
-    except Exception as e:
-        warnings.warn(
-            f"Error converting Ensembl IDs: {str(e)}. "
-            "Returning original IDs.",
-            UserWarning
-        )
-        return {}, ensembl_ids
+        except Exception as e:
+            warnings.warn(
+                f"mygene query failed: {str(e)}. Trying Ensembl REST API fallback.",
+                UserWarning
+            )
+            mygene_failed = unique_stripped
+
+    # Step 4: Ensembl REST API fallback for IDs that mygene couldn't convert
+    if mygene_failed:
+        rest_mapping = _ensembl_rest_convert(mygene_failed, effective_species)
+        stripped_mapping.update(rest_mapping)
+        still_failed = [sid for sid in mygene_failed if sid not in rest_mapping]
+        if rest_mapping:
+            n_rest = len(rest_mapping)
+            n_remaining = len(still_failed)
+            print(f"[CASSIA] Ensembl REST API recovered {n_rest} additional gene symbol(s)"
+                  f"{f' ({n_remaining} still unresolved)' if n_remaining > 0 else ''}.")
+    else:
+        still_failed = []
+
+    # Step 5: Map back to original IDs (with version suffixes)
+    mapping = {}
+    failed = []
+    for eid in ensembl_ids:
+        stripped = original_to_stripped[eid]
+        if stripped in stripped_mapping:
+            mapping[eid] = stripped_mapping[stripped]
+        else:
+            failed.append(eid)
+
+    return mapping, failed
 
 
 def convert_entrez_to_symbols(
@@ -234,20 +409,22 @@ def convert_gene_ids(
     if not classified['ensembl'] and not classified['entrez']:
         return markers, info
 
-    # Check if mygene is available
+    # Warn if mygene not available (Ensembl REST fallback still works for Ensembl IDs)
     if not MYGENE_AVAILABLE:
-        total_non_symbols = len(classified['ensembl']) + len(classified['entrez'])
-        warnings.warn(
-            f"Detected {total_non_symbols} Ensembl/Entrez IDs but 'mygene' package is not installed. "
-            "To enable automatic ID conversion, install it with: pip install mygene\n"
-            "Continuing with original IDs (may affect annotation quality).",
-            UserWarning
-        )
-        return markers, info
+        if classified['entrez']:
+            warnings.warn(
+                f"Detected {len(classified['entrez'])} Entrez IDs but 'mygene' package is not installed. "
+                "Entrez conversion requires mygene. Install with: pip install mygene\n"
+                "Ensembl IDs will still be converted via Ensembl REST API.",
+                UserWarning
+            )
+        if not classified['ensembl']:
+            # Only Entrez IDs and no mygene — can't do anything
+            return markers, info
 
     info['conversion_performed'] = True
 
-    # Convert Ensembl IDs
+    # Convert Ensembl IDs (handles version stripping, species detection, REST fallback internally)
     ensembl_mapping, ensembl_failed = convert_ensembl_to_symbols(
         classified['ensembl'], species
     )
@@ -380,16 +557,17 @@ def convert_dataframe_gene_ids(
             print(f"[CASSIA] All {len(all_genes)} genes appear to be gene symbols. No conversion needed.")
         return df, info
 
-    # Check if mygene is available
+    # Warn if mygene not available (Ensembl REST fallback still works for Ensembl IDs)
     if not MYGENE_AVAILABLE:
-        total_non_symbols = len(classified['ensembl']) + len(classified['entrez'])
-        warnings.warn(
-            f"Detected {total_non_symbols} Ensembl/Entrez IDs but 'mygene' package is not installed. "
-            "To enable automatic ID conversion, install it with: pip install mygene\n"
-            "Continuing with original IDs (may affect annotation quality).",
-            UserWarning
-        )
-        return df, info
+        if classified['entrez']:
+            warnings.warn(
+                f"Detected {len(classified['entrez'])} Entrez IDs but 'mygene' package is not installed. "
+                "Entrez conversion requires mygene. Install with: pip install mygene\n"
+                "Ensembl IDs will still be converted via Ensembl REST API.",
+                UserWarning
+            )
+        if not classified['ensembl']:
+            return df, info
 
     info['conversion_performed'] = True
 
@@ -402,7 +580,7 @@ def convert_dataframe_gene_ids(
         print(f"  - {len(classified['symbol'])} gene symbols (no conversion needed)")
         print("Converting IDs to gene symbols...")
 
-    # Convert Ensembl IDs
+    # Convert Ensembl IDs (handles version stripping, species detection, REST fallback)
     ensembl_mapping, ensembl_failed = convert_ensembl_to_symbols(
         classified['ensembl'], species
     )

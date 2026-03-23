@@ -36,15 +36,8 @@ CASSIA_R/test_r/
 # CASSIA test results
 CASSIA/CASSIA_python/CASSIA/test_results/
 
-# Test results folders (all results/ directories under Test/)
-Test/**/results/
-
-# Test data folder (large data files)
-Test/data/
-
-# Test reports folders (all reports/ directories under Test/)
-Test/**/reports/
-Test/reports/
+# Test folder
+Test/
 
 # Social media content folder
 Social/
@@ -52,8 +45,6 @@ Social/
 # Feature planning (private)
 Features_plan/
 
-# Manual package test folder
-Test/16_manual_package_Test/
 
 # Package upload scripts with potentially sensitive API keys
 CASSIA_python/upload_to_pypi.py
@@ -65,16 +56,11 @@ CASSIA_R/inst/python/CASSIA/config/set_api_keys.py
 **/.env
 **/api_keys.env
 
-# Tutorial files with API keys
-Test/16_manual_package_Test/CASSIA_tutorial_final.Rmd
-Test/16_manual_package_Test/CASSIA_python_tutorial.ipynb
 # Ignore development documentation
  dev_docs/ 
 CLAUDE.md
 dev_docs/quick_install_dev.py
 
-# Manual package test folder (new location)
-Test/17_manual_package_Test/
 
 # Claude Code session files
 claude-code-session/

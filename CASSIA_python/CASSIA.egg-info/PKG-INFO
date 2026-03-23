@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: CASSIA
-Version: 0.3.18
+Version: 1.3.1
 Summary: CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
 Home-page: https://github.com/elliotxe/CASSIA
 Author: Elliot Yixuan Xie
@@ -10,12 +10,13 @@ Classifier: Intended Audience :: Science/Research
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: 3.13
-Requires-Python: >=3.9
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: numpy>=1.21.0
 Requires-Dist: pandas>=1.3.0
@@ -37,23 +38,23 @@ Dynamic: summary
 
 # CASSIA
 
-**CASSIA** is a Python and R package designed for **automated, accurate, and interpretable single-cell RNA-seq cell type annotation** using a modular **multi-agent LLM framework**. CASSIA provides comprehensive annotation workflows that incorporate reasoning, validation, quality scoring, and reporting—alongside optional agents for refinement, uncertainty quantification, and retrieval-augmented generation (RAG).
+**CASSIA** (Collaborative Agent System for Single-cell Interpretable Annotation) is a Python and R package designed for **automated, accurate, and interpretable single-cell RNA-seq cell type annotation** using a modular **multi-agent LLM framework**.
+
+📖 [Read our paper in Nature Communications](https://doi.org/10.1038/s41467-025-67084-x)
 
 ## Highlights
 
-- 🔬 **Reference-free and interpretable** LLM-based cell type annotation  
-- 🧠 Multi-agent architecture with dedicated agents for annotation, validation, formatting, quality scoring, and reporting  
-- 📈 **Quality scores (0–100)** and optional consensus scoring to quantify annotation reliability  
-- 📊 Detailed **HTML reports** with reasoning and marker validation  
-- 💬 Supports OpenAI, Anthropic, OpenRouter APIs and open-source models (e.g., LLaMA 3.2 90B)  
-- 🧬 Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)  
-- 🚀 Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification  
-- 🌎 Cross-species annotation capabilities, validated across human, mouse, and non-model organisms  
-- 🧪 Web UI also available: [https://www.cassia.bio](https://www.cassia.bio/)
+- 🔬 **Reference-free and interpretable** LLM-based cell type annotation
+- 🧠 Multi-agent architecture with dedicated agents for annotation, validation, formatting, quality scoring, and reporting
+- 📈 **Quality scores (0–100)** and optional consensus scoring to quantify annotation reliability
+- 📊 Detailed **HTML reports** with reasoning and marker validation
+- 💬 Supports OpenAI, Anthropic, OpenRouter, DeepSeek, and any OpenAI-compatible API (including local LLMs)
+- 🧬 Compatible with markers from Seurat (`FindAllMarkers`) and Scanpy (`tl.rank_genes_groups`)
+- 🚀 Optional agents: Annotation Boost, Subclustering, RAG (retrieval-augmented generation), Uncertainty Quantification
+- 🌎 Cross-species annotation capabilities, validated across human, mouse, and non-model organisms
+- 🧪 Web UI also available: [cassia.bio](https://www.cassia.bio/)
 
 ## Installation
-
-Install the core CASSIA framework:
 
 ```bash
 pip install CASSIA
@@ -67,27 +68,74 @@ pip install CASSIA_rag
 
 **Note**: For R users, see the R package on [GitHub](https://github.com/ElliotXie/CASSIA-SingleCell-LLM-Annotation).
 
+## Set Up API Key
+
+**You only need one API key to use CASSIA.** We recommend OpenRouter since it provides access to most models (OpenAI, Anthropic, Google, etc.) through a single API key.
+
+```python
+import CASSIA
+
+# For OpenRouter (recommended — access all models with one key)
+CASSIA.set_api_key("your_openrouter_api_key", provider="openrouter")
+
+# For OpenAI
+CASSIA.set_api_key("your_openai_api_key", provider="openai")
+
+# For Anthropic
+CASSIA.set_api_key("your_anthropic_api_key", provider="anthropic")
+
+# For custom OpenAI-compatible APIs (e.g., DeepSeek)
+CASSIA.set_api_key("your_deepseek_api_key", provider="https://api.deepseek.com")
+```
+
 ## Quick Start
 
 ```python
-# Run the CASSIA pipeline in fast mode
+import CASSIA
+
+# Load example marker data
+unprocessed_markers = CASSIA.load_example_markers(processed=False)
+
+# Run the full CASSIA pipeline (annotation + scoring + boost + report)
 CASSIA.runCASSIA_pipeline(
-    output_file_name = "FastAnalysisResults",
-    tissue = "large intestine",
-    species = "human",
-    marker = unprocessed_markers,
-    max_workers = 6,  # Matches the number of clusters in dataset
-    annotation_model = "openai/gpt-4o-2024-11-20", #openai/gpt-4o-2024-11-20
-    annotation_provider = "openrouter",
-    score_model = "anthropic/claude-3.5-sonnet",
-    score_provider = "openrouter",
-    score_threshold = 75,
-    annotationboost_model="anthropic/claude-3.5-sonnet",
-    annotationboost_provider="openrouter"
+    output_file_name="MyAnalysis",
+    tissue="large intestine",
+    species="human",
+    marker=unprocessed_markers,
+    max_workers=4,
+    overall_provider="openrouter",
+    annotation_model="anthropic/claude-sonnet-4.6",
+    score_model="anthropic/claude-sonnet-4.6",
+    score_threshold=75
 )
 ```
 
-For detailed workflows and agent customization, see the [Documentation](https://docs.cassia.bio/en/vignette/python/introduction).
+> **Quick annotation only?** Use `CASSIA.runCASSIA_batch()` for fast batch annotation without scoring or boosting.
+
+## Supported Models
+
+You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models.
+
+| Provider | Model | Notes |
+|----------|-------|-------|
+| OpenRouter | `anthropic/claude-sonnet-4.6` | Best-performing (Recommended) |
+| OpenRouter | `openai/gpt-5.4` | Best-performing |
+| OpenRouter | `google/gemini-3-flash-preview` | Best low-cost option |
+| OpenRouter | `x-ai/grok-4.20-beta` | Best low-cost option |
+| OpenAI | `gpt-5.4` | Balanced option |
+| Anthropic | `claude-sonnet-4-6` | Latest best-performing |
+| DeepSeek | `deepseek-chat` | Very affordable |
+| Local | Any Ollama model | Zero cost, full privacy |
+
+## Documentation
+
+📚 [Complete Documentation & Vignettes](https://docs.cassia.bio/en)
+
+🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.com/methods/cassia)
+
+## Citation
+
+Xie, E., Cheng, L., Shireman, J. et al. CASSIA: a multi-agent large language model for automated and interpretable cell annotation. *Nat Commun* (2025). https://doi.org/10.1038/s41467-025-67084-x
 
 ## Contributing
 
@@ -95,8 +143,8 @@ We welcome contributions! Please submit pull requests or open issues via [GitHub
 
 ## License
 
-MIT License © 2024 Elliot Xie and contributors.
+MIT License © 2025 Elliot Xie and contributors.
 
 ## Support
 
-Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA/issues) or visit [cassia.bio](https://www.cassia.bio/) for help.
+Open an issue on [GitHub](https://github.com/ElliotXie/CASSIA/issues) or email **xie227@wisc.edu** for help.

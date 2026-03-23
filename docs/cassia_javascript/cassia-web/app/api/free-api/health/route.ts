@@ -5,6 +5,13 @@ import { NextResponse } from 'next/server';
  * Used by R/Python packages to verify server availability
  */
 export async function GET() {
+    // Service temporarily paused
+    return NextResponse.json({
+        status: 'paused',
+        message: 'Free API service is temporarily paused',
+    }, { status: 503 });
+
+    // Original response kept below for when service resumes
     return NextResponse.json({
         status: 'ok',
         service: 'cassia-free-api',

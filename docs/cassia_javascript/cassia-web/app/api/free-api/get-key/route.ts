@@ -15,6 +15,12 @@ interface GetKeyRequest {
 }
 
 export async function POST(request: NextRequest) {
+    // Service temporarily paused
+    return NextResponse.json(
+        { error: 'Free API service is temporarily paused' },
+        { status: 503 }
+    );
+
     // Check Supabase configuration
     if (!supabaseUrl || !supabaseServiceKey) {
         console.error('[get-key] Supabase not configured');

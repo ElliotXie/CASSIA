@@ -11,6 +11,12 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
  * Used by R/Python packages to check remaining quota
  */
 export async function GET(request: NextRequest) {
+    // Service temporarily paused
+    return NextResponse.json(
+        { error: 'Free API service is temporarily paused' },
+        { status: 503 }
+    );
+
     // Check Supabase configuration
     if (!supabaseUrl || !supabaseServiceKey) {
         return NextResponse.json(
