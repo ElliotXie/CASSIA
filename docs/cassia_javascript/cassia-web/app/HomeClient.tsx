@@ -5,7 +5,7 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ExternalLink, Rocket, RefreshCw, Wrench, Code, BarChart3, Bot, FileText, Package, Bug, Lock, Lightbulb } from 'lucide-react'
+import { Zap, Settings, Download, HelpCircle, Key, CheckCircle, XCircle, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ExternalLink, Rocket, RefreshCw, Wrench, Code, BarChart3, Bot, FileText, Package, Bug, Lock, Lightbulb, Layers, Star, Workflow, ArrowRight, Puzzle } from 'lucide-react'
 import { useState, Suspense, useEffect } from 'react'
 import { useApiKeyStore } from '@/lib/stores/api-key-store-simple'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -416,11 +416,11 @@ export default function HomeClient() {
             <CardHeader className="pb-4 relative z-10">
               <div className="flex items-center space-x-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Settings className="h-7 w-7 text-white" />
+                  <Layers className="h-7 w-7 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Batch</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><Rocket className="h-4 w-4" /> Recommended starting point</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><Star className="h-4 w-4" /> Recommended starting point</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -461,11 +461,11 @@ export default function HomeClient() {
             <CardHeader className="pb-4 relative z-10">
               <div className="flex items-center space-x-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Zap className="h-7 w-7 text-white" />
+                  <Workflow className="h-7 w-7 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">CASSIA Pipeline</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Alternative starting point</CardDescription>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1"><ArrowRight className="h-4 w-4" /> Alternative starting point</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -506,7 +506,7 @@ export default function HomeClient() {
             <CardHeader className="pb-4 relative z-10">
               <div className="flex items-center space-x-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Settings className="h-7 w-7 text-white" />
+                  <Puzzle className="h-7 w-7 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">Optional Agents</CardTitle>
