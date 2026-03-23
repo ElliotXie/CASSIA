@@ -65,10 +65,10 @@ devtools::install_github("ElliotXie/CASSIA/CASSIA_R")
 
 ```R
 # 下载源码包后安装
-install.packages("path/to/CASSIA_0.1.0.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/CASSIA_1.3.2.tar.gz", repos = NULL, type = "source")
 ```
 
-源码包下载地址：[CASSIA_0.1.0.tar.gz](https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source_R/CASSIA_0.1.0.tar.gz)
+源码包下载地址：[CASSIA_1.3.2.tar.gz](https://github.com/ElliotXie/CASSIA/raw/main/CASSIA_source_R/CASSIA_1.3.2.tar.gz)
 
 ***注意：如果环境第一次没有正确设置，请重启R并运行以下代码***
 
