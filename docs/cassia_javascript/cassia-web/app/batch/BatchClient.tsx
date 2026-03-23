@@ -94,7 +94,6 @@ export default function BatchClient() {
       { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini', cost: 'low', speed: 'fast' },
       { id: 'openai/gpt-4o', name: 'GPT-4o', cost: 'medium', speed: 'fast' },
       { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
-      { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', cost: 'low', speed: 'fast' },
       { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro', cost: 'high', speed: 'medium' },
       { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek Chat V3.1', cost: 'very low', speed: 'fast' },
       { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', cost: 'low', speed: 'fast' },
