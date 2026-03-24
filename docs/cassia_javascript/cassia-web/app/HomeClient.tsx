@@ -645,7 +645,7 @@ export default function HomeClient() {
                 width={32}
                 height={32}
               />
-              <h3 className="text-xl font-bold gradient-text">CASSIA v2.0</h3>
+              <h3 className="text-xl font-bold gradient-text">CASSIA v1.3.3</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Collective Agent System for Single-cell Interpretable Annotation
