@@ -971,29 +971,60 @@ def organize_batch_results(marker, file_pattern, celltype_column=None):
     # Loop through each file (round of results)
     for file in file_list:
         df = pd.read_csv(file)
-        
-        # Loop through each cell type
+
         # Determine the cluster column name (new name first, then fall back to old name)
-        cluster_col = 'Cluster ID' if 'Cluster ID' in df.columns else 'True Cell Type'
+        if 'Cluster ID' in df.columns:
+            cluster_col = 'Cluster ID'
+        elif 'Result ID' in df.columns:
+            cluster_col = 'Result ID'
+        else:
+            cluster_col = 'True Cell Type'
+        df[cluster_col] = df[cluster_col].astype(str)
+
+        # Try name-based matching first, track which clusters matched
+        matched_celltypes = set()
         for celltype in marker_celltype:
-            # Find the row for the current cell type
-            row = df[df[cluster_col] == celltype]
-            
+            row = df[df[cluster_col] == str(celltype)]
             if not row.empty:
-                # Extract the predicted general cell type (second column)
+                matched_celltypes.add(celltype)
                 predicted_general = row.iloc[0, 1]
-                
-                # Extract the first predicted subtype (first element in the third column)
                 predicted_subtypes = row.iloc[0, 2]
                 first_subtype = predicted_subtypes.split(',')[0].strip() if pd.notna(predicted_subtypes) else 'N/A'
-                
-                # Append the results as a tuple
                 results[celltype].append((predicted_general, first_subtype))
+
+        # For any unmatched clusters, fall back to positional matching
+        # This handles subclustering CSVs where the LLM returns different cluster IDs
+        # (e.g., numeric "0","1","2" instead of "monocyte","plasma cell",
+        #  or truncated names like "plasma" instead of "plasma cell")
+        unmatched = [ct for ct in marker_celltype if ct not in matched_celltypes]
+        if unmatched and len(df) > 0:
+            for i, celltype in enumerate(marker_celltype):
+                if celltype not in matched_celltypes and i < len(df):
+                    predicted_general = df.iloc[i, 1]
+                    predicted_subtypes = df.iloc[i, 2]
+                    first_subtype = predicted_subtypes.split(',')[0].strip() if pd.notna(predicted_subtypes) else 'N/A'
+                    results[celltype].append((predicted_general, first_subtype))
 
     # Convert the defaultdict to a regular dict for easier handling
     organized_results = dict(results)
     
     return organized_results
+
+
+def _llm_call_with_retry(func, max_retries=2, **kwargs):
+    """Call an LLM function with retry on timeout/network errors."""
+    last_error = None
+    for attempt in range(1 + max_retries):
+        try:
+            return func(**kwargs)
+        except Exception as e:
+            last_error = e
+            error_str = str(e).lower()
+            is_retryable = any(kw in error_str for kw in ['timeout', 'timed out', 'connection', 'read timed out'])
+            if is_retryable and attempt < max_retries:
+                print(f"  Retry {attempt + 1}/{max_retries} after error: {str(e)[:100]}")
+                continue
+            raise last_error
 
 
 def process_cell_type_variance_analysis_batch(results, model=None, provider="openai", temperature=0.0, main_weight=0.5, sub_weight=0.5, include_ontology=True):
@@ -1024,7 +1055,8 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     
     # Extract and format results using the unified agent_unification function
     try:
-        results_unification_llm = agent_unification(
+        results_unification_llm = _llm_call_with_retry(
+            agent_unification,
             prompt=results,
             model=model,
             provider=provider,
@@ -1039,7 +1071,8 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     if include_ontology:
         try:
             # Depluralize using unified function
-            results_depluar = agent_unification_deplural(
+            results_depluar = _llm_call_with_retry(
+                agent_unification_deplural,
                 prompt=results, # This 'results' is the original full batch string
                 model=model,
                 provider=provider,
@@ -1055,7 +1088,8 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
             if result_unified_oncology == results_depluar and results_depluar and results_depluar.strip():
                 print("Standardization failed on first attempt. Attempting re-generation of depluralized string and retrying standardization...")
                 # Re-run depluralization
-                results_depluar_retry = agent_unification_deplural(
+                results_depluar_retry = _llm_call_with_retry(
+                    agent_unification_deplural,
                     prompt=results, # Use the same original prompt
                     model=model,
                     provider=provider,
@@ -1089,7 +1123,8 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     
     # Consensus judgment using unified function - always use JSON tags for consistency
     try:
-        result_consensus_from_llm = agent_judgement(
+        result_consensus_from_llm = _llm_call_with_retry(
+            agent_judgement,
             prompt=results_unification_llm,
             model=model,
             provider=provider,
@@ -1139,7 +1174,8 @@ def process_cell_type_variance_analysis_batch(results, model=None, provider="ope
     if include_ontology and ontology_results_available:
         try:
             # Get consensus from ontology-standardized results - always use JSON tags
-            result_consensus_from_oncology = agent_judgement(
+            result_consensus_from_oncology = _llm_call_with_retry(
+                agent_judgement,
                 prompt=result_unified_oncology,
                 model=model,
                 provider=provider,
@@ -1394,7 +1430,13 @@ def runCASSIA_similarity_score_batch(marker, file_pattern, output_name, celltype
     if generate_report:
         try:
             from CASSIA.reports.generate_report_uncertainty import generate_uq_batch_html_report
-            report_path = report_output_path or 'uq_batch_report.html'
+            # Default report path: same location as output CSV, with .html extension
+            if report_output_path:
+                report_path = report_output_path
+            else:
+                # Derive from output_name (strip .csv if present, add _report.html)
+                base = output_name[:-4] if output_name.endswith('.csv') else output_name
+                report_path = f"{base}_report.html"
             generate_uq_batch_html_report(
                 processed_results=processed_results,
                 organized_results=organized_results,

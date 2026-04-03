@@ -436,48 +436,133 @@ def process_evaluation_csv(csv_path: str, overwrite: bool = False, model_name: s
     except Exception as e:
         print(f"Error processing {csv_path}: {str(e)}")
 
-def create_index_html(csv_files: List[str], output_dir: str) -> None:
-    """Create an index.html file that links to all the reports."""
-    reports = []
-    
+def _is_subclustering_csv(df):
+    """Check if a DataFrame has subclustering format columns."""
+    expected_cols = {'Result ID', 'main_cell_type', 'sub_cell_type'}
+    return expected_cols.issubset(set(df.columns))
+
+
+def _create_subclustering_index_html(csv_files: List[str], output_dir: str) -> None:
+    """Create an index.html for subclustering batch results showing annotations per iteration."""
+    iterations = []
+
     for csv_file in csv_files:
         try:
-            # Read the CSV to get metrics
             df = pd.read_csv(csv_file)
-            
+            html_path = csv_file.replace('.csv', '.html')
+            rel_path = os.path.relpath(html_path, output_dir)
+            filename = os.path.basename(csv_file)
+
+            # Extract iteration number from filename (e.g., "results_3.csv" -> 3)
+            import re
+            iter_match = re.search(r'_(\d+)\.csv$', filename)
+            iter_num = int(iter_match.group(1)) if iter_match else len(iterations) + 1
+
+            clusters = []
+            for _, row in df.iterrows():
+                clusters.append({
+                    'id': row.get('Result ID', ''),
+                    'main': row.get('main_cell_type', ''),
+                    'sub': row.get('sub_cell_type', ''),
+                })
+
+            iterations.append({
+                'iter_num': iter_num,
+                'html_path': rel_path,
+                'filename': filename,
+                'clusters': clusters,
+                'num_clusters': len(df)
+            })
+        except Exception as e:
+            print(f"Error processing {csv_file} for index: {str(e)}")
+
+    iterations.sort(key=lambda x: x['iter_num'])
+
+    # Build cluster summary rows — one row per cluster per iteration
+    rows = []
+    for it in iterations:
+        for j, cl in enumerate(it['clusters']):
+            row_class = 'style="border-top: 2px solid #ccc;"' if j == 0 else ''
+            iter_cell = f'<td rowspan="{len(it["clusters"])}"><a href="{it["html_path"]}">Iteration {it["iter_num"]}</a></td>' if j == 0 else ''
+            rows.append(f'''
+            <tr {row_class}>
+                {iter_cell}
+                <td>{cl['id']}</td>
+                <td>{cl['main']}</td>
+                <td>{cl['sub']}</td>
+            </tr>''')
+
+    html = f'''<!DOCTYPE html>
+<html>
+<head>
+    <title>Subclustering Batch Results - Summary</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        h1 {{ color: #2c3e50; }}
+        table {{ border-collapse: collapse; width: 100%; }}
+        th, td {{ padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }}
+        tr:hover {{ background-color: #f5f5f5; }}
+        th {{ background-color: #3498db; color: white; }}
+        .summary {{ margin-bottom: 20px; color: #555; }}
+    </style>
+</head>
+<body>
+    <h1>Subclustering Batch Results</h1>
+    <p class="summary">Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} &mdash;
+       {len(iterations)} iterations, {iterations[0]['num_clusters'] if iterations else 0} clusters each</p>
+    <table>
+        <tr>
+            <th>Iteration</th>
+            <th>Cluster ID</th>
+            <th>Main Cell Type</th>
+            <th>Sub Cell Type</th>
+        </tr>
+        {''.join(rows)}
+    </table>
+</body>
+</html>'''
+
+    index_path = os.path.join(output_dir, 'iterations_summary.html')
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print(f"Index page created at {index_path}")
+
+
+def _create_evaluation_index_html(csv_files: List[str], output_dir: str) -> None:
+    """Create an index.html for evaluation/scoring reports."""
+    reports = []
+
+    for csv_file in csv_files:
+        try:
+            df = pd.read_csv(csv_file)
+
             # Determine score column
             score_col = None
             for col in ["score", "evaluation_score", "similarity_score"]:
                 if col in df.columns:
                     score_col = col
                     break
-            
+
             if not score_col:
                 continue
-                
-            # Calculate mean score
+
             mean_score = df[score_col].mean()
-            
-            # Get model name and HTML path
             model_name = extract_model_name(csv_file)
             html_path = csv_file.replace('.csv', '.html')
             rel_path = os.path.relpath(html_path, output_dir)
-            
-            # Add to reports list
+
             reports.append({
                 'model_name': model_name,
                 'mean_score': mean_score,
                 'html_path': rel_path,
                 'count': len(df)
             })
-            
+
         except Exception as e:
             print(f"Error processing {csv_file} for index: {str(e)}")
-    
-    # Sort reports by mean score (descending)
+
     reports.sort(key=lambda x: x['mean_score'], reverse=True)
-    
-    # Create index.html content
+
     rows = []
     for i, report in enumerate(reports):
         rows.append(f'''
@@ -488,7 +573,7 @@ def create_index_html(csv_files: List[str], output_dir: str) -> None:
             <td>{report['count']}</td>
         </tr>
         ''')
-    
+
     html = f'''
     <html>
     <head>
@@ -517,13 +602,32 @@ def create_index_html(csv_files: List[str], output_dir: str) -> None:
     </body>
     </html>
     '''
-    
-    # Write index.html
-    index_path = os.path.join(output_dir, 'index.html')
+
+    index_path = os.path.join(output_dir, 'evaluation_summary.html')
     with open(index_path, 'w', encoding='utf-8') as f:
         f.write(html)
-    
     print(f"Index page created at {index_path}")
+
+
+def create_index_html(csv_files: List[str], output_dir: str) -> None:
+    """Create an index.html file that links to all the reports.
+
+    Automatically detects whether the CSVs are subclustering results or
+    evaluation/scoring reports and generates the appropriate index page.
+    """
+    if not csv_files:
+        return
+
+    # Detect format from the first CSV
+    try:
+        first_df = pd.read_csv(csv_files[0])
+        if _is_subclustering_csv(first_df):
+            _create_subclustering_index_html(csv_files, output_dir)
+            return
+    except Exception:
+        pass
+
+    _create_evaluation_index_html(csv_files, output_dir)
 
 
 # =============================================================================

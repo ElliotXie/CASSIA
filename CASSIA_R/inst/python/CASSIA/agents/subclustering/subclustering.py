@@ -204,7 +204,7 @@ You should include all clusters mentioned in the analysis or 1000 grandma will b
 
 
 
-def write_results_to_csv(results, output_name='subcluster_results', marker_map=None):
+def write_results_to_csv(results, output_name='subcluster_results', marker_map=None, expected_cluster_ids=None):
     """
     Extract cell type results from LLM output (XML format) and write to CSV file
 
@@ -212,6 +212,8 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
         results (str): LLM analysis results with XML-tagged clusters
         output_name (str): Base name for output file (will add .csv if not present)
         marker_map (dict): Optional mapping of cluster_id (str) -> marker genes string
+        expected_cluster_ids (list): Optional list of expected cluster IDs from the marker data.
+            When provided and LLM returns different IDs, remaps by position.
 
     Returns:
         pandas.DataFrame: DataFrame containing the extracted results
@@ -246,6 +248,19 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
 
     if rows:
         df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
+
+        # Remap cluster IDs if LLM returned different ones than expected
+        if expected_cluster_ids is not None and len(df) == len(expected_cluster_ids):
+            expected_set = set(str(x) for x in expected_cluster_ids)
+            result_set = set(df['Result ID'].astype(str))
+            if expected_set != result_set:
+                expected_list = [str(x) for x in expected_cluster_ids]
+                print(f"  Remapping cluster IDs: {df['Result ID'].tolist()} -> {expected_list}")
+                df['Result ID'] = expected_list
+                # Also re-populate key_markers with correct mapping
+                if marker_map:
+                    df['key_markers'] = [marker_map.get(cid, '') for cid in expected_list]
+
         df.to_csv(output_name, index=False)
         print(f"Results have been written to {output_name}")
         return df
@@ -320,9 +335,10 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
     except Exception:
         marker_df = marker.copy()
     marker_map = {str(row.iloc[0]): str(row.iloc[1]) for _, row in marker_df.iterrows()}
+    expected_cluster_ids = [str(row.iloc[0]) for _, row in marker_df.iterrows()]
 
     # Save results to CSV
-    write_results_to_csv(results, output_name, marker_map=marker_map)
+    write_results_to_csv(results, output_name, marker_map=marker_map, expected_cluster_ids=expected_cluster_ids)
 
     # --- Generate HTML report for the single run CSV ---
     try:
@@ -446,23 +462,27 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
             # Convert types to ensure compatibility
             df['Result ID'] = df['Result ID'].astype(str)
 
-            # Validate cluster IDs instead of position-based swap
             # Extract expected cluster IDs from marker_df
-            expected_cluster_ids = set(str(x) for x in marker_df.iloc[:, 0].tolist())
+            expected_cluster_ids_list = [str(x) for x in marker_df.iloc[:, 0].tolist()]
+            expected_cluster_ids = set(expected_cluster_ids_list)
             result_cluster_ids = set(str(x) for x in df['Result ID'].tolist())
 
-            # Check for missing clusters
+            # Check for mismatched cluster IDs
             missing_clusters = expected_cluster_ids - result_cluster_ids
+            unexpected_clusters = result_cluster_ids - expected_cluster_ids
+
             if missing_clusters:
                 print(f"Warning: Iteration {i+1} - LLM output missing cluster IDs: {missing_clusters}")
-
-            # Check for unexpected clusters (LLM hallucinated IDs)
-            unexpected_clusters = result_cluster_ids - expected_cluster_ids
             if unexpected_clusters:
                 print(f"Warning: Iteration {i+1} - LLM output has unexpected cluster IDs: {unexpected_clusters}")
 
-            # The Result ID already contains the correct cluster IDs from the LLM extraction
-            # No swap needed - just validate that they're correct
+            # If LLM returned different IDs (e.g., numeric "1","2" instead of
+            # "monocyte","plasma cell"), remap by position to the original IDs
+            if missing_clusters and unexpected_clusters and len(df) == len(expected_cluster_ids_list):
+                print(f"  Remapping cluster IDs by position: {df['Result ID'].tolist()} -> {expected_cluster_ids_list}")
+                df['Result ID'] = expected_cluster_ids_list[:len(df)]
+                # Re-populate key_markers using the correct (remapped) cluster IDs
+                df['key_markers'] = [marker_map.get(cid, '') for cid in expected_cluster_ids_list[:len(df)]]
 
         except Exception as e:
             print(f"Warning: Error during cluster ID validation: {str(e)}. Continuing anyway.")
