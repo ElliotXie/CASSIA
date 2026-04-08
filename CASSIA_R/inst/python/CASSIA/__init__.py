@@ -1,7 +1,7 @@
 # CASSIA - Cell Annotation with Semantic Similarity for Intelligent Analysis
 # Root module with backward-compatible exports from reorganized submodules
 
-__version__ = "1.3.4"
+__version__ = "1.3.5"
 
 # =============================================================================
 # BACKWARD COMPATIBILITY LAYER
@@ -34,21 +34,12 @@ from .engine.tools_function import (
 )
 
 # Proxy configuration (for users in regions where US API providers are blocked)
-# Auto-detects China timezone and enables proxy automatically.
-# Users can disable with: CASSIA.set_proxy(None)
+# Auto-detection is currently DISABLED — see proxy_config.py for the kill-switch
+# rationale. Users in mainland China who need to route through the proxy can
+# explicitly opt in via:
+#     CASSIA.set_proxy("china")
+# or by setting the CASSIA_PROXY=china environment variable before import.
 from .core.proxy_config import set_proxy, get_proxy
-
-# Trigger auto-detection and notify user
-_detected_proxy = get_proxy()
-if _detected_proxy:
-    import sys as _sys
-    print(
-        f"[CASSIA] Detected region '{_detected_proxy}' — API calls will be routed through proxy.\n"
-        f"         To disable: CASSIA.set_proxy(None)",
-        file=_sys.stderr
-    )
-    del _sys
-del _detected_proxy
 
 # Main function code exports
 from .engine.main_function_code import *
