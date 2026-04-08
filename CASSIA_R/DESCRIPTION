@@ -1,6 +1,6 @@
 Package: CASSIA
 Title: Collaborative Agent System for Single-Cell Interpretable Annotation
-Version: 1.3.5
+Version: 1.3.6
 Authors@R:
     person("Elliot Yixuan", "Xie", email = "xie227@wisc.edu", role = c("aut", "cre"))
 Description: Provides R wrappers for a collaborative agent system designed for
