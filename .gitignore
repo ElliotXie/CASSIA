@@ -50,6 +50,10 @@ Features_plan/
 CASSIA_python/upload_to_pypi.py
 CASSIA_python/cassia_secrets.py
 
+# PyPI credentials (defense-in-depth — actual file lives in $HOME, not the
+# repo, but this prevents accidental check-in if someone copies it locally)
+.pypirc
+
 # API key configuration files
 CASSIA_R/inst/python/CASSIA/config/set_api_keys.py
 **/set_api_keys.py
