@@ -81,6 +81,40 @@ class Agent:
             additional_params={"messages": self.chat_histories[other_agent_id]}
         )
 
+        # Defensive null check.
+        #
+        # The OpenAI Chat Completions schema explicitly allows
+        # `choices[0].message.content` to be None — it happens when:
+        #   1. The prompt triggers OpenAI's content / safety filter
+        #      (finish_reason="content_filter")
+        #   2. The model decides to emit a tool / function call instead of
+        #      text (content is None, tool_calls populated)
+        #   3. An OpenAI-compatible upstream (OpenRouter, custom proxy,
+        #      DeepSeek, etc.) returns a non-conformant payload
+        #   4. The model hits max_tokens before producing any text
+        #
+        # call_llm() forwards `message.content` verbatim, so a None
+        # response would propagate up to callers like final_annotation()
+        # which immediately do `if "FINAL ANNOTATION COMPLETED" in response`
+        # — and `"..." in None` raises the cryptic
+        # `TypeError: argument of type 'NoneType' is not iterable`,
+        # which is exactly what users have been reporting from R Studio
+        # (reticulate surfaces the same TypeError unchanged).
+        #
+        # Catch the empty response *here* (single source of truth for every
+        # Agent caller) and raise an actionable error that explains both
+        # what happened and what to try next.
+        if result is None or not isinstance(result, str) or result.strip() == "":
+            raise ValueError(
+                f"LLM returned an empty response (provider={effective_provider}, "
+                f"model={self.model}). This usually means one of:\n"
+                f"  - The prompt triggered the provider's content/safety filter\n"
+                f"  - The model attempted a tool/function call instead of text\n"
+                f"  - The upstream provider returned a non-conformant payload\n"
+                f"  - The model hit max_tokens before producing any output\n"
+                f"Try a different model, simplify your input, or retry the request."
+            )
+
         # Add assistant response to history
         self.chat_histories[other_agent_id].append(
             {"role": "assistant", "content": result}

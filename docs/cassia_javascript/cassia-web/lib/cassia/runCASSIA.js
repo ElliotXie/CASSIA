@@ -281,14 +281,14 @@ class Agent {
         if (!this.chatHistories[otherAgentId]) {
             this.chatHistories[otherAgentId] = [];
         }
-        
+
         // Add system message if this is the first message for this conversation
         if (this.chatHistories[otherAgentId].length === 0 && this.system) {
             this.chatHistories[otherAgentId].push({ role: "system", content: this.system });
         }
-        
+
         this.chatHistories[otherAgentId].push({ role: "user", content: message });
-        
+
         try {
             const response = await callLLM(
                 message,
@@ -302,9 +302,43 @@ class Agent {
                 this.reasoningConfig,
                 this.signal
             );
-            
+
+            // Defensive null check.
+            //
+            // The OpenAI Chat Completions schema explicitly allows
+            // `choices[0].message.content` to be null — it happens when:
+            //   1. The prompt triggers OpenAI's content / safety filter
+            //      (finish_reason="content_filter")
+            //   2. The model decides to emit a tool / function call instead of
+            //      text (content is null, tool_calls populated)
+            //   3. An OpenAI-compatible upstream (OpenRouter, custom proxy,
+            //      DeepSeek, etc.) returns a non-conformant payload
+            //   4. The model hits max_tokens before producing any text
+            //
+            // callLLM() forwards `message.content` verbatim, so a null
+            // response would propagate up to callers like finalAnnotation()
+            // which immediately do `response.includes("FINAL ANNOTATION COMPLETED")`
+            // — and `null.includes(...)` raises the cryptic
+            // `TypeError: Cannot read properties of null (reading 'includes')`,
+            // which is exactly what users have been reporting from cassia.bio.
+            //
+            // Catch the empty response *here* (single source of truth for every
+            // Agent caller) and throw an actionable error that explains both
+            // what happened and what to try next.
+            if (response == null || typeof response !== 'string' || response.trim() === '') {
+                throw new Error(
+                    `LLM returned an empty response (provider=${this.provider}, ` +
+                    `model=${this.model}). This usually means one of:\n` +
+                    `  - The prompt triggered the provider's content/safety filter\n` +
+                    `  - The model attempted a tool/function call instead of text\n` +
+                    `  - The upstream provider returned a non-conformant payload\n` +
+                    `  - The model hit max_tokens before producing any output\n` +
+                    `Try a different model, simplify your input, or retry the request.`
+                );
+            }
+
             this.chatHistories[otherAgentId].push({ role: "assistant", content: response });
-            
+
             return response;
         } catch (error) {
             console.error(`Error calling LLM: ${error.message}`);
