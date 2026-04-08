@@ -14,8 +14,57 @@ const UPSTREAM_MAP = {
   '/openrouter/':  'https://openrouter.ai/',
 };
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
+};
+
+// Headers that should NOT be forwarded to upstream:
+// - browser-only headers that confuse upstream APIs (Anthropic in particular
+//   treats requests with `Origin` set as browser-originated and will reject
+//   them unless `anthropic-dangerous-direct-browser-access: true` is set)
+// - hop-by-hop headers (per RFC 7230) which must not be proxied
+// - `host` is set automatically by the runtime from the target URL
+const STRIP_REQUEST_HEADERS = new Set([
+  'host',
+  'origin',
+  'referer',
+  'cookie',
+  'connection',
+  'keep-alive',
+  'proxy-authorization',
+  'proxy-connection',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+]);
+
+function filterRequestHeaders(srcHeaders) {
+  const out = new Headers();
+  for (const [key, value] of srcHeaders.entries()) {
+    const k = key.toLowerCase();
+    if (STRIP_REQUEST_HEADERS.has(k)) continue;
+    if (k.startsWith('cf-')) continue;          // Cloudflare-internal
+    if (k.startsWith('sec-')) continue;         // browser fetch metadata
+    if (k.startsWith('x-forwarded-')) continue; // proxy chain metadata
+    out.set(key, value);
+  }
+  return out;
+}
+
 export default {
   async fetch(request) {
+    // Handle CORS preflight FIRST — never forward OPTIONS to upstream.
+    // (Previously this check happened *after* the upstream fetch, which made
+    // every preflight pay a real round-trip to api.openai.com / api.anthropic.com
+    // / openrouter.ai and could fail if the upstream rejected OPTIONS.)
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
     const url = new URL(request.url);
 
     // Find matching upstream
@@ -39,7 +88,10 @@ export default {
             openrouter: 'proxy.cassia.bio/openrouter/api/v1/chat/completions',
           }
         }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
+        {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        }
       );
     }
 
@@ -47,30 +99,26 @@ export default {
     const targetPath = url.pathname.slice(prefix.length);
     const targetUrl = upstream + targetPath + url.search;
 
-    // Forward the request with original headers and body
-    const headers = new Headers(request.headers);
-    headers.set('Host', new URL(upstream).host);
+    // Forward the request, dropping browser-only / hop-by-hop headers so
+    // upstream APIs see what looks like a normal server-to-server call.
+    const headers = filterRequestHeaders(request.headers);
 
-    const response = await fetch(targetUrl, {
+    const upstreamResponse = await fetch(targetUrl, {
       method: request.method,
-      headers: headers,
+      headers,
       body: request.body,
     });
 
-    // Return response with CORS headers for web usage
-    const responseHeaders = new Headers(response.headers);
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
-    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    responseHeaders.set('Access-Control-Allow-Headers', '*');
-
-    // Handle preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: responseHeaders });
+    // Mirror upstream response, but force permissive CORS headers so the
+    // browser will accept the response cross-origin.
+    const responseHeaders = new Headers(upstreamResponse.headers);
+    for (const [k, v] of Object.entries(CORS_HEADERS)) {
+      responseHeaders.set(k, v);
     }
 
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
+    return new Response(upstreamResponse.body, {
+      status: upstreamResponse.status,
+      statusText: upstreamResponse.statusText,
       headers: responseHeaders,
     });
   },
