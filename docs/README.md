@@ -19,6 +19,18 @@
 
 ## 📰 News
 
+> **2026-04-08**
+> 🐛 **Bug fix released — please update to the latest version (v1.3.7).**
+> A recent change to CASSIA's networking layer introduced an issue that could cause some users to see errors when running annotations. This is now fixed.
+> - **R / Python users:** update to **v1.3.7** —
+>   `remotes::install_github("ElliotXie/CASSIA/CASSIA_R", force = TRUE, upgrade = "never")`
+>   or `pip install --upgrade cassia`
+> - **Web users:** open [cassia.bio](https://cassia.bio/) in an incognito window (or clear your browser cache) to pick up the new build.
+> - If you still see an error after updating, please open an [issue](https://github.com/ElliotXie/CASSIA/issues).
+
+<details>
+<summary>📜 Previous Updates (click to expand)</summary>
+
 > **2025-11-29**
 >🎇 **Major update with new features and improvements!**
 > - **Python Documentation**: Complete Python docs and vignettes now available
@@ -27,9 +39,6 @@
 > - **Symphony Compare Update**: Improved comparison module
 > - **Batch Output & Ranking**: Updated HTML output for runCASSIA_batch with new ranking method option
 > - **Fuzzy Model Aliases**: Easier model selection without remembering exact names
-
-<details>
-<summary>📜 Previous Updates (click to expand)</summary>
 
 > **2025-05-05**
 > 📊 **CASSIA annotation benchmark is now online!**

@@ -18,6 +18,18 @@
 
 ## 📰 更新
 
+> **2026-04-08**
+> 🐛 **Bug 修复版本发布 — 请更新到最新版本（v1.3.7）。**
+> 最近一次对 CASSIA 网络层的改动引入了一个问题，可能导致部分用户在运行注释时遇到错误。该问题现已修复。
+> - **R / Python 用户：** 请更新到 **v1.3.7** —
+>   `remotes::install_github("ElliotXie/CASSIA/CASSIA_R", force = TRUE, upgrade = "never")`
+>   或 `pip install --upgrade cassia`
+> - **网页用户：** 请使用浏览器的隐私/无痕窗口打开 [cassia.bio](https://cassia.bio/)（或清除浏览器缓存）以加载最新版本。
+> - 如果更新后仍然遇到错误，欢迎在 [Issues](https://github.com/ElliotXie/CASSIA/issues) 反馈。
+
+<details>
+<summary>📜 历史更新 (点击展开)</summary>
+
 > **2025-11-29**
 >🎇 **重大更新，新功能和改进！**
 > - **Python 文档**：完整的 Python 文档和示例现已上线
@@ -26,9 +38,6 @@
 > - **Symphony Compare 更新**：改进了比较模块
 > - **批量输出和排序**：更新了 runCASSIA_batch 的 HTML 输出，新增排序方法选项
 > - **模糊模型别名**：更简便的模型选择，无需记住精确名称
-
-<details>
-<summary>📜 历史更新 (点击展开)</summary>
 
 > **2025-05-05**
 > 📊 **CASSIA注释基准测试平台现已上线！**
