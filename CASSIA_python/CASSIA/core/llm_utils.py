@@ -154,6 +154,12 @@ def call_llm(
     
     # Get API key from environment if not provided
     if not api_key:
+        # Custom OpenAI-compatible endpoint (provider is a base URL):
+        # read CUSTOMIZED_API_KEY set via CASSIA.set_api_key(key, provider=url)
+        if provider.startswith("http"):
+            api_key = os.environ.get("CUSTOMIZED_API_KEY")
+
+    if not api_key and not provider.startswith("http"):
         env_var_names = {
             "openai": "OPENAI_API_KEY",
             "anthropic": "ANTHROPIC_API_KEY",
