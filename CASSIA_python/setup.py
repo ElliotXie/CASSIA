@@ -18,6 +18,11 @@ setup(
         "seaborn>=0.11.0",
         "mygene>=3.2.0",
     ],
+    entry_points={
+        "console_scripts": [
+            "cassia=CASSIA.cli:main",
+        ],
+    },
     author="Elliot Yixuan Xie",
     author_email="xie227@wisc.edu",
     description="CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.",

@@ -14,11 +14,43 @@ pip install CASSIA
 import CASSIA
 ```
 
+## Command-Line Interface
+
+The Python package also installs a `cassia` command for agent-native workflows.
+It can run through the standard CASSIA API providers or through local agent CLIs
+such as Claude Code, Codex CLI, Cursor Agent, or a custom shell command.
+
+```bash
+cassia doctor
+cassia backends list
+
+cassia annotate \
+  --input markers.csv \
+  --backend codex-cli \
+  --tissue brain \
+  --species human \
+  --out runs/brain_codex
+
+cassia boost query \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --genes CD3D,CD3E,TRAC
+
+cassia boost run \
+  --run runs/brain_codex \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --backend codex-cli
+```
+
+Agent CLI backends do not require CASSIA API keys; they reuse the local tool's
+own authentication. API-backed CLI runs still use the same keys described below.
+
 ## Setting API Keys
 
 To use LLMs like OpenAI's GPT-4, Anthropic's Claude, or models via OpenRouter, you will first need to get your API keys from the provider and then set your API keys using the `set_api_key` function.
 
-**Note: You must set at least one API key to use CASSIA.**
+**Note: API-backed CASSIA workflows require at least one API key.**
 
 **You only need to choose one provider.** OpenRouter is recommended as it provides access to multiple models. You can also use **[custom API providers](#custom-api-providers)** like DeepSeek or local LLMs.
 

@@ -74,6 +74,38 @@ CASSIA.runCASSIA_pipeline(
 
 > **Quick annotation only?** Use `CASSIA.runCASSIA_batch()` for fast batch annotation without scoring or boosting.
 
+## CLI Quick Start
+
+The Python package installs a `cassia` command. In addition to API providers, it
+can call local agent CLIs such as Claude Code, Codex CLI, Cursor Agent, or any
+custom shell command.
+
+```bash
+cassia doctor
+cassia backends list
+
+cassia annotate \
+  --input markers.csv \
+  --backend codex-cli \
+  --tissue brain \
+  --species human \
+  --out runs/brain_codex
+
+cassia boost query \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --genes CD3D,CD3E,TRAC
+
+cassia boost run \
+  --run runs/brain_codex \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --backend codex-cli
+```
+
+Agent CLI backends reuse the local tool's own authentication, so they do not
+require CASSIA API keys.
+
 ## Supported Models
 
 You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models.

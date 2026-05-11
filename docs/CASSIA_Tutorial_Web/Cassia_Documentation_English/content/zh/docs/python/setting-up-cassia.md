@@ -14,11 +14,43 @@ pip install CASSIA
 import CASSIA
 ```
 
+## 命令行界面
+
+Python 包也会安装 `cassia` 命令，适合 Claude Code、Codex CLI、Cursor
+Agent 这类 agent-native 工作流。CLI 可以走标准 CASSIA API provider，也可以调用本机
+agent CLI 或自定义 shell 命令。
+
+```bash
+cassia doctor
+cassia backends list
+
+cassia annotate \
+  --input markers.csv \
+  --backend codex-cli \
+  --tissue brain \
+  --species human \
+  --out runs/brain_codex
+
+cassia boost query \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --genes CD3D,CD3E,TRAC
+
+cassia boost run \
+  --run runs/brain_codex \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --backend codex-cli
+```
+
+agent CLI backend 不需要 CASSIA API key；它会复用本机工具自己的登录状态。API backend
+仍然使用下面介绍的 API key。
+
 ## 设置 API 密钥
 
 要使用 OpenAI 的 GPT-4、Anthropic 的 Claude 或通过 OpenRouter 使用模型，您首先需要从提供商处获取 API 密钥，然后使用 `set_api_key` 函数设置您的 API 密钥。
 
-**注意：您必须设置至少一个 API 密钥才能使用 CASSIA。**
+**注意：使用 API backend 的 CASSIA 工作流需要至少一个 API 密钥。**
 
 **您只需选择一个提供商。** 推荐使用 OpenRouter，因为它提供多种模型的访问。您也可以使用**[自定义 API 提供商](#自定义-api-提供商)**，如 DeepSeek 或本地 LLM。
 
