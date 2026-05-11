@@ -23,6 +23,7 @@ agent CLI 或自定义 shell 命令。
 ```bash
 cassia doctor
 cassia backends list
+cassia examples --out cassia_example
 cassia validate markers.csv
 
 cassia annotate \
@@ -61,13 +62,14 @@ cassia consensus \
 ```
 
 agent CLI backend 不需要 CASSIA API key；它会复用本机工具自己的登录状态。API backend
-仍然使用下面介绍的 API key。`cassia validate` 会在 annotation 前检查 marker CSV
-结构、自动识别到的列、ranking column 和每个 cluster 准备出的 marker 数量。`cassia
-boost auto` 会自动优先处理低置信度、疑似混合或证据不明确的 cluster，并在
-`RUN/boost/_auto` 下生成汇总 CSV/HTML 报告。`cassia subcluster run` 会读取某个
-parent cluster 内部的 subcluster marker table，输出 subcluster 注释 CSV/HTML 报告。
-`cassia consensus` 会对多个 CASSIA summary/subcluster CSV 做本地确定性投票，并生成
-CSV/HTML consensus 报告，不调用 LLM。
+仍然使用下面介绍的 API key。`cassia examples` 会生成一个可直接运行的 mini project，
+里面包含 marker table、consensus 输入、shell 脚本和离线 toy agent。`cassia validate`
+会在 annotation 前检查 marker CSV 结构、自动识别到的列、ranking column 和每个
+cluster 准备出的 marker 数量。`cassia boost auto` 会自动优先处理低置信度、疑似混合
+或证据不明确的 cluster，并在 `RUN/boost/_auto` 下生成汇总 CSV/HTML 报告。`cassia
+subcluster run` 会读取某个 parent cluster 内部的 subcluster marker table，输出
+subcluster 注释 CSV/HTML 报告。`cassia consensus` 会对多个 CASSIA summary/subcluster
+CSV 做本地确定性投票，并生成 CSV/HTML consensus 报告，不调用 LLM。
 
 ## 设置 API 密钥
 

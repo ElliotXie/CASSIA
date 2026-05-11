@@ -23,6 +23,7 @@ such as Claude Code, Codex CLI, Cursor Agent, or a custom shell command.
 ```bash
 cassia doctor
 cassia backends list
+cassia examples --out cassia_example
 cassia validate markers.csv
 
 cassia annotate \
@@ -62,14 +63,15 @@ cassia consensus \
 
 Agent CLI backends do not require CASSIA API keys; they reuse the local tool's
 own authentication. API-backed CLI runs still use the same keys described below.
-`cassia validate` checks marker CSV structure, inferred columns, ranking columns,
-and prepared marker counts before annotation. `cassia boost auto` prioritizes
-low-confidence, mixed, or ambiguous clusters and writes aggregate CSV/HTML
-reports under `RUN/boost/_auto`. `cassia subcluster run` annotates subclusters
-inside one parent cluster from a subcluster marker table and writes CSV/HTML
-reports in the requested output directory. `cassia consensus` votes across
-multiple CASSIA summary/subcluster CSVs and writes CSV/HTML consensus reports
-without calling an LLM.
+`cassia examples` creates a runnable mini project with marker tables, consensus
+inputs, shell scripts, and an offline toy agent. `cassia validate` checks marker
+CSV structure, inferred columns, ranking columns, and prepared marker counts
+before annotation. `cassia boost auto` prioritizes low-confidence, mixed, or
+ambiguous clusters and writes aggregate CSV/HTML reports under `RUN/boost/_auto`.
+`cassia subcluster run` annotates subclusters inside one parent cluster from a
+subcluster marker table and writes CSV/HTML reports in the requested output
+directory. `cassia consensus` votes across multiple CASSIA summary/subcluster
+CSVs and writes CSV/HTML consensus reports without calling an LLM.
 
 ## Setting API Keys
 

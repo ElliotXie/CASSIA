@@ -12,6 +12,8 @@ import csv
 import contextlib
 import io
 import json
+import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -45,6 +47,7 @@ def _capture_main(argv):
 def test_cli_help_includes_workflow_examples():
     top_help = _capture_help(["--help"])
     validate_help = _capture_help(["validate", "--help"])
+    examples_help = _capture_help(["examples", "--help"])
     annotate_help = _capture_help(["annotate", "--help"])
     consensus_help = _capture_help(["consensus", "--help"])
     boost_auto_help = _capture_help(["boost", "auto", "--help"])
@@ -52,12 +55,73 @@ def test_cli_help_includes_workflow_examples():
 
     assert "Common workflows:" in top_help
     assert "cassia validate markers.csv" in top_help
+    assert "cassia examples --out cassia_example" in top_help
     assert "Validate marker CSV structure" in validate_help
+    assert "Create marker CSVs" in examples_help
     assert "cassia annotate -i markers.csv --backend codex-cli" in top_help
     assert "Examples:" in annotate_help
     assert "cassia consensus --inputs runs/codex/summary.csv" in consensus_help
     assert "cassia boost auto --run runs/brain_codex" in boost_auto_help
     assert "cassia subcluster run --markers cd8_subcluster_markers.csv" in subcluster_help
+
+
+def test_cli_examples_generates_runnable_project(tmp_dir):
+    out_dir = tmp_dir / "cassia_example"
+    code, output = _capture_main([
+        "examples",
+        "--out",
+        str(out_dir),
+        "--backend",
+        "shell",
+    ])
+    assert code == 0
+    assert "Created CASSIA example project" in output
+    for relative_path in [
+        "README.md",
+        "markers.csv",
+        "raw_markers.csv",
+        "subcluster_markers.csv",
+        "toy_agent.py",
+        "run.sh",
+        "run_offline.sh",
+        "consensus_inputs/codex/summary.csv",
+        "consensus_inputs/claude/summary.csv",
+    ]:
+        assert (out_dir / relative_path).exists()
+
+    code, validate_output = _capture_main(["validate", str(out_dir / "markers.csv")])
+    assert code == 0
+    assert "Status: OK" in validate_output
+
+    consensus_out = out_dir / "runs" / "consensus_test.csv"
+    code = main([
+        "consensus",
+        "--inputs",
+        str(out_dir / "consensus_inputs" / "codex"),
+        str(out_dir / "consensus_inputs" / "claude"),
+        "--out",
+        str(consensus_out),
+        "--no-html",
+    ])
+    assert code == 0
+    assert consensus_out.exists()
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(Path(__file__).parent.parent.parent / "CASSIA_python")
+    env["CASSIA_CMD"] = f"{sys.executable} -m CASSIA.cli"
+    env["PYTHON_BIN"] = sys.executable
+    completed = subprocess.run(
+        ["bash", "run_offline.sh"],
+        cwd=str(out_dir),
+        env=env,
+        text=True,
+        capture_output=True,
+        timeout=120,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
+    assert (out_dir / "runs" / "offline_annotation" / "summary.csv").exists()
+    assert (out_dir / "runs" / "offline_subcluster" / "subcluster_results.csv").exists()
+    assert (out_dir / "runs" / "example_consensus.csv").exists()
 
 
 def test_cli_validate_preformatted_marker_list(tmp_dir):
@@ -711,6 +775,7 @@ def run_all_tests():
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         test_cli_help_includes_workflow_examples()
+        test_cli_examples_generates_runnable_project(tmp_dir)
         test_cli_validate_preformatted_marker_list(tmp_dir)
         test_cli_validate_long_marker_table_json(tmp_dir)
         test_cli_validate_missing_ranking_columns_errors(tmp_dir)

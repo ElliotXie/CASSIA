@@ -83,6 +83,7 @@ custom shell command.
 ```bash
 cassia doctor
 cassia backends list
+cassia examples --out cassia_example
 cassia validate markers.csv
 
 cassia annotate \
@@ -121,15 +122,16 @@ cassia consensus \
 ```
 
 Agent CLI backends reuse the local tool's own authentication, so they do not
-require CASSIA API keys. `cassia validate` checks marker CSV structure, inferred
-columns, ranking columns, and prepared marker counts before running annotation.
-`cassia boost auto` automatically prioritizes low-confidence, mixed, or
-ambiguous clusters and writes aggregate CSV/HTML reports under `RUN/boost/_auto`.
-`cassia subcluster run` annotates subclusters inside one parent cluster from a
-subcluster marker table and writes CSV/HTML reports in the requested output
-directory. `cassia consensus` deterministically votes across multiple CASSIA
-summary/subcluster CSVs and writes CSV/HTML consensus reports without calling an
-LLM.
+require CASSIA API keys. `cassia examples` creates a runnable mini project with
+marker tables, consensus inputs, shell scripts, and an offline toy agent.
+`cassia validate` checks marker CSV structure, inferred columns, ranking columns,
+and prepared marker counts before running annotation. `cassia boost auto`
+automatically prioritizes low-confidence, mixed, or ambiguous clusters and writes
+aggregate CSV/HTML reports under `RUN/boost/_auto`. `cassia subcluster run`
+annotates subclusters inside one parent cluster from a subcluster marker table
+and writes CSV/HTML reports in the requested output directory. `cassia consensus`
+deterministically votes across multiple CASSIA summary/subcluster CSVs and writes
+CSV/HTML consensus reports without calling an LLM.
 
 ## Supported Models
 

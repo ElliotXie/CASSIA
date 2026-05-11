@@ -14,6 +14,7 @@ from CASSIA import __version__
 from .backends import is_agent_backend, is_api_backend, list_backends
 from .boost import parse_gene_args, query_marker_genes, run_boost, run_boost_auto, write_query_output
 from .consensus import run_consensus
+from .examples import run_examples
 from .runner import dispatch_annotation, generate_markdown_report, resume_run
 from .subcluster import run_subcluster
 from .validate import run_validate
@@ -25,6 +26,7 @@ TOP_LEVEL_EPILOG = """Common workflows:
   cassia doctor
   cassia backends list
   cassia validate markers.csv
+  cassia examples --out cassia_example
 
   cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
   cassia boost auto --run runs/brain_codex --markers raw_markers.csv --backend codex-cli
@@ -38,6 +40,12 @@ VALIDATE_EPILOG = """Examples:
   cassia validate markers.csv
   cassia validate raw_findallmarkers.csv --celltype-column cluster --gene-column gene --ranking-method avg_log2FC
   cassia validate markers.csv --json
+"""
+
+EXAMPLES_EPILOG = """Examples:
+  cassia examples --out cassia_example
+  cassia examples --out cassia_example --backend claude-cli
+  cassia examples --out cassia_example --force
 """
 
 ANNOTATE_EPILOG = """Examples:
@@ -247,6 +255,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
     return run_validate(args)
 
 
+def cmd_examples(args: argparse.Namespace) -> int:
+    return run_examples(args)
+
+
 def add_common_annotation_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-i", "--input", required=True, help="Input marker CSV file.")
     parser.add_argument("-o", "--out", help="Run output directory.")
@@ -350,6 +362,18 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--json", action="store_true", help="Print machine-readable validation diagnostics.")
     validate_parser.add_argument("--strict", action="store_true", help="Exit non-zero when warnings are present.")
     validate_parser.set_defaults(func=cmd_validate)
+
+    examples_parser = subparsers.add_parser(
+        "examples",
+        help="Create a runnable CASSIA CLI example project.",
+        description="Create marker CSVs, consensus demo inputs, scripts, and an offline toy agent for trying the CASSIA CLI.",
+        formatter_class=HELP_FORMATTER,
+        epilog=EXAMPLES_EPILOG,
+    )
+    examples_parser.add_argument("-o", "--out", default="cassia_example", help="Output directory for the example project.")
+    examples_parser.add_argument("--backend", default="codex-cli", help="Backend written into run.sh. Defaults to codex-cli.")
+    examples_parser.add_argument("--force", action="store_true", help="Write into an existing non-empty output directory.")
+    examples_parser.set_defaults(func=cmd_examples)
 
     annotate_parser = subparsers.add_parser(
         "annotate",
