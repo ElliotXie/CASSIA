@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import pandas as pd
@@ -32,6 +34,21 @@ SCANPY_TO_SEURAT_COLUMNS = {
 DEFAULT_GENE_COLUMNS = ("gene", "Gene", "GENE", "names")
 DEFAULT_CLUSTER_COLUMNS = ("cluster", "Cluster ID", "group", "ident", "seurat_clusters")
 DISPLAY_COLUMNS = ("gene", "cluster", "avg_log2FC", "pct.1", "pct.2", "p_val_adj", "p_val", "status")
+DEFAULT_AUTO_CONFIDENCE = ("low", "medium", "unknown")
+AUTO_KEYWORDS = (
+    "ambiguous",
+    "unclear",
+    "uncertain",
+    "mixed",
+    "doublet",
+    "contaminat",
+    "conflict",
+    "inconsistent",
+    "low confidence",
+    "weak evidence",
+    "cannot determine",
+    "likely wrong",
+)
 
 
 def parse_gene_args(gene_values: Sequence[str]) -> List[str]:
@@ -246,6 +263,214 @@ def load_annotation_context(run_dir: Path, cluster: str) -> Dict[str, Any]:
         }
 
     raise ValueError(f"Could not find annotation for cluster '{cluster}' in {run_dir}")
+
+
+def _safe_text(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    return str(value).strip()
+
+
+def _as_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    try:
+        if pd.isna(value):
+            return []
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, tuple):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("[") and text.endswith("]"):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except Exception:
+            pass
+    return [item.strip() for item in re.split(r"[,;|]+", text) if item.strip()]
+
+
+def _normalize_confidence(value: Any) -> str:
+    text = _safe_text(value).lower()
+    if "high" in text:
+        return "high"
+    if "medium" in text or "moderate" in text:
+        return "medium"
+    if "low" in text:
+        return "low"
+    return "unknown"
+
+
+def _annotation_search_text(annotation: Dict[str, Any], cluster: str) -> str:
+    fields = [
+        cluster,
+        annotation.get("main_cell_type"),
+        annotation.get("final_cell_type"),
+        annotation.get("Predicted General Cell Type"),
+        annotation.get("final_sub_cell_type"),
+        annotation.get("Predicted Detailed Cell Type"),
+        annotation.get("confidence"),
+        annotation.get("Confidence"),
+        annotation.get("evidence"),
+        annotation.get("Evidence"),
+        annotation.get("recommended_next_steps"),
+    ]
+    for key in ("sub_cell_types", "possible_mixed_cell_types", "alternatives", "marker_list", "Marker List"):
+        fields.extend(_as_list(annotation.get(key)))
+    return " ".join(_safe_text(field) for field in fields if _safe_text(field)).lower()
+
+
+def _candidate_from_annotation(cluster: str, annotation: Dict[str, Any], source: str) -> Dict[str, Any]:
+    mixed = _as_list(annotation.get("possible_mixed_cell_types"))
+    if not mixed:
+        mixed = _as_list(annotation.get("Possible Mixed Cell Types"))
+    return {
+        "cluster": cluster,
+        "source": source,
+        "confidence": _normalize_confidence(annotation.get("confidence", annotation.get("Confidence"))),
+        "main_cell_type": _safe_text(annotation.get("main_cell_type", annotation.get("Predicted General Cell Type"))),
+        "sub_cell_types": _as_list(annotation.get("sub_cell_types", annotation.get("Predicted Detailed Cell Type"))),
+        "mixed_cell_types": mixed,
+        "evidence": _safe_text(annotation.get("evidence", annotation.get("Evidence"))),
+        "annotation": annotation,
+    }
+
+
+def load_boost_candidates(run_dir: Path) -> List[Dict[str, Any]]:
+    """Load boost candidate metadata from a CASSIA CLI run directory."""
+    results_path = run_dir / "results.json"
+    if results_path.exists():
+        results = _read_json(results_path, {})
+        candidates = []
+        for cluster, details in results.items():
+            annotation = details.get("analysis_result", details) if isinstance(details, dict) else {}
+            if isinstance(annotation, dict):
+                candidates.append(_candidate_from_annotation(str(cluster), annotation, str(results_path)))
+        if candidates:
+            return candidates
+
+    summary_candidates = [run_dir / "summary.csv"] + sorted(run_dir.glob("*_summary.csv"))
+    for summary_path in summary_candidates:
+        if not summary_path.exists():
+            continue
+        df = pd.read_csv(summary_path)
+        cluster_col = None
+        for candidate in ("Cluster ID", "cluster", "True Cell Type"):
+            if candidate in df.columns:
+                cluster_col = candidate
+                break
+        if not cluster_col:
+            continue
+        candidates = []
+        for _, row in df.iterrows():
+            annotation = {key: _safe_text(value) for key, value in row.to_dict().items()}
+            candidates.append(_candidate_from_annotation(str(row[cluster_col]), annotation, str(summary_path)))
+        if candidates:
+            return candidates
+
+    raise ValueError(f"Could not find results.json or summary.csv in {run_dir}")
+
+
+def parse_target_terms(values: Optional[Sequence[str]]) -> List[str]:
+    """Parse comma-separated target lineage terms without splitting multi-word labels."""
+    terms: List[str] = []
+    seen = set()
+    for value in values or []:
+        for term in str(value).split(","):
+            cleaned = term.strip()
+            key = cleaned.lower()
+            if cleaned and key not in seen:
+                terms.append(cleaned)
+                seen.add(key)
+    return terms
+
+
+def score_boost_candidate(
+    candidate: Dict[str, Any],
+    confidence_levels: Sequence[str] = DEFAULT_AUTO_CONFIDENCE,
+    target_terms: Optional[Sequence[str]] = None,
+    select_all: bool = False,
+    only_low_confidence: bool = False,
+) -> Optional[Dict[str, Any]]:
+    """Score one annotation for boost auto-selection."""
+    confidence = candidate.get("confidence") or "unknown"
+    text = _annotation_search_text(candidate.get("annotation", {}), candidate.get("cluster", ""))
+    target_terms = [term.lower() for term in (target_terms or []) if term.strip()]
+    reasons: List[str] = []
+    score = 0
+
+    if target_terms and not any(term in text for term in target_terms):
+        return None
+
+    if only_low_confidence and confidence != "low":
+        return None
+
+    if confidence in confidence_levels:
+        reasons.append(f"confidence={confidence}")
+        score += {"low": 100, "medium": 60, "unknown": 35, "high": 10}.get(confidence, 20)
+
+    if candidate.get("mixed_cell_types"):
+        reasons.append("possible mixed cell types")
+        score += 50
+
+    matched_keywords = [keyword for keyword in AUTO_KEYWORDS if keyword in text]
+    if matched_keywords:
+        reasons.append(f"keyword match: {', '.join(matched_keywords[:3])}")
+        score += min(45, 15 * len(matched_keywords))
+
+    if target_terms:
+        reasons.append(f"target lineage: {', '.join(target_terms)}")
+        score += 30
+
+    if select_all and not reasons:
+        reasons.append("selected by --all")
+        score += 1
+
+    if not reasons:
+        return None
+
+    selected = dict(candidate)
+    selected["score"] = score
+    selected["reasons"] = reasons
+    return selected
+
+
+def select_boost_candidates(
+    run_dir: Path,
+    confidence_levels: Sequence[str] = DEFAULT_AUTO_CONFIDENCE,
+    target_terms: Optional[Sequence[str]] = None,
+    max_clusters: Optional[int] = None,
+    select_all: bool = False,
+    only_low_confidence: bool = False,
+) -> List[Dict[str, Any]]:
+    """Return scored boost candidates sorted by priority."""
+    candidates = []
+    for candidate in load_boost_candidates(run_dir):
+        scored = score_boost_candidate(
+            candidate,
+            confidence_levels=confidence_levels,
+            target_terms=target_terms,
+            select_all=select_all,
+            only_low_confidence=only_low_confidence,
+        )
+        if scored:
+            candidates.append(scored)
+
+    candidates.sort(key=lambda item: (-int(item.get("score", 0)), str(item.get("cluster", ""))))
+    if max_clusters is not None:
+        candidates = candidates[:max_clusters]
+    return candidates
 
 
 def format_annotation_context(context: Dict[str, Any]) -> str:
@@ -626,6 +851,272 @@ def write_boost_html_report(
         encoding="utf-8",
     )
     return html_path
+
+
+def _auto_result_row(result: Dict[str, Any]) -> Dict[str, Any]:
+    final = result.get("final_result") or {}
+    candidate = result.get("candidate") or {}
+    return {
+        "cluster": candidate.get("cluster", ""),
+        "status": result.get("status", ""),
+        "score": candidate.get("score", ""),
+        "original_confidence": candidate.get("confidence", ""),
+        "selection_reasons": "; ".join(candidate.get("reasons", [])),
+        "original_cell_type": candidate.get("main_cell_type", ""),
+        "boost_cell_type": final.get("final_cell_type", ""),
+        "boost_sub_cell_type": final.get("final_sub_cell_type", ""),
+        "boost_confidence": final.get("confidence", ""),
+        "changed_from_original": final.get("changed_from_original", ""),
+        "boost_dir": result.get("boost_dir", ""),
+        "html_report": result.get("html_report", ""),
+        "error": result.get("error", ""),
+    }
+
+
+def write_auto_report(auto_dir: Path, manifest: Dict[str, Any], run_results: Sequence[Dict[str, Any]]) -> Dict[str, str]:
+    """Write aggregate CSV, Markdown, and HTML reports for boost auto."""
+    auto_dir.mkdir(parents=True, exist_ok=True)
+    rows = [_auto_result_row(result) for result in run_results]
+    csv_path = auto_dir / "auto_summary.csv"
+    pd.DataFrame(rows).to_csv(csv_path, index=False)
+
+    md_lines = [
+        "# CASSIA Boost Auto Report",
+        "",
+        f"- Status: `{manifest.get('status')}`",
+        f"- Selected clusters: {len(manifest.get('selected_candidates', []))}",
+        f"- Completed: {sum(1 for row in rows if row['status'] == 'completed')}",
+        f"- Failed: {sum(1 for row in rows if row['status'] == 'failed')}",
+        f"- Skipped: {sum(1 for row in rows if row['status'] == 'skipped')}",
+        "",
+        "| Cluster | Status | Original Confidence | Reasons | Boost Annotation | Boost Confidence |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        boost_label = row["boost_cell_type"]
+        if row["boost_sub_cell_type"]:
+            boost_label = f"{boost_label} / {row['boost_sub_cell_type']}" if boost_label else row["boost_sub_cell_type"]
+        md_lines.append(
+            "| {cluster} | {status} | {original_confidence} | {reasons} | {boost_label} | {boost_confidence} |".format(
+                cluster=row["cluster"],
+                status=row["status"],
+                original_confidence=row["original_confidence"],
+                reasons=row["selection_reasons"],
+                boost_label=boost_label,
+                boost_confidence=row["boost_confidence"],
+            )
+        )
+    md_path = auto_dir / "auto_report.md"
+    md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
+
+    html_rows = []
+    for row in rows:
+        link = row["html_report"]
+        if link:
+            try:
+                link = os.path.relpath(Path(link), auto_dir)
+            except ValueError:
+                pass
+        report_link = f'<a href="{html.escape(link)}">summary.html</a>' if link else ""
+        html_rows.append(
+            "<tr>"
+            f"<td>{html.escape(str(row['cluster']))}</td>"
+            f"<td>{html.escape(str(row['status']))}</td>"
+            f"<td>{html.escape(str(row['score']))}</td>"
+            f"<td>{html.escape(str(row['original_confidence']))}</td>"
+            f"<td>{html.escape(str(row['selection_reasons']))}</td>"
+            f"<td>{html.escape(str(row['boost_cell_type']))}</td>"
+            f"<td>{html.escape(str(row['boost_sub_cell_type']))}</td>"
+            f"<td>{html.escape(str(row['boost_confidence']))}</td>"
+            f"<td>{report_link}</td>"
+            f"<td>{html.escape(str(row['error']))}</td>"
+            "</tr>"
+        )
+    html_path = auto_dir / "auto_report.html"
+    html_doc = """<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CASSIA Boost Auto Report</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 32px; color: #1f2937; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #d1d5db; padding: 8px; vertical-align: top; }
+    th { background: #f3f4f6; text-align: left; }
+    code { background: #f3f4f6; padding: 2px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>CASSIA Boost Auto Report</h1>
+  <p>Status: <code>__STATUS__</code>. Selected clusters: __SELECTED__.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Cluster</th><th>Status</th><th>Score</th><th>Original Confidence</th>
+        <th>Reasons</th><th>Boost Cell Type</th><th>Boost Subtype</th>
+        <th>Boost Confidence</th><th>Report</th><th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      __ROWS__
+    </tbody>
+  </table>
+</body>
+</html>
+"""
+    html_doc = (
+        html_doc
+        .replace("__STATUS__", html.escape(str(manifest.get("status", ""))))
+        .replace("__SELECTED__", str(len(manifest.get("selected_candidates", []))))
+        .replace("__ROWS__", "\n".join(html_rows))
+    )
+    html_path.write_text(
+        html_doc,
+        encoding="utf-8",
+    )
+    return {
+        "csv": str(csv_path),
+        "markdown": str(md_path),
+        "html": str(html_path),
+    }
+
+
+def _read_final_result(boost_dir: Path) -> Optional[Dict[str, Any]]:
+    final_path = boost_dir / "final.json"
+    if final_path.exists():
+        return _read_json(final_path, {})
+    return None
+
+
+def _auto_additional_task(candidate: Dict[str, Any], user_task: Optional[str]) -> str:
+    reasons = "; ".join(candidate.get("reasons", []))
+    auto_task = (
+        f"This cluster was auto-selected for annotation boost because: {reasons}. "
+        "Stress-test the original annotation, query decisive positive and negative markers when useful, "
+        "and clearly state whether the original annotation should change."
+    )
+    if user_task:
+        return f"{auto_task}\n\nUser additional task: {user_task}"
+    return auto_task
+
+
+def run_boost_auto(args: Any) -> int:
+    """Auto-select clusters from a run folder and run boost on each selected cluster."""
+    run_dir = Path(args.run)
+    auto_dir = Path(args.out) if args.out else run_dir / "boost" / "_auto"
+    auto_dir.mkdir(parents=True, exist_ok=True)
+
+    target_terms = parse_target_terms(args.target_lineage)
+    confidence_levels = tuple(args.confidence or DEFAULT_AUTO_CONFIDENCE)
+    selected = select_boost_candidates(
+        run_dir=run_dir,
+        confidence_levels=confidence_levels,
+        target_terms=target_terms,
+        max_clusters=args.max_clusters,
+        select_all=args.all,
+        only_low_confidence=args.only_low_confidence,
+    )
+
+    manifest: Dict[str, Any] = {
+        "created_at": utc_now(),
+        "updated_at": utc_now(),
+        "status": "planned",
+        "run_dir": str(run_dir.resolve()),
+        "auto_dir": str(auto_dir.resolve()),
+        "marker_table": str(Path(args.markers).resolve()),
+        "selected_candidates": selected,
+        "parameters": {key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items() if key != "func"},
+        "results": [],
+    }
+    _write_json(auto_dir / "boost_auto_manifest.json", manifest)
+
+    if not selected:
+        manifest["status"] = "no-candidates"
+        manifest["updated_at"] = utc_now()
+        reports = write_auto_report(auto_dir, manifest, [])
+        manifest["reports"] = reports
+        _write_json(auto_dir / "boost_auto_manifest.json", manifest)
+        print(f"No boost candidates found. Wrote {auto_dir / 'boost_auto_manifest.json'}")
+        return 0
+
+    if args.plan_only:
+        manifest["status"] = "plan-only"
+        manifest["updated_at"] = utc_now()
+        plan_results = [{"candidate": candidate, "status": "planned"} for candidate in selected]
+        reports = write_auto_report(auto_dir, manifest, plan_results)
+        manifest["results"] = plan_results
+        manifest["reports"] = reports
+        _write_json(auto_dir / "boost_auto_manifest.json", manifest)
+        print(f"Wrote {auto_dir / 'boost_auto_manifest.json'}")
+        print(f"Wrote {reports['csv']}")
+        print(f"Wrote {reports['html']}")
+        return 0
+
+    run_results: List[Dict[str, Any]] = []
+    failed = False
+    for candidate in selected:
+        cluster = str(candidate["cluster"])
+        cluster_slug = slugify(cluster)
+        cluster_out = (auto_dir / "clusters" / cluster_slug) if args.out else run_dir / "boost" / cluster_slug
+        result_record: Dict[str, Any] = {
+            "candidate": candidate,
+            "boost_dir": str(cluster_out.resolve()),
+            "status": "pending",
+        }
+
+        if (cluster_out / "final.json").exists() and not args.force and not args.dry_run:
+            final_result = _read_final_result(cluster_out)
+            html_report = cluster_out / "summary.html"
+            result_record.update({
+                "status": "skipped",
+                "final_result": final_result,
+                "html_report": str(html_report.resolve()) if html_report.exists() else "",
+            })
+            run_results.append(result_record)
+            continue
+
+        boost_args = SimpleNamespace(**vars(args))
+        boost_args.cluster = cluster
+        boost_args.out = str(cluster_out)
+        boost_args.additional_task = _auto_additional_task(candidate, args.additional_task)
+        boost_args.func = None
+        try:
+            code = run_boost(boost_args)
+            final_result = _read_final_result(cluster_out)
+            status = "dry-run" if args.dry_run else ("completed" if code == 0 else "failed")
+            html_report = cluster_out / "summary.html"
+            result_record.update({
+                "status": status,
+                "final_result": final_result,
+                "html_report": str(html_report.resolve()) if html_report.exists() else "",
+            })
+            if code != 0:
+                failed = True
+        except Exception as exc:
+            failed = True
+            result_record.update({
+                "status": "failed",
+                "error": str(exc),
+            })
+        run_results.append(result_record)
+        manifest["results"] = run_results
+        manifest["updated_at"] = utc_now()
+        _write_json(auto_dir / "boost_auto_manifest.json", manifest)
+        if failed and args.fail_fast:
+            break
+
+    manifest["status"] = "dry-run" if args.dry_run else ("failed" if failed else "completed")
+    manifest["updated_at"] = utc_now()
+    manifest["results"] = run_results
+    reports = write_auto_report(auto_dir, manifest, run_results)
+    manifest["reports"] = reports
+    _write_json(auto_dir / "boost_auto_manifest.json", manifest)
+    print(f"Wrote {auto_dir / 'boost_auto_manifest.json'}")
+    print(f"Wrote {reports['csv']}")
+    print(f"Wrote {reports['markdown']}")
+    print(f"Wrote {reports['html']}")
+    return 1 if failed else 0
 
 
 def run_boost(args: Any) -> int:

@@ -132,7 +132,10 @@ The marker landscape fits tumor macrophage states.
     assert "myeloid/macrophage/tam_pan_cancer.md" in result["references_used"]
     assert "Objective Literature Facts" in result["content"]
     assert "Cheng et al. Cell 2021" in result["content"]
+    assert "Reference Marker Match Summary" in result["content"]
+    assert "best consensus program" in result["content"]
     assert result["tool_trace"][0]["tool"] == "read_overview"
+    assert any(trace["tool"] == "reference_marker_lookup" for trace in result["tool_trace"])
 
 
 def test_subclustering_reference_context_is_injected():
@@ -282,6 +285,7 @@ def test_benchmark_loads_external_case_csv():
         Path(__file__).resolve().parents[2]
         / "Benchmark"
         / "reference_subtype"
+        / "scripts"
         / "macrophage_subtype_benchmark.py"
     )
     spec = importlib.util.spec_from_file_location("macrophage_subtype_benchmark", benchmark_path)
@@ -310,6 +314,90 @@ def test_benchmark_loads_external_case_csv():
     assert "CXCL10" in marker_df.loc[0, "markers"]
     assert benchmark.paper_label_hit("This matches Coulton 8_IFNGMac", "8_IFNGMac")
 
+    heldout_csv = (
+        Path(__file__).resolve().parents[2]
+        / "Benchmark"
+        / "reference_subtype"
+        / "cases"
+        / "heldout"
+        / "qi_2022_crc_macrophage.csv"
+    )
+    if heldout_csv.exists():
+        heldout_cases = benchmark.load_cases(str(heldout_csv))
+        assert len(heldout_cases) == 4
+        assert all(len(case["markers"].split(",")) >= 30 for case in heldout_cases)
+        assert {case["paper_subtype"] for case in heldout_cases} >= {
+            "MARCO+ Macrophage",
+            "VCAN+ Monocyte",
+        }
+
+
+def test_ifi27_hybrid_state_ranks_above_generic_lipid_and_c1q():
+    from CASSIA.agents.reference_agent import ReferenceAgent
+
+    agent = ReferenceAgent()
+    summary = agent._build_reference_marker_match_summary(
+        marker_sets=[{
+            "cluster_id": "macro_ifi27",
+            "markers": ["APOC1", "IFI27", "APOE", "NUPR1", "A2M", "C1QC", "C1QA", "C1QB", "FTL", "GPNMB"],
+        }],
+        selected_paths=["myeloid/macrophage/tam_pan_cancer.md"],
+    )
+
+    assert "best consensus program IFI27/APOE/C1Q interferon-lipid TAM" in summary
+    assert "Li 2024 Macro_IFI27" in summary
+    assert "alternatives: APOE/TREM2 lipid-phagolysosomal TAM" in summary
+
+
+def test_manual_evaluation_rubric_summarizes_scores():
+    evaluator_path = (
+        Path(__file__).resolve().parents[2]
+        / "Benchmark"
+        / "reference_subtype"
+        / "scripts"
+        / "manual_evaluation.py"
+    )
+    spec = importlib.util.spec_from_file_location("manual_evaluation", evaluator_path)
+    evaluator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(evaluator)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        scores_csv = Path(tmpdir) / "manual_scores.csv"
+        pd.DataFrame([
+            {
+                "case_id": "case_1",
+                "mode": "reference",
+                "program_accuracy": 4,
+                "subtype_specificity": 2,
+                "marker_evidence": 2,
+                "ambiguity_handling": 1,
+                "traceability": 1,
+                "notes": "Exact consensus label.",
+            },
+            {
+                "case_id": "case_1",
+                "mode": "baseline",
+                "program_accuracy": 2,
+                "subtype_specificity": 1,
+                "marker_evidence": 2,
+                "ambiguity_handling": 0,
+                "traceability": 0,
+                "notes": "Partial broad call.",
+            },
+        ]).to_csv(scores_csv, index=False)
+
+        outputs = evaluator.write_manual_summary(scores_csv)
+        summary = pd.read_csv(outputs["summary_csv"]).set_index("mode")
+        scored = pd.read_csv(outputs["scored"]).set_index(["case_id", "mode"])
+
+    assert evaluator.MAX_SCORE == 10
+    assert summary.loc["reference", "total_score"] == 10
+    assert summary.loc["reference", "pass_count"] == 1
+    assert summary.loc["baseline", "total_score"] == 5
+    assert summary.loc["baseline", "pass_count"] == 0
+    assert scored.loc[("case_1", "reference"), "manual_pass"]
+    assert not scored.loc[("case_1", "baseline"), "manual_pass"]
+
 
 def run_reference_subtype_tests():
     print_test_header("27 - Reference Subtype Module")
@@ -320,6 +408,8 @@ def run_reference_subtype_tests():
         test_subcluster_prompt_contains_reference_block,
         test_llm_usage_tracking_records_cost,
         test_benchmark_loads_external_case_csv,
+        test_ifi27_hybrid_state_ranks_above_generic_lipid_and_c1q,
+        test_manual_evaluation_rubric_summarizes_scores,
     ]
     errors = []
 

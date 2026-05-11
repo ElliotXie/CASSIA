@@ -173,9 +173,9 @@ def build_subcluster_reference_context(
                 "<expert_reference>\n"
                 "Agent-generated subtype reference brief for this subclustering run. "
                 "Use it as literature-grounded guidance, but prioritize the observed "
-                "marker genes and parent-cluster context when they conflict. When the "
-                "reference brief names an author-defined subtype and the marker support "
-                "is strong, preserve that named subtype in the label or explanation.\n\n"
+                "marker genes and parent-cluster context when they conflict. Prefer "
+                "consensus marker-program labels as the primary subtype; keep paper-specific "
+                "labels only as traceability evidence when the marker support is strong.\n\n"
                 f"Parent cluster context: {major_cluster_info}\n\n"
                 f"{brief_result['content']}\n"
                 "</expert_reference>"
@@ -252,9 +252,9 @@ def build_subcluster_reference_context(
         "<expert_reference>\n"
         "Expert-curated subtype references for this subclustering run. Use these "
         "as additional evidence for subtype differentiation, but prioritize the "
-        "provided markers and tissue/species context when they conflict. When a "
-        "reference names an author-defined subtype and the marker support is strong, "
-        "preserve that named subtype in the label or explanation.\n\n"
+        "provided markers and tissue/species context when they conflict. Prefer "
+        "consensus marker-program labels as the primary subtype; keep paper-specific "
+        "labels only as traceability evidence when the marker support is strong.\n\n"
         f"Parent cluster context: {major_cluster_info}\n\n"
         f"{combined}\n"
         "</expert_reference>"
@@ -316,7 +316,7 @@ def construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=50,
 You are an expert biologist specializing in cell type annotation, with deep expertise in immunology, cancer biology, and developmental biology. You will be given sets of highly expressed markers ranked by significance for some subclusters from the {major_cluster_info} cluster, identify what is the most likely top2 cell type each marker set implies.
 
 Work step by step and ground every subtype call in the provided marker genes and parent-cluster context.
-If additional context provides a literature-named subtype that strongly matches a cluster, include that named subtype in the subtype label or explanation so the call is traceable to the reference.
+If additional context provides consensus macrophage/TAM programs, use those consensus program names as primary subtype labels when supported. If it provides paper-specific aliases, mention them only as evidence in the explanation.
 
 For each output, provide:
 1. Key marker:

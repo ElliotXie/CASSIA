@@ -76,7 +76,8 @@ def load_marker_clusters(
     if len(df.columns) < 2:
         raise ValueError("Marker input must have at least two columns")
 
-    if _looks_preformatted(df, gene_column):
+    is_preformatted = _looks_preformatted(df, gene_column)
+    if is_preformatted:
         prepared = df.copy()
     else:
         prepared = get_top_markers(
@@ -86,8 +87,12 @@ def load_marker_clusters(
             ascending=ascending,
         )
 
-    cluster_col = celltype_column or prepared.columns[0]
-    marker_col = gene_column or prepared.columns[1]
+    if is_preformatted:
+        cluster_col = celltype_column or prepared.columns[0]
+        marker_col = gene_column or prepared.columns[1]
+    else:
+        cluster_col = "cluster" if "cluster" in prepared.columns else prepared.columns[0]
+        marker_col = "markers" if "markers" in prepared.columns else prepared.columns[1]
 
     if cluster_col not in prepared.columns:
         raise ValueError(f"Cluster column '{cluster_col}' was not found")

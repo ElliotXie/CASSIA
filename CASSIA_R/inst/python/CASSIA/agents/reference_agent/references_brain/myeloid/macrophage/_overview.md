@@ -43,11 +43,11 @@ handling, complement/phagocytosis, matrix remodeling, angiogenic programs,
 stress, proliferation, and tumor conditioning.
 
 For subtype-level CASSIA work, use the broad macrophage identity first, then
-choose the most specific state supported by the top markers and tissue context.
-Avoid forcing an M1/M2 label when the marker set supports a named scRNA-seq
-state such as SPP1/AREG TAM, IFNG/IFN macrophage, inflammatory macrophage,
-resident-like FOLR2/C1QC macrophage, lipid/TREM2 macrophage, heme macrophage,
-or ECM-remodeling macrophage.
+choose the most specific consensus state supported by the top markers and
+tissue context. Avoid forcing an M1/M2 label when the marker set supports a
+human cancer macrophage consensus program such as SPP1/AREG TAM, IFNG/IFN
+macrophage, inflammatory macrophage, resident-like FOLR2/C1QC macrophage,
+lipid/TREM2 macrophage, heme macrophage, or ECM-remodeling macrophage.
 
 ## Canonical Macrophage Identity
 
@@ -81,8 +81,9 @@ Kupffer cells.
 Tumor-associated macrophages are better described by programs than by M1/M2:
 SPP1/AREG inflammatory angiogenic, APOE/TREM2 lipid-associated, IFNG/IFN
 response, metallothionein, heme/iron handling, ECM-remodeling, inflammatory
-IL1B/TNF, and resident-like FOLR2/C1QC states. Use `tam_pan_cancer.md` for
-these calls.
+IL1B/TNF, and resident-like FOLR2/C1QC states. Use `tam_pan_cancer.md` as the
+human cancer macrophage consensus layer for these calls. Paper-specific labels
+inside that file are aliases/evidence, not universal ontology.
 
 ### Inflammatory / interferon states
 
@@ -110,10 +111,12 @@ or `NLRP3` dominate. Use `inflammatory_interferon.md` for state separation.
 Use concise labels like:
 
 - SPP1/AREG inflammatory angiogenic TAM
-- IFNG/CXCL9 interferon-activated macrophage
-- FOLR2/SELENOP resident-like macrophage
-- APOE/TREM2 lipid-associated TAM
-- C1QC complement/phagocytic macrophage
+- APOE/TREM2 lipid-phagolysosomal TAM
+- AREG/THBS1 angiogenic remodeling TAM
+- FOLR2/SELENOP resident-like iron-handling TAM
+- C1QC/C3 complement antigen-presenting TAM
+- CXCL9/CXCL10 IFNG-response TAM
+- ISG15/IFIT type-I interferon TAM
 - IL1B/TNF inflammatory macrophage
-- HMOX1/SLC40A1 heme-handling macrophage
-- COL1A1/SPARC ECM-remodeling TAM
+- HMOX1/SLC40A1 heme-iron handling TAM
+- COL1A1/SPARC ECM-remodeling macrophage-like state, with CAF/doublet caution

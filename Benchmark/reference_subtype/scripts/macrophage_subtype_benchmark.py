@@ -26,8 +26,9 @@ import pandas as pd
 import requests
 
 
-ROOT = Path(__file__).resolve().parents[2]
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+SUITE_DIR = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
+RESULTS_DIR = SUITE_DIR / "results"
 
 sys.path.insert(0, str(ROOT / "Test" / "shared" / "python"))
 from test_utils import setup_cassia_imports  # noqa: E402
@@ -37,6 +38,7 @@ setup_cassia_imports()
 
 MODEL = "moonshotai/kimi-k2.6"
 PROVIDER = "openrouter"
+N_GENES = 30
 
 DEFAULT_CASES = [
     {
@@ -224,7 +226,7 @@ def run_cassia_mode(
         model=model,
         temperature=0,
         provider=provider,
-        n_genes=20,
+        n_genes=N_GENES,
         tissue="tumor",
         species="human",
         use_reference=use_reference,

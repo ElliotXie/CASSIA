@@ -45,20 +45,113 @@ except ImportError:
     )
 
 
-COULTON_TAM_MARKER_SETS = {
-    "1_MetM2Mac": ["SELENOP", "SLC40A1", "F13A1", "RNASE1", "FOLR2", "STAB1", "LGMN", "DAB2"],
-    "2_C3Mac": ["C3", "PLD4", "RGS1", "HLA-DPA1", "CX3CR1", "CD74", "HLA-DPB1", "HLA-DRB5"],
-    "4_ICIMac2": ["APOE", "APOC1", "CCL18", "GPNMB", "CTSD", "LIPA", "LGMN", "PLA2G7", "TREM2"],
-    "5_StressMac": ["HSPA6", "HSPA1B", "HSPA1A", "DNAJB1", "HSPB1", "BAG3", "HSPH1", "HSP90AA1"],
-    "6_SPP1AREGMac": ["CCL20", "CXCL3", "IL1B", "CXCL2", "CXCL8", "EREG", "G0S2", "TIMP1", "CXCL1"],
-    "8_IFNGMac": ["CXCL9", "CXCL10", "GBP1", "MMP9", "GBP5", "WARS1", "STAT1", "SLAMF7"],
-    "9_AngioMac": ["AREG", "THBS1", "EREG", "NAMPT", "IL1B", "GPR183", "NR4A3", "G0S2"],
-    "10_InflamMac": ["CCL3L3", "CCL4L2", "CXCL8", "IL1B", "TNF", "CCL4", "CCL3", "CXCL2"],
-    "11_MetalloMac": ["MT1G", "MT1X", "MT2A", "MT1E", "MT1H", "MT1F", "MT1M", "MIF", "SPP1"],
-    "17_IFNMac3": ["ISG15", "CXCL10", "IFIT1", "IFIT2", "CCL8", "IFIT3", "IFITM1", "MX1", "RSAD2"],
-    "18_ECMMac": ["COL1A2", "COL1A1", "COL3A1", "IGFBP7", "SPARC", "MGP", "LUM", "DCN", "POSTN"],
-    "21_HemeMac": ["HMOX1", "SLC40A1", "CCL18", "CD163", "LGMN", "CTSB", "CTSL"],
-}
+HUMAN_CANCER_MACROPHAGE_CONSENSUS_STATES = [
+    {
+        "id": "spp1_areg_inflammatory_angiogenic_tam",
+        "consensus_name": "SPP1/AREG inflammatory angiogenic TAM",
+        "markers": ["SPP1", "AREG", "EREG", "CXCL3", "CXCL2", "CXCL8", "CXCL1", "CCL20", "IL1B", "TIMP1"],
+        "aliases": ["Cheng SPP1+ angiogenesis-associated TAM", "Coulton 6_SPP1AREGMac"],
+        "confidence": "high",
+    },
+    {
+        "id": "apoe_trem2_lipid_phagolysosomal_tam",
+        "consensus_name": "APOE/TREM2 lipid-phagolysosomal TAM",
+        "markers": ["TREM2", "APOE", "APOC1", "GPNMB", "LIPA", "CTSD", "LGMN", "PLA2G7", "ACP5", "PSAP"],
+        "aliases": ["TREM2+ lipid-associated TAM", "Coulton 4_ICIMac2"],
+        "confidence": "high",
+    },
+    {
+        "id": "areg_thbs1_angiogenic_remodeling_tam",
+        "consensus_name": "AREG/THBS1 angiogenic remodeling TAM",
+        "markers": ["AREG", "THBS1", "EREG", "NAMPT", "ZNF331", "IL1B", "GPR183", "NR4A3", "G0S2", "BTG1"],
+        "aliases": ["EGF-ligand angiogenic TAM", "Coulton 9_AngioMac"],
+        "confidence": "medium-high",
+    },
+    {
+        "id": "folr2_selenop_resident_like_tam",
+        "consensus_name": "FOLR2/SELENOP resident-like iron-handling TAM",
+        "markers": ["FOLR2", "SELENOP", "SLC40A1", "F13A1", "STAB1", "RNASE1", "CD163", "MRC1", "LYVE1", "DAB2"],
+        "aliases": ["resident-like TAM", "Coulton 1_MetM2Mac"],
+        "confidence": "high",
+    },
+    {
+        "id": "c1qc_c3_antigen_presenting_tam",
+        "consensus_name": "C1QC/C3 complement antigen-presenting TAM",
+        "markers": ["C1QA", "C1QB", "C1QC", "C3", "CD74", "HLA-DRA", "HLA-DPA1", "HLA-DPB1", "CX3CR1", "PLD4"],
+        "aliases": ["Cheng C1QC+ phagocytic TAM", "Coulton 2_C3Mac"],
+        "confidence": "high",
+    },
+    {
+        "id": "cxcl9_cxcl10_ifng_response_tam",
+        "consensus_name": "CXCL9/CXCL10 IFNG-response TAM",
+        "markers": ["CXCL9", "CXCL10", "GBP1", "GBP5", "STAT1", "WARS1", "SLAMF7", "LGALS2", "VAMP5", "MMP9"],
+        "aliases": ["IFNGMac", "Coulton 8_IFNGMac"],
+        "confidence": "high",
+    },
+    {
+        "id": "isg15_ifit_type_i_ifn_tam",
+        "consensus_name": "ISG15/IFIT type-I interferon TAM",
+        "markers": ["ISG15", "IFIT1", "IFIT2", "IFIT3", "IFITM1", "IFITM3", "MX1", "RSAD2", "CXCL10", "TNFSF10"],
+        "aliases": ["Cheng ISG15+ TAM", "Coulton 17_IFNMac3"],
+        "confidence": "high",
+    },
+    {
+        "id": "ifi27_apoe_c1q_interferon_lipid_tam",
+        "consensus_name": "IFI27/APOE/C1Q interferon-lipid TAM",
+        "markers": ["IFI27", "APOE", "APOC1", "C1QA", "C1QB", "C1QC", "GPNMB", "TREM2", "A2M", "FTL"],
+        "aliases": ["Li 2024 Macro_IFI27", "interferon-exposed lipid/complement TAM"],
+        "confidence": "medium",
+    },
+    {
+        "id": "il1b_tnf_inflammatory_tam",
+        "consensus_name": "IL1B/TNF inflammatory TAM",
+        "markers": ["IL1B", "TNF", "CXCL8", "CXCL1", "CXCL2", "CXCL3", "CCL3", "CCL4", "CCL3L3", "CCL4L2"],
+        "aliases": ["acute inflammatory TAM", "Coulton 10_InflamMac"],
+        "confidence": "high",
+    },
+    {
+        "id": "hmox1_slc40a1_heme_iron_tam",
+        "consensus_name": "HMOX1/SLC40A1 heme-iron handling TAM",
+        "markers": ["HMOX1", "SLC40A1", "CD163", "CCL18", "LGMN", "CTSB", "CTSL", "HAMP", "STAB1", "SELENOP"],
+        "aliases": ["erythrophagocytic macrophage", "Coulton 21_HemeMac"],
+        "confidence": "medium-high",
+    },
+    {
+        "id": "mt1_mt2_metallothionein_stress_tam",
+        "consensus_name": "MT1/MT2 metallothionein stress TAM",
+        "markers": ["MT1G", "MT1X", "MT2A", "MT1E", "MT1H", "MT1F", "MT1M", "MIF", "SPP1", "LDHA"],
+        "aliases": ["metal-ion stress TAM", "Coulton 11_MetalloMac"],
+        "confidence": "medium-high",
+    },
+    {
+        "id": "hspa_heat_shock_stress_macrophage",
+        "consensus_name": "HSPA heat-shock stress macrophage",
+        "markers": ["HSPA6", "HSPA1B", "HSPA1A", "DNAJB1", "HSPB1", "BAG3", "HSPH1", "HSP90AA1", "ZFAND2A", "HSPD1"],
+        "aliases": ["dissociation/stress-response macrophage", "Coulton 5_StressMac"],
+        "confidence": "medium",
+    },
+    {
+        "id": "mki67_proliferating_macrophage",
+        "consensus_name": "MKI67/TOP2A proliferating macrophage",
+        "markers": ["MKI67", "TOP2A", "STMN1", "PCLAF", "UBE2C", "TYMS", "CENPF", "HMGB2", "TUBB", "H2AZ1"],
+        "aliases": ["cycling macrophage", "Coulton 14_ProliMac"],
+        "confidence": "medium",
+    },
+    {
+        "id": "fcn1_s100a8_monocyte_like_macrophage",
+        "consensus_name": "FCN1/S100A8 monocyte-like inflammatory macrophage",
+        "markers": ["FCN1", "S100A8", "S100A9", "S100A12", "VCAN", "LYZ", "LST1", "CCR2", "IL1B", "EREG"],
+        "aliases": ["recruited monocyte-like macrophage", "Coulton 19_ClassMono"],
+        "confidence": "medium",
+    },
+    {
+        "id": "col1a1_sparc_ecm_macrophage_like_state",
+        "consensus_name": "COL1A1/SPARC ECM-remodeling macrophage-like state",
+        "markers": ["COL1A1", "COL1A2", "COL3A1", "SPARC", "LUM", "DCN", "POSTN", "BGN", "MGP", "SFRP2"],
+        "aliases": ["ECMMac/METAM-like", "Coulton 18_ECMMac"],
+        "confidence": "ambiguous",
+    },
+]
 
 
 SUBCLUSTER_REFERENCE_PLAN_PROMPT = """You are the CASSIA Reference Agent. You do not annotate the final cell types yet. Your job is to decide which expert reference documents should be read before subtype annotation.
@@ -140,18 +233,16 @@ Bullets with factual statements from the cited papers. Include the paper name or
 
 ## Cluster-Specific Guidance
 For each cluster, give:
-- likely literature-matched state(s)
+- likely consensus lineage/state program as the primary label
 - supporting markers
 - important alternatives or conflicts to avoid
-- suggested label language, if evidence is strong
-- named author subtype labels when the reference documents provide them and
-  the marker match is strong, for example Coulton `8_IFNGMac`
+- paper-specific aliases only as evidence or traceability, not as universal ontology
 
 ## Cross-Cluster Distinctions
 Short bullets explaining how to distinguish confusing states in this run.
 </reference_brief>
 
-Keep the brief specific to these marker sets. Avoid unsupported claims. If evidence is weak for a cluster, say so."""
+Keep the brief specific to these marker sets. Avoid unsupported claims. If evidence is weak for a cluster, say so. Prefer consensus program labels such as "TOX/CXCL13 exhausted CD8 T cell", "FOXP3/CTLA4 regulatory T cell", or "CXCL9/CXCL10 IFNG-response TAM"; write paper-specific labels as parenthetical evidence, not as the primary universal subtype."""
 
 
 class ReferenceAgent:
@@ -539,6 +630,47 @@ class ReferenceAgent:
                 selected.append(path)
 
         if markers & {
+            "CD8A", "CD8B", "GZMK", "GZMA", "GZMB", "GZMH", "PRF1",
+            "NKG7", "GNLY", "CCL5", "IFNG", "PDCD1", "LAG3", "HAVCR2",
+            "TOX", "CXCL13", "ENTPD1", "TIGIT", "TCF7", "SLAMF6", "XCL1",
+            "XCL2",
+        }:
+            add("t_cell/cd8/tumor_exhaustion_cytotoxic.md")
+        if markers & {
+            "CD4", "IL7R", "CCR7", "SELL", "TCF7", "LEF1", "ANXA1",
+            "FOXP3", "IL2RA", "CTLA4", "TIGIT", "IKZF2", "CCR8",
+            "TNFRSF18", "TNFRSF4", "ENTPD1", "LAYN", "CXCR5", "BCL6",
+            "ICOS", "IL21", "CD40LG", "TOX2", "TBX21", "CXCR3", "CCR5",
+            "RORC", "IL17A", "IL17F", "CCR6", "IL23R", "GATA3", "IL4",
+            "IL5", "IL13", "CCR4",
+        }:
+            add("t_cell/cd4/helper_treg_tfh.md")
+        if markers & {
+            "KLRB1", "SLC4A10", "TRAV1-2", "ZBTB16", "RORA", "RORC",
+            "IL18RAP", "CCR6", "CXCR6", "DPP4", "NCR3", "TRDC", "TRGC1",
+            "TRGC2", "TRDV1", "TRDV2", "TRGV9", "TRGV10", "KLRD1", "NCAM1",
+        }:
+            add("t_cell/innate_like/mait_gamma_delta_nkt.md")
+        if markers & {
+            "CD69", "ITGAE", "CXCR6", "ITGA1", "ZNF683", "ISG15", "IFIT1",
+            "IFIT2", "IFIT3", "IFITM1", "IFITM3", "MX1", "OAS1", "OAS2",
+            "RSAD2", "STAT1", "MKI67", "TOP2A", "STMN1", "TYMS", "UBE2C",
+            "PCLAF", "CENPF", "HSPA1A", "HSPA1B", "HSPA6", "DNAJB1",
+            "FOS", "JUN",
+        }:
+            add("t_cell/state_modules/resident_ifn_cellcycle_stress.md")
+        if markers & {
+            "CD3D", "CD3E", "CD3G", "TRAC", "TRBC1", "TRBC2",
+            "CD4", "CD8A", "CD8B", "IL7R", "CCR7", "SELL", "TCF7",
+            "LEF1", "GZMK", "GZMB", "PRF1", "NKG7", "GNLY", "PDCD1",
+            "LAG3", "HAVCR2", "TOX", "CXCL13", "FOXP3", "IL2RA",
+            "CTLA4", "TIGIT", "CCR8", "CXCR5", "BCL6", "ICOS", "CD69",
+            "ITGAE", "CXCR6", "TRDC", "TRGC1", "TRGC2", "KLRB1",
+            "SLC4A10", "MKI67", "TOP2A", "HSPA1A", "HSPA1B",
+        }:
+            add("t_cell/immune_t_cell_consensus.md")
+
+        if markers & {
             "SPP1", "AREG", "EREG", "TREM2", "GPNMB", "VEGFA", "MMP9",
             "COL1A1", "COL1A2", "SPARC", "HMOX1", "SLC40A1",
         }:
@@ -581,24 +713,32 @@ class ReferenceAgent:
             return "No structured reference-marker lookup was available for the selected references."
 
         lines = [
-            "Structured lookup from Coulton et al. Nat Commun 2024 Supplementary Data 6.",
-            "Use this as evidence, not as an override of the observed markers.",
+            "Structured lookup against the human cancer macrophage consensus layer.",
+            "Use the consensus program as the primary label. Use paper-specific aliases only as traceability evidence.",
         ]
         reference_sets = {
-            label: {marker.upper() for marker in markers}
-            for label, markers in COULTON_TAM_MARKER_SETS.items()
+            state["id"]: {
+                "state": state,
+                "markers": {marker.upper() for marker in state["markers"]},
+            }
+            for state in HUMAN_CANCER_MACROPHAGE_CONSENSUS_STATES
         }
         for marker_set in marker_sets:
             cluster_id = marker_set.get("cluster_id", "unknown")
             query_markers = {str(marker).upper() for marker in marker_set.get("markers", [])}
             ranked = []
-            for label, reference_markers in reference_sets.items():
-                overlap = sorted(query_markers & reference_markers)
+            for state_id, reference in reference_sets.items():
+                overlap = sorted(query_markers & reference["markers"])
                 if overlap:
-                    ranked.append((len(overlap), label, overlap))
-            ranked.sort(key=lambda item: (-item[0], item[1]))
+                    ranked.append((len(overlap), state_id, reference["state"], overlap))
+            confidence_rank = {"high": 0, "medium-high": 1, "medium": 2, "ambiguous": 3}
+            ranked.sort(key=lambda item: (
+                -item[0],
+                confidence_rank.get(item[2].get("confidence"), 9),
+                item[2]["consensus_name"],
+            ))
             if not ranked:
-                lines.append(f"- Cluster {cluster_id}: no Coulton TAM marker-set hit.")
+                lines.append(f"- Cluster {cluster_id}: no consensus macrophage/TAM program hit.")
                 continue
 
             best = ranked[0]
@@ -606,12 +746,14 @@ class ReferenceAgent:
             alt_text = ""
             if alternatives:
                 alt_text = "; alternatives: " + "; ".join(
-                    f"{label} ({count} markers: {', '.join(overlap[:6])})"
-                    for count, label, overlap in alternatives
+                    f"{state['consensus_name']} ({count} markers: {', '.join(overlap[:6])})"
+                    for count, _state_id, state, overlap in alternatives
                 )
+            aliases = ", ".join(best[2].get("aliases", [])[:3]) or "none"
             lines.append(
-                f"- Cluster {cluster_id}: best Coulton match {best[1]} "
-                f"({best[0]} markers: {', '.join(best[2][:10])}){alt_text}."
+                f"- Cluster {cluster_id}: best consensus program {best[2]['consensus_name']} "
+                f"(confidence: {best[2]['confidence']}; {best[0]} markers: {', '.join(best[3][:10])}; "
+                f"paper aliases: {aliases}){alt_text}."
             )
         return "\n".join(lines)
 
@@ -664,7 +806,7 @@ class ReferenceAgent:
             cluster_id = marker_set.get("cluster_id", "unknown")
             markers = ", ".join(marker_set.get("markers", [])[:12])
             cluster_lines.append(
-                f"- Cluster {cluster_id}: review macrophage subtype programs against markers {markers}."
+                f"- Cluster {cluster_id}: review selected lineage/state programs against markers {markers}."
             )
 
         fact_text = "\n".join(f"- {fact}" for fact in facts[:6]) or "- Reference documents were selected, but no source facts could be extracted automatically."
@@ -677,7 +819,7 @@ class ReferenceAgent:
             "## Cluster-Specific Guidance\n"
             f"{chr(10).join(cluster_lines)}\n\n"
             "## Cross-Cluster Distinctions\n"
-            "- Prefer specific marker-program labels over broad M1/M2 labels when evidence supports them.\n"
+            "- Prefer specific marker-program labels over broad lineage-only labels when evidence supports them.\n"
             "</reference_brief>"
         )
 

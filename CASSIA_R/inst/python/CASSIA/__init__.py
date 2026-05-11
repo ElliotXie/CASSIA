@@ -48,6 +48,7 @@ from .engine.main_function_code import *
 # MARKER UTILITIES
 # -----------------------------------------------------------------------------
 from .core.marker_utils import loadmarker, list_available_markers, split_markers, get_top_markers
+from .core.subcluster_marker_sets import compute_subcluster_marker_sets
 
 # -----------------------------------------------------------------------------
 # LLM UTILITIES
@@ -248,6 +249,8 @@ try:
     from .agents.subclustering import (
         runCASSIA_subclusters,
         runCASSIA_subclustering,  # Alias from __init__.py
+        runCASSIA_subclusters_auto_split,
+        runCASSIA_subclustering_auto_split,
         runCASSIA_n_subcluster,
         annotate_subclusters,
         build_subcluster_reference_context

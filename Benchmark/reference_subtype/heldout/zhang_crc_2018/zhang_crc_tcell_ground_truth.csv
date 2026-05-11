@@ -1,0 +1,21 @@
+cluster_id,source_sheet,expected_label,expected_terms,source_table
+crc_tcell_01,CD8_C01-LEF1,Naive / central-memory CD8 T cell,naive/central memory/memory;CD8;CCR7/LEF1/TCF7/SELL,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_02,CD8_C02-GPR183,IL7R+ GPR183+ memory CD8 T cell,memory/central memory/IL7R;CD8;GPR183/LTB/S1PR1,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_03,CD8_C03-CX3CR1,CX3CR1+ cytotoxic effector CD8 T cell,cytotoxic/effector/TEMRA;CD8;CX3CR1/FGFBP2/FCGR3A/KLRG1,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_04,CD8_C04-GZMK,GZMK+ effector-memory CD8 T cell,effector memory/effector-memory/memory;CD8;GZMK/GZMA/CCL5,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_05,CD8_C05-CD6,CD6/JAML activated CD8 T cell,activated/intermediate/CD6;CD8;CD6/JAML/TNFAIP3/PTGER4,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_06,CD8_C06-CD160,CD160+ NK-like / tissue-resident CD8 T cell,NK-like/natural killer/innate-like/resident;CD8;CD160/KLRC/KIR/ITGA1,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_07,CD8_C07-LAYN,LAYN+ exhausted CD8 T cell,exhausted/dysfunctional;CD8;LAYN/HAVCR2/PDCD1/CXCL13/ITGAE,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_08,CD8_C08-SLC4A10,SLC4A10+ MAIT-like innate-like T cell,MAIT/innate-like;T cell/T-cell;SLC4A10/KLRB1/RORA/IL23R,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_09,CD4_C01-CCR7,Naive / central-memory CD4 T cell,naive/central memory/memory;CD4;CCR7/TCF7/LEF1/SELL,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_10,CD4_C02-ANXA1,ANXA1+ memory CD4 T cell,memory/activated/ANXA1;CD4;ANXA1/LTB/KLF2,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_11,CD4_C03-GNLY,Cytotoxic CD4 T cell,cytotoxic/effector;CD4;GNLY/NKG7/PRF1/GZMH/CX3CR1,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_12,CD4_C04-TCF7,TCF7/GPR183 activated-memory CD4 T cell,memory/activated/naive;CD4;TCF7/GPR183/CD69/FOS/NR4A2,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_13,CD4_C05-CXCR6,CXCR6+ tissue-resident memory CD4 T cell,resident/tissue-resident/memory/Trm;CD4;CXCR6/ANXA1/IL7R,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_14,CD4_C06-CXCR5,CXCR5+ T follicular helper-like CD4 T cell,Tfh/follicular helper;CD4/helper;CXCR5/TOX2/IL6R/ICOS,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_15,CD4_C07-GZMK,GZMK+ Th1-like effector-memory CD4 T cell,Th1/effector memory/effector-memory/memory;CD4/helper;GZMK/CCL5/GZMA/CCL4,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_16,CD4_C08-IL23R,IL23R/CCR6 Th17-like CD4 T cell,Th17/T helper 17;CD4/helper;IL23R/CCR6/KLRB1/RORC,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_17,CD4_C09-CXCL13,CXCL13+BHLHE40+ Th1-like helper T cell,Th1/helper/CXCL13;CD4;CXCL13/BHLHE40/PDCD1/GZMB,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_18,CD4_C10-FOXP3,FOXP3+ regulatory T cell,Treg/regulatory;CD4;FOXP3/IL10RA/FCMR,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_19,CD4_C11-IL10,IL10+ regulatory / Tr1-like CD4 T cell,IL10/Tr1/regulatory;CD4;IL10/LGMN/IKZF3,Zhang et al. Nature 2018 Supplementary Table 5
+crc_tcell_20,CD4_C12-CTLA4,CTLA4+ activated regulatory T cell,Treg/regulatory;CD4;CTLA4/FOXP3/CCR8/IL2RA,Zhang et al. Nature 2018 Supplementary Table 5

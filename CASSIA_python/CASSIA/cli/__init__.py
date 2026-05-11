@@ -12,8 +12,75 @@ from typing import Dict, Iterable, Optional
 from CASSIA import __version__
 
 from .backends import is_agent_backend, is_api_backend, list_backends
-from .boost import parse_gene_args, query_marker_genes, run_boost, write_query_output
+from .boost import parse_gene_args, query_marker_genes, run_boost, run_boost_auto, write_query_output
+from .consensus import run_consensus
 from .runner import dispatch_annotation, generate_markdown_report, resume_run
+from .subcluster import run_subcluster
+from .validate import run_validate
+
+
+HELP_FORMATTER = argparse.RawDescriptionHelpFormatter
+
+TOP_LEVEL_EPILOG = """Common workflows:
+  cassia doctor
+  cassia backends list
+  cassia validate markers.csv
+
+  cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
+  cassia boost auto --run runs/brain_codex --markers raw_markers.csv --backend codex-cli
+  cassia subcluster run --markers cd8_markers.csv --major-cluster-info "CD8 T cell in tumor" --backend codex-cli
+  cassia consensus --inputs runs/codex/summary.csv runs/claude/summary.csv --out runs/consensus.csv
+
+Run "cassia COMMAND --help" for command-specific options and examples.
+"""
+
+VALIDATE_EPILOG = """Examples:
+  cassia validate markers.csv
+  cassia validate raw_findallmarkers.csv --celltype-column cluster --gene-column gene --ranking-method avg_log2FC
+  cassia validate markers.csv --json
+"""
+
+ANNOTATE_EPILOG = """Examples:
+  cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
+
+  cassia annotate -i findallmarkers.csv --celltype-column cluster --gene-column gene \\
+    --ranking-method avg_log2FC --n-genes 50 --backend claude-cli --out runs/claude
+
+  cassia annotate -i markers.csv --backend shell \\
+    --command-template 'python my_agent.py {prompt_file}' --out runs/custom_agent
+"""
+
+BOOST_EPILOG = """Examples:
+  cassia boost query --markers raw_findallmarkers.csv --cluster 3 --genes CD3D,CD3E,TRAC
+  cassia boost run --run runs/brain_codex --markers raw_findallmarkers.csv --cluster 3 --backend codex-cli
+  cassia boost auto --run runs/brain_codex --markers raw_findallmarkers.csv --backend codex-cli --max-clusters 5
+"""
+
+BOOST_QUERY_EPILOG = """Examples:
+  cassia boost query --markers raw_findallmarkers.csv --cluster 3 --genes CD3D,CD3E,TRAC
+  cassia boost query -m raw_findallmarkers.csv --cluster macrophage LST1 C1QA APOE --format json
+"""
+
+BOOST_RUN_EPILOG = """Example:
+  cassia boost run --run runs/brain_codex --markers raw_findallmarkers.csv \\
+    --cluster 3 --backend codex-cli --iterations 5
+"""
+
+BOOST_AUTO_EPILOG = """Examples:
+  cassia boost auto --run runs/brain_codex --markers raw_findallmarkers.csv --backend codex-cli --max-clusters 5
+  cassia boost auto --run runs/brain_codex --markers raw_findallmarkers.csv --plan-only
+"""
+
+SUBCLUSTER_EPILOG = """Example:
+  cassia subcluster run --markers cd8_subcluster_markers.csv \\
+    --major-cluster-info "CD8 T cell in human tumor" --backend codex-cli --out runs/cd8_subcluster
+"""
+
+CONSENSUS_EPILOG = """Examples:
+  cassia consensus --inputs runs/codex/summary.csv runs/claude/summary.csv --out runs/consensus.csv
+  cassia consensus --inputs runs/codex runs/claude runs/cursor --out runs/consensus.csv
+  cassia consensus --glob 'runs/*/summary.csv' --threshold 0.75 --out runs/consensus.csv
+"""
 
 
 def _print_backend_table(backends: Dict[str, Dict[str, object]]) -> None:
@@ -156,6 +223,30 @@ def cmd_boost_run(args: argparse.Namespace) -> int:
     return run_boost(args)
 
 
+def cmd_boost_auto(args: argparse.Namespace) -> int:
+    if not is_agent_backend(args.backend):
+        raise SystemExit("cassia boost auto requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, or shell")
+    if args.backend == "shell" and not args.command_template and not (args.plan_only or args.dry_run):
+        raise SystemExit("--command-template is required when --backend shell is used")
+    return run_boost_auto(args)
+
+
+def cmd_subcluster_run(args: argparse.Namespace) -> int:
+    if not is_agent_backend(args.backend):
+        raise SystemExit("cassia subcluster run requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, or shell")
+    if args.backend == "shell" and not args.command_template and not args.dry_run:
+        raise SystemExit("--command-template is required when --backend shell is used")
+    return run_subcluster(args)
+
+
+def cmd_consensus(args: argparse.Namespace) -> int:
+    return run_consensus(args)
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    return run_validate(args)
+
+
 def add_common_annotation_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-i", "--input", required=True, help="Input marker CSV file.")
     parser.add_argument("-o", "--out", help="Run output directory.")
@@ -211,7 +302,15 @@ def add_common_annotation_args(parser: argparse.ArgumentParser) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="cassia", description="CASSIA command-line interface.")
+    parser = argparse.ArgumentParser(
+        prog="cassia",
+        description=(
+            "CASSIA command-line interface for single-cell marker annotation, "
+            "agent-native boost review, subcluster annotation, and consensus voting."
+        ),
+        formatter_class=HELP_FORMATTER,
+        epilog=TOP_LEVEL_EPILOG,
+    )
     parser.add_argument("--version", action="version", version=f"CASSIA {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -223,7 +322,42 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--force", action="store_true", help="Overwrite an existing config.")
     init_parser.set_defaults(func=cmd_init)
 
-    annotate_parser = subparsers.add_parser("annotate", help="Run CASSIA annotation from marker CSV data.")
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="Validate marker CSV input before running annotation.",
+        description="Validate marker CSV structure, inferred columns, ranking columns, and prepared marker counts.",
+        formatter_class=HELP_FORMATTER,
+        epilog=VALIDATE_EPILOG,
+    )
+    validate_parser.add_argument("input", help="Input marker CSV file.")
+    validate_parser.add_argument("--celltype-column", help="Cluster/cell type column name.")
+    validate_parser.add_argument("--gene-column", help="Gene or marker-list column name.")
+    validate_parser.add_argument("--n-genes", type=int, default=50, help="Top marker count per cluster.")
+    validate_parser.add_argument(
+        "--ranking-method",
+        default="avg_log2FC",
+        choices=["avg_log2FC", "p_val_adj", "pct_diff", "Score"],
+        help="Marker ranking method for differential-expression tables.",
+    )
+    validate_sort_group = validate_parser.add_mutually_exclusive_group()
+    validate_sort_group.add_argument("--ascending", action="store_true", dest="ascending")
+    validate_sort_group.add_argument("--descending", action="store_false", dest="ascending")
+    validate_parser.set_defaults(ascending=None)
+    validate_parser.add_argument("--limit", type=int, help="Limit clusters checked after preparation.")
+    validate_parser.add_argument("--tissue", help="Tissue context used only for the suggested command.")
+    validate_parser.add_argument("--species", default="human", help="Species used only for the suggested command.")
+    validate_parser.add_argument("--backend", default="codex-cli", help="Backend used only for the suggested command.")
+    validate_parser.add_argument("--json", action="store_true", help="Print machine-readable validation diagnostics.")
+    validate_parser.add_argument("--strict", action="store_true", help="Exit non-zero when warnings are present.")
+    validate_parser.set_defaults(func=cmd_validate)
+
+    annotate_parser = subparsers.add_parser(
+        "annotate",
+        help="Run CASSIA annotation from marker CSV data.",
+        description="Annotate clusters from marker CSV data using an API backend or a local agent CLI.",
+        formatter_class=HELP_FORMATTER,
+        epilog=ANNOTATE_EPILOG,
+    )
     add_common_annotation_args(annotate_parser)
     annotate_parser.set_defaults(func=cmd_annotate)
 
@@ -247,11 +381,20 @@ def build_parser() -> argparse.ArgumentParser:
     resume_parser.add_argument("run_dir", help="Run directory containing run_manifest.json.")
     resume_parser.set_defaults(func=cmd_resume)
 
-    boost_parser = subparsers.add_parser("boost", help="Annotation boost helper commands.")
+    boost_parser = subparsers.add_parser(
+        "boost",
+        help="Annotation boost helper commands.",
+        description="Inspect marker evidence and re-check uncertain CASSIA annotations.",
+        formatter_class=HELP_FORMATTER,
+        epilog=BOOST_EPILOG,
+    )
     boost_subparsers = boost_parser.add_subparsers(dest="boost_command", required=True)
     query_parser = boost_subparsers.add_parser(
         "query",
         help="Query marker statistics for genes, optionally within one cluster.",
+        description="Query local marker statistics for genes, optionally within one cluster.",
+        formatter_class=HELP_FORMATTER,
+        epilog=BOOST_QUERY_EPILOG,
     )
     query_parser.add_argument("-m", "--markers", required=True, help="Raw marker table CSV.")
     query_parser.add_argument("-g", "--genes", action="append", help="Comma/space separated genes to query.")
@@ -266,6 +409,9 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = boost_subparsers.add_parser(
         "run",
         help="Run an agent CLI annotation boost loop for one cluster.",
+        description="Run the annotation boost loop for one selected cluster using a local agent CLI.",
+        formatter_class=HELP_FORMATTER,
+        epilog=BOOST_RUN_EPILOG,
     )
     run_parser.add_argument("--run", required=True, help="Existing CASSIA run directory.")
     run_parser.add_argument("-m", "--markers", required=True, help="Raw marker table CSV.")
@@ -299,6 +445,153 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--dry-run", action="store_true", help="Write the initial prompt and manifest without calling an agent.")
     run_parser.add_argument("-o", "--out", help="Optional boost output directory.")
     run_parser.set_defaults(func=cmd_boost_run)
+
+    auto_parser = boost_subparsers.add_parser(
+        "auto",
+        help="Auto-select uncertain clusters from a run folder and boost them.",
+        description="Select low-confidence, mixed, or ambiguous clusters from a run folder and boost them.",
+        formatter_class=HELP_FORMATTER,
+        epilog=BOOST_AUTO_EPILOG,
+    )
+    auto_parser.add_argument("--run", required=True, help="Existing CASSIA run directory.")
+    auto_parser.add_argument("-m", "--markers", required=True, help="Raw marker table CSV.")
+    auto_parser.add_argument("--major-cluster-info", default="single-cell RNA-seq dataset", help="Dataset context for the boost prompt.")
+    auto_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, or shell.")
+    auto_parser.add_argument(
+        "--command-template",
+        "--shell-command",
+        dest="command_template",
+        help="Shell command template for --backend shell. Placeholders: {prompt}, {prompt_file}, {input}, {out}, {cluster}.",
+    )
+    auto_parser.add_argument("--strategy", choices=["breadth", "depth"], default="breadth", help="Boost search strategy.")
+    auto_parser.add_argument("--iterations", type=int, default=5, help="Maximum agent rounds before finalization.")
+    auto_parser.add_argument("--n-genes", type=int, default=50, help="Top raw markers to include in each boost prompt.")
+    auto_parser.add_argument("--max-genes-per-round", type=int, default=20, help="Maximum genes accepted from each <check_genes> request.")
+    auto_parser.add_argument("--gene-column", help="Gene column name. Defaults to auto-detection.")
+    auto_parser.add_argument("--cluster-column", help="Cluster column name. Defaults to auto-detection.")
+    auto_parser.add_argument(
+        "--ranking-method",
+        default="avg_log2FC",
+        choices=["avg_log2FC", "p_val_adj", "p_val", "pct.1", "pct.2", "Score"],
+        help="Marker ranking column for selecting top markers.",
+    )
+    auto_sort_group = auto_parser.add_mutually_exclusive_group()
+    auto_sort_group.add_argument("--ascending", action="store_true", dest="ascending")
+    auto_sort_group.add_argument("--descending", action="store_false", dest="ascending")
+    auto_parser.set_defaults(ascending=None)
+    auto_parser.add_argument("--additional-task", help="Optional extra instruction appended to each auto-selected boost prompt.")
+    auto_parser.add_argument("--timeout", type=int, default=900, help="Agent CLI timeout per round in seconds.")
+    auto_parser.add_argument("--dry-run", action="store_true", help="Write boost prompts and manifests without calling an agent.")
+    auto_parser.add_argument("-o", "--out", help="Optional auto output directory. Defaults to RUN/boost/_auto.")
+    auto_parser.add_argument("--max-clusters", type=int, default=5, help="Maximum clusters to boost.")
+    auto_parser.add_argument(
+        "--confidence",
+        action="append",
+        choices=["low", "medium", "high", "unknown"],
+        help="Confidence level to prioritize. Repeatable. Defaults to low, medium, and unknown.",
+    )
+    auto_parser.add_argument("--only-low-confidence", action="store_true", help="Only select clusters with low confidence.")
+    auto_parser.add_argument("--target-lineage", action="append", help="Comma-separated lineage terms to focus on, e.g. macrophage,T cell.")
+    auto_parser.add_argument("--all", action="store_true", help="Allow all clusters to be selected, ordered after risk-scored clusters.")
+    auto_parser.add_argument("--plan-only", action="store_true", help="Write candidate plan and aggregate reports without running boost.")
+    auto_parser.add_argument("--force", action="store_true", help="Re-run clusters even if final.json already exists.")
+    auto_parser.add_argument("--fail-fast", action="store_true", help="Stop after the first failed boost run.")
+    auto_parser.set_defaults(func=cmd_boost_auto)
+
+    subcluster_parser = subparsers.add_parser(
+        "subcluster",
+        help="Agent-native subcluster annotation commands.",
+        description="Annotate subclusters inside one parent population using a local agent CLI.",
+        formatter_class=HELP_FORMATTER,
+        epilog=SUBCLUSTER_EPILOG,
+    )
+    subcluster_subparsers = subcluster_parser.add_subparsers(dest="subcluster_command", required=True)
+    subcluster_run_parser = subcluster_subparsers.add_parser(
+        "run",
+        help="Annotate parent-cluster subclusters from a marker table using an agent CLI.",
+        description="Annotate parent-cluster subclusters from a marker table using an agent CLI.",
+        formatter_class=HELP_FORMATTER,
+        epilog=SUBCLUSTER_EPILOG,
+    )
+    subcluster_run_parser.add_argument("-m", "--markers", required=True, help="Subcluster marker table CSV.")
+    subcluster_run_parser.add_argument(
+        "--major-cluster-info",
+        required=True,
+        help="Parent cluster context, e.g. 'CD8 T cell in human tumor'.",
+    )
+    subcluster_run_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, or shell.")
+    subcluster_run_parser.add_argument(
+        "--command-template",
+        "--shell-command",
+        dest="command_template",
+        help="Shell command template for --backend shell. Placeholders: {prompt}, {prompt_file}, {input}, {out}, {cluster}.",
+    )
+    subcluster_run_parser.add_argument("-o", "--out", help="Output directory. Defaults to cassia_runs/subcluster_TIMESTAMP.")
+    subcluster_run_parser.add_argument("--tissue", help="Tissue context.")
+    subcluster_run_parser.add_argument("--species", help="Species context.")
+    subcluster_run_parser.add_argument("--additional-context", help="Optional context appended to the subcluster prompt.")
+    subcluster_run_parser.add_argument("--n-genes", type=int, default=50, help="Top marker count per subcluster.")
+    subcluster_run_parser.add_argument("--cluster-column", help="Subcluster ID column name. Defaults to auto-detection.")
+    subcluster_run_parser.add_argument("--gene-column", help="Gene or marker-list column name. Defaults to auto-detection.")
+    subcluster_run_parser.add_argument(
+        "--ranking-method",
+        default="avg_log2FC",
+        choices=["avg_log2FC", "p_val_adj", "pct_diff", "Score"],
+        help="Marker ranking method for differential-expression tables.",
+    )
+    subcluster_sort_group = subcluster_run_parser.add_mutually_exclusive_group()
+    subcluster_sort_group.add_argument("--ascending", action="store_true", dest="ascending")
+    subcluster_sort_group.add_argument("--descending", action="store_false", dest="ascending")
+    subcluster_run_parser.set_defaults(ascending=None)
+    subcluster_run_parser.add_argument("--limit", type=int, help="Limit subclusters, useful for smoke tests.")
+    subcluster_run_parser.add_argument("--timeout", type=int, default=900, help="Agent CLI timeout in seconds.")
+    subcluster_run_parser.add_argument("--dry-run", action="store_true", help="Write prompt and manifest without calling an agent.")
+    subcluster_run_parser.add_argument("--use-reference", action="store_true", help="Retrieve CASSIA subtype references before prompting.")
+    subcluster_run_parser.add_argument("--reference-provider", help="Provider for reference retrieval. Defaults to openrouter.")
+    subcluster_run_parser.add_argument("--reference-model", help="Model used by reference retrieval.")
+    subcluster_run_parser.add_argument("--reference-cell-type-hint", help="Optional parent-lineage hint for reference retrieval.")
+    subcluster_run_parser.add_argument("--reference-depth", choices=["summary", "detailed"], default="detailed", help="Reference extraction depth.")
+    subcluster_run_parser.add_argument("--reference-max-content-length", type=int, default=5000, help="Maximum characters per reference result.")
+    subcluster_run_parser.add_argument("--reference-max-context-length", type=int, default=12000, help="Maximum total reference context characters.")
+    subcluster_run_parser.set_defaults(func=cmd_subcluster_run)
+
+    consensus_parser = subparsers.add_parser(
+        "consensus",
+        help="Build deterministic consensus from multiple CASSIA summary CSVs.",
+        description=(
+            "Build deterministic consensus from multiple CASSIA summary, "
+            "subcluster, or boost-auto CSV outputs without calling an LLM."
+        ),
+        formatter_class=HELP_FORMATTER,
+        epilog=CONSENSUS_EPILOG,
+    )
+    consensus_parser.add_argument(
+        "--inputs",
+        nargs="+",
+        help="Input CASSIA summary/subcluster/boost-auto CSV files or run directories.",
+    )
+    consensus_parser.add_argument(
+        "--glob",
+        dest="glob_patterns",
+        action="append",
+        help="Glob pattern for input CSV files or run directories. Repeatable.",
+    )
+    consensus_parser.add_argument("-o", "--out", default="consensus.csv", help="Output consensus CSV path.")
+    consensus_parser.add_argument(
+        "--html",
+        help="Output HTML report path. Defaults to the CSV output path with .html suffix.",
+    )
+    consensus_parser.add_argument("--no-html", action="store_true", help="Do not write the HTML consensus report.")
+    consensus_parser.add_argument(
+        "--threshold",
+        type=float,
+        default=2 / 3,
+        help="Minimum top-vote fraction for consensus status. Defaults to two-thirds.",
+    )
+    consensus_parser.add_argument("--cluster-column", help="Cluster ID column override.")
+    consensus_parser.add_argument("--main-column", help="Broad/main annotation column override.")
+    consensus_parser.add_argument("--sub-column", help="Subtype/detail annotation column override.")
+    consensus_parser.set_defaults(func=cmd_consensus)
 
     return parser
 

@@ -34,6 +34,7 @@ from .marker_utils import (
     _prepare_ranking_column,
     _get_sort_direction
 )
+from .subcluster_marker_sets import compute_subcluster_marker_sets
 
 __all__ = [
     # Logging
@@ -68,6 +69,7 @@ __all__ = [
     # Marker utilities
     'split_markers',
     'get_top_markers',
+    'compute_subcluster_marker_sets',
     'loadmarker',
     'list_available_markers',
 ]

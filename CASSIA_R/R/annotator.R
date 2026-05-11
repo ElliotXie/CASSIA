@@ -2244,6 +2244,67 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 
 
 
+#' Compute Subcluster Marker Sets
+#'
+#' Compute three complementary marker views for a parent-cluster subclustering
+#' workflow: local sibling comparison, global relabel comparison, and target
+#' subcluster versus cells outside the parent cluster.
+#'
+#' @param data AnnData object from reticulate or path to a .h5ad file.
+#' @param parent_col Observation column containing broad parent labels.
+#' @param parent_label Parent population to analyze.
+#' @param subcluster_col Observation column containing subcluster IDs.
+#' @param modes Character vector of marker modes. Defaults to all three modes:
+#'   "local", "global_relabel", and "target_vs_background".
+#' @param n_genes Number of ranked marker genes per subcluster per mode.
+#' @param method Scanpy rank_genes_groups method, e.g. "wilcoxon" or "t-test".
+#' @param output_dir Optional directory where CSV files and metadata JSON are written.
+#' @param use_raw Whether to use adata.raw. Optional.
+#' @param layer Optional AnnData layer name.
+#' @param rankby_abs Whether to rank by absolute scores.
+#' @param tie_correct Whether to use tie correction for Scanpy's Wilcoxon test.
+#' @param expression_threshold Expression threshold for pct.1/pct.2 calculation.
+#' @param min_log2fc Optional minimum avg_log2FC filter.
+#' @param max_p_val_adj Optional maximum adjusted p-value filter.
+#'
+#' @return A Python dictionary converted by reticulate. It contains marker
+#'   DataFrames for each mode plus a combined marker table.
+#' @export
+compute_subcluster_marker_sets <- function(data,
+                                           parent_col,
+                                           parent_label,
+                                           subcluster_col,
+                                           modes = c("local", "global_relabel", "target_vs_background"),
+                                           n_genes = 50L,
+                                           method = "wilcoxon",
+                                           output_dir = NULL,
+                                           use_raw = NULL,
+                                           layer = NULL,
+                                           rankby_abs = FALSE,
+                                           tie_correct = FALSE,
+                                           expression_threshold = 0,
+                                           min_log2fc = 0.25,
+                                           max_p_val_adj = NULL) {
+  py_cassia$compute_subcluster_marker_sets(
+    data = data,
+    parent_col = parent_col,
+    parent_label = parent_label,
+    subcluster_col = subcluster_col,
+    modes = modes,
+    n_genes = as.integer(n_genes),
+    method = method,
+    output_dir = output_dir,
+    use_raw = use_raw,
+    layer = layer,
+    rankby_abs = rankby_abs,
+    tie_correct = tie_correct,
+    expression_threshold = as.numeric(expression_threshold),
+    min_log2fc = min_log2fc,
+    max_p_val_adj = max_p_val_adj
+  )
+}
+
+
 #' Process Subclusters
 #'
 #' @param marker Marker data (data frame or file path)

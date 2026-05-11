@@ -85,3 +85,5 @@ CASSIA_R/inst/python/CASSIA/agents/reference_agent/macrophage_test/
 
 # Reference subtype benchmark run outputs
 Benchmark/reference_subtype/results/
+Benchmark/reference_subtype/.openrouter_key
+Benchmark/reference_subtype/source_data/
