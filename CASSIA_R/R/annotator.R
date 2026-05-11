@@ -1209,6 +1209,45 @@ setOpenRouterApiKey <- function(api_key, persist = FALSE) {
 }
 
 
+#' Reset recorded LLM usage for the current R/Python session
+#'
+#' Clears CASSIA's in-process usage log. This is useful before running a
+#' benchmark or a batch annotation when you want cost/token accounting for only
+#' that run.
+#'
+#' @return Invisible NULL.
+#' @export
+resetLLMUsageLog <- function() {
+  .require_python("resetLLMUsageLog")
+  py_cassia$reset_llm_usage_log()
+  invisible(NULL)
+}
+
+
+#' Get recorded LLM usage calls for the current R/Python session
+#'
+#' @return A list of request-level usage records.
+#' @export
+getLLMUsageLog <- function() {
+  .require_python("getLLMUsageLog")
+  reticulate::py_to_r(py_cassia$get_llm_usage_log())
+}
+
+
+#' Get a summary of recorded LLM token usage and provider cost
+#'
+#' Cost units are provider-native. For OpenRouter, CASSIA records the `cost`
+#' field returned by OpenRouter's API usage object.
+#'
+#' @param reset Logical. Whether to clear the usage log after reading it.
+#' @return A list with request count, token counts, cost, and per-model totals.
+#' @export
+getLLMUsageSummary <- function(reset = FALSE) {
+  .require_python("getLLMUsageSummary")
+  reticulate::py_to_r(py_cassia$get_llm_usage_summary(reset = reset))
+}
+
+
 #' Set API Proxy for Regions Where US Providers Are Blocked
 #'
 #' Routes all CASSIA API calls through a Cloudflare Worker proxy.
@@ -2217,6 +2256,13 @@ symphonyCompare <- function(tissue, celltypes, marker_set, species = "human",
 #' @param tissue Tissue type being analyzed (e.g., "lung", "brain"). Optional (default: NULL)
 #' @param species Species being analyzed (e.g., "human", "mouse"). Optional (default: NULL)
 #' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
+#' @param use_reference Logical. Whether to retrieve subtype references before subcluster annotation (default: FALSE)
+#' @param reference_provider Provider for reference selection (default: same as provider)
+#' @param reference_model Model for reference selection
+#' @param reference_cell_type_hint Optional parent lineage hint, e.g. "macrophage"
+#' @param reference_depth Reference extraction depth, "detailed" or "summary"
+#' @param reference_max_content_length Maximum characters extracted per reference result
+#' @param reference_max_context_length Maximum total reference context characters
 #'
 #' @return None. This function processes subclusters and saves results to a CSV file.
 #' @export
@@ -2224,7 +2270,14 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
                                model = "anthropic/claude-sonnet-4.5", temperature = 0,
                                provider = "openrouter", n_genes = 50L,
                                tissue = NULL, species = NULL,
-                               additional_context = NULL) {
+                               additional_context = NULL,
+                               use_reference = FALSE,
+                               reference_provider = NULL,
+                               reference_model = NULL,
+                               reference_cell_type_hint = NULL,
+                               reference_depth = "detailed",
+                               reference_max_content_length = 5000L,
+                               reference_max_context_length = 12000L) {
   py_cassia$runCASSIA_subclusters(
     marker = marker,
     major_cluster_info = major_cluster_info,
@@ -2235,7 +2288,14 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
     n_genes = as.integer(n_genes),
     tissue = tissue,
     species = species,
-    additional_context = additional_context
+    additional_context = additional_context,
+    use_reference = use_reference,
+    reference_provider = reference_provider,
+    reference_model = reference_model,
+    reference_cell_type_hint = reference_cell_type_hint,
+    reference_depth = reference_depth,
+    reference_max_content_length = as.integer(reference_max_content_length),
+    reference_max_context_length = as.integer(reference_max_context_length)
   )
 }
 
@@ -2253,6 +2313,13 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' @param tissue Tissue type being analyzed (e.g., "lung", "brain"). Optional (default: NULL)
 #' @param species Species being analyzed (e.g., "human", "mouse"). Optional (default: NULL)
 #' @param additional_context Optional additional context string (e.g., tissue type, experimental conditions)
+#' @param use_reference Logical. Whether to retrieve subtype references before subcluster annotation (default: FALSE)
+#' @param reference_provider Provider for reference selection (default: same as provider)
+#' @param reference_model Model for reference selection
+#' @param reference_cell_type_hint Optional parent lineage hint, e.g. "macrophage"
+#' @param reference_depth Reference extraction depth, "detailed" or "summary"
+#' @param reference_max_content_length Maximum characters extracted per reference result
+#' @param reference_max_context_length Maximum total reference context characters
 #'
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
 #' @export
@@ -2260,7 +2327,14 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
                                                model = "anthropic/claude-sonnet-4.5", temperature = 0.3,
                                                provider = "openrouter", max_workers = 5, n_genes = 50L,
                                                tissue = NULL, species = NULL,
-                                               additional_context = NULL) {
+                                               additional_context = NULL,
+                                               use_reference = FALSE,
+                                               reference_provider = NULL,
+                                               reference_model = NULL,
+                                               reference_cell_type_hint = NULL,
+                                               reference_depth = "detailed",
+                                               reference_max_content_length = 5000L,
+                                               reference_max_context_length = 12000L) {
   py_cassia$runCASSIA_n_subcluster(
     n = as.integer(n),
     marker = marker,
@@ -2273,7 +2347,14 @@ runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_na
     n_genes = as.integer(n_genes),
     tissue = tissue,
     species = species,
-    additional_context = additional_context
+    additional_context = additional_context,
+    use_reference = use_reference,
+    reference_provider = reference_provider,
+    reference_model = reference_model,
+    reference_cell_type_hint = reference_cell_type_hint,
+    reference_depth = reference_depth,
+    reference_max_content_length = as.integer(reference_max_content_length),
+    reference_max_context_length = as.integer(reference_max_context_length)
   )
 }
 

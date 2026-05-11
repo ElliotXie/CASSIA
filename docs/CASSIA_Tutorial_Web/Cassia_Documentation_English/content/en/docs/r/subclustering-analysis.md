@@ -105,6 +105,46 @@ write.csv(cd8_markers, "cd8_subcluster_markers.csv")
 | `n_genes` | 50 | Number of top marker genes to use |
 | `tissue` | NULL | Tissue type being analyzed (e.g., "lung", "brain") |
 | `species` | NULL | Species being analyzed (e.g., "human", "mouse") |
+| `use_reference` | FALSE | Retrieve expert subtype references and inject them into the subclustering prompt |
+| `reference_model` | NULL | Model used for reference selection (defaults to the provider's fast model) |
+| `reference_cell_type_hint` | NULL | Parent lineage hint for reference selection (e.g., "macrophage") |
+
+### Reference-Assisted Subclustering
+
+Reference mode is useful for difficult subtype problems such as macrophage,
+fibroblast, or immune-cell subclustering. For example:
+
+When enabled, the reference agent first reads the lineage overview/router and
+all subcluster marker sets together, then reads only the detailed reference
+documents needed for this run. It injects a compact reference brief with
+objective paper facts, cluster-specific guidance, and cross-cluster subtype
+distinctions rather than pasting the whole reference library.
+
+```r
+runCASSIA_subclusters(
+    marker = macrophage_markers,
+    major_cluster_info = "human tumor macrophage",
+    output_name = "macrophage_subclustering_reference",
+    model = "moonshotai/kimi-k2.6",
+    provider = "openrouter",
+    tissue = "tumor",
+    species = "human",
+    use_reference = TRUE,
+    reference_model = "moonshotai/kimi-k2.6",
+    reference_cell_type_hint = "macrophage"
+)
+```
+
+To record token usage and provider cost for a run:
+
+```r
+resetLLMUsageLog()
+runCASSIA_subclusters(..., use_reference = TRUE)
+usage <- getLLMUsageSummary(reset = TRUE)
+print(usage)
+```
+
+For OpenRouter, Cassia records the `usage.cost` value returned by the API.
 
 ### Example: Mixed Populations
 

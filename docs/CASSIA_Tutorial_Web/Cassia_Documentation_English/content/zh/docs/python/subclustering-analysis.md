@@ -54,6 +54,44 @@ CASSIA.runCASSIA_subclusters(
 | `n_genes` | 50 | 要使用的顶部标记基因数 |
 | `tissue` | None | 分析的组织类型（例如 "lung"、"brain"） |
 | `species` | None | 分析的物种（例如 "human"、"mouse"） |
+| `use_reference` | False | 检索专家亚型参考并注入到子聚类提示词中 |
+| `reference_model` | None | 用于参考选择的模型（默认使用提供商的快速模型） |
+| `reference_cell_type_hint` | None | 参考选择的父级谱系提示（例如 "macrophage"） |
+
+### 参考辅助子聚类
+
+参考模式适合巨噬细胞、成纤维细胞或免疫细胞等亚型较难判断的场景。例如：
+
+启用后，reference agent 会先读取该谱系的 overview/router，并同时查看本次所有
+子簇 marker sets；随后只读取本次需要的详细 reference 文档。最终注入的不是整个
+reference 库，而是一段简洁的参考简报，包含论文中的客观事实、逐簇指导和容易混淆
+的亚型区别。
+
+```python
+CASSIA.runCASSIA_subclusters(
+    marker = macrophage_subcluster_results,
+    major_cluster_info = "human tumor macrophage",
+    output_name = "macrophage_subclustering_reference",
+    model = "moonshotai/kimi-k2.6",
+    provider = "openrouter",
+    tissue = "tumor",
+    species = "human",
+    use_reference = True,
+    reference_model = "moonshotai/kimi-k2.6",
+    reference_cell_type_hint = "macrophage"
+)
+```
+
+如果要记录一次运行的 token 用量和 provider cost：
+
+```python
+CASSIA.reset_llm_usage_log()
+CASSIA.runCASSIA_subclusters(..., use_reference = True)
+usage = CASSIA.get_llm_usage_summary(reset = True)
+print(usage)
+```
+
+对于 OpenRouter，CASSIA 会记录 API 返回的 `usage.cost`。
 
 ### 不确定性评估函数
 

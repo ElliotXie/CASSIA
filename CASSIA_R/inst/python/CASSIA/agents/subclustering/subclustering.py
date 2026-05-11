@@ -18,6 +18,18 @@ except ImportError:
         from llm_utils import *
 
 import pandas as pd
+import re
+
+try:
+    from CASSIA.agents.reference_agent import ReferenceAgent
+except ImportError:
+    try:
+        from ...agents.reference_agent import ReferenceAgent
+    except ImportError:
+        try:
+            from reference_agent import ReferenceAgent
+        except ImportError:
+            ReferenceAgent = None
 
 
 def _get_get_top_markers():
@@ -32,6 +44,226 @@ def _get_get_top_markers():
         except ImportError:
             from marker_utils import get_top_markers
             return get_top_markers
+
+
+def _prepare_subcluster_marker_dataframe(marker, n_genes=50):
+    """Return a two-column marker dataframe suitable for subcluster prompts."""
+    if isinstance(marker, pd.DataFrame):
+        marker_df = marker.copy()
+    elif isinstance(marker, str):
+        marker_df = pd.read_csv(marker)
+    else:
+        raise ValueError("marker must be a pandas DataFrame or a CSV file path")
+
+    if len(marker_df.columns) > 2:
+        get_top_markers = _get_get_top_markers()
+        marker_df = get_top_markers(marker_df, n_genes=n_genes)
+
+    return marker_df
+
+
+def _parse_marker_values(marker_value, n_genes=50):
+    """Parse a marker-list cell into ordered marker symbols."""
+    if marker_value is None:
+        return []
+
+    if isinstance(marker_value, (list, tuple, set)):
+        raw_markers = list(marker_value)
+    else:
+        marker_text = str(marker_value)
+        raw_markers = re.split(r"[,;|\n]+", marker_text)
+        if len(raw_markers) <= 1:
+            raw_markers = re.split(r"\s+", marker_text)
+
+    markers = []
+    seen = set()
+    for marker in raw_markers:
+        marker = str(marker).strip().strip("'\"`")
+        if not marker:
+            continue
+        marker_key = marker.upper()
+        if marker_key in seen:
+            continue
+        seen.add(marker_key)
+        markers.append(marker)
+        if n_genes and len(markers) >= n_genes:
+            break
+    return markers
+
+
+def _combine_context(additional_context, reference_context):
+    if additional_context and reference_context:
+        return f"{additional_context}\n\n{reference_context}"
+    return additional_context or reference_context
+
+
+def build_subcluster_reference_context(
+    marker,
+    major_cluster_info,
+    provider="openrouter",
+    n_genes=50,
+    tissue=None,
+    species=None,
+    reference_provider=None,
+    reference_model=None,
+    reference_cell_type_hint=None,
+    reference_depth="detailed",
+    reference_max_content_length=5000,
+    reference_max_context_length=12000,
+    verbose=False,
+):
+    """
+    Build an expert-reference context block for a subclustering run.
+
+    The function runs reference retrieval per subcluster marker set, deduplicates
+    selected documents, and returns a single text block that can be appended to
+    the subclustering prompt.
+    """
+    info = {
+        "reference_used": False,
+        "references_used": [],
+        "clusters": [],
+        "reason": "",
+    }
+
+    if ReferenceAgent is None:
+        info["reason"] = "Reference agent not available"
+        return "", info
+
+    marker_df = _prepare_subcluster_marker_dataframe(marker, n_genes=n_genes)
+    ref_provider = reference_provider or provider
+    cell_type_hint = reference_cell_type_hint or major_cluster_info
+    agent = ReferenceAgent(provider=ref_provider, model=reference_model)
+
+    marker_sets = []
+    for _, row in marker_df.iterrows():
+        cluster_id = str(row.iloc[0])
+        markers = _parse_marker_values(row.iloc[1], n_genes=n_genes)
+        if markers:
+            marker_sets.append({"cluster_id": cluster_id, "markers": markers})
+
+    if hasattr(agent, "get_reference_brief_for_subclusters"):
+        try:
+            brief_result = agent.get_reference_brief_for_subclusters(
+                marker_sets=marker_sets,
+                major_cluster_info=major_cluster_info,
+                tissue=tissue,
+                species=species,
+                cell_type_hint=cell_type_hint,
+                depth=reference_depth,
+                max_reference_content_length=reference_max_content_length,
+                max_brief_length=reference_max_context_length,
+            )
+        except Exception as exc:
+            brief_result = {
+                "should_use_reference": False,
+                "content": "",
+                "references_used": [],
+                "reasoning": f"Agentic reference brief failed: {exc}",
+            }
+
+        info["references_used"] = brief_result.get("references_used", []) or []
+        info["clusters"] = brief_result.get("planning", {}).get("cluster_hypotheses", [])
+        info["tool_trace"] = brief_result.get("tool_trace", [])
+        info["reason"] = brief_result.get("reasoning", "")
+
+        if brief_result.get("should_use_reference") and brief_result.get("content"):
+            info["reference_used"] = True
+            context = (
+                "<expert_reference>\n"
+                "Agent-generated subtype reference brief for this subclustering run. "
+                "Use it as literature-grounded guidance, but prioritize the observed "
+                "marker genes and parent-cluster context when they conflict. When the "
+                "reference brief names an author-defined subtype and the marker support "
+                "is strong, preserve that named subtype in the label or explanation.\n\n"
+                f"Parent cluster context: {major_cluster_info}\n\n"
+                f"{brief_result['content']}\n"
+                "</expert_reference>"
+            )
+            if verbose:
+                print(f"Reference context added for subclustering: {', '.join(info['references_used'])}")
+            return context, info
+
+    seen_references = set()
+    cluster_blocks = []
+
+    for marker_set in marker_sets:
+        cluster_id = marker_set["cluster_id"]
+        markers = marker_set["markers"]
+        try:
+            ref_result = agent.get_reference_for_markers(
+                markers=markers[:20],
+                tissue=tissue,
+                species=species,
+                cell_type_hint=cell_type_hint,
+                depth=reference_depth,
+                max_content_length=reference_max_content_length,
+            )
+        except Exception as exc:
+            info["clusters"].append({
+                "cluster_id": cluster_id,
+                "reference_used": False,
+                "references_used": [],
+                "reason": str(exc),
+            })
+            continue
+
+        references_used = ref_result.get("references_used", []) or []
+        cluster_info = {
+            "cluster_id": cluster_id,
+            "reference_used": bool(ref_result.get("should_use_reference") and references_used),
+            "preliminary_cell_type": ref_result.get("preliminary_cell_type"),
+            "cell_type_range": ref_result.get("cell_type_range", []),
+            "references_used": references_used,
+            "reason": ref_result.get("reasoning", ""),
+        }
+        info["clusters"].append(cluster_info)
+
+        if not ref_result.get("should_use_reference") or not ref_result.get("content"):
+            continue
+
+        new_references = [ref for ref in references_used if ref not in seen_references]
+        if not new_references:
+            continue
+
+        seen_references.update(new_references)
+        marker_preview = ", ".join(markers[:12])
+        cluster_blocks.append(
+            f"## Cluster {cluster_id} reference match\n"
+            f"- Marker preview: {marker_preview}\n"
+            f"- Preliminary cell type: {ref_result.get('preliminary_cell_type', 'Unknown')}\n"
+            f"- References used: {', '.join(references_used)}\n\n"
+            f"{ref_result['content']}"
+        )
+
+    if not cluster_blocks:
+        info["reason"] = "No relevant references selected"
+        return "", info
+
+    combined = "\n\n---\n\n".join(cluster_blocks)
+    if reference_max_context_length and len(combined) > reference_max_context_length:
+        combined = combined[:reference_max_context_length] + "\n\n[... subcluster reference context truncated ...]"
+
+    info["reference_used"] = True
+    info["references_used"] = sorted(seen_references)
+    info["reason"] = f"Selected {len(seen_references)} reference document(s)"
+
+    context = (
+        "<expert_reference>\n"
+        "Expert-curated subtype references for this subclustering run. Use these "
+        "as additional evidence for subtype differentiation, but prioritize the "
+        "provided markers and tissue/species context when they conflict. When a "
+        "reference names an author-defined subtype and the marker support is strong, "
+        "preserve that named subtype in the label or explanation.\n\n"
+        f"Parent cluster context: {major_cluster_info}\n\n"
+        f"{combined}\n"
+        "</expert_reference>"
+    )
+
+    if verbose:
+        print(f"Reference context added for subclustering: {', '.join(info['references_used'])}")
+
+    return context, info
 
 
 def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=None, provider="openrouter"):
@@ -83,8 +315,8 @@ def construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=50,
 
 You are an expert biologist specializing in cell type annotation, with deep expertise in immunology, cancer biology, and developmental biology. You will be given sets of highly expressed markers ranked by significance for some subclusters from the {major_cluster_info} cluster, identify what is the most likely top2 cell type each marker set implies.
 
-Take a deep breath and work step by step. You'd better do a really good job or 1000 grandma are going to be in danger.
-You will be tipped $10,000 if you do a good job.
+Work step by step and ground every subtype call in the provided marker genes and parent-cluster context.
+If additional context provides a literature-named subtype that strongly matches a cluster, include that named subtype in the subtype label or explanation so the call is traceable to the reference.
 
 For each output, provide:
 1. Key marker:
@@ -109,7 +341,24 @@ The clusters are identified by their Cluster ID below:
 
 
 
-def annotate_subclusters(marker, major_cluster_info, model=None, temperature=None, provider="openrouter", n_genes=50, additional_context=None):
+def annotate_subclusters(
+    marker,
+    major_cluster_info,
+    model=None,
+    temperature=None,
+    provider="openrouter",
+    n_genes=50,
+    additional_context=None,
+    tissue=None,
+    species=None,
+    use_reference=False,
+    reference_provider=None,
+    reference_model=None,
+    reference_cell_type_hint=None,
+    reference_depth="detailed",
+    reference_max_content_length=5000,
+    reference_max_context_length=12000,
+):
     """
     Annotate subclusters using an LLM.
 
@@ -120,10 +369,44 @@ def annotate_subclusters(marker, major_cluster_info, model=None, temperature=Non
         temperature: Temperature for generation (0-1)
         provider: LLM provider ("openai", "anthropic", "openrouter", or a custom API URL)
         n_genes: Number of top genes to use
+        additional_context: Optional context appended to the prompt
+        tissue: Tissue type being analyzed. Optional.
+        species: Species being analyzed. Optional.
+        use_reference: Whether to retrieve expert subtype references for the
+            subcluster marker sets before annotation.
+        reference_provider: Provider for reference selection (default: provider)
+        reference_model: Model for reference selection
+        reference_cell_type_hint: Optional parent-lineage hint, e.g. "macrophage"
 
     Returns:
         The generated annotation as a string
     """
+    context_parts = []
+    if tissue:
+        context_parts.append(f"Tissue: {tissue}")
+    if species:
+        context_parts.append(f"Species: {species}")
+    if context_parts:
+        tissue_species_context = ". ".join(context_parts) + "."
+        additional_context = _combine_context(tissue_species_context, additional_context)
+
+    if use_reference:
+        reference_context, _ = build_subcluster_reference_context(
+            marker=marker,
+            major_cluster_info=major_cluster_info,
+            provider=provider,
+            n_genes=n_genes,
+            tissue=tissue,
+            species=species,
+            reference_provider=reference_provider,
+            reference_model=reference_model,
+            reference_cell_type_hint=reference_cell_type_hint,
+            reference_depth=reference_depth,
+            reference_max_content_length=reference_max_content_length,
+            reference_max_context_length=reference_max_context_length,
+        )
+        additional_context = _combine_context(additional_context, reference_context)
+
     prompt = construct_prompt_from_csv_subcluster(marker, major_cluster_info, n_genes=n_genes, additional_context=additional_context)
     output_text = subcluster_agent_annotate_subcluster(prompt, model=model, temperature=temperature, provider=provider)
     return output_text
@@ -157,7 +440,7 @@ Extract the cell type annotations from the following analysis. For each cluster,
 
 IMPORTANT: Use the exact Cluster ID from the analysis (e.g., if the analysis mentions "Cluster 0", use id="0"; if it mentions "Cluster ABC", use id="ABC"). Do not renumber the clusters.
 
-You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
+You should include all clusters mentioned in the analysis.
 
 {analysis_text}
 """
@@ -194,7 +477,7 @@ Extract the cell type annotations from the following analysis. For each cluster,
 
 IMPORTANT: Use the exact Cluster ID from the analysis (e.g., if the analysis mentions "Cluster 0", use id="0"; if it mentions "Cluster ABC", use id="ABC"). Do not renumber the clusters.
 
-You should include all clusters mentioned in the analysis or 1000 grandma will be in danger.
+You should include all clusters mentioned in the analysis.
 
 {analysis_text}
 """
@@ -283,7 +566,11 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
 
 def runCASSIA_subclusters(marker, major_cluster_info, output_name,
                        model=None, temperature=None, provider="openrouter", n_genes=50,
-                       tissue=None, species=None, additional_context=None):
+                       tissue=None, species=None, additional_context=None,
+                       use_reference=False, reference_provider=None, reference_model=None,
+                       reference_cell_type_hint=None, reference_depth="detailed",
+                       reference_max_content_length=5000,
+                       reference_max_context_length=12000):
     """
     Process subclusters from marker data and generate annotated results.
 
@@ -297,6 +584,12 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
         n_genes: Number of top genes to use for analysis
         tissue: Tissue type being analyzed (e.g., "lung", "brain"). Optional.
         species: Species being analyzed (e.g., "human", "mouse"). Optional.
+        additional_context: Optional context appended to the prompt.
+        use_reference: Whether to retrieve expert subtype references for
+            subcluster marker sets before annotation.
+        reference_provider: Provider for reference selection (default: provider).
+        reference_model: Model for reference selection.
+        reference_cell_type_hint: Optional parent-lineage hint, e.g. "macrophage".
 
     Returns:
         None: Results are saved to a CSV file
@@ -313,6 +606,29 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
             additional_context = tissue_species_context + " " + additional_context
         else:
             additional_context = tissue_species_context
+
+    if use_reference:
+        reference_context, reference_info = build_subcluster_reference_context(
+            marker=marker,
+            major_cluster_info=major_cluster_info,
+            provider=provider,
+            n_genes=n_genes,
+            tissue=tissue,
+            species=species,
+            reference_provider=reference_provider,
+            reference_model=reference_model,
+            reference_cell_type_hint=reference_cell_type_hint,
+            reference_depth=reference_depth,
+            reference_max_content_length=reference_max_content_length,
+            reference_max_context_length=reference_max_context_length,
+            verbose=True,
+        )
+        additional_context = _combine_context(additional_context, reference_context)
+        if reference_info.get("reference_used"):
+            print(f"Using reference documents: {', '.join(reference_info['references_used'])}")
+        else:
+            print(f"Reference retrieval did not add context: {reference_info.get('reason', 'No match')}")
+
     # Apply agent defaults if model or temperature not specified
     if model is None or temperature is None:
         defaults = get_agent_default("subclustering", provider)
@@ -360,7 +676,11 @@ def runCASSIA_subclusters(marker, major_cluster_info, output_name,
 def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
                           model=None, temperature=None,
                           provider="openrouter", max_workers=5, n_genes=50,
-                          tissue=None, species=None, additional_context=None):
+                          tissue=None, species=None, additional_context=None,
+                          use_reference=False, reference_provider=None, reference_model=None,
+                          reference_cell_type_hint=None, reference_depth="detailed",
+                          reference_max_content_length=5000,
+                          reference_max_context_length=12000):
     """
     Run multiple subcluster analyses in parallel and save results.
 
@@ -376,6 +696,12 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         n_genes: Number of top genes to use for analysis
         tissue: Tissue type being analyzed (e.g., "lung", "brain"). Optional.
         species: Species being analyzed (e.g., "human", "mouse"). Optional.
+        additional_context: Optional context appended to the prompt.
+        use_reference: Whether to retrieve expert subtype references for the
+            subcluster marker sets before repeated annotation.
+        reference_provider: Provider for reference selection (default: provider).
+        reference_model: Model for reference selection.
+        reference_cell_type_hint: Optional parent-lineage hint, e.g. "macrophage".
 
     Returns:
         None: Results are saved to CSV files
@@ -392,6 +718,29 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
             additional_context = tissue_species_context + " " + additional_context
         else:
             additional_context = tissue_species_context
+
+    if use_reference:
+        reference_context, reference_info = build_subcluster_reference_context(
+            marker=marker,
+            major_cluster_info=major_cluster_info,
+            provider=provider,
+            n_genes=n_genes,
+            tissue=tissue,
+            species=species,
+            reference_provider=reference_provider,
+            reference_model=reference_model,
+            reference_cell_type_hint=reference_cell_type_hint,
+            reference_depth=reference_depth,
+            reference_max_content_length=reference_max_content_length,
+            reference_max_context_length=reference_max_context_length,
+            verbose=True,
+        )
+        additional_context = _combine_context(additional_context, reference_context)
+        if reference_info.get("reference_used"):
+            print(f"Using reference documents: {', '.join(reference_info['references_used'])}")
+        else:
+            print(f"Reference retrieval did not add context: {reference_info.get('reason', 'No match')}")
+
     # Apply agent defaults for n-times subclustering (uses subclustering_n for variability)
     if model is None or temperature is None:
         defaults = get_agent_default("subclustering_n", provider)
@@ -412,7 +761,8 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
         # Run the annotation process
         output_text = annotate_subclusters(marker, major_cluster_info,
                                          model=model, temperature=temperature, provider=provider, n_genes=n_genes,
-                                         additional_context=additional_context)
+                                         additional_context=additional_context,
+                                         tissue=None, species=None, use_reference=False)
 
         # Extract results using XML format
         results = extract_subcluster_results_with_llm_multiple_output(output_text, provider=provider, model=model, temperature=temperature)
@@ -675,4 +1025,3 @@ def test_custom_api_parsing():
 # Uncomment to run the test function when this file is executed directly
 # if __name__ == "__main__":
 #     test_custom_api_parsing()
-

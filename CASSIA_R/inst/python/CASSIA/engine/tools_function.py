@@ -270,10 +270,9 @@ def runCASSIA(
     reasoning=None,
     # Reference parameters (optional, default off for backward compatibility)
     use_reference=False,
-    reference_threshold=40,
     reference_provider=None,
     reference_model=None,
-    skip_reference_llm=False,
+    reference_cell_type_hint=None,
     verbose=False,
     # Proxy parameter for regions where US API providers are blocked
     proxy=None
@@ -297,11 +296,13 @@ def runCASSIA(
             Simple: "high", "medium", or "low"
             Dict: {"effort": "high|medium|low"} (for advanced use)
             Supported models: OpenAI GPT-5 series, Anthropic Claude Opus 4.5, compatible via OpenRouter.
-        use_reference (bool): Whether to use intelligent reference retrieval (default: False)
-        reference_threshold (float): Complexity score threshold for triggering reference (0-100)
-        reference_provider (str): Provider for reference complexity assessment (default: same as provider)
-        reference_model (str): Model for reference complexity assessment (default: fast model)
-        skip_reference_llm (bool): Skip LLM complexity assessment, use rules only
+        use_reference (bool): Whether to use reference retrieval (default: False).
+            When True, a single LLM call infers the preliminary cell type and
+            selects the most relevant reference files from the router.
+        reference_provider (str): Provider for reference selection (default: same as provider)
+        reference_model (str): Model for reference selection (default: fast model)
+        reference_cell_type_hint (str): Optional parent-lineage hint passed to the
+            selector (e.g. "macrophage" when sub-clustering macrophages). Default: None.
         verbose (bool): Print reference retrieval info (default: False)
         proxy (str): Proxy preset for regions where US API providers are blocked.
             Set to "china" to route all API calls through a Cloudflare Worker proxy.
@@ -309,8 +310,8 @@ def runCASSIA(
 
     Returns:
         tuple: (analysis_result, conversation_history, reference_info)
-            - reference_info is a dict with keys: reference_used, complexity_score,
-              preliminary_cell_type, references_used, reason
+            - reference_info is a dict with keys: reference_used,
+              preliminary_cell_type, cell_type_range, references_used, reason
 
     Raises:
         CASSIAValidationError: If input validation fails
@@ -326,8 +327,8 @@ def runCASSIA(
             tissue=tissue, species=species, additional_info=additional_info,
             provider=provider, validator_involvement=validator_involvement,
             reasoning=reasoning, use_reference=use_reference,
-            reference_threshold=reference_threshold, reference_provider=reference_provider,
-            reference_model=reference_model, skip_reference_llm=skip_reference_llm,
+            reference_provider=reference_provider, reference_model=reference_model,
+            reference_cell_type_hint=reference_cell_type_hint,
             verbose=verbose
         )
     finally:
@@ -340,8 +341,8 @@ def _runCASSIA_inner(
     model=None, temperature=None, marker_list=None,
     tissue="lung", species="human", additional_info=None,
     provider="openrouter", validator_involvement="v1", reasoning=None,
-    use_reference=False, reference_threshold=40, reference_provider=None,
-    reference_model=None, skip_reference_llm=False, verbose=False
+    use_reference=False, reference_provider=None, reference_model=None,
+    reference_cell_type_hint=None, verbose=False
 ):
     """Internal implementation of runCASSIA (proxy is already set by the caller)."""
     # Normalize reasoning parameter (accept string or dict)
@@ -405,8 +406,8 @@ def _runCASSIA_inner(
     # Initialize reference_info (always returned)
     reference_info = {
         "reference_used": False,
-        "complexity_score": None,
         "preliminary_cell_type": None,
+        "cell_type_range": [],
         "references_used": [],
         "reason": ""
     }
@@ -443,11 +444,9 @@ def _runCASSIA_inner(
         markers=marker_list[:20] if marker_list else [],
         tissue=tissue,
         species=species,
-        threshold=reference_threshold,
-        skip_llm=skip_reference_llm
+        cell_type_hint=reference_cell_type_hint,
     )
 
-    reference_info["complexity_score"] = ref_result.get("complexity_score")
     reference_info["preliminary_cell_type"] = ref_result.get("preliminary_cell_type")
     reference_info["cell_type_range"] = ref_result.get("cell_type_range", [])
 
@@ -458,7 +457,6 @@ def _runCASSIA_inner(
         reference_info["reason"] = ref_result.get("reasoning", "Reference retrieved")
 
         if verbose:
-            print(f"  Complexity score: {reference_info['complexity_score']}/100")
             print(f"  Preliminary cell type: {reference_info['preliminary_cell_type']}")
             print(f"  References used: {', '.join(reference_info['references_used'])}")
 
@@ -571,6 +569,7 @@ def runCASSIA_batch(
     # Reference parameters (NEW)
     use_reference=False,
     reference_model=None,
+    reference_cell_type_hint=None,
     verbose=True,
     # API validation parameters
     validate_api_key_before_start=True,
@@ -606,8 +605,11 @@ def runCASSIA_batch(
             Simple: "high", "medium", or "low"
             Dict: {"effort": "high|medium|low"} (for advanced use)
             Supported: OpenAI GPT-5, Anthropic Claude Opus 4.5, compatible via OpenRouter.
-        use_reference (bool): Whether to use intelligent reference retrieval per cluster (default: False)
-        reference_model (str): Model for reference complexity assessment (default: fast model)
+        use_reference (bool): Whether to use reference retrieval per cluster (default: False).
+            A single LLM call per cluster picks the relevant reference files from the router.
+        reference_model (str): Model for reference selection (default: fast model)
+        reference_cell_type_hint (str): Optional parent-lineage hint applied to every
+            cluster (e.g. "macrophage" when sub-clustering macrophages). Default: None.
         verbose (bool): Print progress information (default: True)
         validate_api_key_before_start (bool): Validate API key before starting batch processing.
             If True (default), makes a minimal test API call to verify the key works before
@@ -641,7 +643,9 @@ def runCASSIA_batch(
             provider=provider, max_retries=max_retries, ranking_method=ranking_method,
             ascending=ascending, validator_involvement=validator_involvement,
             reasoning=reasoning, use_reference=use_reference,
-            reference_model=reference_model, verbose=verbose,
+            reference_model=reference_model,
+            reference_cell_type_hint=reference_cell_type_hint,
+            verbose=verbose,
             validate_api_key_before_start=validate_api_key_before_start,
             auto_convert_ids=auto_convert_ids
         )
@@ -657,7 +661,8 @@ def _runCASSIA_batch_inner(
     additional_info=None, celltype_column=None, gene_column_name=None,
     max_workers=10, provider="openrouter", max_retries=1,
     ranking_method="avg_log2FC", ascending=None, validator_involvement="v1",
-    reasoning=None, use_reference=False, reference_model=None, verbose=True,
+    reasoning=None, use_reference=False, reference_model=None,
+    reference_cell_type_hint=None, verbose=True,
     validate_api_key_before_start=True, auto_convert_ids=True
 ):
     """Internal implementation of runCASSIA_batch (proxy is already set by the caller)."""
@@ -895,6 +900,7 @@ def _runCASSIA_batch_inner(
                     reasoning=reasoning,
                     use_reference=use_reference,
                     reference_model=reference_model,
+                    reference_cell_type_hint=reference_cell_type_hint,
                     verbose=False  # Suppress per-cluster verbose output
                 )
                 # Add the number of markers and marker list to the result
@@ -1065,7 +1071,8 @@ def _runCASSIA_batch_inner(
         # Extract reference info if available
         ref_info = details.get('reference_info', {})
         ref_used = "Yes" if ref_info.get('reference_used') else "No"
-        complexity_score = ref_info.get('complexity_score', '')
+        ref_preliminary = ref_info.get('preliminary_cell_type', '') or ''
+        ref_files = ', '.join(ref_info.get('references_used', []) or [])
 
         # Build structured conversation history (single source of truth for JSON and HTML)
         conversation_entries = safe_get(details, 'conversation_history') or []
@@ -1104,7 +1111,8 @@ def _runCASSIA_batch_inner(
         }
         if use_reference:
             html_row['Reference Used'] = ref_used
-            html_row['Complexity Score'] = complexity_score
+            html_row['Reference Preliminary Cell Type'] = ref_preliminary
+            html_row['Reference Files'] = ref_files
         full_data_for_html.append(html_row)
 
         # Build summary data row

@@ -105,6 +105,44 @@ write.csv(cd8_markers, "cd8_subcluster_markers.csv")
 | `n_genes` | 50 | 使用的前 N 个标记基因数量 |
 | `tissue` | NULL | 分析的组织类型（例如 "lung"、"brain"） |
 | `species` | NULL | 分析的物种（例如 "human"、"mouse"） |
+| `use_reference` | FALSE | 检索专家亚型参考并注入到子聚类提示词中 |
+| `reference_model` | NULL | 用于参考选择的模型（默认使用提供商的快速模型） |
+| `reference_cell_type_hint` | NULL | 参考选择的父级谱系提示（例如 "macrophage"） |
+
+### 参考辅助子聚类
+
+参考模式适合巨噬细胞、成纤维细胞或免疫细胞等亚型较难判断的场景。例如：
+
+启用后，reference agent 会先读取该谱系的 overview/router，并同时查看本次所有
+子簇 marker sets；随后只读取本次需要的详细 reference 文档。最终注入的不是整个
+reference 库，而是一段简洁的参考简报，包含论文中的客观事实、逐簇指导和容易混淆
+的亚型区别。
+
+```r
+runCASSIA_subclusters(
+    marker = macrophage_markers,
+    major_cluster_info = "human tumor macrophage",
+    output_name = "macrophage_subclustering_reference",
+    model = "moonshotai/kimi-k2.6",
+    provider = "openrouter",
+    tissue = "tumor",
+    species = "human",
+    use_reference = TRUE,
+    reference_model = "moonshotai/kimi-k2.6",
+    reference_cell_type_hint = "macrophage"
+)
+```
+
+如果要记录一次运行的 token 用量和 provider cost：
+
+```r
+resetLLMUsageLog()
+runCASSIA_subclusters(..., use_reference = TRUE)
+usage <- getLLMUsageSummary(reset = TRUE)
+print(usage)
+```
+
+对于 OpenRouter，Cassia 会记录 API 返回的 `usage.cost`。
 
 ### 示例：混合群体
 

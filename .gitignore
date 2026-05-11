@@ -36,8 +36,14 @@ CASSIA_R/test_r/
 # CASSIA test results
 CASSIA/CASSIA_python/CASSIA/test_results/
 
-# Test folder
-Test/
+# Test folder is mostly generated/large local output, but keep curated test
+# harnesses trackable when explicitly unignored below.
+!Test/
+Test/*
+!Test/27_reference_subtype/
+!Test/27_reference_subtype/*.py
+!Test/28_cli/
+!Test/28_cli/*.py
 
 # Social media content folder
 Social/
@@ -72,3 +78,10 @@ claude-code-session/
 # R package build artifacts
 *.Rcheck/
 *.tar.gz
+
+# Reference agent — pilot/experimental data (PDFs, supplements, test datasets)
+CASSIA_python/CASSIA/agents/reference_agent/macrophage_test/
+CASSIA_R/inst/python/CASSIA/agents/reference_agent/macrophage_test/
+
+# Reference subtype benchmark run outputs
+Benchmark/reference_subtype/results/

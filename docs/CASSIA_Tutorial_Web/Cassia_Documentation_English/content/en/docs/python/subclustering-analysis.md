@@ -54,6 +54,46 @@ We recommend applying the default CASSIA first. Then, on a target cluster, apply
 | `n_genes` | 50 | Number of top marker genes to use |
 | `tissue` | None | Tissue type being analyzed (e.g., "lung", "brain") |
 | `species` | None | Species being analyzed (e.g., "human", "mouse") |
+| `use_reference` | False | Retrieve expert subtype references and inject them into the subclustering prompt |
+| `reference_model` | None | Model used for reference selection (defaults to the provider's fast model) |
+| `reference_cell_type_hint` | None | Parent lineage hint for reference selection (e.g., "macrophage") |
+
+### Reference-Assisted Subclustering
+
+Reference mode is useful for difficult subtype problems such as macrophage,
+fibroblast, or immune-cell subclustering. For example:
+
+When enabled, the reference agent first reads the lineage overview/router and
+all subcluster marker sets together, then reads only the detailed reference
+documents needed for this run. It injects a compact reference brief with
+objective paper facts, cluster-specific guidance, and cross-cluster subtype
+distinctions rather than pasting the whole reference library.
+
+```python
+CASSIA.runCASSIA_subclusters(
+    marker = macrophage_subcluster_results,
+    major_cluster_info = "human tumor macrophage",
+    output_name = "macrophage_subclustering_reference",
+    model = "moonshotai/kimi-k2.6",
+    provider = "openrouter",
+    tissue = "tumor",
+    species = "human",
+    use_reference = True,
+    reference_model = "moonshotai/kimi-k2.6",
+    reference_cell_type_hint = "macrophage"
+)
+```
+
+To record token usage and provider cost for a run:
+
+```python
+CASSIA.reset_llm_usage_log()
+CASSIA.runCASSIA_subclusters(..., use_reference = True)
+usage = CASSIA.get_llm_usage_summary(reset = True)
+print(usage)
+```
+
+For OpenRouter, CASSIA records the `usage.cost` value returned by the API.
 
 ### Uncertainty Assessment Functions
 

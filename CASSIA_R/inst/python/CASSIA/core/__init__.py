@@ -16,7 +16,12 @@ from .gene_id_converter import (
     convert_dataframe_gene_ids,
     is_mygene_available
 )
-from .llm_utils import call_llm
+from .llm_utils import (
+    call_llm,
+    reset_llm_usage_log,
+    get_llm_usage_log,
+    get_llm_usage_summary,
+)
 from .model_settings import ModelSettings, resolve_model_name, get_recommended_model
 from .progress_tracker import BatchProgressTracker
 from .utils import safe_get, natural_sort_key, clean_conversation_history, write_csv
@@ -46,6 +51,9 @@ __all__ = [
     'is_mygene_available',
     # LLM utilities
     'call_llm',
+    'reset_llm_usage_log',
+    'get_llm_usage_log',
+    'get_llm_usage_summary',
     # Model settings
     'ModelSettings',
     'resolve_model_name',

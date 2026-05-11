@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import time
 from typing import Dict, Any, Optional
 
 # Import CASSIA logger for actionable error messages
@@ -10,6 +11,158 @@ except ImportError:
     from logging_config import get_logger
 
 logger = get_logger(__name__)
+
+_LLM_USAGE_LOG = []
+
+
+def reset_llm_usage_log() -> None:
+    """Clear the in-process LLM usage/cost log."""
+    _LLM_USAGE_LOG.clear()
+
+
+def get_llm_usage_log():
+    """Return a copy of the in-process LLM usage/cost log."""
+    return [entry.copy() for entry in _LLM_USAGE_LOG]
+
+
+def get_llm_usage_summary(reset: bool = False) -> Dict[str, Any]:
+    """Summarize recorded LLM usage for the current Python process.
+
+    Cost units are provider-native. OpenRouter reports cost in credits in the
+    response ``usage`` object; OpenAI/Anthropic SDK responses usually expose
+    token counts but not a normalized dollar cost.
+    """
+    summary = {
+        "requests": len(_LLM_USAGE_LOG),
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "reasoning_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "cost": 0.0,
+        "by_model": {},
+    }
+
+    for entry in _LLM_USAGE_LOG:
+        model_key = f"{entry.get('provider', 'unknown')}::{entry.get('model', 'unknown')}"
+        model_summary = summary["by_model"].setdefault(
+            model_key,
+            {
+                "requests": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "reasoning_tokens": 0,
+                "cached_tokens": 0,
+                "total_tokens": 0,
+                "cost": 0.0,
+            },
+        )
+        model_summary["requests"] += 1
+
+        for key in ["prompt_tokens", "completion_tokens", "reasoning_tokens", "cached_tokens", "total_tokens"]:
+            value = entry.get(key) or 0
+            summary[key] += value
+            model_summary[key] += value
+
+        cost = entry.get("cost")
+        if cost is not None:
+            summary["cost"] += cost
+            model_summary["cost"] += cost
+
+    if reset:
+        reset_llm_usage_log()
+
+    return summary
+
+
+def _usage_obj_to_dict(usage) -> Dict[str, Any]:
+    if usage is None:
+        return {}
+    if isinstance(usage, dict):
+        return usage
+    if hasattr(usage, "model_dump"):
+        return usage.model_dump()
+    if hasattr(usage, "to_dict"):
+        return usage.to_dict()
+
+    result = {}
+    for key in [
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+        "input_tokens",
+        "output_tokens",
+        "cost",
+        "prompt_tokens_details",
+        "completion_tokens_details",
+        "cache_creation_input_tokens",
+        "cache_read_input_tokens",
+    ]:
+        if hasattr(usage, key):
+            result[key] = getattr(usage, key)
+    return result
+
+
+def _nested_get(mapping: Dict[str, Any], *path, default=None):
+    current = mapping
+    for key in path:
+        if not isinstance(current, dict):
+            return default
+        current = current.get(key)
+    return current if current is not None else default
+
+
+def _record_llm_usage(
+    provider: str,
+    model: str,
+    usage=None,
+    response_id: Optional[str] = None,
+    response_model: Optional[str] = None,
+) -> None:
+    usage_dict = _usage_obj_to_dict(usage)
+
+    prompt_tokens = usage_dict.get("prompt_tokens")
+    if prompt_tokens is None:
+        prompt_tokens = usage_dict.get("input_tokens")
+
+    completion_tokens = usage_dict.get("completion_tokens")
+    if completion_tokens is None:
+        completion_tokens = usage_dict.get("output_tokens")
+
+    total_tokens = usage_dict.get("total_tokens")
+    if total_tokens is None and (prompt_tokens is not None or completion_tokens is not None):
+        total_tokens = (prompt_tokens or 0) + (completion_tokens or 0)
+
+    reasoning_tokens = _nested_get(
+        usage_dict,
+        "completion_tokens_details",
+        "reasoning_tokens",
+        default=usage_dict.get("reasoning_tokens"),
+    )
+
+    cached_tokens = _nested_get(
+        usage_dict,
+        "prompt_tokens_details",
+        "cached_tokens",
+        default=usage_dict.get("cache_read_input_tokens"),
+    )
+
+    entry = {
+        "timestamp": time.time(),
+        "provider": provider,
+        "model": response_model or model,
+        "requested_model": model,
+        "response_id": response_id,
+        "prompt_tokens": prompt_tokens or 0,
+        "completion_tokens": completion_tokens or 0,
+        "reasoning_tokens": reasoning_tokens or 0,
+        "cached_tokens": cached_tokens or 0,
+        "total_tokens": total_tokens or 0,
+        "cost": usage_dict.get("cost"),
+        "usage": usage_dict,
+    }
+
+    _LLM_USAGE_LOG.append(entry)
 
 # Import model settings for automatic model name resolution
 try:
@@ -246,6 +399,13 @@ def call_llm(
                     reasoning=reasoning,
                     **params_copy
                 )
+                _record_llm_usage(
+                    provider=provider,
+                    model=model,
+                    usage=getattr(response, "usage", None),
+                    response_id=getattr(response, "id", None),
+                    response_model=getattr(response, "model", None),
+                )
                 return response.output_text
             except Exception as e:
                 _handle_api_error(e, provider, model)
@@ -273,6 +433,13 @@ def call_llm(
                     max_tokens=max_tokens,
                     **params_copy
                 )
+            _record_llm_usage(
+                provider=provider,
+                model=model,
+                usage=getattr(response, "usage", None),
+                response_id=getattr(response, "id", None),
+                response_model=getattr(response, "model", None),
+            )
             return response.choices[0].message.content
         except Exception as e:
             _handle_api_error(e, provider, model)
@@ -317,6 +484,13 @@ def call_llm(
                 temperature=temperature,
                 max_tokens=max_tokens,
                 **additional_params
+            )
+            _record_llm_usage(
+                provider="custom",
+                model=model,
+                usage=getattr(response, "usage", None),
+                response_id=getattr(response, "id", None),
+                response_model=getattr(response, "model", None),
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -380,6 +554,13 @@ def call_llm(
                     output_config={"effort": reasoning["effort"]},
                     **message_params
                 )
+                _record_llm_usage(
+                    provider=provider,
+                    model=model,
+                    usage=getattr(response, "usage", None),
+                    response_id=getattr(response, "id", None),
+                    response_model=getattr(response, "model", None),
+                )
 
                 # Extract the text content from the response
                 if hasattr(response, 'content') and len(response.content) > 0:
@@ -399,6 +580,13 @@ def call_llm(
         # Standard API call (no effort/reasoning)
         try:
             response = client.messages.create(**message_params)
+            _record_llm_usage(
+                provider=provider,
+                model=model,
+                usage=getattr(response, "usage", None),
+                response_id=getattr(response, "id", None),
+                response_model=getattr(response, "model", None),
+            )
 
             # Extract the text content from the response
             if hasattr(response, 'content') and len(response.content) > 0:
@@ -446,6 +634,12 @@ def call_llm(
         if reasoning is None and ("gpt-5" in model_lower or "gpt5" in model_lower):
             reasoning = {"effort": "medium"}
 
+        # Kimi K2.6 can spend the full OpenRouter output budget in reasoning
+        # and return message.content=None unless reasoning is explicitly
+        # disabled. CASSIA expects plain text for downstream parsers.
+        if reasoning is None and "kimi-k2.6" in model_lower:
+            reasoning = {"effort": "none", "exclude": True}
+
         data = {
             **params_copy,
             "model": model,
@@ -459,20 +653,35 @@ def call_llm(
         else:
             data["max_tokens"] = max_tokens
 
-        # Add reasoning configuration only for models that support it
-        # OpenRouter's Anthropic Claude models do not accept the reasoning parameter
+        # Add reasoning configuration only for models that support it.
+        # OpenRouter's Anthropic Claude models do not accept the reasoning parameter.
         if reasoning:
-            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4", "kimi-k2.6"])
             if supports_reasoning:
                 data["reasoning"] = reasoning
 
         try:
             response = requests.post(url, headers=headers, data=json.dumps(data), timeout=180)
             response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"]
+            response_json = response.json()
+            _record_llm_usage(
+                provider=provider,
+                model=model,
+                usage=response_json.get("usage"),
+                response_id=response_json.get("id"),
+                response_model=response_json.get("model"),
+            )
+            message = response_json["choices"][0]["message"]
+            content = message.get("content")
+            if content is not None:
+                return content
+            reasoning_text = message.get("reasoning")
+            if reasoning_text:
+                return reasoning_text
+            return ""
         except Exception as e:
             _handle_api_error(e, provider, model)
             raise
 
     else:
-        raise ValueError(f"Unsupported provider: {provider}") 
+        raise ValueError(f"Unsupported provider: {provider}")

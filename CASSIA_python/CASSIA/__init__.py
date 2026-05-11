@@ -52,7 +52,12 @@ from .core.marker_utils import loadmarker, list_available_markers, split_markers
 # -----------------------------------------------------------------------------
 # LLM UTILITIES
 # -----------------------------------------------------------------------------
-from .core.llm_utils import call_llm
+from .core.llm_utils import (
+    call_llm,
+    reset_llm_usage_log,
+    get_llm_usage_log,
+    get_llm_usage_summary,
+)
 
 # -----------------------------------------------------------------------------
 # API KEY VALIDATION
@@ -244,7 +249,8 @@ try:
         runCASSIA_subclusters,
         runCASSIA_subclustering,  # Alias from __init__.py
         runCASSIA_n_subcluster,
-        annotate_subclusters
+        annotate_subclusters,
+        build_subcluster_reference_context
     )
     _module_availability['subclustering'] = True
 except ImportError as e:
@@ -258,13 +264,10 @@ try:
     from .agents.reference_agent import (
         ReferenceAgent,
         get_reference_content,
+        get_subcluster_reference_brief,
         format_reference_for_prompt,
-        assess_complexity,
+        select_references_llm,
         select_references
-    )
-    from .agents.reference_agent.complexity_scorer import (
-        assess_complexity_step1,
-        select_references_step2
     )
     _module_availability['reference_agent'] = True
 except ImportError as e:

@@ -103,7 +103,10 @@
         "llama-8b": "meta-llama/llama-3.1-8b-instruct",
         "mistral": "mistralai/mistral-large-latest",
         "mistral-large": "mistralai/mistral-large-latest",
-        "mixtral": "mistralai/mixtral-8x7b-instruct"
+        "mixtral": "mistralai/mixtral-8x7b-instruct",
+        "kimi": "moonshotai/kimi-k2.6",
+        "kimi-k2": "moonshotai/kimi-k2.6",
+        "kimi-k2.6": "moonshotai/kimi-k2.6"
       }
     },
     "global": {
@@ -171,7 +174,7 @@
     "budget": [
       "deepseek/deepseek-v3.2",
       "x-ai/grok-4.20-beta",
-      "moonshotai/kimi-k2.5",
+      "moonshotai/kimi-k2.6",
       "google/gemini-3-flash-preview"
     ]
   },
@@ -182,7 +185,7 @@
     "x-ai/grok-4": "Dr. Marie Curie",
     "deepseek/deepseek-v3.2": "Dr. Alan Turing",
     "x-ai/grok-4.20-beta": "Dr. Nikola Tesla",
-    "moonshotai/kimi-k2.5": "Dr. Ada Lovelace",
+    "moonshotai/kimi-k2.6": "Dr. Ada Lovelace",
     "google/gemini-3-flash-preview": "Dr. Rosalind Franklin"
   },
   "validation_models": {

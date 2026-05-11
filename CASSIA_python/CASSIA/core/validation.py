@@ -901,14 +901,13 @@ def validate_runCASSIA_with_reference_inputs(
     provider: Any,
     additional_info: Any = None,
     validator_involvement: str = "v1",
-    reference_threshold: Any = 40,
     **kwargs
 ) -> dict:
     """
-    Validate all inputs for runCASSIA_with_reference function.
+    Validate all inputs for runCASSIA with use_reference=True.
 
-    Args:
-        All parameters from runCASSIA_with_reference
+    The reference agent uses a single LLM selector call — there are no
+    extra numeric parameters to validate beyond the base runCASSIA inputs.
 
     Returns:
         dict: Dictionary of validated parameters
@@ -916,8 +915,7 @@ def validate_runCASSIA_with_reference_inputs(
     Raises:
         CASSIAValidationError: If any validation fails
     """
-    # Start with base runCASSIA validation
-    validated = validate_runCASSIA_inputs(
+    return validate_runCASSIA_inputs(
         model=model,
         temperature=temperature,
         marker_list=marker_list,
@@ -927,26 +925,6 @@ def validate_runCASSIA_with_reference_inputs(
         additional_info=additional_info,
         validator_involvement=validator_involvement
     )
-
-    # Additional reference-specific validation
-    if reference_threshold is not None:
-        try:
-            threshold = int(reference_threshold)
-            if threshold < 0 or threshold > 100:
-                raise CASSIAValidationError(
-                    f"reference_threshold must be between 0 and 100, got {threshold}.",
-                    parameter="reference_threshold",
-                    received_value=threshold
-                )
-            validated['reference_threshold'] = threshold
-        except (TypeError, ValueError):
-            raise CASSIAValidationError(
-                f"reference_threshold must be an integer, got {type(reference_threshold).__name__}.",
-                parameter="reference_threshold",
-                received_value=reference_threshold
-            )
-
-    return validated
 
 
 def validate_runCASSIA_pipeline_inputs(

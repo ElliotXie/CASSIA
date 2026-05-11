@@ -52,7 +52,7 @@ export const AGENT_DEFAULTS = {
 
 export const SYMPHONY_PRESETS = {
   premium: ["google/gemini-3-pro-preview", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4", "x-ai/grok-4"],
-  budget: ["deepseek/deepseek-v3.2", "x-ai/grok-4.20-beta", "moonshotai/kimi-k2.5", "google/gemini-3-flash-preview"],
+  budget: ["deepseek/deepseek-v3.2", "x-ai/grok-4.20-beta", "moonshotai/kimi-k2.6", "google/gemini-3-flash-preview"],
 } as const;
 
 export const MODEL_PERSONAS: Record<string, string> = {
@@ -62,6 +62,6 @@ export const MODEL_PERSONAS: Record<string, string> = {
   "x-ai/grok-4": "Dr. Marie Curie",
   "deepseek/deepseek-v3.2": "Dr. Alan Turing",
   "x-ai/grok-4.20-beta": "Dr. Nikola Tesla",
-  "moonshotai/kimi-k2.5": "Dr. Ada Lovelace",
+  "moonshotai/kimi-k2.6": "Dr. Ada Lovelace",
   "google/gemini-3-flash-preview": "Dr. Rosalind Franklin",
 };
