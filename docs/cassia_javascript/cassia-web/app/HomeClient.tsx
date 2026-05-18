@@ -211,7 +211,7 @@ export default function HomeClient() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Email confirmation notification */}
       <Suspense fallback={null}>
         <EmailConfirmationHandler />
@@ -219,10 +219,10 @@ export default function HomeClient() {
 
       {/* Enhanced Header with glassmorphism */}
       <header className="glass border-b border-white/20 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="relative shrink-0 w-[67px] h-[67px]">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
+              <div className="relative shrink-0 w-12 h-12 sm:w-[67px] sm:h-[67px]">
                 <Image
                   src="/images/cassia-icon.png"
                   alt="CASSIA"
@@ -231,21 +231,21 @@ export default function HomeClient() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold gradient-text">CASSIA</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Collective Agent System for Single-cell Interpretable Annotation</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold gradient-text">CASSIA</h1>
+                <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">Collective Agent System for Single-cell Interpretable Annotation</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:space-x-3 sm:gap-0 w-full sm:w-auto">
               {isAuthenticated && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowDashboard(true)}
                   className="glass border-white/30 hover:bg-white/20 btn-modern"
                 >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Dashboard
+                  <Settings className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Dashboard</span>
                 </Button>
               )}
               <Button
@@ -265,17 +265,18 @@ export default function HomeClient() {
                 }}
                 className="glass border-white/30 hover:bg-white/20 btn-modern"
               >
-                <Key className="h-4 w-4 mr-2" />
-                {apiKey ? 'API Key Set' : 'Set API Key'}
+                <Key className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{apiKey ? 'API Key Set' : 'Set API Key'}</span>
+                <span className="sm:hidden">{apiKey ? 'API Set' : 'API Key'}</span>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowContactModal(true)}
                 className="glass border-white/30 hover:bg-white/20 btn-modern"
               >
-                <HelpCircle className="h-4 w-4 mr-2" />
-                Help
+                <HelpCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Help</span>
               </Button>
               <AuthButton />
             </div>
@@ -284,18 +285,18 @@ export default function HomeClient() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-16">
+      <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-20">
-          
-          <h2 className="text-7xl lg:text-8xl font-bold mb-6">
+        <div className="text-center mb-12 sm:mb-20">
+
+          <h2 className="text-5xl sm:text-7xl lg:text-8xl font-bold mb-4 sm:mb-6">
             <span className="gradient-text">CASSIA</span>
           </h2>
 
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-2 leading-relaxed">
+          <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-2 leading-relaxed px-2 sm:px-0">
             <span className="font-semibold text-blue-600 dark:text-blue-400">Built for biologists, powered by cutting-edge language models.</span>
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic mb-10">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic mb-8 sm:mb-10 px-2 sm:px-0">
             Validated in real-world single-cell studies and peer-reviewed publications
           </p>
           
@@ -322,10 +323,10 @@ export default function HomeClient() {
         </div>
 
         {/* Enhanced Quick Start Guide */}
-        <div className="glass rounded-2xl p-8 mb-16 border border-white/20">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold gradient-text mb-2">Quick Start Guide</h3>
-            <p className="text-gray-600 dark:text-gray-300">Get started with CASSIA in just 4 simple steps</p>
+        <div className="glass rounded-2xl p-5 sm:p-8 mb-12 sm:mb-16 border border-white/20">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold gradient-text mb-2">Quick Start Guide</h3>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Get started with CASSIA in just 4 simple steps</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -364,24 +365,24 @@ export default function HomeClient() {
         </div>
 
         {/* API Key Configuration Section */}
-        <div className="glass rounded-2xl p-6 mb-16 border border-white/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+        <div className="glass rounded-2xl p-4 sm:p-6 mb-12 sm:mb-16 border border-white/20">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0">
+              <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Key className="h-6 w-6 text-white" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                  API Configuration
-                  {!apiKey && <span className="ml-3 px-2.5 py-0.5 bg-red-500 text-white text-xs rounded-full">Required</span>}
-                  {apiKey && <span className="ml-3 px-2.5 py-0.5 bg-green-500 text-white text-xs rounded-full">Configured</span>}
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex flex-wrap items-center gap-2">
+                  <span>API Configuration</span>
+                  {!apiKey && <span className="px-2.5 py-0.5 bg-red-500 text-white text-xs rounded-full">Required</span>}
+                  {apiKey && <span className="px-2.5 py-0.5 bg-green-500 text-white text-xs rounded-full">Configured</span>}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                   Supports OpenRouter, OpenAI, Anthropic, or any custom API. At least one API key is required.
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center sm:space-x-3 w-full sm:w-auto">
               <Button
                 onClick={() => {
                   setTempApiKey(apiKey)
@@ -395,7 +396,7 @@ export default function HomeClient() {
                   setSaveSuccess(false)
                   setShowApiKeyModal(true)
                 }}
-                className={`px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300 btn-modern ${
+                className={`w-full sm:w-auto px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300 btn-modern ${
                   !apiKey
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white'
                     : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
@@ -409,7 +410,7 @@ export default function HomeClient() {
         </div>
 
         {/* Enhanced Main Options */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8 mb-12 sm:mb-16">
           {/* Batch Processing */}
           <Card className="relative overflow-hidden glass border border-white/20 card-hover group">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -562,7 +563,7 @@ export default function HomeClient() {
         </div>
 
         {/* Resources Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
           {/* Documentation & Resources */}
           <Card>
             <CardHeader>
@@ -635,8 +636,8 @@ export default function HomeClient() {
       </main>
 
       {/* Enhanced Footer */}
-      <footer className="glass border-t border-white/20 mt-20">
-        <div className="container mx-auto px-6 py-12">
+      <footer className="glass border-t border-white/20 mt-12 sm:mt-20">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Image
