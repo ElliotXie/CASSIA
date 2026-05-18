@@ -266,6 +266,93 @@ def build_subcluster_reference_context(
     return context, info
 
 
+_REASONING_MODEL_HINTS = (
+    "reasoner", "thinking", "think",
+    "deepseek-v4", "deepseek-r1",
+    "o1", "o3", "o4",
+    "gpt-5", "gpt5",
+    "claude-opus-4-5", "claude-opus-4-6", "claude-opus-4-7",
+    "claude-sonnet-4-5", "claude-sonnet-4-6", "claude-sonnet-4-7",
+    "gemini-3", "gemini-2.5-pro",
+)
+
+
+_THINK_TAG_PATTERN = re.compile(
+    r'<\s*(think|thinking|reasoning)\b[^>]*>.*?</\s*\1\s*>',
+    re.DOTALL | re.IGNORECASE,
+)
+
+
+def _strip_reasoning_blocks(text):
+    """Remove <think>/<thinking>/<reasoning> wrapper blocks from LLM output.
+
+    Some reasoning models (including newer DeepSeek and OpenRouter providers
+    that forward reasoning to content) inline their hidden chain-of-thought
+    inside the response. Stripping it before XML parsing prevents the
+    reasoning text from being mistakenly matched or pushing the real answer
+    out of the regex window.
+    """
+    if not text:
+        return text
+    return _THINK_TAG_PATTERN.sub("", str(text))
+
+
+_CLUSTER_TAG_PROBE = re.compile(r'<\s*cluster\b', re.IGNORECASE)
+
+
+def _xml_extract_with_retry(prompt, analysis_text, provider, model, temperature):
+    """Call the LLM extractor; retry once with a stricter prompt if no <cluster> tag appears.
+
+    Returns the best (most cluster-tag-rich) response so the downstream parser
+    can still inspect raw output if both attempts fail.
+    """
+    first = subcluster_agent_annotate_subcluster(
+        prompt, provider=provider, model=model, temperature=temperature
+    )
+    first_clean = _strip_reasoning_blocks(first or "")
+    if _CLUSTER_TAG_PROBE.search(first_clean):
+        return first
+
+    retry_prompt = (
+        "Your previous response did not contain the required XML structure.\n"
+        "Output ONLY the XML blocks below. No preamble, no markdown fences, no commentary, "
+        "no <think> tags. Wrap every cluster strictly as:\n\n"
+        "<cluster id=\"CLUSTER_ID\">\n"
+        "<celltype1>first cell type</celltype1>\n"
+        "<celltype2>second cell type</celltype2>\n"
+        "<reason>concise reason grounded in the markers</reason>\n"
+        "</cluster>\n\n"
+        "Use the exact Cluster ID from the analysis (quote it if it contains spaces).\n"
+        "Include every cluster mentioned. Begin your reply with the first <cluster> tag.\n\n"
+        "Analysis to convert:\n"
+        f"{analysis_text}\n"
+    )
+    second = subcluster_agent_annotate_subcluster(
+        retry_prompt, provider=provider, model=model, temperature=temperature
+    )
+    second_clean = _strip_reasoning_blocks(second or "")
+    if _CLUSTER_TAG_PROBE.search(second_clean):
+        print("  Stage-2 retry succeeded: recovered <cluster> XML on second attempt.")
+        return second
+    # Both attempts failed; return whichever has more raw content so downstream
+    # debug output is most informative.
+    return second if len(second or "") > len(first or "") else first
+
+
+def _is_reasoning_model(model):
+    """Best-effort detection for thinking/reasoning models.
+
+    Reasoning models consume the token budget for hidden chain-of-thought, so
+    a 4096 cap routinely truncates the final answer (empty content or
+    half-written XML). Bumping to 12288 for these models avoids that without
+    inflating cost for plain chat models.
+    """
+    if not model:
+        return False
+    name = str(model).lower()
+    return any(hint in name for hint in _REASONING_MODEL_HINTS)
+
+
 def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=None, provider="openrouter"):
     """
     Unified function to call LLM for subcluster annotation.
@@ -287,13 +374,15 @@ def subcluster_agent_annotate_subcluster(user_message, model=None, temperature=N
         if temperature is None:
             temperature = defaults["temperature"]
 
+    max_tokens = 12288 if _is_reasoning_model(model) else 4096
+
     # Use the unified call_llm function
     result = call_llm(
         prompt=user_message,
         provider=provider,
         model=model,
         temperature=temperature,
-        max_tokens=4096
+        max_tokens=max_tokens
     )
 
     return result if result else ''
@@ -324,6 +413,9 @@ For each output, provide:
 3. Most likely top2 cell types:
 
 Remember these subclusters are from a {major_cluster_info} big cluster. You must include all clusters mentioned in the analysis.
+Return exactly one result for every Cluster ID listed below. Do not omit a
+cluster, even if the markers look ambiguous, contaminating, or technically
+stressed; instead, include that Cluster ID and explain the uncertainty.
 
 The clusters are identified by their Cluster ID below:
 """
@@ -445,8 +537,7 @@ You should include all clusters mentioned in the analysis.
 {analysis_text}
 """
 
-    result = subcluster_agent_annotate_subcluster(prompt, provider=provider, model=model, temperature=temperature)
-    return result
+    return _xml_extract_with_retry(prompt, analysis_text, provider, model, temperature)
 
 
 
@@ -482,8 +573,7 @@ You should include all clusters mentioned in the analysis.
 {analysis_text}
 """
 
-    result = subcluster_agent_annotate_subcluster(prompt, provider=provider, model=model, temperature=temperature)
-    return result
+    return _xml_extract_with_retry(prompt, analysis_text, provider, model, temperature)
 
 
 
@@ -505,15 +595,18 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
     if not output_name.lower().endswith('.csv'):
         output_name = output_name + '.csv'
 
-    results_str = str(results)
+    results_str = _strip_reasoning_blocks(str(results))
 
     # Parse XML-tagged clusters: <cluster id="1">...</cluster>
-    cluster_pattern = r'<cluster[^>]*id=["\']?([^"\'>\s]+)["\']?[^>]*>(.*?)</cluster>'
+    # Quoted ids may contain spaces ("cd8-positive, alpha-beta t cell"), so capture
+    # quoted and unquoted variants separately and merge afterwards.
+    cluster_pattern = r'<cluster\b[^>]*\bid=(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))[^>]*>(.*?)</cluster>'
     cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
 
     rows = []
     if cluster_matches:
-        for cluster_id, content in cluster_matches:
+        for q1, q2, unq, content in cluster_matches:
+            cluster_id = (q1 or q2 or unq).strip()
             # Extract celltype1
             ct1_match = re.search(r'<celltype1>(.*?)</celltype1>', content, re.DOTALL | re.IGNORECASE)
             celltype1 = ct1_match.group(1).strip() if ct1_match else 'Unknown'
@@ -533,16 +626,38 @@ def write_results_to_csv(results, output_name='subcluster_results', marker_map=N
         df = pd.DataFrame(rows, columns=['Result ID', 'main_cell_type', 'sub_cell_type', 'key_markers', 'reason'])
 
         # Remap cluster IDs if LLM returned different ones than expected
-        if expected_cluster_ids is not None and len(df) == len(expected_cluster_ids):
+        if expected_cluster_ids is not None:
+            df['Result ID'] = df['Result ID'].astype(str)
+            expected_list = [str(x) for x in expected_cluster_ids]
             expected_set = set(str(x) for x in expected_cluster_ids)
             result_set = set(df['Result ID'].astype(str))
-            if expected_set != result_set:
-                expected_list = [str(x) for x in expected_cluster_ids]
+            if len(df) == len(expected_cluster_ids) and expected_set != result_set:
                 print(f"  Remapping cluster IDs: {df['Result ID'].tolist()} -> {expected_list}")
                 df['Result ID'] = expected_list
                 # Also re-populate key_markers with correct mapping
                 if marker_map:
                     df['key_markers'] = [marker_map.get(cid, '') for cid in expected_list]
+                result_set = set(df['Result ID'].astype(str))
+
+            missing_clusters = [cid for cid in expected_list if cid not in result_set]
+            if missing_clusters:
+                print(f"  Warning: LLM output omitted cluster IDs: {missing_clusters}")
+                missing_rows = pd.DataFrame([
+                    {
+                        'Result ID': cid,
+                        'main_cell_type': 'Unknown',
+                        'sub_cell_type': 'Missing result',
+                        'key_markers': marker_map.get(cid, '') if marker_map else '',
+                        'reason': 'MISSING_RESULT: LLM did not return an annotation for this cluster.',
+                    }
+                    for cid in missing_clusters
+                ])
+                df = pd.concat([df, missing_rows], ignore_index=True)
+
+            order = {cid: i for i, cid in enumerate(expected_list)}
+            if order:
+                df['_expected_order'] = df['Result ID'].map(lambda cid: order.get(str(cid), len(order)))
+                df = df.sort_values('_expected_order').drop(columns=['_expected_order']).reset_index(drop=True)
 
         df.to_csv(output_name, index=False)
         print(f"Results have been written to {output_name}")
@@ -766,15 +881,17 @@ def runCASSIA_n_subcluster(n, marker, major_cluster_info, base_output_name,
 
         # Extract results using XML format
         results = extract_subcluster_results_with_llm_multiple_output(output_text, provider=provider, model=model, temperature=temperature)
-        results_str = str(results)
+        results_str = _strip_reasoning_blocks(str(results))
 
         # Parse XML-tagged clusters: <cluster id="1">...</cluster>
-        cluster_pattern = r'<cluster[^>]*id=["\']?([^"\'>\s]+)["\']?[^>]*>(.*?)</cluster>'
+        # Quoted ids may contain spaces, so capture quoted and unquoted variants separately.
+        cluster_pattern = r'<cluster\b[^>]*\bid=(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))[^>]*>(.*?)</cluster>'
         cluster_matches = re.findall(cluster_pattern, results_str, re.DOTALL | re.IGNORECASE)
 
         rows = []
         if cluster_matches:
-            for cluster_id, content in cluster_matches:
+            for q1, q2, unq, content in cluster_matches:
+                cluster_id = (q1 or q2 or unq).strip()
                 # Extract celltype1
                 ct1_match = re.search(r'<celltype1>(.*?)</celltype1>', content, re.DOTALL | re.IGNORECASE)
                 celltype1 = ct1_match.group(1).strip() if ct1_match else 'Unknown'
