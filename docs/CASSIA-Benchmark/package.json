@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "npm run build && wrangler pages deploy out --project-name=sc-llm-benchmark"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -52,6 +53,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",
+    "react-is": "^19.2.6",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
     "sonner": "^1.7.1",

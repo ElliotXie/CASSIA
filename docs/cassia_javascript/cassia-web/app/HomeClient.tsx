@@ -589,7 +589,7 @@ export default function HomeClient() {
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="https://sc-llm-benchmark.com/methods/cassia" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                <Link href="https://sc-llm-benchmark.pages.dev/methods/cassia" target="_blank" rel="noopener noreferrer" className="flex items-center">
                   <span className="w-6 text-center flex-shrink-0"><Bot className="h-4 w-4 inline" /></span>
                   <span className="ml-2">LLMs Annotation Benchmark</span>
                 </Link>

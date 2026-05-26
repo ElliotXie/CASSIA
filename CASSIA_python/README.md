@@ -152,7 +152,7 @@ You can choose any model for annotation and scoring. CASSIA also supports custom
 
 📚 [Complete Documentation & Vignettes](https://docs.cassia.bio/en)
 
-🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 ## Citation
 

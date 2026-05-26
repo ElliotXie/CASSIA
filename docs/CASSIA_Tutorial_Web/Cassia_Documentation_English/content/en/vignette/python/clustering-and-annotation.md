@@ -170,7 +170,7 @@ results = CASSIA.runCASSIA_pipeline(
 )
 ```
 
-To see how each model performs, visit our benchmark website: [sc-llm-benchmark.com/methods/cassia](https://sc-llm-benchmark.com/methods/cassia)
+To see how each model performs, visit our benchmark website: [sc-llm-benchmark.pages.dev/methods/cassia](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 ### 5.2 Output Files
 

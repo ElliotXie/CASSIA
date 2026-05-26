@@ -1,11 +1,14 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MethodComparisonChart } from "@/components/method-comparison-chart"
-import { Button } from "@/components/ui/button"
-import { ChevronRight, BarChart2, FileText, Database } from "lucide-react"
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
-  // Redirect to the CASSIA benchmark page
-  redirect("/methods/cassia")
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace("/methods/cassia")
+  }, [router])
+
+  return null
 }

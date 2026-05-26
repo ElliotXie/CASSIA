@@ -12,7 +12,7 @@
 
 📚 [完整文档及示例/中英文版 (docs.cassia.bio)](https://docs.cassia.bio/zh)
 
-🤖 [模型注释能力排行榜](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [模型注释能力排行榜](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 
 

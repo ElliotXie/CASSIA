@@ -92,7 +92,7 @@ results <- runCASSIA_pipeline(
 ```
 默认提供商是OpenRouter，默认模型已优化以获得最佳注释质量。要查看每个新模型的表现，请访问我们的基准测试网站：
 
-[***sc-llm-benchmark.com/methods/cassia***](https://sc-llm-benchmark.com/methods/cassia)
+[***sc-llm-benchmark.pages.dev/methods/cassia***](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 
 流水线创建一个名为 `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` 的输出文件夹，包含三个子文件夹：

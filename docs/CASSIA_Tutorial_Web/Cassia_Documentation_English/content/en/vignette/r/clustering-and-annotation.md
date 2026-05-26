@@ -93,7 +93,7 @@ results <- runCASSIA_pipeline(
 ```
 The default provider is OpenRouter, and the default models are selected to optimize for annotation quality. To see how each new model performs, visit our benchmark website:
 
-[***sc-llm-benchmark.com/methods/cassia***](https://sc-llm-benchmark.com/methods/cassia)
+[***sc-llm-benchmark.pages.dev/methods/cassia***](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 
 The pipeline creates an output folder named `CASSIA_Pipeline_{tissue}_{species}_{timestamp}/` with three subfolders:

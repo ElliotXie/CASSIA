@@ -13,7 +13,7 @@
 
 📚 [Complete Documentation/Vignette (docs.cassia.bio)](https://docs.cassia.bio/en)
 
-🤖 [LLMs Annotation Benchmark (sc-llm-benchmark.com)](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [LLMs Annotation Benchmark (sc-llm-benchmark.pages.dev)](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 
 
