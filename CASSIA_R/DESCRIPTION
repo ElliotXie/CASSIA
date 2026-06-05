@@ -23,7 +23,3 @@ Suggests:
     Seurat,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Config/reticulate:
-    list(
-        conda_env = "cassia_env"
-    )

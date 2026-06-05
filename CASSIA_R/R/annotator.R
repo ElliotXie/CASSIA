@@ -400,107 +400,111 @@ py_cassia <- NULL
   }
 
   # =========================================================================
-  # Workaround for reticulate >= 1.45 managed Python
-  # reticulate 1.45+ uses uv-based managed Python by default, which can
-  # override user-configured conda/virtualenv environments and cause
-  # missing dependency errors (e.g., pandas). Disable managed Python so
-  # that user environments are respected.
+  # Set up the Python environment using a layered strategy (see
+  # .setup_cassia_python below):
+  #   Tier 0  Explicit user choice    (RETICULATE_PYTHON / set_python_env)
+  #   Tier 1  Managed Python via uv    - default; downloads a correct-architecture
+  #                                      interpreter and installs declared deps.
+  #                                      Fixes arch mismatches such as an x86 venv
+  #                                      created on Apple Silicon.
+  #   Tier 2  Legacy virtualenv/conda  - fallback for offline / firewalled hosts.
+  # All heavy lifting and error capture happen inside the helper so the package
+  # always finishes loading even if every tier fails.
   # =========================================================================
-  if (is.na(Sys.getenv("RETICULATE_USE_MANAGED_PYTHON", unset = NA))) {
-    ret_version <- tryCatch(utils::packageVersion("reticulate"), error = function(e) NULL)
-    if (!is.null(ret_version) && ret_version >= "1.45") {
-      Sys.setenv(RETICULATE_USE_MANAGED_PYTHON = "FALSE")
-    }
+  .setup_cassia_python()
+
+  invisible(NULL)
+}
+
+# Python dependencies CASSIA needs. Kept in sync with the install_requires list
+# in CASSIA_python/setup.py. Used by the managed-Python tier below.
+.CASSIA_PY_DEPS <- c(
+  "numpy>=1.21.0", "pandas>=1.3.0", "openai>=1.0.0", "anthropic>=0.3.0",
+  "requests>=2.25.0", "matplotlib>=3.3.0", "seaborn>=0.11.0", "mygene>=3.2.0"
+)
+
+# Resolve and activate the Python environment for CASSIA, then import the
+# bundled Python package into the `py_cassia` namespace object.
+#
+# Tries three strategies in priority order and stops at the first that works:
+#   Tier 0  Explicit user choice  - respect RETICULATE_PYTHON or an environment
+#           the user already selected (e.g. via set_python_env()).
+#   Tier 1  Managed Python (uv)   - the default. reticulate downloads an
+#           interpreter of the correct architecture and installs the declared
+#           dependencies. This is what fixes the x86-on-Apple-Silicon mismatch.
+#   Tier 2  Legacy environment    - the original hand-rolled virtualenv/conda
+#           setup, used only when managed Python is unavailable (offline /
+#           firewalled hosts, no internet to download from).
+#
+# reticulate can only initialise Python once per session, but a *failed*
+# managed-Python attempt does NOT bind an interpreter (py_available() stays
+# FALSE), so falling through to a later tier is safe. Returns invisibly TRUE on
+# success, FALSE if every tier failed.
+.setup_cassia_python <- function() {
+  cassia_path <- system.file("python", package = "CASSIA")
+
+  import_cassia <- function() {
+    py_cassia <<- reticulate::import_from_path("CASSIA", path = cassia_path)
+    invisible(TRUE)
+  }
+  mark_success <- function(method) {
+    .cassia_load_status$success <- TRUE
+    .cassia_load_status$python_available <- TRUE
+    .cassia_load_status$env_method <- method
   }
 
-  # =========================================================================
-  # Step 1: Pre-flight checks - Verify Python is available and compatible
-  # =========================================================================
-
-  # Check if Python is available
-  py_check <- .check_python_available()
-  if (!py_check$available) {
-    .cassia_load_status$message <- "python_not_found"
-    return(invisible(NULL))
+  # ---- Tier 0: explicit user override -------------------------------------
+  user_override <- nzchar(Sys.getenv("RETICULATE_PYTHON")) ||
+    !is.null(getOption("CASSIA.env_name", default = NULL))
+  if (user_override) {
+    ok <- tryCatch({ import_cassia(); TRUE }, error = function(e) FALSE)
+    if (ok) { mark_success("user"); return(invisible(TRUE)) }
+    # otherwise fall through to managed / legacy
   }
 
-  # Check Python version (must be >= 3.8)
-  version_check <- .check_python_version("3.8")
-  if (!version_check$ok) {
-    .cassia_load_status$message <- "python_version"
-    return(invisible(NULL))
-  }
+  # ---- Tier 1: managed Python via uv (default) ----------------------------
+  ok <- tryCatch({
+    reticulate::py_require(.CASSIA_PY_DEPS)
+    import_cassia()
+    TRUE
+  }, error = function(e) {
+    .cassia_load_status$tier1_error <- conditionMessage(e)
+    FALSE
+  })
+  if (ok) { mark_success("managed"); return(invisible(TRUE)) }
 
-  # =========================================================================
-  # Step 2: Set up or activate Python environment
-  # =========================================================================
-
-  # Get the environment name from the package configuration
-  env_name <- getOption("CASSIA.env_name", default = NULL)
-  if (is.null(env_name)) {
-    env_name <- getOption("CASSIA.conda_env", default = "cassia_env")
-  }
-
-  # Set up the Python environment
-  tryCatch({
-    # Check if environment exists in either virtualenv or conda
+  # ---- Tier 2: legacy hand-rolled virtualenv / conda ----------------------
+  ok <- tryCatch({
+    env_name <- .get_env_name(NULL)
     env_exists <- .check_env_exists(env_name)
-
-    if (!env_exists$virtualenv && !env_exists$conda) {
-      # Check if environment managers are available before trying to create
+    if (env_exists$virtualenv) {
+      reticulate::use_virtualenv(env_name, required = TRUE)
+      options(CASSIA.env_name = env_name, CASSIA.env_method = "virtualenv")
+    } else if (env_exists$conda) {
+      reticulate::use_condaenv(env_name, required = TRUE)
+      options(CASSIA.env_name = env_name, CASSIA.env_method = "conda",
+              CASSIA.conda_env = env_name)
+    } else {
       env_managers <- .check_env_managers_available()
       if (!env_managers$any_available) {
         .cassia_load_status$message <- "no_env_manager"
-        return(invisible(NULL))
+        stop("no virtualenv or conda available to create the legacy environment")
       }
-
-      # Environment doesn't exist, create it using the new setup function
-      .cassia_load_status$message <- "env_setup"
       setup_cassia_env(conda_env = env_name)
-    } else {
-      # Environment exists, activate it using the appropriate method
-      if (env_exists$virtualenv) {
-        reticulate::use_virtualenv(env_name, required = TRUE)
-        options(CASSIA.env_name = env_name)
-        options(CASSIA.env_method = "virtualenv")
-      } else if (env_exists$conda) {
-        reticulate::use_condaenv(env_name, required = TRUE)
-        options(CASSIA.env_name = env_name)
-        options(CASSIA.env_method = "conda")
-        # Maintain backward compatibility
-        options(CASSIA.conda_env = env_name)
-      }
     }
-
-    # =========================================================================
-    # Step 3: Import CASSIA Python package
-    # =========================================================================
-    # All functions are exported at the package level via CASSIA/__init__.py
-    py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
-
-    # Success!
-    .cassia_load_status$success <- TRUE
-    .cassia_load_status$python_available <- TRUE
-
+    import_cassia()
+    TRUE
   }, error = function(e) {
-    # If setup fails, try to run setup_cassia_env() automatically
-    .cassia_load_status$message <- "retry_setup"
-    tryCatch({
-      setup_cassia_env(conda_env = env_name)
-
-      # Try to import CASSIA Python package again after successful setup
-      py_cassia <<- reticulate::import_from_path("CASSIA", path = system.file("python", package = "CASSIA"))
-
-      # Success after retry!
-      .cassia_load_status$success <- TRUE
-      .cassia_load_status$python_available <- TRUE
-
-    }, error = function(e2) {
-      # Store error but don't show it - package should still load
-      .cassia_load_status$message <- "setup_failed"
-      .cassia_load_status$error <- e2$message
-    })
+    .cassia_load_status$tier2_error <- conditionMessage(e)
+    FALSE
   })
+  if (ok) { mark_success("legacy"); return(invisible(TRUE)) }
+
+  # ---- All tiers failed ---------------------------------------------------
+  if (is.null(.cassia_load_status$message)) {
+    .cassia_load_status$message <- "setup_failed"
+  }
+  invisible(FALSE)
 }
 
 .onAttach <- function(libname, pkgname) {
