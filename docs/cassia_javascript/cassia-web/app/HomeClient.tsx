@@ -270,6 +270,16 @@ export default function HomeClient() {
                 <span className="sm:hidden">{apiKey ? 'API Set' : 'API Key'}</span>
               </Button>
               <Button
+                asChild
+                size="sm"
+                className="btn-modern shadow-md"
+              >
+                <Link href="https://docs.cassia.bio/en" target="_blank" rel="noopener noreferrer">
+                  <BookOpen className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Docs</span>
+                </Link>
+              </Button>
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowContactModal(true)}
