@@ -270,10 +270,10 @@ export default function HomeClient() {
                 <span className="sm:hidden">{apiKey ? 'API Set' : 'API Key'}</span>
               </Button>
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={() => window.open('https://docs.cassia.bio/en', '_blank', 'noopener,noreferrer')}
-                className="btn-modern shadow-md"
+                className="glass border-indigo-300/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/40 dark:hover:bg-indigo-400/10 btn-modern"
               >
                 <BookOpen className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Docs</span>
