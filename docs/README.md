@@ -121,7 +121,7 @@ setLLMApiKey(provider = "http://localhost:11434/v1", persist = TRUE)
 	- [How to get an OpenAI api key](https://platform.openai.com/api-keys)
 	- [How to get an Anthropic api key](https://console.anthropic.com/settings/keys)
 	- [How to get an OpenRouter api key](https://openrouter.ai/settings/keys)
-    - [OpenAI API Documentation](https://beta.openai.com/docs/)
+    - [OpenAI API Documentation](https://developers.openai.com/api/docs/)
     - [Anthropic API Documentation](https://docs.anthropic.com/)
     - [OpenRouter API Documentation](https://openrouter.ai/docs/quick-start)
     - [DeepSeek API Documentation](https://api-docs.deepseek.com/)
@@ -146,7 +146,7 @@ runCASSIA_batch(
     output_name = "cassia_results",              # Output file name
     tissue = "Large Intestine",                  # Tissue type
     species = "Human",                           # Species
-    model = "anthropic/claude-sonnet-4.6",       # Model to use
+    model = "anthropic/claude-sonnet-5",         # Model to use
     provider = "openrouter",                     # API provider
     max_workers = 4                              # Number of parallel workers
 )
@@ -158,30 +158,39 @@ runCASSIA_batch(
 
 You can choose any model for annotation and scoring. CASSIA also supports custom providers (e.g., DeepSeek) and local open-source models (e.g., `gpt-oss:20b` via Ollama).
 
-Some classic models are listed below. OpenRouter supports most popular models — feel free to experiment.
-
-
+The current defaults are listed below. They are compatibility recommendations, not new CASSIA benchmark results; the dated benchmark entries above remain historical records.
 
 ### OpenAI
-- `gpt-5.4`: Balanced option (Recommended)
+
+- `gpt-6-astra`: Current flagship for the hardest workloads (availability may vary)
+- `gpt-5.6-terra`: Balanced default (Recommended)
+- `gpt-5.6-luna`: Fast, cost-sensitive option
 - `gpt-4o`: Used in the benchmark
 
 ### OpenRouter
-- `openai/gpt-5.4`: Best-performing model via OpenRouter (no identity verification needed, unlike direct OpenAI API) (Recommended)
-- `anthropic/claude-sonnet-4.6`: Best-performing model via OpenRouter (Recommended)
-- `google/gemini-3-flash-preview`: One of the best-performing low-cost models
-- `x-ai/grok-4.20-beta`: One of the best-performing low-cost models.
+
+- `anthropic/claude-sonnet-5`: Balanced default (Recommended)
+- `openai/gpt-6-astra`: Current OpenAI flagship
+- `openai/gpt-5.6-terra`: Balanced OpenAI option
+- `google/gemini-3.8-flash`: Fast, low-cost option
+- `deepseek/deepseek-v4-flash-0731`: Very low-cost option
+- `x-ai/grok-4.6`, `moonshotai/kimi-k3`, and `meta-llama/llama-4-maverick` are also supported
 
 ### Anthropic
-- `claude-sonnet-4-6`: The latest best-performing model (Most recommended)
+
+- `claude-sonnet-5`: Balanced default (Recommended)
+- `claude-opus-5`: Current flagship
+- `claude-haiku-4-5`: Fast option
 
 ### Other Providers
+
 These models can be used via their own APIs. See [Custom API Providers](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#custom-api-providers) for setup.
-- `deepseek-chat` (DeepSeek v3.2): High performance, very affordable. Provider: `https://api.deepseek.com`
-- `glm-5` (GLM 5): Fast and cost-effective. Provider: `https://api.z.ai/api/paas/v4/`
-- `kimi-k2.5` (Kimi K2.5): Strong reasoning capabilities. Provider: `https://api.moonshot.ai/v1`
+
+- `deepseek-v4-flash` or `deepseek-v4-pro` (DeepSeek V4). Provider: `https://api.deepseek.com`
+- `glm-5.1` (GLM 5.1). Provider: `https://api.z.ai/api/paas/v4/`
 
 ### Local LLMs
+
 - `gpt-oss:20b`: Can run locally via Ollama. Good for large bulk analysis with acceptable accuracy. See [Local LLMs](https://docs.cassia.bio/en/docs/r/setting-up-cassia/#local-llms-ollama-lm-studio) for setup.
 
 ## 📖 Citation

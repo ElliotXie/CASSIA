@@ -21,8 +21,8 @@ Get detailed information about a model.
 \dontrun{
 # Get info for specific models
 get_model_info("gpt-4o")
-get_model_info("claude-3-5-sonnet-latest")
-get_model_info("google/gemini-2.5-flash")
+get_model_info("claude-sonnet-5")
+get_model_info("google/gemini-3.8-flash")
 
 # Using aliases
 get_model_info("gemini")

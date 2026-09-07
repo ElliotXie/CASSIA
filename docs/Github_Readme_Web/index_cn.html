@@ -298,29 +298,35 @@ runCASSIA_pipeline(
         <section id="models" class="content-section">
             <div class="container">
                 <h2><i class="fas fa-robot"></i> 支持的模型</h2>
-                <p>用户可以为注释和评分选择任何模型。下面列出了一些经典模型。大多数当前流行的模型都可以通过 OpenRouter 调用。</p>
+                <p>用户可以为注释和评分选择任何模型。下面的当前默认值是兼容性推荐，不代表新的 CASSIA 基准测试结果；带日期的基准信息仍作为历史记录保留。</p>
 
                 <div class="model-cards">
                     <div class="model-card">
                         <h3>OpenRouter</h3>
                         <ul>
-                            <li><strong>google/gemini-2.5-flash-preview</strong>：最佳低成本模型之一，性能可与gpt-4o相媲美（最推荐）</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>：表现最佳的开源模型之一，通常会提供非常详细的注释（推荐）</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>：免费但速度较慢</li>
+                            <li><strong>anthropic/claude-sonnet-5</strong>：均衡默认（推荐）</li>
+                            <li><strong>google/gemini-3.8-flash</strong>：快速、低成本选项</li>
+                            <li><strong>deepseek/deepseek-v4-flash-0731</strong>：极低成本选项</li>
+                            <li>同时支持 <strong>x-ai/grok-4.6</strong>、<strong>moonshotai/kimi-k3</strong> 和 <strong>meta-llama/llama-4-maverick</strong></li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>OpenAI</h3>
                         <ul>
-                            <li><strong>gpt-4o</strong>：用于文章的基准测试</li>
+                            <li><strong>gpt-6-astra</strong>：当前旗舰，可用范围可能受限</li>
+                            <li><strong>gpt-5.6-terra</strong>：均衡默认（推荐）</li>
+                            <li><strong>gpt-5.6-luna</strong>：快速、低成本选项</li>
+                            <li><strong>gpt-4o</strong>：用于历史基准测试</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>Anthropic</h3>
                         <ul>
-                            <li><strong>claude-3-7-sonnet-latest</strong>：最新的高性能模型</li>
+                            <li><strong>claude-sonnet-5</strong>：均衡默认（推荐）</li>
+                            <li><strong>claude-opus-5</strong>：当前旗舰</li>
+                            <li><strong>claude-haiku-4-5</strong>：快速选项</li>
                         </ul>
                     </div>
                 </div>
@@ -401,4 +407,4 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
 
     <script src="script.js" defer></script>
 </body>
-</html> 
+</html>

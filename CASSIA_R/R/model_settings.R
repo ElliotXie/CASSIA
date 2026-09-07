@@ -57,12 +57,12 @@
 #' \dontrun{
 #' # Using simple names
 #' resolve_model_name("gpt4")  # Returns gpt-4o with openai provider
-#' resolve_model_name("claude")  # Returns claude-3-5-sonnet-latest with anthropic provider
-#' resolve_model_name("gemini")  # Returns google/gemini-2.5-flash with openrouter provider
+#' resolve_model_name("claude")  # Returns claude-sonnet-5 with anthropic provider
+#' resolve_model_name("gemini")  # Returns google/gemini-3.8-flash with openrouter provider
 #' 
 #' # Using aliases
-#' resolve_model_name("sonnet")  # Returns claude-3-5-sonnet-latest
-#' resolve_model_name("deepseek")  # Returns deepseek/deepseek-chat-v3-0324
+#' resolve_model_name("sonnet")  # Returns claude-sonnet-5
+#' resolve_model_name("deepseek")  # Returns deepseek/deepseek-v4-flash-0731
 #' 
 #' # With specific provider
 #' resolve_model_name("gpt-4o", "openai")
@@ -119,7 +119,7 @@ get_recommended_model <- function(provider = NULL, use_case = NULL) {
     ))
   }, error = function(e) {
     warning("Error getting recommended model: ", e$message)
-    return(list(model = "google/gemini-2.5-flash", provider = "openrouter"))
+    return(list(model = "anthropic/claude-sonnet-5", provider = "openrouter"))
   })
 }
 
@@ -137,8 +137,8 @@ get_recommended_model <- function(provider = NULL, use_case = NULL) {
 #' \dontrun{
 #' # Get info for specific models
 #' get_model_info("gpt-4o")
-#' get_model_info("claude-3-5-sonnet-latest")
-#' get_model_info("google/gemini-2.5-flash")
+#' get_model_info("claude-sonnet-5")
+#' get_model_info("google/gemini-3.8-flash")
 #' 
 #' # Using aliases
 #' get_model_info("gemini")
@@ -298,8 +298,8 @@ print_model_recommendations <- function(use_case = NULL) {
 #' \dontrun{
 #' # Get aliases for models
 #' get_model_aliases("gpt-4o")
-#' get_model_aliases("claude-3-5-sonnet-latest")
-#' get_model_aliases("google/gemini-2.5-flash")
+#' get_model_aliases("claude-sonnet-5")
+#' get_model_aliases("google/gemini-3.8-flash")
 #' }
 get_model_aliases <- function(model_name, provider = NULL) {
   tryCatch({

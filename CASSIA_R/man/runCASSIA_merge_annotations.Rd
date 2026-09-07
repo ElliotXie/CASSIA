@@ -8,7 +8,7 @@ runCASSIA_merge_annotations(
   csv_path,
   output_path = NULL,
   provider = "openrouter",
-  model = "deepseek/deepseek-chat-v3-0324",
+  model = "google/gemini-3.8-flash",
   additional_context = NULL,
   batch_size = 20,
   detail_level = "broad",

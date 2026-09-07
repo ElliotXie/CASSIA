@@ -219,7 +219,7 @@ def _handle_api_error(exc: Exception, provider: str, model: str) -> None:
         logger.error(
             f"Model '{model}' not found for {provider}. "
             f"Run CASSIA.print_available_models('{provider}') to see available models. "
-            f"Or try a common model like 'gpt-4o' or 'claude-sonnet-4-6'."
+            f"Or try a current model like 'gpt-5.6-terra' or 'claude-sonnet-5'."
         )
 
     # Insufficient quota/credits
@@ -243,6 +243,18 @@ def _handle_api_error(exc: Exception, provider: str, model: str) -> None:
             f"Error: {exc}"
         )
 
+def _extract_anthropic_text(response) -> str:
+    """Return the first text block, skipping any leading thinking blocks."""
+    content = getattr(response, "content", None) or []
+    for block in content:
+        text = getattr(block, "text", None)
+        if text is None and isinstance(block, dict):
+            text = block.get("text")
+        if text is not None:
+            return text
+    return str(content) if content else "No content returned from Anthropic API"
+
+
 def call_llm(
     prompt: str,
     provider: str = "openai",
@@ -260,7 +272,7 @@ def call_llm(
     Args:
         prompt: The user prompt to send to the LLM
         provider: One of "openai", "anthropic", or "openrouter"
-        model: Specific model from the provider to use (e.g., "gpt-4" for OpenAI)
+        model: Specific model from the provider to use (e.g., "gpt-5.6-terra" for OpenAI)
         api_key: API key for the provider (if None, gets from environment)
         temperature: Sampling temperature (0-1)
         max_tokens: Maximum tokens to generate
@@ -273,8 +285,8 @@ def call_llm(
             Example: {"effort": "high"} or {"effort": "medium"}
 
             Provider-specific behavior:
-            - OpenAI: Uses Responses API with reasoning parameter (GPT-5 series)
-            - Anthropic: Uses beta.messages.create with effort parameter (Claude Opus 4.5)
+            - OpenAI: Uses Responses API with reasoning parameter (GPT-5.6/GPT-6 series)
+            - Anthropic: Uses messages API with effort parameter when requested
             - OpenRouter: Passes reasoning to chat completions endpoint
 
     Returns:
@@ -383,7 +395,13 @@ def call_llm(
             if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
                 api_messages.insert(0, {"role": "system", "content": system_prompt})
 
-        # Use Responses API when reasoning is specified (for GPT-5 reasoning models)
+        model_lower = model.lower() if model else ""
+        if reasoning is None and ("gpt-5.6" in model_lower or "gpt5.6" in model_lower):
+            reasoning = {"effort": "medium"}
+        elif reasoning is None and ("gpt-6" in model_lower or "gpt6" in model_lower):
+            reasoning = {"effort": "low"}
+
+        # Use Responses API when reasoning is specified.
         if reasoning:
             try:
                 # Convert messages to input format for Responses API
@@ -393,12 +411,14 @@ def call_llm(
                     role = "developer" if msg["role"] == "system" else msg["role"]
                     input_messages.append({"role": role, "content": msg["content"]})
 
-                response = client.responses.create(
-                    model=model,
-                    input=input_messages,
-                    reasoning=reasoning,
-                    **params_copy
-                )
+                response_params = {
+                    "model": model,
+                    "input": input_messages,
+                    "reasoning": reasoning,
+                    "max_output_tokens": max_tokens,
+                    **params_copy,
+                }
+                response = client.responses.create(**response_params)
                 _record_llm_usage(
                     provider=provider,
                     model=model,
@@ -412,9 +432,8 @@ def call_llm(
                 raise
 
         # Standard Chat Completions API (no reasoning)
-        # GPT-5 models and o-series require max_completion_tokens instead of max_tokens
-        model_lower = model.lower() if model else ""
-        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+        # GPT-5/GPT-6 models and o-series require max_completion_tokens.
+        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "gpt-6", "gpt6", "o1", "o3", "o4"])
 
         try:
             if uses_max_completion_tokens:
@@ -532,9 +551,12 @@ def call_llm(
         message_params = {
             "model": model,
             "max_tokens": max_tokens,
-            "temperature": temperature,
             "messages": api_messages
         }
+
+        model_lower = model.lower() if model else ""
+        if "claude-sonnet-5" not in model_lower and "claude-opus-5" not in model_lower:
+            message_params["temperature"] = temperature
 
         # Add system prompt if provided (Anthropic uses separate system parameter)
         if system_prompt:
@@ -545,15 +567,19 @@ def call_llm(
             if key != "model":
                 message_params[key] = value
 
-        # Use beta API when effort/reasoning is specified (for Claude Opus 4.5)
+        # Claude 5 exposes output_config on the standard Messages API; older
+        # models keep the beta path for backwards compatibility.
         if reasoning and reasoning.get("effort"):
             try:
-                # Use beta.messages.create with effort parameter
-                response = client.beta.messages.create(
-                    betas=["effort-2025-11-24"],
-                    output_config={"effort": reasoning["effort"]},
-                    **message_params
-                )
+                if "claude-sonnet-5" in model_lower or "claude-opus-5" in model_lower:
+                    message_params["output_config"] = {"effort": reasoning["effort"]}
+                    response = client.messages.create(**message_params)
+                else:
+                    response = client.beta.messages.create(
+                        betas=["effort-2025-11-24"],
+                        output_config={"effort": reasoning["effort"]},
+                        **message_params
+                    )
                 _record_llm_usage(
                     provider=provider,
                     model=model,
@@ -562,17 +588,7 @@ def call_llm(
                     response_model=getattr(response, "model", None),
                 )
 
-                # Extract the text content from the response
-                if hasattr(response, 'content') and len(response.content) > 0:
-                    content_block = response.content[0]
-                    if hasattr(content_block, 'text'):
-                        return content_block.text
-                    elif isinstance(content_block, dict) and 'text' in content_block:
-                        return content_block['text']
-                    else:
-                        return str(response.content)
-                else:
-                    return "No content returned from Anthropic API"
+                return _extract_anthropic_text(response)
             except Exception as e:
                 _handle_api_error(e, provider, model)
                 raise
@@ -588,17 +604,7 @@ def call_llm(
                 response_model=getattr(response, "model", None),
             )
 
-            # Extract the text content from the response
-            if hasattr(response, 'content') and len(response.content) > 0:
-                content_block = response.content[0]
-                if hasattr(content_block, 'text'):
-                    return content_block.text
-                elif isinstance(content_block, dict) and 'text' in content_block:
-                    return content_block['text']
-                else:
-                    return str(response.content)
-            else:
-                return "No content returned from Anthropic API"
+            return _extract_anthropic_text(response)
         except Exception as e:
             _handle_api_error(e, provider, model)
             raise
@@ -625,14 +631,16 @@ def call_llm(
             if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
                 api_messages.insert(0, {"role": "system", "content": system_prompt})
 
-        # GPT-5 and reasoning models require max_completion_tokens instead of max_tokens
+        # GPT-5/GPT-6 and reasoning models require max_completion_tokens.
         model_lower = model.lower() if model else ""
-        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4"])
+        uses_max_completion_tokens = any(m in model_lower for m in ["gpt-5", "gpt5", "gpt-6", "gpt6", "o1", "o3", "o4"])
 
         # Auto-default reasoning to "medium" for GPT-5 series models if not explicitly set
-        # Covers: gpt-5, gpt5, gpt-5.4, openai/gpt-5.4, etc.
+        # Covers: gpt-5, gpt5, gpt-5.6-terra, openai/gpt-5.6-terra, etc.
         if reasoning is None and ("gpt-5" in model_lower or "gpt5" in model_lower):
             reasoning = {"effort": "medium"}
+        elif reasoning is None and ("gpt-6" in model_lower or "gpt6" in model_lower):
+            reasoning = {"effort": "low"}
 
         # Kimi K2.6 can spend the full OpenRouter output budget in reasoning
         # and return message.content=None unless reasoning is explicitly
@@ -644,8 +652,11 @@ def call_llm(
             **params_copy,
             "model": model,
             "messages": api_messages,
-            "temperature": temperature,
         }
+
+        omits_sampling = any(m in model_lower for m in ["gpt-6-astra", "claude-sonnet-5", "claude-opus-5"])
+        if not omits_sampling:
+            data["temperature"] = temperature
 
         # Use appropriate token parameter based on model
         if uses_max_completion_tokens:
@@ -656,7 +667,7 @@ def call_llm(
         # Add reasoning configuration only for models that support it.
         # OpenRouter's Anthropic Claude models do not accept the reasoning parameter.
         if reasoning:
-            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "o1", "o3", "o4", "kimi-k2.6"])
+            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "gpt-6", "gpt6", "o1", "o3", "o4", "kimi-k2.6"])
             if supports_reasoning:
                 data["reasoning"] = reasoning
 

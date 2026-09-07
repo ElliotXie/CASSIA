@@ -8,7 +8,7 @@ runCASSIA_score_batch(
   input_file,
   output_file = NULL,
   max_workers = 4,
-  model = "anthropic/claude-sonnet-4.5",
+  model = "anthropic/claude-sonnet-5",
   temperature = 0,
   provider = "openrouter",
   max_retries = 1
@@ -22,6 +22,8 @@ runCASSIA_score_batch(
 \item{max_workers}{Maximum number of parallel workers}
 
 \item{model}{Model to use}
+
+\item{temperature}{Sampling temperature (0-1)}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 

@@ -1403,7 +1403,7 @@ def save_raw_conversation_text(messages: List[Dict[str, str]], filename: str) ->
         return filename
 
 def generate_summary_report(conversation_history: List[Dict[str, str]], output_filename: str, search_strategy: str = "breadth", report_style: str = "per_iteration",
-    validator_involvement: str = "v1", model: str = "google/gemini-3-flash-preview", provider: str = "openrouter", reasoning: Optional[str] = None) -> str:
+    validator_involvement: str = "v1", model: str = "google/gemini-3.8-flash", provider: str = "openrouter", reasoning: Optional[str] = None) -> str:
     """
     Generate a summarized report from the raw conversation history.
 
@@ -2583,4 +2583,4 @@ def format_summary_to_html(summary_text: str, output_filename: str, search_strat
         # Save error message to file so there's still an output
         with open(output_filename, 'w', encoding='utf-8') as f:
             f.write(f"<html><body><h1>Error</h1><p>{error_msg}</p></body></html>")
-        return output_filename 
+        return output_filename

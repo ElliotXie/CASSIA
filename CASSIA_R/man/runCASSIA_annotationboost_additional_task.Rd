@@ -11,7 +11,7 @@ runCASSIA_annotationboost_additional_task(
   major_cluster_info,
   output_name,
   num_iterations = 5,
-  model = "anthropic/claude-sonnet-4.5",
+  model = "anthropic/claude-sonnet-5",
   provider = "openrouter",
   additional_task = "check if this is a cancer cluster",
   temperature = 0.1,
@@ -36,7 +36,7 @@ runCASSIA_annotationboost_additional_task(
 
 \item{num_iterations}{Number of iterations for marker analysis (default=5)}
 
-\item{model}{Model to use for analysis (default="google/gemini-2.5-flash-preview")}
+\item{model}{Model to use for analysis (default="anthropic/claude-sonnet-5")}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 

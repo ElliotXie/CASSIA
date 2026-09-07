@@ -8,10 +8,20 @@ runCASSIA_subclusters(
   marker,
   major_cluster_info,
   output_name,
-  model = "anthropic/claude-sonnet-4.5",
+  model = "anthropic/claude-sonnet-5",
   temperature = 0,
   provider = "openrouter",
-  n_genes = 50L
+  n_genes = 50L,
+  tissue = NULL,
+  species = NULL,
+  additional_context = NULL,
+  use_reference = FALSE,
+  reference_provider = NULL,
+  reference_model = NULL,
+  reference_cell_type_hint = NULL,
+  reference_depth = "detailed",
+  reference_max_content_length = 5000L,
+  reference_max_context_length = 12000L
 )
 }
 \arguments{
@@ -21,13 +31,33 @@ runCASSIA_subclusters(
 
 \item{output_name}{Base name for the output file (will add .csv if not present)}
 
-\item{model}{Model name for Claude API (default: "claude-3-5-sonnet-20241022")}
+\item{model}{Model name for the selected provider (default: "anthropic/claude-sonnet-5")}
 
 \item{temperature}{Temperature parameter for API calls (default: 0)}
 
 \item{provider}{AI provider to use (default: "anthropic")}
 
 \item{n_genes}{Number of top genes to use (default: 50)}
+
+\item{tissue}{Tissue type being analyzed (e.g., "lung", "brain"). Optional (default: NULL)}
+
+\item{species}{Species being analyzed (e.g., "human", "mouse"). Optional (default: NULL)}
+
+\item{additional_context}{Optional additional context string (e.g., tissue type, experimental conditions)}
+
+\item{use_reference}{Logical. Whether to retrieve subtype references before subcluster annotation (default: FALSE)}
+
+\item{reference_provider}{Provider for reference selection (default: same as provider)}
+
+\item{reference_model}{Model for reference selection}
+
+\item{reference_cell_type_hint}{Optional parent lineage hint, e.g. "macrophage"}
+
+\item{reference_depth}{Reference extraction depth, "detailed" or "summary"}
+
+\item{reference_max_content_length}{Maximum characters extracted per reference result}
+
+\item{reference_max_context_length}{Maximum total reference context characters}
 }
 \value{
 None. This function processes subclusters and saves results to a CSV file.

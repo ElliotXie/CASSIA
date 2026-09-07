@@ -139,7 +139,7 @@ runCASSIA_batch(
     output_name = "cassia_results",              # 输出文件名
     tissue = "Large Intestine",                  # 组织类型
     species = "Human",                           # 物种
-    model = "anthropic/claude-sonnet-4.6",       # 使用的模型
+    model = "anthropic/claude-sonnet-5",         # 使用的模型
     provider = "openrouter",                     # API 提供商
     max_workers = 4                              # 并行工作线程数
 )
@@ -151,30 +151,39 @@ runCASSIA_batch(
 
 您可以为注释和评分选择任何模型。CASSIA 还支持自定义提供商（如 DeepSeek）和本地开源模型（如通过 Ollama 运行的 `gpt-oss:20b`）。
 
-下面列出了一些经典模型。OpenRouter 支持大多数流行模型 — 欢迎尝试。
-
-
+下面列出当前默认与兼容性推荐。这些不是新的 CASSIA 基准测试结果；上方带日期的基准信息仍作为历史记录保留。
 
 ### OpenAI
-- `gpt-5.4`: 均衡选择（推荐）
+
+- `gpt-6-astra`: 当前旗舰，适合最复杂任务（可用范围可能受限）
+- `gpt-5.6-terra`: 均衡默认（推荐）
+- `gpt-5.6-luna`: 快速、低成本选项
 - `gpt-4o`: 用于文章的基准测试
 
 ### OpenRouter
-- `openai/gpt-5.4`: OpenRouter 上表现最好的模型（无需身份验证，不同于直接使用 OpenAI API）（推荐）
-- `anthropic/claude-sonnet-4.6`: OpenRouter 上表现最好的模型（推荐）
-- `google/gemini-3-flash-preview`: 最好的低费率大模型之一
-- `x-ai/grok-4.20-beta`: 最好的低费率大模型之一
+
+- `anthropic/claude-sonnet-5`: 均衡默认（推荐）
+- `openai/gpt-6-astra`: 当前 OpenAI 旗舰
+- `openai/gpt-5.6-terra`: OpenAI 均衡选项
+- `google/gemini-3.8-flash`: 快速、低成本选项
+- `deepseek/deepseek-v4-flash-0731`: 极低成本选项
+- 同时支持 `x-ai/grok-4.6`、`moonshotai/kimi-k3` 和 `meta-llama/llama-4-maverick`
 
 ### Anthropic
-- `claude-sonnet-4-6`: 最新的高性能模型（最推荐）
+
+- `claude-sonnet-5`: 均衡默认（推荐）
+- `claude-opus-5`: 当前旗舰
+- `claude-haiku-4-5`: 快速选项
 
 ### 其他提供商
+
 这些模型可以通过其自有 API 使用。设置方法请参阅 [自定义 API 提供商](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#自定义-api-提供商)。
-- `deepseek-chat` (DeepSeek v3.2): 高性能，价格实惠。提供商：`https://api.deepseek.com`
-- `glm-5` (GLM 5): 快速且经济实惠。提供商：`https://api.z.ai/api/paas/v4/`
-- `kimi-k2.5` (Kimi K2.5): 强大的推理能力。提供商：`https://api.moonshot.ai/v1`
+
+- `deepseek-v4-flash` 或 `deepseek-v4-pro`（DeepSeek V4）。提供商：`https://api.deepseek.com`
+- `glm-5.1`（GLM 5.1）。提供商：`https://api.z.ai/api/paas/v4/`
 
 ### 本地 LLM
+
 - `gpt-oss:20b`: 可通过 Ollama 在本地运行。适合大批量分析，准确率可接受。设置方法请参阅 [本地 LLM](https://docs.cassia.bio/zh/docs/r/setting-up-cassia/#本地-llmollama-lm-studio)。
 
 ## 📖 引用

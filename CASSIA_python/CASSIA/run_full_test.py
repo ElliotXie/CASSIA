@@ -20,8 +20,8 @@ def run_full_pipeline_test():
     species = "human"
     tissue = "bone marrow"
     num_runs = 3
-    generator_model_name = "openai/gpt-4o-2024-11-20"
-    formatter_model_name = "google/gemini-3-flash-preview"
+    generator_model_name = "openai/gpt-5.6-terra"
+    formatter_model_name = "google/gemini-3.8-flash"
     # -----------------------
 
     # --- Step 1: Run the multi-analysis ---
@@ -65,4 +65,4 @@ def run_full_pipeline_test():
 if __name__ == "__main__":
     # To run this test, ensure you are in the CASSIA/CASSIA_python/CASSIA directory
     # or that your PYTHONPATH is set up correctly.
-    run_full_pipeline_test() 
+    run_full_pipeline_test()

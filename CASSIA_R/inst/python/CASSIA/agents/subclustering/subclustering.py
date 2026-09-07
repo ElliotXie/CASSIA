@@ -270,10 +270,11 @@ _REASONING_MODEL_HINTS = (
     "reasoner", "thinking", "think",
     "deepseek-v4", "deepseek-r1",
     "o1", "o3", "o4",
-    "gpt-5", "gpt5",
+    "gpt-5", "gpt5", "gpt-6", "gpt6",
     "claude-opus-4-5", "claude-opus-4-6", "claude-opus-4-7",
     "claude-sonnet-4-5", "claude-sonnet-4-6", "claude-sonnet-4-7",
-    "gemini-3", "gemini-2.5-pro",
+    "claude-opus-5", "claude-sonnet-5",
+    "gemini-3", "gemini-3.8", "gemini-2.5-pro",
 )
 
 

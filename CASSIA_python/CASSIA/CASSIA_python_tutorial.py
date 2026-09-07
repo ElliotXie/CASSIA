@@ -63,7 +63,7 @@ except ImportError as e:
 # Setup configuration variables
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_name = "intestine_detailed"
-model_name = "google/gemini-3-flash-preview"
+model_name = "google/gemini-3.8-flash"
 provider = "openrouter"
 tissue = "large intestine"
 species = "human"
@@ -327,7 +327,7 @@ def run_uncertainty_quantification(marker_data, provider_test=None):
     
     # If using a custom provider, set a default model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3.8-flash":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -387,7 +387,7 @@ def run_single_cluster_uncertainty(marker_data, cluster_name="monocyte", provide
     
     # If using a custom provider, set a default model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3.8-flash":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -933,7 +933,7 @@ def test_full_pipeline_providers(marker_data):
         original_model = globals()['model_name']
         
         globals()['provider'] = "openai"
-        globals()['model_name'] = "gpt-4o"
+        globals()['model_name'] = "gpt-5.6-terra"
         
         print("Running full pipeline with OpenAI...")
         runCASSIA_pipeline(
@@ -942,15 +942,15 @@ def test_full_pipeline_providers(marker_data):
             species=species,
             marker_path=marker_data,
             max_workers=3,  # Reduced for testing
-            annotation_model="gpt-4o",
+            annotation_model="gpt-5.6-terra",
             annotation_provider="openai",
-            score_model="gpt-4o",
+            score_model="gpt-5.6-terra",
             score_provider="openai",
             score_threshold=97,
-            annotationboost_model="gpt-4o",
+            annotationboost_model="gpt-5.6-terra",
             annotationboost_provider="openai",
             merge_annotations=True,
-            merge_model="gpt-4o",
+            merge_model="gpt-5.6-terra",
             merge_provider="openai"
         )
         print("✅ Full pipeline with OpenAI completed successfully")
@@ -965,7 +965,7 @@ def test_full_pipeline_providers(marker_data):
     print("\n----- Testing Full Pipeline with Anthropic provider -----")
     try:
         globals()['provider'] = "anthropic"
-        globals()['model_name'] = "claude-3-5-sonnet-20241022"
+        globals()['model_name'] = "claude-sonnet-5"
         
         print("Running full pipeline with Anthropic...")
         runCASSIA_pipeline(
@@ -974,15 +974,15 @@ def test_full_pipeline_providers(marker_data):
             species=species,
             marker_path=marker_data,
             max_workers=3,
-            annotation_model="claude-3-5-sonnet-20241022",
+            annotation_model="claude-sonnet-5",
             annotation_provider="anthropic",
-            score_model="claude-3-5-sonnet-20241022",
+            score_model="claude-sonnet-5",
             score_provider="anthropic",
             score_threshold=97,
-            annotationboost_model="claude-3-5-sonnet-20241022",
+            annotationboost_model="claude-sonnet-5",
             annotationboost_provider="anthropic",
             merge_annotations=True,
-            merge_model="claude-3-5-sonnet-20241022",
+            merge_model="claude-sonnet-5",
             merge_provider="anthropic"
         )
         print("✅ Full pipeline with Anthropic completed successfully")
@@ -996,7 +996,7 @@ def test_full_pipeline_providers(marker_data):
     print("\n----- Testing Full Pipeline with OpenRouter provider -----")
     try:
         globals()['provider'] = "openrouter"
-        globals()['model_name'] = "anthropic/claude-3.5-sonnet"
+        globals()['model_name'] = "anthropic/claude-sonnet-5"
         
         print("Running full pipeline with OpenRouter...")
         runCASSIA_pipeline(
@@ -1005,15 +1005,15 @@ def test_full_pipeline_providers(marker_data):
             species=species,
             marker_path=marker_data,
             max_workers=3,
-            annotation_model="anthropic/claude-3.5-sonnet",
+            annotation_model="anthropic/claude-sonnet-5",
             annotation_provider="openrouter",
-            score_model="anthropic/claude-3.5-sonnet",
+            score_model="anthropic/claude-sonnet-5",
             score_provider="openrouter",
             score_threshold=97,
-            annotationboost_model="anthropic/claude-3.5-sonnet",
+            annotationboost_model="anthropic/claude-sonnet-5",
             annotationboost_provider="openrouter",
             merge_annotations=True,
-            merge_model="anthropic/claude-3.5-sonnet",
+            merge_model="anthropic/claude-sonnet-5",
             merge_provider="openrouter"
         )
         print("✅ Full pipeline with OpenRouter completed successfully")
@@ -1226,7 +1226,7 @@ def test_validator_involvement(marker_data, provider_test=None):
     
     # If using a custom provider, adjust model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3.8-flash":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
         print(f"Using model: {current_model} with custom provider: {test_provider}")
@@ -1353,7 +1353,7 @@ def test_single_annotation_validators(marker_list=None, provider_test=None):
     
     # If using a custom provider, adjust model if needed
     current_model = model_name
-    if test_provider.startswith("http") and current_model == "google/gemini-3-flash-preview":
+    if test_provider.startswith("http") and current_model == "google/gemini-3.8-flash":
         if test_provider == "https://api.deepseek.com":
             current_model = "deepseek-chat"
     
@@ -1445,9 +1445,9 @@ def test_llm_image_processing():
     
     # Test providers to check
     test_providers = [
-        {"name": "OpenAI", "provider": "openai", "model": "gpt-4o"},
-        {"name": "Anthropic", "provider": "anthropic", "model": "claude-3-5-sonnet-20241022"},
-        {"name": "OpenRouter", "provider": "openrouter", "model": "openai/gpt-4o"}
+        {"name": "OpenAI", "provider": "openai", "model": "gpt-5.6-terra"},
+        {"name": "Anthropic", "provider": "anthropic", "model": "claude-sonnet-5"},
+        {"name": "OpenRouter", "provider": "openrouter", "model": "openai/gpt-5.6-terra"}
     ]
     
     # Create test results directory
@@ -1599,7 +1599,7 @@ result = call_llm_with_image(
     prompt="What medical conditions can you identify?",
     image_input="medical_scan.png",
     provider="anthropic",
-    model="claude-3-5-sonnet-20241022"
+    model="claude-sonnet-5"
 )
 
 # OCR text extraction
@@ -1672,7 +1672,7 @@ maintaining control over API keys. Key features:
         ("recommended", "openai"),
         ("recommended", "anthropic"),
         ("recommended", "openrouter"),
-        ("gpt-4o", "openai"),  # exact model name
+        ("gpt-5.6-terra", "openai"),  # exact model name
     ]
     
     print("Testing model name resolution (Provider REQUIRED):")
@@ -1720,9 +1720,9 @@ maintaining control over API keys. Key features:
     # Test 6: Using exact model names
     print("\n=== Test 6: Exact Model Names ===")
     exact_tests = [
-        ("gpt-4o", "openai"),
-        ("claude-sonnet-4-6", "anthropic"),
-        ("google/gemini-3-flash-preview", "openrouter"),
+        ("gpt-5.6-terra", "openai"),
+        ("claude-sonnet-5", "anthropic"),
+        ("google/gemini-3.8-flash", "openrouter"),
     ]
     for model, provider in exact_tests:
         resolved = resolve_model_name(model, provider)
@@ -1744,27 +1744,27 @@ HOW TO USE MODEL SETTINGS IN YOUR CODE:
    runCASSIA_batch(
        marker=markers,
        model="fast",          # Fastest/cheapest option
-       provider="openrouter"  # -> google/gemini-3-flash-preview
+       provider="openrouter"  # -> google/gemini-3.8-flash
    )
 
 3. BEST QUALITY ANALYSIS:
    runCASSIA_batch(
        marker=markers,
        model="best",          # Best model for provider
-       provider="anthropic"   # -> claude-opus-4-6
+       provider="anthropic"   # -> claude-opus-5
    )
 
 4. BALANCED ANALYSIS:
    runCASSIA_batch(
        marker=markers,
        model="balanced",      # Good balance of cost/quality
-       provider="openrouter"  # -> openai/gpt-5.4
+       provider="openrouter"  # -> openai/gpt-5.6-terra
    )
 
 5. EXACT MODEL NAME:
    runCASSIA_batch(
        marker=markers,
-       model="gpt-4o",        # Use exact model name
+       model="gpt-5.6-terra",        # Use exact model name
        provider="openai"
    )
 """)
@@ -1783,22 +1783,22 @@ HOW TO USE MODEL SETTINGS IN YOUR CODE:
 Available tiers: best, balanced, fast, recommended
 
 OPENAI:
-  best        -> gpt-5.4
-  balanced    -> gpt-4o
-  fast        -> gpt-5.4-mini
-  recommended -> gpt-5.4
+  best        -> gpt-6-astra
+  balanced    -> gpt-5.6-terra
+  fast        -> gpt-5.6-luna
+  recommended -> gpt-5.6-terra
 
 ANTHROPIC:
-  best        -> claude-opus-4-6
-  balanced    -> claude-sonnet-4-6
+  best        -> claude-opus-5
+  balanced    -> claude-sonnet-5
   fast        -> claude-haiku-4-5
-  recommended -> claude-sonnet-4-6
+  recommended -> claude-sonnet-5
 
 OPENROUTER:
-  best        -> anthropic/claude-sonnet-4.6
-  balanced    -> openai/gpt-5.4
-  fast        -> google/gemini-3-flash-preview
-  recommended -> anthropic/claude-sonnet-4.6
+  best        -> openai/gpt-6-astra
+  balanced    -> openai/gpt-5.6-terra
+  fast        -> google/gemini-3.8-flash
+  recommended -> anthropic/claude-sonnet-5
 """)
     
     # Test 9: Create comprehensive test results
@@ -1881,7 +1881,7 @@ def main():
                 os.environ["CUSTOMIZED_API_KEY"] = api_key
                 print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
         # Optionally, set a default model for deepseek
-        if provider == "https://api.deepseek.com" and model_name == "google/gemini-3-flash-preview":
+        if provider == "https://api.deepseek.com" and model_name == "google/gemini-3.8-flash":
             model_name = "deepseek-chat"
     elif args.provider:
         provider = args.provider
@@ -1896,7 +1896,7 @@ def main():
                 os.environ["CUSTOMIZED_API_KEY"] = api_key
                 print(f"Set CUSTOMIZED_API_KEY for custom provider: {provider}")
             # Set default model for deepseek
-            if provider == "https://api.deepseek.com" and model_name == "google/gemini-3-flash-preview":
+            if provider == "https://api.deepseek.com" and model_name == "google/gemini-3.8-flash":
                 model_name = "deepseek-chat"
     
     # Setup API keys first
@@ -2077,7 +2077,7 @@ if __name__ == "__main__":
     # Global configuration
     species = "human"
     tissue = "large intestine"
-    model_name = "google/gemini-3-flash-preview"  # Using specified model
+    model_name = "google/gemini-3.8-flash"  # Using specified model
     output_name = f"CASSIA_{tissue.replace(' ', '_')}_{species}"
 
     
@@ -2379,4 +2379,3 @@ def run_symphony_agent():
     print(f"Results saved to: {output_dir}")
     print(f"-> CSV report: {output_csv}")
     print(f"-> HTML report: {output_html}")
-

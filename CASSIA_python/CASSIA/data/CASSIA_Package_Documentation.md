@@ -26,14 +26,14 @@ This document provides a comprehensive guide to installing, configuring, and usi
 ## 2. Installation
 
 ### 2.1. Prerequisites
-- Python 3.8 or higher.
+- Python 3.9 or higher.
 
 ### 2.2. Dependencies
 CASSIA requires the following Python packages:
 -   `numpy>=1.21.0`
 -   `pandas>=1.3.0`
--   `openai>=1.0.0`
--   `anthropic>=0.3.0`
+-   `openai>=2.0.0`
+-   `anthropic>=0.125.0`
 -   `requests>=2.25.0`
 -   `matplotlib>=3.3.0`
 -   `seaborn>=0.11.0`
@@ -127,7 +127,7 @@ This is the simplest way to use CASSIA. The `runCASSIA_pipeline` function automa
         -   `tissue` (str): The tissue context (e.g., "large intestine").
         -   `species` (str): The species context (e.g., "human").
         -   `marker_path` (str | pd.DataFrame): The path to the marker CSV file or a loaded pandas DataFrame.
-        -   `annotation_model` / `score_model` / `annotationboost_model` / `merge_model` (str): The specific LLM to use for each step (e.g., "openai/gpt-4o", "anthropic/claude-3.5-sonnet").
+        -   `annotation_model` / `score_model` / `annotationboost_model` / `merge_model` (str): The specific LLM to use for each step (e.g., "openai/gpt-5.6-terra", "anthropic/claude-sonnet-5").
         -   `annotation_provider` / `score_provider` / `annotationboost_provider` / `merge_provider` (str): The service provider ("openai", "anthropic", "openrouter", or a custom URL).
         -   `score_threshold` (int): The confidence score threshold (0-100). Any cluster scoring below this will be sent for Annotation Boost. Default: 97.
         -   `merge_annotations` (bool): If `True`, performs the final annotation merging step.
@@ -146,12 +146,12 @@ This is the simplest way to use CASSIA. The `runCASSIA_pipeline` function automa
             species="human",
             marker_path=unprocessed_markers,
             max_workers=6,
-            annotation_model="anthropic/claude-3.5-sonnet",
+            annotation_model="anthropic/claude-sonnet-5",
             annotation_provider="openrouter",
-            score_model="anthropic/claude-3.5-sonnet",
+            score_model="anthropic/claude-sonnet-5",
             score_provider="openrouter",
             score_threshold=97,
-            annotationboost_model="anthropic/claude-3.5-sonnet",
+            annotationboost_model="anthropic/claude-sonnet-5",
             annotationboost_provider="openrouter",
             merge_annotations=True
         )
@@ -171,7 +171,7 @@ You can also run each step of the CASSIA workflow independently for greater cont
         CASSIA.runCASSIA_batch(
             marker=unprocessed_markers,
             output_name=batch_output_name,
-            model="anthropic/claude-3.5-sonnet",
+            model="anthropic/claude-sonnet-5",
             provider="openrouter",
             tissue="large intestine",
             species="human",
@@ -189,7 +189,7 @@ You can also run each step of the CASSIA workflow independently for greater cont
         CASSIA.runCASSIA_score_batch(
             input_file=batch_output_name + "_full.csv",
             output_file=scored_output_file,
-            model="anthropic/claude-3.5-sonnet",
+            model="anthropic/claude-sonnet-5",
             provider="openrouter"
         )
         ```
@@ -231,7 +231,7 @@ CASSIA includes several advanced modules for deeper investigation into your data
             cluster_name="monocyte",
             major_cluster_info="Human Large Intestine",
             num_iterations=5,
-            model="anthropic/claude-3.5-sonnet",
+            model="anthropic/claude-sonnet-5",
             provider="openrouter"
         )
         ```
@@ -275,7 +275,7 @@ CASSIA includes several advanced modules for deeper investigation into your data
             n=3,
             marker=unprocessed_markers,
             output_name="intestine_uncertainty_run",
-            model="anthropic/claude-3.5-sonnet",
+            model="anthropic/claude-sonnet-5",
             provider="openrouter",
             tissue="large intestine",
             species="human",
@@ -372,7 +372,7 @@ async def annotate_pipeline(background_tasks: BackgroundTasks, file: UploadFile 
         tissue="user-provided",
         species="human",
         provider="openrouter",
-        model="anthropic/claude-3.5-sonnet"
+        model="anthropic/claude-sonnet-5"
     )
     
     return {"message": "Analysis started in the background.", "job_id": job_id}
@@ -392,4 +392,4 @@ def get_results(job_id: str):
     return {"status": "complete", "results": results_df.to_dict(orient="records")}
 
 ```
-This provides a basic structure for building a robust, scalable web service around CASSIA. 
+This provides a basic structure for building a robust, scalable web service around CASSIA.

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Settings, Zap, ChevronDown, Brain } from 'lucide-react'
-import { useApiKeyStore, Provider } from '@/lib/stores/api-key-store'
+import type { Provider } from '@/lib/stores/api-key-store'
 import modelSettings from '../public/examples/model_settings.json'
 import { modelSupportsReasoning, getDefaultReasoningEffort, getReasoningEffortOptions, ReasoningEffort } from '@/lib/config/model-presets'
 import { MODELS } from '@/lib/config/model-data'
@@ -21,12 +21,18 @@ interface ModelOption {
   cost: 'low' | 'medium' | 'high'
 }
 
+interface CatalogModel {
+  actual_name: string
+  description: string
+  cost_tier: string
+}
+
 // Generate model options from model_settings.json
 function generateModelOptions(): ModelOption[] {
   const options: ModelOption[] = []
 
   Object.entries(modelSettings.providers).forEach(([providerKey, provider]) => {
-    Object.entries(provider.models || {}).forEach(([modelKey, model]: [string, any]) => {
+    Object.values(provider.models as Record<string, CatalogModel>).forEach((model) => {
       const costTier = model.cost_tier
       const performance = costTier === 'high' ? 'high' : costTier === 'medium' ? 'medium' : 'low'
       const speed = costTier === 'very_low' || costTier === 'low' ? 'fast' : 'medium'
@@ -62,24 +68,24 @@ import { CUSTOM_PROVIDER_PRESETS, type CustomPresetKey } from '@/lib/config/cust
 function getPresets(provider: Provider) {
   if (provider === 'openai') {
     return {
-      performance: { model: MODELS.openai.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: MODELS.openai.balanced, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.openai.best, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.openai.recommended, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else if (provider === 'anthropic') {
     return {
-      performance: { model: MODELS.anthropic.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: MODELS.anthropic.fast, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.anthropic.best, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.anthropic.recommended, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else if (provider === 'custom') {
     return {
-      performance: { model: 'deepseek-chat', name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: 'deepseek-chat', name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: CUSTOM_PROVIDER_PRESETS.deepseek.models[1], name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: CUSTOM_PROVIDER_PRESETS.deepseek.models[0], name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   } else {
     // OpenRouter
     return {
-      performance: { model: MODELS.openrouter.recommended, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
-      balanced: { model: MODELS.openrouter.fast, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
+      performance: { model: MODELS.openrouter.best, name: 'Performance', icon: <Zap className="h-4 w-4" /> },
+      balanced: { model: MODELS.openrouter.recommended, name: 'Balanced', icon: <Settings className="h-4 w-4" /> }
     }
   }
 }
@@ -318,7 +324,7 @@ export function AgentModelSelector({
                   <Input
                     type="text"
                     placeholder="Or enter a custom model name..."
-                    value={CUSTOM_PROVIDER_PRESETS[customPreset].models.includes(model as any) ? '' : model}
+                    value={CUSTOM_PROVIDER_PRESETS[customPreset].models.some(modelName => modelName === model) ? '' : model}
                     onChange={(e) => handleModelChange(e.target.value)}
                     className="mt-2"
                   />
@@ -326,7 +332,7 @@ export function AgentModelSelector({
               ) : (
                 <Input
                   type="text"
-                  placeholder="Enter model name (e.g., gpt-4, llama-3-70b)"
+                  placeholder="Enter model name (e.g., gpt-5.6-terra, llama-4-maverick)"
                   value={model}
                   onChange={(e) => handleModelChange(e.target.value)}
                 />

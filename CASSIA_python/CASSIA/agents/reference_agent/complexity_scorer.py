@@ -91,10 +91,10 @@ def select_references_llm(
                 get_model_settings()
                 .settings.get("providers", {})
                 .get(provider, {})
-                .get("fast", "google/gemini-3-flash-preview")
+                .get("fast", "google/gemini-3.8-flash")
             )
         except Exception:
-            model = "google/gemini-3-flash-preview"
+            model = "google/gemini-3.8-flash"
 
     router_content = _load_router_content()
     if not router_content:

@@ -203,7 +203,7 @@ def extract_score_and_reasoning(text):
         return None, None
 
 
-def score_single_analysis(major_cluster_info, marker, annotation_history, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", reasoning=None):
+def score_single_analysis(major_cluster_info, marker, annotation_history, model="anthropic/claude-sonnet-5", provider="openrouter", reasoning=None):
     """
     Score a single cell type annotation analysis.
 
@@ -211,7 +211,7 @@ def score_single_analysis(major_cluster_info, marker, annotation_history, model=
         major_cluster_info (str): Information about species and tissue
         marker (str): Comma-separated list of marker genes
         annotation_history (str): History of annotation conversation
-        model (str): Model to use (e.g., "gpt-4" for OpenAI or "claude-3-5-sonnet-20241022" for Anthropic)
+        model (str): Model to use (e.g., "gpt-5.6-terra" for OpenAI or "claude-sonnet-5" for Anthropic)
         provider (str): AI provider to use ('openai', 'anthropic', or 'openrouter')
         reasoning (str, optional): Reasoning effort level ("low", "medium", "high").
             Controls how much the model "thinks" before responding.
@@ -255,7 +255,7 @@ def _get_task_name(row):
     return f"Row {row.name + 1}"
 
 
-def process_single_row(row_data, model="deepseek/deepseek-chat-v3-0324", provider="openrouter", conversations_data=None, reasoning=None):
+def process_single_row(row_data, model="anthropic/claude-sonnet-5", provider="openrouter", conversations_data=None, reasoning=None):
     """
     Process a single row of data for scoring.
 
@@ -533,7 +533,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model=Non
         raise
 
 
-def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="deepseek/deepseek-chat-v3-0324", provider="openrouter"):
+def score_annotation_batch(results_file_path, output_file_path=None, max_workers=4, model="anthropic/claude-sonnet-5", provider="openrouter"):
     """
     Process and score all rows in a results CSV file in parallel.
 

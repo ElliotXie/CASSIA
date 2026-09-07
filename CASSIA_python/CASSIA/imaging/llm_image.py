@@ -73,9 +73,9 @@ def call_llm_with_image(
     
     # Default vision models for each provider if not specified
     default_models = {
-        "openai": "gpt-4o",
-        "anthropic": "claude-3-5-sonnet-20241022",
-        "openrouter": "openai/gpt-4o",
+        "openai": "gpt-5.6-terra",
+        "anthropic": "claude-sonnet-5",
+        "openrouter": "openai/gpt-5.6-terra",
     }
     
     # Use default model if not specified
@@ -429,4 +429,4 @@ def call_llm_extract_text_from_image(
         max_tokens=max_tokens,
         system_prompt="You are an expert OCR assistant. Extract text accurately and preserve formatting.",
         additional_params=additional_params
-    ) 
+    )

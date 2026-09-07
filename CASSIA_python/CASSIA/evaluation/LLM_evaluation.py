@@ -1089,7 +1089,7 @@ def main():
     # Common arguments
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument('--api-key', type=str, help='OpenRouter API key')
-    parent_parser.add_argument('--model', type=str, default='anthropic/claude-3.5-sonnet', 
+    parent_parser.add_argument('--model', type=str, default='anthropic/claude-sonnet-5',
                               help='Model to use for evaluation')
     
     # Single cell type evaluation

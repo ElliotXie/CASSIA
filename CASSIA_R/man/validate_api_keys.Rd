@@ -34,9 +34,9 @@ only tested once per session unless the key changes or force_revalidate=TRUE.
 The validation makes a minimal test call using the cheapest model for each
 provider (costing ~$0.000001 per validation):
 \itemize{
-\item OpenAI: gpt-4o-mini
-\item Anthropic: claude-3-haiku-20240307
-\item OpenRouter: openai/gpt-4o-mini
+\item OpenAI: gpt-5-nano
+\item Anthropic: claude-haiku-4-5
+\item OpenRouter: google/gemini-3.5-flash-lite
 }
 }
 \examples{

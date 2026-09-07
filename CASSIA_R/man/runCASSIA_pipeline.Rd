@@ -30,7 +30,8 @@ runCASSIA_pipeline(
   ascending = NULL,
   validator_involvement = "v1",
   output_dir = NULL,
-  validate_api_keys_before_start = TRUE
+  validate_api_keys_before_start = TRUE,
+  n_genes = 50L
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ Individual model parameters can override specific stages. (default: "openrouter"
 
 \item{validate_api_keys_before_start}{Logical. If TRUE (default), validates the API key before starting.
 Fails fast with clear error message if the key is invalid.}
+
+\item{n_genes}{Number of top genes to extract per cluster for annotation (default: 50)}
 }
 \value{
 None. Creates output files and generates reports.

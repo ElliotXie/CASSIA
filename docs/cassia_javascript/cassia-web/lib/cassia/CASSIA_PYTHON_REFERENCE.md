@@ -201,7 +201,7 @@ def runCASSIA_annotationboost(
 def call_llm(
     prompt,                    # User prompt
     provider='openai',         # Provider name
-    model='gpt-4o',            # Model name
+    model='gpt-5.6-terra',     # Model name
     temperature=0,             # 0 (deterministic) to 1 (creative)
     system_prompt=None,        # Custom system instructions
     max_tokens=4096,           # Output length limit
@@ -210,8 +210,8 @@ def call_llm(
 ```
 
 **Supported Providers**:
-- OpenAI (gpt-4o, gpt-5.4-mini, gpt-5.4)
-- Anthropic (claude-sonnet-4-6, claude-opus-4.6)
+- OpenAI (gpt-5.6-luna, gpt-5.6-terra, gpt-6-astra)
+- Anthropic (claude-haiku-4-5, claude-sonnet-5, claude-opus-5)
 - OpenRouter (gemini, llama, deepseek)
 - Custom OpenAI-compatible endpoints
 
@@ -226,9 +226,9 @@ def call_llm(
 **Tier Shortcuts**:
 | Tier | Purpose | Example Models |
 |------|---------|----------------|
-| `"best"` | Highest quality | gpt-5.4, claude-opus-4.6, gemini-3-pro-preview |
-| `"balanced"` | Good quality/speed | gpt-4o, claude-sonnet-4-6 |
-| `"fast"` | Quick responses | gpt-5.4-mini, gemini-flash |
+| `"best"` | Highest quality | gpt-6-astra, claude-opus-5, gemini-3.1-pro-preview |
+| `"balanced"` | Good quality/speed | gpt-5.6-terra, claude-sonnet-5 |
+| `"fast"` | Quick responses | gpt-5.6-luna, gemini-3.8-flash |
 | `"recommended"` | Internal defaults | Provider-specific |
 
 **Method**: `resolve_model_name(name, provider) → (model, provider)`

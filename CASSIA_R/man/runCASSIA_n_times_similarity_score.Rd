@@ -10,7 +10,7 @@ runCASSIA_n_times_similarity_score(
   additional_info,
   temperature = 0.3,
   marker_list,
-  model = "openai/gpt-5.1",
+  model = "openai/gpt-5.6-terra",
   max_workers,
   n,
   provider = "openrouter",

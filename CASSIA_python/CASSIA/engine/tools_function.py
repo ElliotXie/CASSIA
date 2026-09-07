@@ -377,7 +377,7 @@ def _runCASSIA_inner(
     model = validated['model']
     validator_involvement = validated['validator_involvement']
 
-    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.4")
+    # Resolve fuzzy model names to full model names (e.g., "gpt" -> "gpt-5.6-terra")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=False)
 
@@ -706,7 +706,7 @@ def _runCASSIA_batch_inner(
     ranking_method = validated['ranking_method']
     validator_involvement = validated['validator_involvement']
 
-    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.4")
+    # Resolve fuzzy model names ONCE before batch starts (e.g., "gpt" -> "gpt-5.6-terra")
     settings = ModelSettings()
     model, provider = settings.resolve_model_name(model, provider, verbose=True)
 

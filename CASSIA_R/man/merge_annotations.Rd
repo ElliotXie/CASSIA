@@ -8,7 +8,7 @@ merge_annotations(
   csv_path,
   output_path = NULL,
   provider = "openrouter",
-  model = "google/gemini-2.5-flash",
+  model = "google/gemini-3.8-flash",
   temperature = 0,
   api_key = NULL,
   additional_context = NULL,
@@ -21,9 +21,11 @@ merge_annotations(
 
 \item{output_path}{Path to save the results (if NULL, returns DataFrame without saving)}
 
-\item{provider}{LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openai")}
+\item{provider}{LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openrouter")}
 
 \item{model}{Specific model to use (if NULL, uses default for provider)}
+
+\item{temperature}{Sampling temperature (0-1)}
 
 \item{api_key}{API key for the provider (if NULL, gets from environment)}
 

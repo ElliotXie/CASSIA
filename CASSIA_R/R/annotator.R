@@ -67,8 +67,8 @@ py_cassia <- NULL
   })
 }
 
-# Check if Python version meets requirements (>= 3.8)
-.check_python_version <- function(required_version = "3.8") {
+# Check if Python version meets requirements (>= 3.9)
+.check_python_version <- function(required_version = "3.9") {
   py_info <- .check_python_available()
   if (!py_info$available) {
     return(list(ok = FALSE, reason = "Python not found", current = NULL, required = required_version))
@@ -129,14 +129,14 @@ py_cassia <- NULL
   # Choose highest detected version
   if (length(versions_found) > 0) {
     best <- as.character(max(package_version(versions_found)))
-    if (package_version(best) < package_version("3.8")) {
-      return("3.8")
+    if (package_version(best) < package_version("3.9")) {
+      return("3.9")
     }
     return(best)
   }
 
   # Fallback
-  "3.8"
+  "3.9"
 }
 
 # Check if environment managers (virtualenv/conda) are available
@@ -162,7 +162,7 @@ py_cassia <- NULL
 .error_messages <- list(
   python_not_found = list(
     what = "Python is not installed or not found in your system PATH.",
-    why = "CASSIA requires Python 3.8+ to run its cell annotation engine.",
+    why = "CASSIA requires Python 3.9+ to run its cell annotation engine.",
     fix_windows = c(
       "1. Download Python from https://www.python.org/downloads/",
       "2. During installation, CHECK the box 'Add Python to PATH'",
@@ -191,7 +191,7 @@ py_cassia <- NULL
 
   python_version = list(
     what = "Your Python version is not compatible with CASSIA.",
-    why = "CASSIA requires Python 3.8 or higher.",
+    why = "CASSIA requires Python 3.9 or higher.",
     fix_windows = c(
       "1. Download Python 3.10+ from https://www.python.org/downloads/",
       "2. During installation, CHECK 'Add Python to PATH'",
@@ -419,7 +419,7 @@ py_cassia <- NULL
 # Python dependencies CASSIA needs. Kept in sync with the install_requires list
 # in CASSIA_python/setup.py. Used by the managed-Python tier below.
 .CASSIA_PY_DEPS <- c(
-  "numpy>=1.21.0", "pandas>=1.3.0", "openai>=1.0.0", "anthropic>=0.3.0",
+  "numpy>=1.21.0", "pandas>=1.3.0", "openai>=2.0.0", "anthropic>=0.125.0",
   "requests>=2.25.0", "matplotlib>=3.3.0", "seaborn>=0.11.0", "mygene>=3.2.0"
 )
 
@@ -556,7 +556,7 @@ py_cassia <- NULL
     "  CASSIA: Python Not Found",
     "===============================================================================",
     "",
-    "CASSIA requires Python 3.8+ to run. Python was not detected on your system.",
+    "CASSIA requires Python 3.9+ to run. Python was not detected on your system.",
     "",
     "STEP-BY-STEP INSTALLATION:",
     ""
@@ -627,7 +627,7 @@ py_cassia <- NULL
     "  CASSIA: Python Version Too Old",
     "===============================================================================",
     "",
-    paste0("Found Python ", current_version, ", but CASSIA requires Python 3.8 or higher."),
+    paste0("Found Python ", current_version, ", but CASSIA requires Python 3.9 or higher."),
     "",
     "STEP-BY-STEP UPGRADE:",
     ""
@@ -859,7 +859,7 @@ py_cassia <- NULL
       }
     } else {
       # Python installed but environment not set up
-      version_check <- .check_python_version("3.8")
+      version_check <- .check_python_version("3.9")
 
       if (!version_check$ok) {
         lines <- c(
@@ -869,7 +869,7 @@ py_cassia <- NULL
           "===============================================================================",
           "",
           paste0(func_context, "Found Python ", version_check$current,
-                " but CASSIA requires Python 3.8+."),
+                " but CASSIA requires Python 3.9+."),
           "",
           "QUICK FIX:",
           "",
@@ -1013,7 +1013,7 @@ py_cassia <- NULL
 #' 
 #' @param conda_env The name of the environment to use. If NULL, uses the default from package configuration.
 #' @param python_version The Python version to use. Default is NULL (auto-detect
-#'   an installed Python >= 3.8; falls back to "3.8" if none detected).
+#'   an installed Python >= 3.9; falls back to "3.9" if none detected).
 #' @param pip_packages A character vector of pip packages to install.
 #' @param method The method to use for environment setup. Options: "auto" (try virtualenv first, then conda), "virtualenv", "conda". Default is "auto".
 #'
@@ -1299,7 +1299,7 @@ set_proxy <- function(proxy = NULL) {
 #' @param proxy Proxy preset for regions where US API providers are blocked. Set to "china" to route through Cloudflare proxy. Default: NULL (direct connection).
 #' @return A list containing three elements: structured_output, conversation_history, and reference_info.
 #' @export
-runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL, proxy = NULL) {
+runCASSIA <- function(model = "openai/gpt-5.6-terra", temperature = 0, marker_list, tissue, species, additional_info = NULL, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL, proxy = NULL) {
   # Convert marker_list to character vector if it's a data frame
   if (is.data.frame(marker_list)) {
     # Try common column names for gene markers
@@ -1385,7 +1385,7 @@ runCASSIA <- function(model = "openai/gpt-5.1", temperature = 0, marker_list, ti
 #' @return A list containing results from multiple runs, each with analysis_result, conversation_history, and reference_info.
 #' @export
 runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature = 0.3, marker_list,
-                           model = "openai/gpt-5.1", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
+                           model = "openai/gpt-5.6-terra", max_workers = 10, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, reasoning = NULL) {
   tryCatch({
     result <- py_cassia$runCASSIA_n_times(
       n = as.integer(n),
@@ -1450,7 +1450,7 @@ runCASSIA_n_times <- function(n, tissue, species, additional_info, temperature =
 #'
 #' @return A list containing processed results including variance analysis.
 #' @export
-runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature = 0.3, marker_list, model = "openai/gpt-5.1", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, generate_report = TRUE, report_output_path = NULL) {
+runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info, temperature = 0.3, marker_list, model = "openai/gpt-5.6-terra", max_workers, n, provider = "openrouter", validator_involvement = "v1", use_reference = FALSE, generate_report = TRUE, report_output_path = NULL) {
   tryCatch({
     # Call the Python function with the new parameter structure
     processed_results <- py_cassia$runCASSIA_n_times_similarity_score(
@@ -1525,7 +1525,7 @@ runCASSIA_n_times_similarity_score <- function(tissue, species, additional_info,
 #' @return None. This function creates output files and prints execution time.
 #' @export
 runCASSIA_batch <- function(marker, output_name = "cell_type_analysis_results.json",
-                          model = "openai/gpt-5.1", temperature = 0, tissue = "lung",
+                          model = "openai/gpt-5.6-terra", temperature = 0, tissue = "lung",
                           species = "human", additional_info = NULL,
                           celltype_column = NULL, gene_column_name = NULL,
                           max_workers = 10, provider = "openrouter", n_genes = 50,
@@ -1603,7 +1603,7 @@ if (is.data.frame(marker)) {
 #' @return None. This function creates output files and prints execution time.
 #' @export
 runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis_results",
-                                  model = "openai/gpt-5.1", temperature = 0.3, tissue = "lung",
+                                  model = "openai/gpt-5.6-terra", temperature = 0.3, tissue = "lung",
                                   species = "human", additional_info = NULL,
                                   celltype_column = NULL, gene_column_name = NULL,
                                   max_workers = 10, batch_max_workers = 5,
@@ -1650,7 +1650,8 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @param output_name Name of the output CSV file.
 #' @param celltype_column Name of the column containing cell types.
 #' @param max_workers Maximum number of workers for parallel processing.
-#' @param model Model to use for processing (default: "gpt-4o")
+#' @param model Model to use for processing (default: "openai/gpt-5.6-terra")
+#' @param temperature Sampling temperature (0-1).
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param main_weight Weight for the main cell type.
 #' @param sub_weight Weight for the sub cell type.
@@ -1660,7 +1661,7 @@ runCASSIA_batch_n_times <- function(n, marker, output_name = "cell_type_analysis
 #' @return None. This function processes and saves results to a CSV file and prints execution time.
 #' @export
 runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
-                                               celltype_column = NULL, max_workers = 10, model = "openai/gpt-5.1", temperature = 0, provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
+                                               celltype_column = NULL, max_workers = 10, model = "openai/gpt-5.6-terra", temperature = 0, provider = "openrouter", main_weight=0.5, sub_weight=0.5, generate_report = TRUE, report_output_path = NULL) {
   if (is.data.frame(marker)) {
     # Determine the cluster column to check
     cluster_col <- if (!is.null(celltype_column)) celltype_column else "cluster"
@@ -1715,7 +1716,7 @@ runCASSIA_similarity_score_batch <- function(marker, file_pattern, output_name,
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
+#' @param model Model to use for analysis (default="anthropic/claude-sonnet-5")
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param temperature Sampling temperature (0-1)
 #' @param conversation_history_mode Mode for extracting conversation history ("full", "final", or "none") (default: "full")
@@ -1735,7 +1736,7 @@ runCASSIA_annotationboost <- function(full_result_path,
                                      major_cluster_info,
                                      output_name,
                                      num_iterations = 5,
-                                     model = "anthropic/claude-sonnet-4.5",
+                                     model = "anthropic/claude-sonnet-5",
                                      provider = "openrouter",
                                      temperature = 0.1,
                                      conversation_history_mode = "full",
@@ -1797,7 +1798,7 @@ runCASSIA_annotationboost <- function(full_result_path,
 #' @param major_cluster_info General information about the dataset (e.g., "Human PBMC")
 #' @param output_name Name of the output HTML file
 #' @param num_iterations Number of iterations for marker analysis (default=5)
-#' @param model Model to use for analysis (default="google/gemini-2.5-flash-preview")
+#' @param model Model to use for analysis (default="anthropic/claude-sonnet-5")
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param additional_task Additional task to perform during analysis
 #' @param temperature Sampling temperature (0-1)
@@ -1816,7 +1817,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
                                                      major_cluster_info,
                                                      output_name,
                                                      num_iterations = 5,
-                                                     model = "anthropic/claude-sonnet-4.5",
+                                                     model = "anthropic/claude-sonnet-5",
                                                      provider = "openrouter",
                                                      additional_task = "check if this is a cancer cluster",
                                                      temperature = 0.1,
@@ -1872,6 +1873,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
 #' @param output_file Path to output CSV file (optional)
 #' @param max_workers Maximum number of parallel workers
 #' @param model Model to use
+#' @param temperature Sampling temperature (0-1)
 #' @param provider AI provider to use ('openai', 'anthropic', or 'openrouter')
 #' @param max_retries Maximum number of retries for failed analyses (default: 1)
 #'
@@ -1880,7 +1882,7 @@ runCASSIA_annotationboost_additional_task <- function(full_result_path,
 runCASSIA_score_batch <- function(input_file,
                                     output_file = NULL,
                                     max_workers = 4,
-                                    model = "anthropic/claude-sonnet-4.5",
+                                    model = "anthropic/claude-sonnet-5",
                                     temperature = 0,
                                     provider = "openrouter",
                                     max_retries = 1) {
@@ -2314,7 +2316,7 @@ compute_subcluster_marker_sets <- function(data,
 #' @param marker Marker data (data frame or file path)
 #' @param major_cluster_info Description of the major cluster type
 #' @param output_name Base name for the output file (will add .csv if not present)
-#' @param model Model name for Claude API (default: "claude-3-5-sonnet-20241022")
+#' @param model Model name for the selected provider (default: "anthropic/claude-sonnet-5")
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
 #' @param n_genes Number of top genes to use (default: 50)
@@ -2332,7 +2334,7 @@ compute_subcluster_marker_sets <- function(data,
 #' @return None. This function processes subclusters and saves results to a CSV file.
 #' @export
 runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
-                               model = "anthropic/claude-sonnet-4.5", temperature = 0,
+                               model = "anthropic/claude-sonnet-5", temperature = 0,
                                provider = "openrouter", n_genes = 50L,
                                tissue = NULL, species = NULL,
                                additional_context = NULL,
@@ -2370,7 +2372,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' @param marker Marker data (data frame or file path)
 #' @param major_cluster_info Description of the major cluster type
 #' @param base_output_name Base name for output CSV files
-#' @param model Model name for Claude API (default: "claude-3-5-sonnet-20241022")
+#' @param model Model name for the selected provider (default: "anthropic/claude-sonnet-5")
 #' @param temperature Temperature parameter for API calls (default: 0)
 #' @param provider AI provider to use (default: "anthropic")
 #' @param max_workers Maximum number of workers for parallel processing (default: 5)
@@ -2389,7 +2391,7 @@ runCASSIA_subclusters <- function(marker, major_cluster_info, output_name,
 #' @return None. This function runs the analysis multiple times and saves results to CSV files.
 #' @export
 runCASSIA_n_subcluster <- function(n, marker, major_cluster_info, base_output_name,
-                                               model = "anthropic/claude-sonnet-4.5", temperature = 0.3,
+                                               model = "anthropic/claude-sonnet-5", temperature = 0.3,
                                                provider = "openrouter", max_workers = 5, n_genes = 50L,
                                                tissue = NULL, species = NULL,
                                                additional_context = NULL,
@@ -2575,8 +2577,9 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
 #'
 #' @param csv_path Path to the CSV file containing cluster annotations
 #' @param output_path Path to save the results (if NULL, returns DataFrame without saving)
-#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openai")
+#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openrouter")
 #' @param model Specific model to use (if NULL, uses default for provider)
+#' @param temperature Sampling temperature (0-1)
 #' @param api_key API key for the provider (if NULL, gets from environment)
 #' @param additional_context Optional domain-specific context to help with annotation
 #' @param batch_size Number of clusters to process in each LLM call (default: 20)
@@ -2602,7 +2605,7 @@ calculate_evaluation_metrics <- function(eval_df, score_col = "score") {
 merge_annotations <- function(csv_path,
                              output_path = NULL,
                              provider = "openrouter",
-                             model = "google/gemini-2.5-flash",
+                             model = "google/gemini-3.8-flash",
                              temperature = 0,
                              api_key = NULL,
                              additional_context = NULL,
@@ -2637,8 +2640,9 @@ merge_annotations <- function(csv_path,
 #'
 #' @param csv_path Path to the CSV file containing cluster annotations
 #' @param output_path Path to save the results (if NULL, returns DataFrame without saving)
-#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openai")
+#' @param provider LLM provider to use ("openai", "anthropic", or "openrouter") (default: "openrouter")
 #' @param model Specific model to use (if NULL, uses default for provider)
+#' @param temperature Sampling temperature (0-1)
 #' @param api_key API key for the provider (if NULL, gets from environment)
 #' @param additional_context Optional domain-specific context to help with annotation
 #' @param batch_size Number of clusters to process in each LLM call (default: 20)
@@ -2659,7 +2663,7 @@ merge_annotations <- function(csv_path,
 merge_annotations_all <- function(csv_path,
                                   output_path = NULL,
                                   provider = "openrouter",
-                                  model = "google/gemini-2.5-flash",
+                                  model = "google/gemini-3.8-flash",
                                   temperature = 0,
                                   api_key = NULL,
                                   additional_context = NULL,

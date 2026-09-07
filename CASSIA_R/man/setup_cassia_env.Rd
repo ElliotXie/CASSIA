@@ -6,16 +6,17 @@
 \usage{
 setup_cassia_env(
   conda_env = NULL,
-  python_version = "3.10",
+  python_version = NULL,
   pip_packages = c("openai", "pandas", "numpy", "requests", "anthropic", "matplotlib",
-    "seaborn"),
+    "seaborn", "mygene"),
   method = "auto"
 )
 }
 \arguments{
 \item{conda_env}{The name of the environment to use. If NULL, uses the default from package configuration.}
 
-\item{python_version}{The Python version to use. Default is "3.10".}
+\item{python_version}{The Python version to use. Default is NULL (auto-detect
+an installed Python >= 3.9; falls back to "3.9" if none detected).}
 
 \item{pip_packages}{A character vector of pip packages to install.}
 

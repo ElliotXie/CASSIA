@@ -13,11 +13,16 @@ from pathlib import Path
 
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "shared" / "python"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "CASSIA_python"))
 
-from test_utils import setup_cassia_imports, print_test_header, print_test_result
 
-setup_cassia_imports()
+def print_test_header(name):
+    print(f"\n=== CASSIA Test {name} ===")
+
+
+def print_test_result(success, detail):
+    status = "PASS" if success else "FAIL"
+    print(f"{status}: {detail}")
 
 
 def test_reference_agent_selects_macrophage_docs():

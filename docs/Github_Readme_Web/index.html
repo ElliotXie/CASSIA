@@ -296,29 +296,35 @@ runCASSIA_pipeline(
         <section id="models" class="content-section">
             <div class="container">
                 <h2><i class="fas fa-robot"></i> Supported Models</h2>
-                <p>You can choose any model for annotation and scoring. Some classic models are listed below. OpenRouter supports most of the current popular models, although some have not been extensively benchmarked in the CASSIA paper — feel free to experiment with them.</p>
+                <p>You can choose any model for annotation and scoring. The current defaults below are compatibility recommendations, not new CASSIA benchmark results; dated benchmark entries remain historical records.</p>
 
                 <div class="model-cards">
                     <div class="model-card">
                         <h3>OpenRouter</h3>
                         <ul>
-                            <li><strong>google/gemini-2.5-flash-preview</strong>: One of the best-performed low-cost models, comparable with models like gpt-4o (Most recommended)</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324</strong>: One of the best-performed open-source models, turns to gives very detailed annotations (Recommended)</li>
-                            <li><strong>deepseek/deepseek-chat-v3-0324:free</strong>: Free but slower</li>
+                            <li><strong>anthropic/claude-sonnet-5</strong>: Balanced default (Recommended)</li>
+                            <li><strong>google/gemini-3.8-flash</strong>: Fast, low-cost option</li>
+                            <li><strong>deepseek/deepseek-v4-flash-0731</strong>: Very low-cost option</li>
+                            <li><strong>x-ai/grok-4.6</strong>, <strong>moonshotai/kimi-k3</strong>, and <strong>meta-llama/llama-4-maverick</strong> are also supported</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>OpenAI</h3>
                         <ul>
-                            <li><strong>gpt-4o</strong>: Used in the benchmark</li>
+                            <li><strong>gpt-6-astra</strong>: Current flagship; availability may vary</li>
+                            <li><strong>gpt-5.6-terra</strong>: Balanced default (Recommended)</li>
+                            <li><strong>gpt-5.6-luna</strong>: Fast, cost-sensitive option</li>
+                            <li><strong>gpt-4o</strong>: Used in the historical benchmark</li>
                         </ul>
                     </div>
                     
                     <div class="model-card">
                         <h3>Anthropic</h3>
                         <ul>
-                            <li><strong>claude-3-7-sonnet-latest</strong>: The latest High-performance model</li>
+                            <li><strong>claude-sonnet-5</strong>: Balanced default (Recommended)</li>
+                            <li><strong>claude-opus-5</strong>: Current flagship</li>
+                            <li><strong>claude-haiku-4-5</strong>: Fast option</li>
                         </ul>
                     </div>
                 </div>
@@ -399,4 +405,4 @@ setLLMApiKey("your_api_key", provider = "anthropic", persist = TRUE)</code></pre
 
     <script src="script.js" defer></script>
 </body>
-</html> 
+</html>

@@ -23,12 +23,12 @@ to their actual provider-specific names.
 \dontrun{
 # Using simple names
 resolve_model_name("gpt4")  # Returns gpt-4o with openai provider
-resolve_model_name("claude")  # Returns claude-3-5-sonnet-latest with anthropic provider
-resolve_model_name("gemini")  # Returns google/gemini-2.5-flash with openrouter provider
+resolve_model_name("claude")  # Returns claude-sonnet-5 with anthropic provider
+resolve_model_name("gemini")  # Returns google/gemini-3.8-flash with openrouter provider
 
 # Using aliases
-resolve_model_name("sonnet")  # Returns claude-3-5-sonnet-latest
-resolve_model_name("deepseek")  # Returns deepseek/deepseek-chat-v3-0324
+resolve_model_name("sonnet")  # Returns claude-sonnet-5
+resolve_model_name("deepseek")  # Returns deepseek/deepseek-v4-flash-0731
 
 # With specific provider
 resolve_model_name("gpt-4o", "openai")

@@ -1,50 +1,55 @@
 {
-  "version": "3.0.0",
-  "last_updated": "2026-03-22",
+  "version": "4.0.0",
+  "last_updated": "2026-09-07",
   "providers": {
     "openai": {
-      "best": "gpt-5.4",
-      "balanced": "gpt-4o",
-      "fast": "gpt-5.4-mini",
-      "recommended": "gpt-5.4"
+      "best": "gpt-6-astra",
+      "balanced": "gpt-5.6-terra",
+      "fast": "gpt-5.6-luna",
+      "recommended": "gpt-5.6-terra"
     },
     "anthropic": {
-      "best": "claude-opus-4-6",
-      "balanced": "claude-sonnet-4-6",
+      "best": "claude-opus-5",
+      "balanced": "claude-sonnet-5",
       "fast": "claude-haiku-4-5",
-      "recommended": "claude-sonnet-4-6"
+      "recommended": "claude-sonnet-5"
     },
     "openrouter": {
-      "best": "anthropic/claude-sonnet-4.6",
-      "balanced": "openai/gpt-5.4",
-      "fast": "google/gemini-3-flash-preview",
-      "recommended": "anthropic/claude-sonnet-4.6"
+      "best": "openai/gpt-6-astra",
+      "balanced": "anthropic/claude-sonnet-5",
+      "fast": "google/gemini-3.8-flash",
+      "recommended": "anthropic/claude-sonnet-5"
     }
   },
   "aliases": {
     "provider_specific": {
       "openai": {
-        "gpt": "gpt-5.4",
+        "gpt": "gpt-5.6-terra",
         "gpt4": "gpt-4o",
         "gpt-4": "gpt-4o",
         "4o": "gpt-4o",
         "gpt4o": "gpt-4o",
-        "gpt5": "gpt-5.4",
-        "gpt-5": "gpt-5.4",
-        "5.1": "gpt-5.4",
-        "mini": "gpt-5.4-mini",
-        "gpt-mini": "gpt-5.4-mini",
+        "gpt5": "gpt-5.6-terra",
+        "gpt-5": "gpt-5.6-terra",
+        "mini": "gpt-5.6-luna",
+        "gpt-mini": "gpt-5.6-luna",
         "o1": "o1",
         "o1-mini": "o1-mini",
-        "o1-preview": "o1-preview"
+        "o1-preview": "o1-preview",
+        "gpt6": "gpt-6-astra",
+        "gpt-6": "gpt-6-astra",
+        "astra": "gpt-6-astra",
+        "sol": "gpt-5.6-sol",
+        "terra": "gpt-5.6-terra",
+        "luna": "gpt-5.6-luna"
       },
       "anthropic": {
-        "claude": "claude-sonnet-4-6",
-        "sonnet": "claude-sonnet-4-6",
+        "claude": "claude-sonnet-5",
+        "sonnet": "claude-sonnet-5",
         "sonnet4": "claude-sonnet-4-6",
         "sonnet-4": "claude-sonnet-4-6",
         "sonnet4.5": "claude-sonnet-4-6",
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-5",
         "opus4": "claude-opus-4-6",
         "opus-4": "claude-opus-4-6",
         "opus4.5": "claude-opus-4-6",
@@ -54,47 +59,52 @@
         "claude3": "claude-3-5-sonnet-latest",
         "claude-3": "claude-3-5-sonnet-latest",
         "claude4": "claude-sonnet-4-6",
-        "claude-4": "claude-sonnet-4-6"
+        "claude-4": "claude-sonnet-4-6",
+        "sonnet5": "claude-sonnet-5",
+        "sonnet-5": "claude-sonnet-5",
+        "opus5": "claude-opus-5",
+        "opus-5": "claude-opus-5",
+        "claude5": "claude-sonnet-5",
+        "claude-5": "claude-sonnet-5"
       },
       "openrouter": {
-        "gpt": "openai/gpt-5.4",
+        "gpt": "openai/gpt-5.6-terra",
         "gpt4": "openai/gpt-4o",
         "gpt-4": "openai/gpt-4o",
         "4o": "openai/gpt-4o",
         "gpt4o": "openai/gpt-4o",
-        "gpt5": "openai/gpt-5.4",
-        "gpt-5": "openai/gpt-5.4",
-        "5.1": "openai/gpt-5.4",
-        "mini": "openai/gpt-5.4-mini",
-        "gpt-mini": "openai/gpt-5.4-mini",
+        "gpt5": "openai/gpt-5.6-terra",
+        "gpt-5": "openai/gpt-5.6-terra",
+        "mini": "openai/gpt-5.6-luna",
+        "gpt-mini": "openai/gpt-5.6-luna",
         "o1": "openai/o1",
         "o1-mini": "openai/o1-mini",
         "o1-preview": "openai/o1-preview",
-        "claude": "anthropic/claude-sonnet-4.6",
-        "sonnet": "anthropic/claude-sonnet-4.6",
+        "claude": "anthropic/claude-sonnet-5",
+        "sonnet": "anthropic/claude-sonnet-5",
         "sonnet4": "anthropic/claude-sonnet-4.6",
         "sonnet-4": "anthropic/claude-sonnet-4.6",
         "sonnet4.5": "anthropic/claude-sonnet-4.6",
-        "opus": "anthropic/claude-opus-4.6",
+        "opus": "anthropic/claude-opus-5",
         "opus4": "anthropic/claude-opus-4.6",
         "opus-4": "anthropic/claude-opus-4.6",
         "opus4.5": "anthropic/claude-opus-4.6",
         "haiku": "anthropic/claude-haiku-4.5",
         "haiku4": "anthropic/claude-haiku-4.5",
         "haiku-4": "anthropic/claude-haiku-4.5",
-        "gemini": "google/gemini-3-flash-preview",
-        "flash": "google/gemini-3-flash-preview",
-        "gemini-flash": "google/gemini-3-flash-preview",
-        "gemini3": "google/gemini-3-flash-preview",
-        "gemini-3": "google/gemini-3-flash-preview",
-        "gemini2.5": "google/gemini-3-flash-preview",
-        "gemini-2.5": "google/gemini-3-flash-preview",
-        "pro": "google/gemini-2.5-pro",
-        "gemini-pro": "google/gemini-2.5-pro",
-        "deepseek": "deepseek/deepseek-chat",
-        "deepseek-chat": "deepseek/deepseek-chat",
+        "gemini": "google/gemini-3.8-flash",
+        "flash": "google/gemini-3.8-flash",
+        "gemini-flash": "google/gemini-3.8-flash",
+        "gemini3": "google/gemini-3.8-flash",
+        "gemini-3": "google/gemini-3.8-flash",
+        "gemini2.5": "google/gemini-2.5-flash",
+        "gemini-2.5": "google/gemini-2.5-flash",
+        "pro": "google/gemini-3.1-pro-preview",
+        "gemini-pro": "google/gemini-3.1-pro-preview",
+        "deepseek": "deepseek/deepseek-v4-flash-0731",
+        "deepseek-chat": "deepseek/deepseek-v4-flash-0731",
         "deepseek-coder": "deepseek/deepseek-coder",
-        "llama": "meta-llama/llama-3.1-70b-instruct",
+        "llama": "meta-llama/llama-4-maverick",
         "llama3": "meta-llama/llama-3.1-70b-instruct",
         "llama-3": "meta-llama/llama-3.1-70b-instruct",
         "llama70b": "meta-llama/llama-3.1-70b-instruct",
@@ -104,93 +114,171 @@
         "mistral": "mistralai/mistral-large-latest",
         "mistral-large": "mistralai/mistral-large-latest",
         "mixtral": "mistralai/mixtral-8x7b-instruct",
-        "kimi": "moonshotai/kimi-k2.6",
+        "kimi": "moonshotai/kimi-k3",
         "kimi-k2": "moonshotai/kimi-k2.6",
-        "kimi-k2.6": "moonshotai/kimi-k2.6"
+        "kimi-k2.6": "moonshotai/kimi-k2.6",
+        "gpt6": "openai/gpt-6-astra",
+        "gpt-6": "openai/gpt-6-astra",
+        "astra": "openai/gpt-6-astra",
+        "sol": "openai/gpt-5.6-sol",
+        "terra": "openai/gpt-5.6-terra",
+        "luna": "openai/gpt-5.6-luna",
+        "sonnet5": "anthropic/claude-sonnet-5",
+        "sonnet-5": "anthropic/claude-sonnet-5",
+        "opus5": "anthropic/claude-opus-5",
+        "opus-5": "anthropic/claude-opus-5",
+        "deepseek-pro": "deepseek/deepseek-v4-pro-0813",
+        "kimi-k3": "moonshotai/kimi-k3",
+        "grok": "x-ai/grok-4.6",
+        "grok4": "x-ai/grok-4.6",
+        "grok-4": "x-ai/grok-4.6"
       }
     },
     "global": {
-      "sonnet": "claude-sonnet-4-6",
-      "opus": "claude-opus-4-6",
+      "sonnet": "claude-sonnet-5",
+      "opus": "claude-opus-5",
       "haiku": "claude-haiku-4-5"
     }
   },
   "pipeline_defaults": {
     "openai": {
-      "annotation": "gpt-5.4",
-      "score": "gpt-5.4",
-      "merge": "gpt-5.4-mini",
-      "annotationboost": "gpt-5.4"
+      "annotation": "gpt-5.6-terra",
+      "score": "gpt-5.6-terra",
+      "merge": "gpt-5.6-luna",
+      "annotationboost": "gpt-5.6-terra"
     },
     "anthropic": {
-      "annotation": "claude-sonnet-4-6",
-      "score": "claude-sonnet-4-6",
+      "annotation": "claude-sonnet-5",
+      "score": "claude-sonnet-5",
       "merge": "claude-haiku-4-5",
-      "annotationboost": "claude-sonnet-4-6"
+      "annotationboost": "claude-sonnet-5"
     },
     "openrouter": {
-      "annotation": "openai/gpt-5.4",
-      "score": "anthropic/claude-sonnet-4.6",
-      "merge": "google/gemini-3-flash-preview",
-      "annotationboost": "anthropic/claude-sonnet-4.6"
+      "annotation": "openai/gpt-5.6-terra",
+      "score": "anthropic/claude-sonnet-5",
+      "merge": "google/gemini-3.8-flash",
+      "annotationboost": "anthropic/claude-sonnet-5"
     }
   },
   "agent_defaults": {
     "openrouter": {
-      "annotation": {"model": "openai/gpt-5.4", "temperature": 0},
-      "scoring": {"model": "anthropic/claude-sonnet-4.6", "temperature": 0},
-      "merging": {"model": "google/gemini-3-flash-preview", "temperature": 0},
-      "subclustering": {"model": "anthropic/claude-sonnet-4.6", "temperature": 0},
-      "subclustering_n": {"model": "anthropic/claude-sonnet-4.6", "temperature": 0.3},
-      "annotation_boost": {"model": "anthropic/claude-sonnet-4.6", "temperature": 0.1},
-      "uncertainty": {"model": "openai/gpt-5.4", "temperature": 0}
+      "annotation": {
+        "model": "openai/gpt-5.6-terra",
+        "temperature": 0
+      },
+      "scoring": {
+        "model": "anthropic/claude-sonnet-5",
+        "temperature": 0
+      },
+      "merging": {
+        "model": "google/gemini-3.8-flash",
+        "temperature": 0
+      },
+      "subclustering": {
+        "model": "anthropic/claude-sonnet-5",
+        "temperature": 0
+      },
+      "subclustering_n": {
+        "model": "anthropic/claude-sonnet-5",
+        "temperature": 0.3
+      },
+      "annotation_boost": {
+        "model": "anthropic/claude-sonnet-5",
+        "temperature": 0.1
+      },
+      "uncertainty": {
+        "model": "openai/gpt-5.6-terra",
+        "temperature": 0
+      }
     },
     "openai": {
-      "annotation": {"model": "gpt-5.4", "temperature": 0},
-      "scoring": {"model": "gpt-5.4", "temperature": 0},
-      "merging": {"model": "gpt-5.4-mini", "temperature": 0},
-      "subclustering": {"model": "gpt-5.4", "temperature": 0},
-      "subclustering_n": {"model": "gpt-5.4", "temperature": 0.3},
-      "annotation_boost": {"model": "gpt-5.4", "temperature": 0.1},
-      "uncertainty": {"model": "gpt-5.4", "temperature": 0}
+      "annotation": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0
+      },
+      "scoring": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0
+      },
+      "merging": {
+        "model": "gpt-5.6-luna",
+        "temperature": 0
+      },
+      "subclustering": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0
+      },
+      "subclustering_n": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0.3
+      },
+      "annotation_boost": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0.1
+      },
+      "uncertainty": {
+        "model": "gpt-5.6-terra",
+        "temperature": 0
+      }
     },
     "anthropic": {
-      "annotation": {"model": "claude-sonnet-4-6", "temperature": 0},
-      "scoring": {"model": "claude-sonnet-4-6", "temperature": 0},
-      "merging": {"model": "claude-haiku-4-5", "temperature": 0},
-      "subclustering": {"model": "claude-sonnet-4-6", "temperature": 0},
-      "subclustering_n": {"model": "claude-sonnet-4-6", "temperature": 0.3},
-      "annotation_boost": {"model": "claude-sonnet-4-6", "temperature": 0.1},
-      "uncertainty": {"model": "claude-sonnet-4-6", "temperature": 0}
+      "annotation": {
+        "model": "claude-sonnet-5",
+        "temperature": 0
+      },
+      "scoring": {
+        "model": "claude-sonnet-5",
+        "temperature": 0
+      },
+      "merging": {
+        "model": "claude-haiku-4-5",
+        "temperature": 0
+      },
+      "subclustering": {
+        "model": "claude-sonnet-5",
+        "temperature": 0
+      },
+      "subclustering_n": {
+        "model": "claude-sonnet-5",
+        "temperature": 0.3
+      },
+      "annotation_boost": {
+        "model": "claude-sonnet-5",
+        "temperature": 0.1
+      },
+      "uncertainty": {
+        "model": "claude-sonnet-5",
+        "temperature": 0
+      }
     }
   },
   "symphony_presets": {
     "premium": [
-      "google/gemini-3-pro-preview",
-      "anthropic/claude-sonnet-4.6",
-      "openai/gpt-5.4",
-      "x-ai/grok-4"
+      "google/gemini-3.1-pro-preview",
+      "anthropic/claude-opus-5",
+      "openai/gpt-6-astra",
+      "x-ai/grok-4.6"
     ],
     "budget": [
-      "deepseek/deepseek-v3.2",
-      "x-ai/grok-4.20-beta",
-      "moonshotai/kimi-k2.6",
-      "google/gemini-3-flash-preview"
+      "deepseek/deepseek-v4-flash-0731",
+      "openai/gpt-5.6-luna",
+      "meta-llama/llama-4-maverick",
+      "google/gemini-3.5-flash-lite"
     ]
   },
   "model_personas": {
-    "google/gemini-3-pro-preview": "Dr. Emmy Noether",
-    "anthropic/claude-sonnet-4.6": "Dr. Claude Shannon",
-    "openai/gpt-5.4": "Dr. Albert Einstein",
-    "x-ai/grok-4": "Dr. Marie Curie",
-    "deepseek/deepseek-v3.2": "Dr. Alan Turing",
-    "x-ai/grok-4.20-beta": "Dr. Nikola Tesla",
-    "moonshotai/kimi-k2.6": "Dr. Ada Lovelace",
-    "google/gemini-3-flash-preview": "Dr. Rosalind Franklin"
+    "google/gemini-3.1-pro-preview": "Dr. Emmy Noether",
+    "anthropic/claude-opus-5": "Dr. Claude Shannon",
+    "openai/gpt-6-astra": "Dr. Albert Einstein",
+    "x-ai/grok-4.6": "Dr. Marie Curie",
+    "deepseek/deepseek-v4-flash-0731": "Dr. Alan Turing",
+    "openai/gpt-5.6-luna": "Dr. Nikola Tesla",
+    "meta-llama/llama-4-maverick": "Dr. Ada Lovelace",
+    "google/gemini-3.5-flash-lite": "Dr. Rosalind Franklin"
   },
   "validation_models": {
     "openai": "gpt-5-nano",
-    "anthropic": "claude-3-haiku-20240307",
-    "openrouter": "google/gemini-3-flash-preview"
+    "anthropic": "claude-haiku-4-5",
+    "openrouter": "google/gemini-3.5-flash-lite"
   }
 }

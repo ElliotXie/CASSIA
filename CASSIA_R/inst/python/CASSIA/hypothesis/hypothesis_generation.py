@@ -81,8 +81,8 @@ def generate_hypothesis(
     formatter_provider: str = "openrouter",
     generator_api_key: Optional[str] = None,
     formatter_api_key: Optional[str] = None,
-    generator_model: Optional[str] = "openai/gpt-4o-2024-11-20",    #google/gemini-3-flash-preview, openai/gpt-4o
-    formatter_model: Optional[str] = "google/gemini-3-flash-preview",
+    generator_model: Optional[str] = "openai/gpt-5.6-terra",
+    formatter_model: Optional[str] = "google/gemini-3.8-flash",
     generator_temp: float = 0.5,
     formatter_temp: float = 0.0,
     max_tokens: int = 4096,
@@ -316,8 +316,8 @@ if __name__ == '__main__':
     species = "human"
     tissue = "bone marrow"
     num_runs = 3 # Set to 1 to disable multi-run and manifest generation.
-    generator_model_name = "google/gemini-3-flash-preview"
-    formatter_model_name = "google/gemini-3-flash-preview"
+    generator_model_name = "openai/gpt-5.6-terra"
+    formatter_model_name = "google/gemini-3.8-flash"
     # --------------------------
 
     run_multi_analysis(

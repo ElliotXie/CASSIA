@@ -66,8 +66,8 @@ CASSIA.runCASSIA_pipeline(
     marker=unprocessed_markers,
     max_workers=4,
     overall_provider="openrouter",
-    annotation_model="anthropic/claude-sonnet-4.6",
-    score_model="anthropic/claude-sonnet-4.6",
+    annotation_model="anthropic/claude-sonnet-5",
+    score_model="anthropic/claude-sonnet-5",
     score_threshold=75
 )
 ```
@@ -135,17 +135,19 @@ CSV/HTML consensus reports without calling an LLM.
 
 ## Supported Models
 
-You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models.
+You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models. These are current compatibility recommendations, not new CASSIA benchmark results.
 
 | Provider | Model | Notes |
 |----------|-------|-------|
-| OpenRouter | `anthropic/claude-sonnet-4.6` | Best-performing (Recommended) |
-| OpenRouter | `openai/gpt-5.4` | Best-performing |
-| OpenRouter | `google/gemini-3-flash-preview` | Best low-cost option |
-| OpenRouter | `x-ai/grok-4.20-beta` | Best low-cost option |
-| OpenAI | `gpt-5.4` | Balanced option |
-| Anthropic | `claude-sonnet-4-6` | Latest best-performing |
-| DeepSeek | `deepseek-chat` | Very affordable |
+| OpenRouter | `anthropic/claude-sonnet-5` | Balanced default (Recommended) |
+| OpenRouter | `openai/gpt-6-astra` | Current OpenAI flagship |
+| OpenRouter | `google/gemini-3.8-flash` | Fast, low-cost option |
+| OpenRouter | `deepseek/deepseek-v4-flash-0731` | Very low-cost option |
+| OpenAI | `gpt-5.6-terra` | Balanced default |
+| OpenAI | `gpt-6-astra` | Current flagship; availability may vary |
+| Anthropic | `claude-sonnet-5` | Balanced default |
+| Anthropic | `claude-opus-5` | Current flagship |
+| DeepSeek | `deepseek-v4-flash` | Very affordable direct-provider option |
 | Local | Any Ollama model | Zero cost, full privacy |
 
 ## Documentation

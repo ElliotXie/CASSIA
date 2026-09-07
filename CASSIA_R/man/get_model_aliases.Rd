@@ -21,7 +21,7 @@ Get all aliases for a model.
 \dontrun{
 # Get aliases for models
 get_model_aliases("gpt-4o")
-get_model_aliases("claude-3-5-sonnet-latest")
-get_model_aliases("google/gemini-2.5-flash")
+get_model_aliases("claude-sonnet-5")
+get_model_aliases("google/gemini-3.8-flash")
 }
 }

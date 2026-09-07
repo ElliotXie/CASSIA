@@ -41,13 +41,10 @@ export type ReasoningEffort = 'high' | 'medium' | 'low' | 'none';
 /**
  * Get the default reasoning effort for a model based on provider and model type.
  *
- * Direct OpenAI provider:
- * - Always returns null (requires identity verification for reasoning models)
- * - User must opt-in via identity verification checkbox in UI
- *
- * OpenRouter/Anthropic providers:
- * - Claude models: "high"
- * - GPT-5 series via OpenRouter: "medium"
+ * Defaults:
+ * - GPT-6 Astra: "low" (recommended migration starting point)
+ * - GPT-5.6 series: "medium"
+ * - Claude Opus: "high"
  *
  * Models WITHOUT reasoning effort (auto or not supported):
  * - GPT-4o, GPT-4, and older OpenAI models: null
@@ -58,11 +55,8 @@ export type ReasoningEffort = 'high' | 'medium' | 'low' | 'none';
 export function getDefaultReasoningEffort(provider: string, model: string): ReasoningEffort | null {
     const modelLower = model.toLowerCase();
 
-    // Direct OpenAI provider: always return null (use Chat Completions API)
-    // OpenAI requires identity verification for reasoning models
-    // User must opt-in via identity verification checkbox
-    if (provider === 'openai') {
-        return null;
+    if (modelLower.includes('gpt-6') || modelLower.includes('gpt6')) {
+        return 'low';
     }
 
     // Claude Opus only (direct Anthropic or via OpenRouter) - high
@@ -71,7 +65,7 @@ export function getDefaultReasoningEffort(provider: string, model: string): Reas
         return 'high';
     }
 
-    // GPT-5 series via OpenRouter supports reasoning effort
+    // GPT-5.6 series supports reasoning effort through direct OpenAI and OpenRouter.
     if (modelLower.includes('gpt-5') || modelLower.includes('gpt5')) {
         return 'medium';
     }

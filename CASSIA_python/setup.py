@@ -11,8 +11,8 @@ setup(
     install_requires=[
         "numpy>=1.21.0",
         "pandas>=1.3.0",
-        "openai>=1.0.0",
-        "anthropic>=0.3.0",
+        "openai>=2.0.0",
+        "anthropic>=0.125.0",
         "requests>=2.25.0",
         "matplotlib>=3.3.0",
         "seaborn>=0.11.0",
@@ -35,13 +35,11 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )
-

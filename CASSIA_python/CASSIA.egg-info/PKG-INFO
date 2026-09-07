@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: CASSIA
-Version: 1.3.8
+Version: 1.3.9
 Summary: CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
 Home-page: https://github.com/elliotxe/CASSIA
 Author: Elliot Yixuan Xie
@@ -10,18 +10,17 @@ Classifier: Intended Audience :: Science/Research
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: 3.13
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 Requires-Dist: numpy>=1.21.0
 Requires-Dist: pandas>=1.3.0
-Requires-Dist: openai>=1.0.0
-Requires-Dist: anthropic>=0.3.0
+Requires-Dist: openai>=2.0.0
+Requires-Dist: anthropic>=0.125.0
 Requires-Dist: requests>=2.25.0
 Requires-Dist: matplotlib>=3.3.0
 Requires-Dist: seaborn>=0.11.0
@@ -104,34 +103,95 @@ CASSIA.runCASSIA_pipeline(
     marker=unprocessed_markers,
     max_workers=4,
     overall_provider="openrouter",
-    annotation_model="anthropic/claude-sonnet-4.6",
-    score_model="anthropic/claude-sonnet-4.6",
+    annotation_model="anthropic/claude-sonnet-5",
+    score_model="anthropic/claude-sonnet-5",
     score_threshold=75
 )
 ```
 
 > **Quick annotation only?** Use `CASSIA.runCASSIA_batch()` for fast batch annotation without scoring or boosting.
 
+## CLI Quick Start
+
+The Python package installs a `cassia` command. In addition to API providers, it
+can call local agent CLIs such as Claude Code, Codex CLI, Cursor Agent, or any
+custom shell command.
+
+```bash
+cassia doctor
+cassia backends list
+cassia examples --out cassia_example
+cassia validate markers.csv
+
+cassia annotate \
+  --input markers.csv \
+  --backend codex-cli \
+  --tissue brain \
+  --species human \
+  --out runs/brain_codex
+
+cassia boost query \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --genes CD3D,CD3E,TRAC
+
+cassia boost run \
+  --run runs/brain_codex \
+  --markers raw_findallmarkers.csv \
+  --cluster 3 \
+  --backend codex-cli
+
+cassia boost auto \
+  --run runs/brain_codex \
+  --markers raw_findallmarkers.csv \
+  --backend codex-cli \
+  --max-clusters 5
+
+cassia subcluster run \
+  --markers cd8_subcluster_markers.csv \
+  --major-cluster-info "CD8 T cell in human tumor" \
+  --backend codex-cli \
+  --out runs/cd8_subcluster
+
+cassia consensus \
+  --inputs runs/brain_codex/summary.csv runs/brain_claude/summary.csv \
+  --out runs/brain_consensus.csv
+```
+
+Agent CLI backends reuse the local tool's own authentication, so they do not
+require CASSIA API keys. `cassia examples` creates a runnable mini project with
+marker tables, consensus inputs, shell scripts, and an offline toy agent.
+`cassia validate` checks marker CSV structure, inferred columns, ranking columns,
+and prepared marker counts before running annotation. `cassia boost auto`
+automatically prioritizes low-confidence, mixed, or ambiguous clusters and writes
+aggregate CSV/HTML reports under `RUN/boost/_auto`. `cassia subcluster run`
+annotates subclusters inside one parent cluster from a subcluster marker table
+and writes CSV/HTML reports in the requested output directory. `cassia consensus`
+deterministically votes across multiple CASSIA summary/subcluster CSVs and writes
+CSV/HTML consensus reports without calling an LLM.
+
 ## Supported Models
 
-You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models.
+You can choose any model for annotation and scoring. CASSIA also supports custom providers and local open-source models. These are current compatibility recommendations, not new CASSIA benchmark results.
 
 | Provider | Model | Notes |
 |----------|-------|-------|
-| OpenRouter | `anthropic/claude-sonnet-4.6` | Best-performing (Recommended) |
-| OpenRouter | `openai/gpt-5.4` | Best-performing |
-| OpenRouter | `google/gemini-3-flash-preview` | Best low-cost option |
-| OpenRouter | `x-ai/grok-4.20-beta` | Best low-cost option |
-| OpenAI | `gpt-5.4` | Balanced option |
-| Anthropic | `claude-sonnet-4-6` | Latest best-performing |
-| DeepSeek | `deepseek-chat` | Very affordable |
+| OpenRouter | `anthropic/claude-sonnet-5` | Balanced default (Recommended) |
+| OpenRouter | `openai/gpt-6-astra` | Current OpenAI flagship |
+| OpenRouter | `google/gemini-3.8-flash` | Fast, low-cost option |
+| OpenRouter | `deepseek/deepseek-v4-flash-0731` | Very low-cost option |
+| OpenAI | `gpt-5.6-terra` | Balanced default |
+| OpenAI | `gpt-6-astra` | Current flagship; availability may vary |
+| Anthropic | `claude-sonnet-5` | Balanced default |
+| Anthropic | `claude-opus-5` | Current flagship |
+| DeepSeek | `deepseek-v4-flash` | Very affordable direct-provider option |
 | Local | Any Ollama model | Zero cost, full privacy |
 
 ## Documentation
 
 📚 [Complete Documentation & Vignettes](https://docs.cassia.bio/en)
 
-🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.com/methods/cassia)
+🤖 [LLMs Annotation Benchmark](https://sc-llm-benchmark.pages.dev/methods/cassia)
 
 ## Citation
 

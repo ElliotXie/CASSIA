@@ -31,7 +31,7 @@ def _get_validation_models():
         from .model_settings import get_model_settings
         return get_model_settings().get_validation_models()
     except Exception:
-        return {"openai": "gpt-5-nano", "anthropic": "claude-3-haiku-20240307", "openrouter": "google/gemini-3-flash-preview"}
+        return {"openai": "gpt-5-nano", "anthropic": "claude-haiku-4-5", "openrouter": "google/gemini-3.5-flash-lite"}
 
 VALIDATION_MODELS = _get_validation_models()
 
@@ -254,8 +254,8 @@ def validate_api_keys(
     The validation makes a minimal test call using the cheapest model for each
     provider (costing ~$0.000001 per validation):
     - OpenAI: gpt-5-nano
-    - Anthropic: claude-3-haiku-20240307
-    - OpenRouter: openai/gpt-5-nano
+    - Anthropic: claude-haiku-4-5
+    - OpenRouter: google/gemini-3.5-flash-lite
 
     Args:
         provider: Specific provider to validate ('openai', 'anthropic',
@@ -281,7 +281,7 @@ def validate_api_keys(
         >>> CASSIA.validate_api_keys()
         Validating API keys...
         OpenAI (gpt-5-nano): Testing... OK ✓
-        Anthropic (claude-3-haiku-20240307): Testing... OK ✓
+        Anthropic (claude-haiku-4-5): Testing... OK ✓
         {'openai': True, 'anthropic': True}
         >>>
         >>> # Validate specific provider

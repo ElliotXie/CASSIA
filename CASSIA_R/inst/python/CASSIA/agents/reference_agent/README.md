@@ -94,7 +94,7 @@ subtype landscape 假设，然后决定还需要读哪些更细的 reference 文
 ```python
 from CASSIA.agents.reference_agent import ReferenceAgent, format_reference_for_prompt
 
-agent = ReferenceAgent(provider="openrouter", model="google/gemini-2.5-flash")
+agent = ReferenceAgent(provider="openrouter", model="google/gemini-3.8-flash")
 
 result = agent.get_reference_for_markers(
     markers=["SPP1", "MMP9", "VEGFA", "C1QA", ...],

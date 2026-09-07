@@ -9,7 +9,7 @@ import { getProviderBaseUrl } from './proxy-config.js';
  *
  * @param {string} prompt - The user prompt to send to the LLM
  * @param {string} provider - One of "openai", "anthropic", or "openrouter", or custom HTTP URL
- * @param {string} model - Specific model from the provider to use (e.g., "gpt-4" for OpenAI)
+ * @param {string} model - Specific model from the provider to use (e.g., "gpt-5.6-terra" for OpenAI)
  * @param {string} apiKey - API key for the provider (if null, gets from environment)
  * @param {number} temperature - Sampling temperature (0-1)
  * @param {number} maxTokens - Maximum tokens to generate
@@ -57,7 +57,7 @@ export async function callLLM(
     }
     messages.push({ role: "user", content: prompt });
     
-    // OpenAI API call - uses Chat Completions by default, Responses API for reasoning
+    // OpenAI API call - uses Responses API for current reasoning models
     if (provider === "openai") {
         try {
             const { baseUrl: proxyUrl } = getProviderBaseUrl('openai');
@@ -84,24 +84,32 @@ export async function callLLM(
             // Valid OpenAI reasoning effort values (excludes 'none')
             const VALID_REASONING_EFFORTS = ['high', 'medium', 'low'];
 
+            const openAIModelLower = model.toLowerCase();
+            if (!reasoningConfig && (openAIModelLower.includes('gpt-6') || openAIModelLower.includes('gpt6'))) {
+                reasoningConfig = { effort: 'low' };
+            } else if (!reasoningConfig && (openAIModelLower.includes('gpt-5.6') || openAIModelLower.includes('gpt5.6'))) {
+                reasoningConfig = { effort: 'medium' };
+            }
+
             // Only use Responses API if effort is a valid value
             const useResponsesAPI = reasoningConfig
                 && reasoningConfig.effort
                 && VALID_REASONING_EFFORTS.includes(reasoningConfig.effort.toLowerCase());
 
             if (useResponsesAPI) {
-                // Responses API for reasoning models (GPT-5, o1, etc.)
+                // Responses API for reasoning models (GPT-5.6, GPT-6, o-series)
                 const requestOptions = {
                     model,
                     input: apiMessages,
                     reasoning: { effort: reasoningConfig.effort.toLowerCase() },
+                    max_output_tokens: maxTokens,
                     ...additionalParams
                 };
                 const response = await client.responses.create(requestOptions, { signal });
                 return response.output_text;
             } else {
                 // Chat Completions API (default - more stable, widely supported)
-                // Note: Newer OpenAI models (gpt-4o, gpt-4o-mini, etc.) require max_completion_tokens
+                // Newer OpenAI reasoning models require max_completion_tokens.
                 const requestOptions = {
                     model,
                     messages: apiMessages,
@@ -217,8 +225,9 @@ export async function callLLM(
                 'anthropic-version': '2023-06-01'
             };
 
-            // Add beta header if effort is being used (required for effort parameter)
-            if (reasoningConfig && reasoningConfig.effort) {
+            const isClaude5 = model.toLowerCase().includes('claude-sonnet-5') ||
+                model.toLowerCase().includes('claude-opus-5');
+            if (reasoningConfig && reasoningConfig.effort && !isClaude5) {
                 headers['anthropic-beta'] = 'effort-2025-11-24';
             }
 
@@ -242,9 +251,14 @@ export async function callLLM(
             const messageParams = {
                 model,
                 max_tokens: maxTokens,
-                temperature,
                 messages: anthropicMessages
             };
+
+            const anthropicModelLower = model.toLowerCase();
+            if (!anthropicModelLower.includes('claude-sonnet-5') &&
+                !anthropicModelLower.includes('claude-opus-5')) {
+                messageParams.temperature = temperature;
+            }
 
             // Add system prompt if provided (Anthropic uses separate system field)
             if (systemPrompt) {
@@ -270,16 +284,10 @@ export async function callLLM(
                 { headers, ...(signal ? { signal } : {}) }
             );
             
-            // Extract the text content from the response
+            // Thinking-capable models can return thinking blocks before text.
             if (response.data.content && response.data.content.length > 0) {
-                const contentBlock = response.data.content[0];
-                if (contentBlock.text) {
-                    return contentBlock.text;
-                } else if (typeof contentBlock === 'object' && contentBlock.text) {
-                    return contentBlock.text;
-                } else {
-                    return String(response.data.content);
-                }
+                const contentBlock = response.data.content.find(block => block && typeof block.text === 'string');
+                return contentBlock ? contentBlock.text : String(response.data.content);
             } else {
                 return "No content returned from Anthropic API";
             }
@@ -321,10 +329,16 @@ export async function callLLM(
             const data = {
                 model,
                 messages: apiMessages,
-                temperature,
                 max_tokens: maxTokens,
                 ...additionalParams
             };
+
+            const openRouterModelLower = model.toLowerCase();
+            const omitsSampling = ['gpt-6-astra', 'claude-sonnet-5', 'claude-opus-5']
+                .some(modelName => openRouterModelLower.includes(modelName));
+            if (!omitsSampling) {
+                data.temperature = temperature;
+            }
 
             // Add reasoning config if provided (OpenRouter reasoning tokens feature)
             if (reasoningConfig) {
@@ -433,4 +447,6 @@ export async function testApiKey(provider, apiKey, customBaseUrl = null, customM
     }
 }
 
-export default { callLLM, testApiKey };
+const llmUtils = { callLLM, testApiKey };
+
+export default llmUtils;

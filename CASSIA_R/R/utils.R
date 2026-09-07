@@ -9,9 +9,9 @@
 #' The validation makes a minimal test call using the cheapest model for each
 #' provider (costing ~$0.000001 per validation):
 #' \itemize{
-#'   \item OpenAI: gpt-4o-mini
-#'   \item Anthropic: claude-3-haiku-20240307
-#'   \item OpenRouter: openai/gpt-4o-mini
+#'   \item OpenAI: gpt-5-nano
+#'   \item Anthropic: claude-haiku-4-5
+#'   \item OpenRouter: google/gemini-3.5-flash-lite
 #' }
 #'
 #' @param provider Specific provider to validate ('openai', 'anthropic', 'openrouter').
@@ -566,5 +566,3 @@ add_cassia_to_seurat <- function(seurat_obj, cassia_results_path, cluster_col = 
   
   return(seurat_obj)
 }
-
-

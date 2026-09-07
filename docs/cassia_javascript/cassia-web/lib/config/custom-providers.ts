@@ -10,7 +10,7 @@ export const CUSTOM_PROVIDER_PRESETS = {
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
+    models: ['deepseek-v4-flash', 'deepseek-v4-pro'],
     helpUrl: 'https://platform.deepseek.com/api_keys'
   },
   qwen: {
@@ -22,7 +22,7 @@ export const CUSTOM_PROVIDER_PRESETS = {
   kimi: {
     name: 'Kimi (Moonshot)',
     baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['kimi-k2.5'],
+    models: ['kimi-k3'],
     helpUrl: 'https://platform.moonshot.cn/console/api-keys'
   },
   siliconflow: {
@@ -40,7 +40,7 @@ export const CUSTOM_PROVIDER_PRESETS = {
   zhipuai: {
     name: 'Zhipu AI',
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-5'],
+    models: ['glm-5.1'],
     helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys'
   },
   manual: {

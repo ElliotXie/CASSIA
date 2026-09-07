@@ -10,7 +10,7 @@ runCASSIA_similarity_score_batch(
   output_name,
   celltype_column = NULL,
   max_workers = 10,
-  model = "openai/gpt-5.1",
+  model = "openai/gpt-5.6-terra",
   temperature = 0,
   provider = "openrouter",
   main_weight = 0.5,
@@ -30,7 +30,9 @@ runCASSIA_similarity_score_batch(
 
 \item{max_workers}{Maximum number of workers for parallel processing.}
 
-\item{model}{Model to use for processing (default: "gpt-4o")}
+\item{model}{Model to use for processing (default: "openai/gpt-5.6-terra")}
+
+\item{temperature}{Sampling temperature (0-1).}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 

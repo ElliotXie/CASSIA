@@ -5,7 +5,7 @@
 \title{Run Cell Type Analysis}
 \usage{
 runCASSIA(
-  model = "openai/gpt-5.1",
+  model = "openai/gpt-5.6-terra",
   temperature = 0,
   marker_list,
   tissue,
@@ -14,7 +14,8 @@ runCASSIA(
   provider = "openrouter",
   validator_involvement = "v1",
   use_reference = FALSE,
-  reasoning = NULL
+  reasoning = NULL,
+  proxy = NULL
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ a data frame with a 'gene' column.}
 \item{use_reference}{Logical. Whether to use reference-based annotation for complex cases (default: FALSE)}
 
 \item{reasoning}{Reasoning effort level: "high", "medium", or "low". Default: NULL (no extended reasoning)}
+
+\item{proxy}{Proxy preset for regions where US API providers are blocked. Set to "china" to route through Cloudflare proxy. Default: NULL (direct connection).}
 }
 \value{
 A list containing three elements: structured_output, conversation_history, and reference_info.

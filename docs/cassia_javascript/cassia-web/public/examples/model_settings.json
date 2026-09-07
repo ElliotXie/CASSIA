@@ -1,23 +1,24 @@
 {
-  "version": "3.0.0",
-  "last_updated": "2026-03-22",
+  "version": "4.0.0",
+  "last_updated": "2026-09-07",
   "providers": {
     "openai": {
       "name": "OpenAI",
       "base_url": "https://api.openai.com/v1",
-      "default_model": "gpt-5.4",
-      "recommended_model": "gpt-5.4",
+      "default_model": "gpt-5.6-terra",
+      "recommended_model": "gpt-5.6-terra",
       "models": {
-        "gpt-5.4": {
-          "actual_name": "gpt-5.4",
+        "gpt-6-astra": {
+          "actual_name": "gpt-6-astra",
           "aliases": [
-            "gpt5",
-            "gpt51"
+            "gpt6",
+            "gpt-6",
+            "astra"
           ],
-          "description": "GPT-5.4 - high-performance model",
+          "description": "GPT-6 Astra - current flagship for the hardest work",
           "recommended": false,
           "cost_tier": "high",
-          "context_window": 128000,
+          "context_window": 1050000,
           "use_cases": [
             "annotation",
             "scoring",
@@ -25,35 +26,35 @@
             "merging"
           ]
         },
-        "gpt-5.4-mini": {
-          "actual_name": "gpt-5.4-mini",
+        "gpt-5.6-terra": {
+          "actual_name": "gpt-5.6-terra",
           "aliases": [
-            "gpt5mini",
-            "gpt-5mini",
-            "mini"
+            "gpt5",
+            "gpt-5",
+            "terra"
           ],
-          "description": "GPT-5.4 Mini - fast efficient model",
-          "recommended": false,
-          "cost_tier": "low",
-          "context_window": 128000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
-        },
-        "gpt-4o": {
-          "actual_name": "gpt-4o",
-          "aliases": [
-            "gpt4o",
-            "gpt-4-o",
-            "4o"
-          ],
-          "description": "GPT-4o - fast multimodal model",
+          "description": "GPT-5.6 Terra - balanced intelligence and cost",
           "recommended": true,
           "cost_tier": "medium",
-          "context_window": 128000,
+          "context_window": 1050000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "gpt-5.6-luna": {
+          "actual_name": "gpt-5.6-luna",
+          "aliases": [
+            "gpt5luna",
+            "luna",
+            "mini"
+          ],
+          "description": "GPT-5.6 Luna - fast, cost-sensitive model",
+          "recommended": false,
+          "cost_tier": "low",
+          "context_window": 1050000,
           "use_cases": [
             "annotation",
             "scoring",
@@ -66,22 +67,20 @@
     "anthropic": {
       "name": "Anthropic",
       "base_url": "https://api.anthropic.com",
-      "default_model": "claude-sonnet-4-6",
-      "recommended_model": "claude-sonnet-4-6",
+      "default_model": "claude-sonnet-5",
+      "recommended_model": "claude-sonnet-5",
       "models": {
-        "claude-sonnet-4.6": {
-          "actual_name": "claude-sonnet-4.6",
+        "claude-opus-5": {
+          "actual_name": "claude-opus-5",
           "aliases": [
-            "claude-4.5-sonnet",
-            "claude46sonnet",
-            "sonnet",
-            "claude-sonnet",
-            "sonnet-4.6"
+            "claude5opus",
+            "opus",
+            "claude-opus"
           ],
-          "description": "Claude Sonnet 4.6 - high-performance model",
-          "recommended": true,
+          "description": "Claude Opus 5 - current flagship model",
+          "recommended": false,
           "cost_tier": "high",
-          "context_window": 200000,
+          "context_window": 1000000,
           "use_cases": [
             "annotation",
             "scoring",
@@ -89,11 +88,28 @@
             "merging"
           ]
         },
-        "claude-haiku-4.5": {
-          "actual_name": "claude-haiku-4.5",
+        "claude-sonnet-5": {
+          "actual_name": "claude-sonnet-5",
           "aliases": [
-            "claude-4.5-haiku",
-            "claude46haiku",
+            "claude5sonnet",
+            "sonnet",
+            "claude-sonnet"
+          ],
+          "description": "Claude Sonnet 5 - balanced current-generation model",
+          "recommended": true,
+          "cost_tier": "high",
+          "context_window": 1000000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "claude-haiku-4-5": {
+          "actual_name": "claude-haiku-4-5",
+          "aliases": [
+            "claude45haiku",
             "haiku",
             "claude-haiku"
           ],
@@ -107,45 +123,96 @@
             "annotation_boost",
             "merging"
           ]
-        },
-        "claude-opus-4.6": {
-          "actual_name": "claude-opus-4.6",
-          "aliases": [
-            "claude-4.5-opus",
-            "claude46opus",
-            "opus",
-            "claude-opus"
-          ],
-          "description": "Claude Opus 4.6 - most capable model",
-          "recommended": false,
-          "cost_tier": "high",
-          "context_window": 200000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
         }
       }
     },
     "openrouter": {
       "name": "OpenRouter",
       "base_url": "https://openrouter.ai/api/v1",
-      "default_model": "anthropic/claude-sonnet-4.6",
-      "recommended_model": "anthropic/claude-sonnet-4.6",
+      "default_model": "anthropic/claude-sonnet-5",
+      "recommended_model": "anthropic/claude-sonnet-5",
       "models": {
-        "anthropic/claude-sonnet-4.6": {
-          "actual_name": "anthropic/claude-sonnet-4.6",
+        "openai/gpt-6-astra": {
+          "actual_name": "openai/gpt-6-astra",
           "aliases": [
-            "claude-sonnet-4.6",
-            "claude46-sonnet",
-            "sonnet-4.6"
+            "gpt-6-astra",
+            "gpt6",
+            "astra"
           ],
-          "description": "Claude Sonnet 4.6 - high-performance model",
+          "description": "GPT-6 Astra - current OpenAI flagship",
+          "recommended": false,
+          "cost_tier": "high",
+          "context_window": 1050000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "openai/gpt-5.6-terra": {
+          "actual_name": "openai/gpt-5.6-terra",
+          "aliases": [
+            "gpt-5.6-terra",
+            "gpt5",
+            "terra"
+          ],
+          "description": "GPT-5.6 Terra - balanced intelligence and cost",
+          "recommended": true,
+          "cost_tier": "medium",
+          "context_window": 1050000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "openai/gpt-5.6-luna": {
+          "actual_name": "openai/gpt-5.6-luna",
+          "aliases": [
+            "gpt-5.6-luna",
+            "luna",
+            "mini"
+          ],
+          "description": "GPT-5.6 Luna - fast, cost-sensitive model",
+          "recommended": false,
+          "cost_tier": "low",
+          "context_window": 1050000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "anthropic/claude-opus-5": {
+          "actual_name": "anthropic/claude-opus-5",
+          "aliases": [
+            "claude-opus-5",
+            "opus"
+          ],
+          "description": "Claude Opus 5 - current Anthropic flagship",
+          "recommended": false,
+          "cost_tier": "high",
+          "context_window": 1000000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "anthropic/claude-sonnet-5": {
+          "actual_name": "anthropic/claude-sonnet-5",
+          "aliases": [
+            "claude-sonnet-5",
+            "sonnet"
+          ],
+          "description": "Claude Sonnet 5 - balanced current-generation model",
           "recommended": true,
           "cost_tier": "high",
-          "context_window": 200000,
+          "context_window": 1000000,
           "use_cases": [
             "annotation",
             "scoring",
@@ -157,11 +224,10 @@
           "actual_name": "anthropic/claude-haiku-4.5",
           "aliases": [
             "claude-haiku-4.5",
-            "claude46haiku",
             "haiku"
           ],
           "description": "Claude Haiku 4.5 - fast efficient model",
-          "recommended": true,
+          "recommended": false,
           "cost_tier": "low",
           "context_window": 200000,
           "use_cases": [
@@ -171,87 +237,17 @@
             "merging"
           ]
         },
-        "anthropic/claude-opus-4.6": {
-          "actual_name": "anthropic/claude-opus-4.6",
+        "google/gemini-3.8-flash": {
+          "actual_name": "google/gemini-3.8-flash",
           "aliases": [
-            "claude-opus-4.6",
-            "claude46opus",
-            "opus"
+            "gemini-3.8-flash",
+            "gemini",
+            "flash"
           ],
-          "description": "Claude Opus 4.6 - most capable model",
-          "recommended": false,
-          "cost_tier": "high",
-          "context_window": 200000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
-        },
-        "openai/gpt-5.4": {
-          "actual_name": "openai/gpt-5.4",
-          "aliases": [
-            "gpt-5.4",
-            "gpt51"
-          ],
-          "description": "GPT-5.4 - high-performance model",
-          "recommended": false,
-          "cost_tier": "high",
-          "context_window": 128000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
-        },
-        "openai/gpt-5.4-mini": {
-          "actual_name": "openai/gpt-5.4-mini",
-          "aliases": [
-            "gpt-5.4-mini",
-            "gpt5mini",
-            "mini"
-          ],
-          "description": "GPT-5.4 Mini - fast efficient model",
-          "recommended": false,
-          "cost_tier": "low",
-          "context_window": 128000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
-        },
-        "openai/gpt-4o": {
-          "actual_name": "openai/gpt-4o",
-          "aliases": [
-            "gpt-4o",
-            "gpt4o",
-            "4o"
-          ],
-          "description": "GPT-4o - fast multimodal model",
+          "description": "Gemini 3.8 Flash - current fast general-purpose model",
           "recommended": true,
-          "cost_tier": "medium",
-          "context_window": 128000,
-          "use_cases": [
-            "annotation",
-            "scoring",
-            "annotation_boost",
-            "merging"
-          ]
-        },
-        "google/gemini-3-flash-preview": {
-          "actual_name": "google/gemini-3-flash-preview",
-          "aliases": [
-            "gemini-3-flash-preview",
-            "gemini25flash"
-          ],
-          "description": "Gemini 3 Flash - fast low-cost model",
-          "recommended": false,
           "cost_tier": "low",
-          "context_window": 1000000,
+          "context_window": 1048576,
           "use_cases": [
             "annotation",
             "scoring",
@@ -259,17 +255,16 @@
             "merging"
           ]
         },
-        "google/gemini-3-pro-preview": {
-          "actual_name": "google/gemini-3-pro-preview",
+        "google/gemini-3.5-flash-lite": {
+          "actual_name": "google/gemini-3.5-flash-lite",
           "aliases": [
-            "gemini-3-pro-preview",
-            "gemini25pro",
-            "gemini-pro"
+            "gemini-3.5-flash-lite",
+            "flash-lite"
           ],
-          "description": "Gemini 3 Pro - high-performance model",
-          "recommended": true,
-          "cost_tier": "high",
-          "context_window": 2000000,
+          "description": "Gemini 3.5 Flash-Lite - low-cost high-throughput model",
+          "recommended": false,
+          "cost_tier": "very_low",
+          "context_window": 1048576,
           "use_cases": [
             "annotation",
             "scoring",
@@ -277,17 +272,51 @@
             "merging"
           ]
         },
-        "deepseek/deepseek-chat-v3.1": {
-          "actual_name": "deepseek/deepseek-chat-v3.1",
+        "google/gemini-3.1-pro-preview": {
+          "actual_name": "google/gemini-3.1-pro-preview",
           "aliases": [
-            "deepseek-v3.1",
-            "deepseek-chat",
+            "gemini-3.1-pro-preview",
+            "gemini-pro",
+            "pro"
+          ],
+          "description": "Gemini 3.1 Pro Preview - advanced reasoning model",
+          "recommended": false,
+          "cost_tier": "high",
+          "context_window": 1048576,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "deepseek/deepseek-v4-flash-0731": {
+          "actual_name": "deepseek/deepseek-v4-flash-0731",
+          "aliases": [
+            "deepseek-v4-flash",
             "deepseek"
           ],
-          "description": "DeepSeek Chat V3.1 - high-performance open-source model",
+          "description": "DeepSeek V4 Flash 0731 - efficient current-generation model",
           "recommended": true,
           "cost_tier": "very_low",
-          "context_window": 65536,
+          "context_window": 1048576,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "deepseek/deepseek-v4-pro-0813": {
+          "actual_name": "deepseek/deepseek-v4-pro-0813",
+          "aliases": [
+            "deepseek-v4-pro",
+            "deepseek-pro"
+          ],
+          "description": "DeepSeek V4 Pro 0813 - higher-capability current-generation model",
+          "recommended": false,
+          "cost_tier": "medium",
+          "context_window": 1048576,
           "use_cases": [
             "annotation",
             "scoring",
@@ -299,10 +328,10 @@
           "actual_name": "meta-llama/llama-4-maverick",
           "aliases": [
             "llama-4-maverick",
-            "llama4-maverick",
+            "llama",
             "maverick"
           ],
-          "description": "Llama 4 Maverick - high-performance open-source model",
+          "description": "Llama 4 Maverick - open-weight general-purpose model",
           "recommended": false,
           "cost_tier": "low",
           "context_window": 128000,
@@ -313,17 +342,33 @@
             "merging"
           ]
         },
-        "x-ai/grok-4.1-fast": {
-          "actual_name": "x-ai/grok-4.1-fast",
+        "x-ai/grok-4.6": {
+          "actual_name": "x-ai/grok-4.6",
           "aliases": [
-            "grok-4.1-fast",
-            "grok-fast",
+            "grok-4.6",
             "grok"
           ],
-          "description": "Grok 4.1 Fast - fast efficient model",
+          "description": "Grok 4.6 - current xAI flagship",
           "recommended": false,
           "cost_tier": "medium",
-          "context_window": 131072,
+          "context_window": 500000,
+          "use_cases": [
+            "annotation",
+            "scoring",
+            "annotation_boost",
+            "merging"
+          ]
+        },
+        "moonshotai/kimi-k3": {
+          "actual_name": "moonshotai/kimi-k3",
+          "aliases": [
+            "kimi-k3",
+            "kimi"
+          ],
+          "description": "Kimi K3 - current long-context Moonshot model",
+          "recommended": false,
+          "cost_tier": "high",
+          "context_window": 1000000,
           "use_cases": [
             "annotation",
             "scoring",
@@ -344,38 +389,41 @@
   },
   "provider_shortcuts": {
     "openai": {
-      "gpt5": "gpt-5.4",
-      "gpt": "gpt-5.4",
-      "best": "gpt-5.4",
-      "premium": "gpt-5.4",
-      "cheap": "gpt-5.4-mini",
-      "fast": "gpt-5.4-mini",
-      "default": "gpt-5.4"
+      "gpt": "gpt-5.6-terra",
+      "gpt5": "gpt-5.6-terra",
+      "gpt6": "gpt-6-astra",
+      "best": "gpt-6-astra",
+      "premium": "gpt-6-astra",
+      "cheap": "gpt-5.6-luna",
+      "fast": "gpt-5.6-luna",
+      "default": "gpt-5.6-terra"
     },
     "anthropic": {
-      "claude": "claude-sonnet-4.6",
-      "sonnet": "claude-sonnet-4.6",
-      "best": "claude-opus-4-6",
-      "premium": "claude-opus-4.6",
-      "cheap": "claude-haiku-4.5",
+      "claude": "claude-sonnet-5",
+      "sonnet": "claude-sonnet-5",
+      "best": "claude-opus-5",
+      "premium": "claude-opus-5",
+      "cheap": "claude-haiku-4-5",
       "fast": "claude-haiku-4-5",
-      "default": "claude-sonnet-4-6"
+      "default": "claude-sonnet-5"
     },
     "openrouter": {
-      "gpt5": "openai/gpt-5.4",
-      "gpt": "openai/gpt-5.4",
-      "claude": "anthropic/claude-sonnet-4.6",
-      "sonnet": "anthropic/claude-sonnet-4.6",
-      "gemini": "google/gemini-3-flash-preview",
-      "flash": "google/gemini-3-flash-preview",
-      "deepseek": "deepseek/deepseek-chat-v3.1",
+      "gpt": "openai/gpt-5.6-terra",
+      "gpt5": "openai/gpt-5.6-terra",
+      "gpt6": "openai/gpt-6-astra",
+      "claude": "anthropic/claude-sonnet-5",
+      "sonnet": "anthropic/claude-sonnet-5",
+      "gemini": "google/gemini-3.8-flash",
+      "flash": "google/gemini-3.8-flash",
+      "deepseek": "deepseek/deepseek-v4-flash-0731",
       "llama": "meta-llama/llama-4-maverick",
-      "grok": "x-ai/grok-4.1-fast",
-      "best": "anthropic/claude-sonnet-4.6",
-      "premium": "anthropic/claude-opus-4.6",
-      "cheap": "google/gemini-3.1-flash-lite-preview",
-      "fast": "google/gemini-3-flash-preview",
-      "default": "anthropic/claude-sonnet-4.6"
+      "grok": "x-ai/grok-4.6",
+      "kimi": "moonshotai/kimi-k3",
+      "best": "openai/gpt-6-astra",
+      "premium": "anthropic/claude-opus-5",
+      "cheap": "google/gemini-3.5-flash-lite",
+      "fast": "google/gemini-3.8-flash",
+      "default": "anthropic/claude-sonnet-5"
     },
     "custom": {
       "default": ""
@@ -383,73 +431,81 @@
   },
   "use_case_recommendations": {
     "annotation": {
-      "best": "openai/gpt-5.4",
+      "best": "openai/gpt-5.6-terra",
       "alternatives": [
-        "google/gemini-3-flash-preview",
-        "openai/gpt-5.4",
-        "deepseek/deepseek-chat-v3.1"
+        "anthropic/claude-sonnet-5",
+        "google/gemini-3.8-flash",
+        "deepseek/deepseek-v4-flash-0731"
       ],
-      "description": "Models optimized for cell type annotation tasks"
+      "description": "Current models suited to cell type annotation tasks"
     },
     "scoring": {
-      "best": "anthropic/claude-sonnet-4.6",
+      "best": "anthropic/claude-sonnet-5",
       "alternatives": [
-        "google/gemini-3-flash-preview",
+        "openai/gpt-5.6-terra",
+        "google/gemini-3.8-flash",
         "anthropic/claude-haiku-4.5"
       ],
-      "description": "Models optimized for annotation quality scoring"
+      "description": "Current models suited to annotation quality scoring"
     },
     "annotation_boost": {
-      "best": "anthropic/claude-sonnet-4.6",
+      "best": "anthropic/claude-sonnet-5",
       "alternatives": [
-        "google/gemini-3-pro-preview",
-        "openai/gpt-5.4"
+        "openai/gpt-6-astra",
+        "google/gemini-3.1-pro-preview",
+        "openai/gpt-5.6-terra"
       ],
-      "description": "Models optimized for deep annotation analysis"
+      "description": "Current models suited to deep annotation analysis"
     },
     "merging": {
-      "best": "google/gemini-3-flash-preview",
+      "best": "google/gemini-3.8-flash",
       "alternatives": [
-        "deepseek/deepseek-chat-v3.1",
+        "openai/gpt-5.6-luna",
+        "deepseek/deepseek-v4-flash-0731",
         "anthropic/claude-haiku-4.5"
       ],
-      "description": "Models optimized for merging annotations"
+      "description": "Current fast models suited to merging annotations"
     }
   },
   "cost_tiers": {
     "very_low": {
       "description": "Very low cost models (often free or near-free)",
       "models": [
-        "deepseek/deepseek-chat-v3.1"
+        "google/gemini-3.5-flash-lite",
+        "deepseek/deepseek-v4-flash-0731"
       ]
     },
     "low": {
       "description": "Low cost models with good performance",
       "models": [
-        "google/gemini-3-flash-preview",
-        "claude-haiku-4.5",
+        "google/gemini-3.8-flash",
+        "claude-haiku-4-5",
         "anthropic/claude-haiku-4.5",
-        "gpt-5.4-mini",
-        "openai/gpt-5.4-mini",
+        "gpt-5.6-luna",
+        "openai/gpt-5.6-luna",
         "meta-llama/llama-4-maverick"
       ]
     },
     "medium": {
       "description": "Medium cost models with balanced performance",
       "models": [
-        "x-ai/grok-4.1-fast"
+        "gpt-5.6-terra",
+        "openai/gpt-5.6-terra",
+        "deepseek/deepseek-v4-pro-0813",
+        "x-ai/grok-4.6"
       ]
     },
     "high": {
-      "description": "High-performance models with premium pricing",
+      "description": "High-capability models with premium pricing",
       "models": [
-        "anthropic/claude-sonnet-4.6",
-        "anthropic/claude-opus-4.6",
-        "openai/gpt-5.4",
-        "google/gemini-3-pro-preview",
-        "gpt-5.4",
-        "claude-sonnet-4.6",
-        "claude-opus-4.6"
+        "gpt-6-astra",
+        "openai/gpt-6-astra",
+        "claude-sonnet-5",
+        "anthropic/claude-sonnet-5",
+        "claude-opus-5",
+        "anthropic/claude-opus-5",
+        "google/gemini-3.1-pro-preview",
+        "moonshotai/kimi-k3"
       ]
     }
   }

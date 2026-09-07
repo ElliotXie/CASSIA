@@ -123,7 +123,7 @@ function extractScoreAndReasoning(text) {
  * @param {string} majorClusterInfo - Information about species and tissue
  * @param {string} marker - Comma-separated list of marker genes
  * @param {string} annotationHistory - History of annotation conversation
- * @param {string} model - Model to use (default: "deepseek/deepseek-chat-v3-0324")
+ * @param {string} model - Model to use (default: "anthropic/claude-sonnet-5")
  * @param {string} provider - AI provider to use ('openai', 'anthropic', or 'openrouter')
  * @param {string} apiKey - API key for the provider
  * @param {string} reasoningEffort - Reasoning effort level ('high', 'medium', 'low', 'none')

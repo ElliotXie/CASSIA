@@ -11,7 +11,7 @@ runCASSIA_annotationboost(
   major_cluster_info,
   output_name,
   num_iterations = 5,
-  model = "anthropic/claude-sonnet-4.5",
+  model = "anthropic/claude-sonnet-5",
   provider = "openrouter",
   temperature = 0.1,
   conversation_history_mode = "full",
@@ -37,7 +37,7 @@ runCASSIA_annotationboost(
 
 \item{num_iterations}{Number of iterations for marker analysis (default=5)}
 
-\item{model}{Model to use for analysis (default="google/gemini-2.5-flash-preview")}
+\item{model}{Model to use for analysis (default="anthropic/claude-sonnet-5")}
 
 \item{provider}{AI provider to use ('openai', 'anthropic', or 'openrouter')}
 

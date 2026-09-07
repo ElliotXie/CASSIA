@@ -81,7 +81,7 @@ def _consolidate_one_cluster(cluster_name: str, runs: List[Dict], **kwargs) -> D
     summary_response = call_llm(
         prompt=prompt,
         provider="openrouter",
-        model="google/gemini-3-flash-preview",
+        model="google/gemini-3.8-flash",
         temperature=0.1
     )
     return {
@@ -168,4 +168,4 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    summarize_runs(args.manifest_file, args.output) 
+    summarize_runs(args.manifest_file, args.output)

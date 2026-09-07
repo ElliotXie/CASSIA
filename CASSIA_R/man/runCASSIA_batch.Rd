@@ -7,7 +7,7 @@
 runCASSIA_batch(
   marker,
   output_name = "cell_type_analysis_results.json",
-  model = "openai/gpt-5.1",
+  model = "openai/gpt-5.6-terra",
   temperature = 0,
   tissue = "lung",
   species = "human",
@@ -22,7 +22,8 @@ runCASSIA_batch(
   ranking_method = "avg_log2FC",
   ascending = NULL,
   reasoning = NULL,
-  validate_api_key_before_start = TRUE
+  validate_api_key_before_start = TRUE,
+  proxy = NULL
 )
 }
 \arguments{
@@ -63,6 +64,8 @@ runCASSIA_batch(
 \item{validate_api_key_before_start}{Logical. If TRUE (default), validates the API key before starting
 batch processing. This prevents confusing error messages when the key is invalid.
 Set to FALSE for custom HTTP endpoints or to skip validation.}
+
+\item{proxy}{Proxy preset for regions where US API providers are blocked. Set to "china" to route through Cloudflare proxy. Default: NULL (direct connection).}
 }
 \value{
 None. This function creates output files and prints execution time.

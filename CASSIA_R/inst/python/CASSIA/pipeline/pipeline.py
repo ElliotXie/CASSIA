@@ -99,7 +99,7 @@ def runCASSIA_pipeline(
             >>> runCASSIA_pipeline(..., overall_provider="anthropic")  # Uses all Anthropic defaults
 
         Override specific models:
-            >>> runCASSIA_pipeline(..., overall_provider="openai", merge_model="gpt-4o")
+            >>> runCASSIA_pipeline(..., overall_provider="openai", merge_model="gpt-5.6-luna")
     """
     # Import dependencies here to avoid circular imports
     try:

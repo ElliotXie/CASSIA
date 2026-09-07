@@ -30,13 +30,10 @@ SUITE_DIR = Path(__file__).resolve().parents[1]
 ROOT = Path(__file__).resolve().parents[3]
 RESULTS_DIR = SUITE_DIR / "results"
 
-sys.path.insert(0, str(ROOT / "Test" / "shared" / "python"))
-from test_utils import setup_cassia_imports  # noqa: E402
-
-setup_cassia_imports()
+sys.path.insert(0, str(ROOT / "CASSIA_python"))
 
 
-MODEL = "moonshotai/kimi-k2.6"
+MODEL = "moonshotai/kimi-k3"
 PROVIDER = "openrouter"
 N_GENES = 30
 

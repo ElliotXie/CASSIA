@@ -811,24 +811,24 @@ def compareCelltypes(tissue, celltypes, marker_set, species="human", model_prese
     # Define model presets and researcher names
     model_presets = {
         "default": [
-            "anthropic/claude-3.7-sonnet",
-            "openai/o4-mini-high",
-            "google/gemini-2.5-pro-preview"
+            "anthropic/claude-opus-5",
+            "openai/gpt-6-astra",
+            "google/gemini-3.1-pro-preview"
         ],
         "budget": [
-            "google/gemini-3-flash-preview",
-            "deepseek/deepseek-chat-v3-0324",
-            "x-ai/grok-3-mini-beta"
+            "google/gemini-3.8-flash",
+            "deepseek/deepseek-v4-flash-0731",
+            "openai/gpt-5.6-luna"
         ]
     }
     # Researcher persona names for each model
     model_personas = {
-        "google/gemini-3-flash-preview": "Ada",
-        "deepseek/deepseek-chat-v3-0324": "Turing",
-        "x-ai/grok-3-mini-beta": "Curie",
-        "anthropic/claude-3.7-sonnet": "Shannon",
-        "openai/o4-mini-high": "Einstein",
-        "google/gemini-2.5-pro-preview": "Noether"
+        "google/gemini-3.8-flash": "Ada",
+        "deepseek/deepseek-v4-flash-0731": "Turing",
+        "openai/gpt-5.6-luna": "Curie",
+        "anthropic/claude-opus-5": "Shannon",
+        "openai/gpt-6-astra": "Einstein",
+        "google/gemini-3.1-pro-preview": "Noether"
     }
     
     # Use preset models if model_list is not provided

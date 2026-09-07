@@ -8,7 +8,7 @@ runCASSIA_batch_n_times(
   n,
   marker,
   output_name = "cell_type_analysis_results",
-  model = "openai/gpt-5.1",
+  model = "openai/gpt-5.6-terra",
   temperature = 0.3,
   tissue = "lung",
   species = "human",
