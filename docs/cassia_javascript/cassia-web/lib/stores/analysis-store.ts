@@ -21,6 +21,7 @@ interface AnalysisState {
   setFile: (file: File, data: any[], metadata?: any) => void
   startAnalysis: () => AbortController
   stopAnalysis: () => void
+  failAnalysis: (message?: string) => void
   updateProgress: (progress: number, step: string) => void
   addLog: (log: string) => void
   setResults: (results: any) => void
@@ -76,6 +77,13 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       logs: [...state.logs, '🛑 Analysis stopped by user'],
     }))
   },
+
+  failAnalysis: (message = 'Analysis failed') => set({
+    isRunning: false,
+    progress: 0,
+    currentStep: message,
+    abortController: null,
+  }),
   
   updateProgress: (progress: number, step: string) => set((state) => ({
     progress,

@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import pandas as pd
 
-from .backends import AgentCLIBackend
+from .backends import AgentCLIBackend, is_agent_backend
 from .runner import MarkerCluster, extract_json_object, load_marker_clusters, utc_now
 
 try:
@@ -70,10 +70,10 @@ def build_subcluster_prompt(
 
     cluster_lines = []
     for cluster in clusters:
-        marker_lines = "\n".join(f"  {idx + 1}. {gene}" for idx, gene in enumerate(cluster.markers))
-        cluster_lines.append(f"Subcluster {cluster.cluster_id}\n{marker_lines}")
+        marker_csv = ", ".join(cluster.markers)
+        cluster_lines.append(f"Subcluster {cluster.cluster_id}: {marker_csv}")
 
-    return f"""You are CASSIA subcluster annotation, a careful computational biologist specializing in single-cell subtype and cell-state annotation.
+    return f"""You are a careful computational biologist specializing in single-cell subtype and cell-state annotation.
 
 Annotate subclusters from one parent cluster. Treat the parent cluster context as a constraint, but call out contamination or a distinct lineage when the marker evidence is strong.
 
@@ -108,7 +108,12 @@ Rules:
 - Include every subcluster exactly once.
 - Preserve the exact input subcluster IDs.
 - Do not include markdown fences, commentary, or text outside the JSON object.
-- Do not invent markers that were not provided.
+
+Anti-hallucination rules (strict — applies to "key_markers", "sub_cell_type", and "reason"):
+- Every gene symbol you mention MUST be present in that subcluster's provided marker list. Treat the marker list as the only allowed gene vocabulary for that subcluster.
+- Reference documents describe canonical marker programs (e.g., "TOX/CXCL13 exhausted CD8", "SPP1/APOE TAM"). They are templates, not facts about this dataset. If the canonical marker for a state is not in the input list, do NOT name that marker — neither in the label nor in the rationale. Use only the markers actually provided to justify the state.
+- Do not extrapolate from a partial match. If you see only some markers of a canonical program, state which markers ARE present and qualify the label accordingly (e.g., "exhaustion-leaning CD8 (LAYN+, CTLA4+)" rather than introducing absent companion genes).
+- If you must compare against a canonical program from memory or reference docs, restrict the comparison to genes that appear in the input.
 """
 
 
@@ -196,9 +201,132 @@ def normalize_subcluster_result(payload: Dict[str, Any], clusters: Sequence[Mark
     return pd.DataFrame(ordered_rows, columns=["Result ID", "main_cell_type", "sub_cell_type", "key_markers", "reason"])
 
 
-def _build_reference_context(args: Any, clusters: Sequence[MarkerCluster]) -> str:
-    if not getattr(args, "use_reference", False):
+def _build_inline_reference_pointer(args: Any) -> str:
+    """Build an inline reference-library pointer for agent-CLI backends.
+
+    Agent CLIs (cursor-agent / codex-cli / claude-cli) have file-reading tools,
+    so instead of pre-generating a reference brief via separate LLM calls, we
+    just tell the agent where the reference library lives and let it read what
+    it needs while annotating. Collapses the 2-step plan + synthesize flow into
+    a single annotation call.
+    """
+    try:
+        from CASSIA.agents.reference_agent.utils import get_references_dir
+    except ImportError:
         return ""
+
+    references_dir = get_references_dir()
+    if not references_dir.exists():
+        return ""
+
+    top_level = sorted(
+        entry.name for entry in references_dir.iterdir()
+        if entry.is_dir() and not entry.name.startswith("_")
+    )
+    hint = args.reference_cell_type_hint or args.major_cluster_info or ""
+    return (
+        "<reference_library>\n"
+        "A curated subtype reference library is available on the local filesystem "
+        f"at: {references_dir}\n\n"
+        f"Available top-level lineages: {', '.join(top_level) if top_level else '(none)'}\n\n"
+        f"Parent-lineage hint: {hint}\n\n"
+        "Use your file-reading tools to consult this library before annotating. "
+        "Suggested workflow:\n"
+        "  1. List the relevant top-level lineage folder to see what is covered.\n"
+        "  2. Read its _overview.md first to get the routing for that lineage, "
+        "then one or two specific subtype docs that match the marker pattern.\n"
+        "  3. Use the literature evidence to discriminate between similar "
+        "subtype programs (for example IFN-gamma response vs type-I IFN, "
+        "lipid-phagolysosomal TAM vs resident-like TAM).\n\n"
+        "Do not dump the reference contents back into your output. Use them "
+        "only as evidence to inform main_cell_type, sub_cell_type, key_markers, "
+        "and reason for each subcluster.\n"
+        "</reference_library>"
+    )
+
+
+def _build_boost_query_pointer(args: Any, clusters: Sequence[MarkerCluster]) -> str:
+    """Emit a prompt block telling an agent how to reverse-query the full DE table.
+
+    Top-30 prompts hide markers that sit at lower ranks but are still
+    diagnostic (e.g. SPP1 at rank 87 in SPP1AREGMac). When the user passes
+    ``--full-markers``, the agent gets a path to a cassia-boost-compatible
+    DE CSV plus the exact ``cassia boost query`` command, so it can confirm
+    or rule out lower-ranked markers without us pre-dumping the whole table
+    into the prompt.
+
+    Off-loads the work onto a clean CLI rather than asking the agent to
+    write its own pandas/grep ad-hoc.
+    """
+    full_path = getattr(args, "full_markers", None)
+    if not full_path:
+        return ""
+    abs_path = Path(full_path).resolve()
+    if not abs_path.exists():
+        return ""
+
+    cluster_ids = ", ".join(str(cluster.cluster_id) for cluster in clusters[:8])
+    if len(clusters) > 8:
+        cluster_ids += ", ..."
+
+    return (
+        "<full_marker_query>\n"
+        "A full positive differential-expression table is available at:\n"
+        f"  {abs_path}\n\n"
+        f"Cluster column uses the same subcluster IDs as the prompt above (e.g. {cluster_ids}).\n\n"
+        "If a reference document or a candidate subtype name implies a marker "
+        "that you do not see in this case's top-N marker list, you can confirm "
+        "or rule out that marker by querying the full table via the cassia CLI:\n\n"
+        "  cassia boost query --markers '" f"{abs_path}" "' \\\n"
+        "      --cluster <case_id> --genes GENE1,GENE2 --format json\n\n"
+        "Each result includes avg_log2FC, pct.1, pct.2 and p_val_adj. Treat a "
+        "marker as supportive only when avg_log2FC > 0 and p_val_adj < 0.05.\n\n"
+        "Use this sparingly — only for decisive markers a reference doc names "
+        "that would change the subtype call (for example: confirming SPP1 in an "
+        "SPP1AREGMac candidate, or CXCR4 vs CXCR6 to distinguish migratory vs "
+        "tissue-resident states). Do not query routine markers that are already "
+        "in the top-N list.\n\n"
+        "After any boost query, record what you looked up and what you found in "
+        "the per-cluster ``reason`` field of the output JSON.\n"
+        "</full_marker_query>"
+    )
+
+
+def _build_reference_context(args: Any, clusters: Sequence[MarkerCluster]) -> str:
+    backend = getattr(args, "backend", None)
+    blocks: List[str] = []
+
+    use_reference = getattr(args, "use_reference", False)
+    if use_reference:
+        # Agent-CLI path: skip the multi-step plan + synthesize brief LLM calls
+        # entirely. The coding agent has filesystem access, so the annotation
+        # call itself reads whatever references it needs. Whole reference +
+        # annotation collapses to a single agent CLI invocation.
+        if is_agent_backend(backend or ""):
+            ref_block = _build_inline_reference_pointer(args)
+            if ref_block:
+                blocks.append(ref_block)
+        else:
+            ref_block = _build_legacy_reference_context(args, clusters)
+            if ref_block:
+                blocks.append(ref_block)
+
+    # Annotation-boost mode: agent can reverse-query a full DE table via
+    # ``cassia boost query``. Independent of --use-reference: usable alone
+    # to give the agent the option to dig past top-N markers, or alongside
+    # --use-reference so the agent can verify any reference-named marker.
+    if getattr(args, "full_markers", None) and is_agent_backend(backend or ""):
+        boost_block = _build_boost_query_pointer(args, clusters)
+        if boost_block:
+            blocks.append(boost_block)
+
+    return "\n\n".join(blocks)
+
+
+def _build_legacy_reference_context(args: Any, clusters: Sequence[MarkerCluster]) -> str:
+    """Original API-provider reference brief (2 LLM calls). Used only when
+    --backend is an HTTP API provider. Agent CLIs take the inline path."""
+
     if build_subcluster_reference_context is None:
         raise RuntimeError("Subcluster reference retrieval is not available in this installation")
 
@@ -283,7 +411,13 @@ def run_subcluster(args: Any) -> int:
         return 0
 
     raw_path = raw_dir / "subcluster_response.txt"
-    backend = AgentCLIBackend(args.backend, command_template=args.command_template, timeout_seconds=args.timeout)
+    backend = AgentCLIBackend(
+        args.backend,
+        command_template=args.command_template,
+        timeout_seconds=args.timeout,
+        model=getattr(args, "model", None),
+        reasoning_effort=getattr(args, "reasoning_effort", None),
+    )
     output_text = backend.run(
         prompt=prompt,
         prompt_file=prompt_path,

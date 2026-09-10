@@ -45,12 +45,13 @@ export type ReasoningEffort = 'high' | 'medium' | 'low' | 'none';
  * - GPT-6 Astra: "low" (recommended migration starting point)
  * - GPT-5.6 series: "medium"
  * - Claude Opus: "high"
+ * - DeepSeek V4: "high" (provider default; configurable)
  *
  * Models WITHOUT reasoning effort (auto or not supported):
  * - GPT-4o, GPT-4, and older OpenAI models: null
  * - Gemini models: null (auto-selects effort internally)
  * - Grok models: null
- * - DeepSeek, Llama, etc.: null
+ * - Llama and other non-reasoning models: null
  */
 export function getDefaultReasoningEffort(provider: string, model: string): ReasoningEffort | null {
     const modelLower = model.toLowerCase();
@@ -70,11 +71,17 @@ export function getDefaultReasoningEffort(provider: string, model: string): Reas
         return 'medium';
     }
 
+    // DeepSeek V4 exposes low/high/max reasoning effort. Keep the provider's
+    // quality-oriented default visible instead of incorrectly showing "none".
+    if (modelLower.includes('deepseek-v4')) {
+        return 'high';
+    }
+
     // All other models: no reasoning effort configuration
     // - GPT-4o, GPT-4: no reasoning config
     // - Gemini: auto-selects effort internally
     // - Grok: no reasoning config
-    // - DeepSeek, Llama, etc.: no reasoning config
+    // - Llama and other models without an effort control: no reasoning config
     return null;
 }
 

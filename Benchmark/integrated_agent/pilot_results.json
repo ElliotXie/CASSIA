@@ -1,0 +1,70 @@
+{
+  "schema_version": "cassia.integrated-agent-pilot.v1",
+  "fixture": {
+    "name": "Seurat pbmc_small",
+    "n_cells": 80,
+    "baseline_clusters": 3,
+    "has_held_out_truth": false
+  },
+  "controller": {
+    "backend": "codex-cli",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "execution_mode": "one-shot-transactions"
+  },
+  "runs": [
+    {
+      "name": "fixed",
+      "strategy": "fixed",
+      "commands": 13,
+      "committed_topology_edits": 0,
+      "final_clusters": 3,
+      "labeled_clusters": 2,
+      "skipped_clusters": 1,
+      "labeled_cells": 44,
+      "smallest_cluster": 19,
+      "clusters_below_5_cells": 0,
+      "qa_pass": true
+    },
+    {
+      "name": "conservative-manual-resolution",
+      "strategy": "conservative",
+      "commands": 14,
+      "committed_topology_edits": 0,
+      "final_clusters": 3,
+      "labeled_clusters": 2,
+      "skipped_clusters": 1,
+      "labeled_cells": 44,
+      "smallest_cluster": 19,
+      "clusters_below_5_cells": 0,
+      "qa_pass": true
+    },
+    {
+      "name": "adaptive-unguarded",
+      "strategy": "adaptive",
+      "commands": 47,
+      "committed_topology_edits": 3,
+      "final_clusters": 10,
+      "labeled_clusters": 6,
+      "skipped_clusters": 4,
+      "labeled_cells": 60,
+      "smallest_cluster": 3,
+      "clusters_below_5_cells": 4,
+      "qa_pass": true
+    },
+    {
+      "name": "conservative-guarded-auto-resolution",
+      "strategy": "conservative",
+      "commands": 31,
+      "committed_topology_edits": 2,
+      "final_clusters": 5,
+      "labeled_clusters": 5,
+      "skipped_clusters": 0,
+      "labeled_cells": 80,
+      "smallest_cluster": 9,
+      "clusters_below_5_cells": 0,
+      "qa_pass": true
+    }
+  ],
+  "interpretation": "Engineering and policy pilot only; QA is not held-out biological accuracy."
+}

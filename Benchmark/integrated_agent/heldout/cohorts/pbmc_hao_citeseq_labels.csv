@@ -1,0 +1,25 @@
+source_fine_label,truth_broad_label
+"effector memory CD8-positive, alpha-beta T cell",CD8 T cell
+"CD14-low, CD16-positive monocyte",Monocyte
+B cell,B cell
+"naive thymus-derived CD8-positive, alpha-beta T cell",CD8 T cell
+"CD4-positive, alpha-beta cytotoxic T cell",CD4 T cell
+naive B cell,B cell
+mucosal invariant T cell,T cell
+natural killer cell,NK cell
+"central memory CD4-positive, alpha-beta T cell",CD4 T cell
+gamma-delta T cell,T cell
+plasmacytoid dendritic cell,Dendritic cell
+"naive thymus-derived CD4-positive, alpha-beta T cell",CD4 T cell
+CD14-positive monocyte,Monocyte
+naive regulatory T cell,CD4 T cell
+plasmablast,B cell
+"effector memory CD4-positive, alpha-beta T cell",CD4 T cell
+memory regulatory T cell,CD4 T cell
+conventional dendritic cell,Dendritic cell
+"central memory CD8-positive, alpha-beta T cell",CD8 T cell
+memory B cell,B cell
+hematopoietic stem cell,Progenitor
+platelet,Platelet
+"CD16-negative, CD56-bright natural killer cell, human",NK cell
+innate lymphoid cell,Innate lymphoid cell

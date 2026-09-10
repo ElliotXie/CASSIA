@@ -290,13 +290,16 @@ class Agent {
         this.chatHistories[otherAgentId].push({ role: "user", content: message });
 
         try {
+            // DeepSeek V4 thinks before producing its final answer. Give it
+            // enough output budget to avoid ending with reasoning-only output.
+            const outputBudget = this.model?.toLowerCase().includes('deepseek-v4') ? 16384 : 7000;
             const response = await callLLM(
                 message,
                 this.provider,
                 this.model,
                 this.apiKey,
                 this.temperature,
-                7000, // max_tokens
+                outputBudget,
                 this.system,
                 { messages: this.chatHistories[otherAgentId] },
                 this.reasoningConfig,

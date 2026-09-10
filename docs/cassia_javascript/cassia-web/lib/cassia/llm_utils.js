@@ -4,6 +4,32 @@ import modelSettings from '../../public/examples/model_settings.json';
 import { DEFAULT_MODELS } from '../config/model-data.ts';
 import { getProviderBaseUrl } from './proxy-config.js';
 
+function isDeepSeekV4(provider, model) {
+    try {
+        return new URL(provider).hostname === 'api.deepseek.com'
+            && model.toLowerCase().includes('deepseek-v4');
+    } catch {
+        return false;
+    }
+}
+
+function getDeepSeekThinkingParams(reasoningConfig) {
+    const effort = reasoningConfig?.effort?.toLowerCase();
+    if (!effort) return {};
+    if (effort === 'none') return { thinking: { type: 'disabled' } };
+
+    const normalizedEffort = {
+        minimal: 'low',
+        medium: 'high',
+        xhigh: 'high',
+    }[effort] || effort;
+    const params = { thinking: { type: 'enabled' } };
+    if (['low', 'high', 'max'].includes(normalizedEffort)) {
+        params.reasoning_effort = normalizedEffort;
+    }
+    return params;
+}
+
 /**
  * Call an LLM from various providers and return the generated text.
  *
@@ -151,6 +177,10 @@ export async function callLLM(
 
             // Check if we're in a browser environment
             const isBrowser = typeof window !== 'undefined';
+            const deepSeekV4 = isDeepSeekV4(provider, model);
+            const deepSeekThinkingParams = deepSeekV4
+                ? getDeepSeekThinkingParams(reasoningConfig)
+                : {};
 
             if (isBrowser) {
                 // Use proxy to bypass CORS in browser
@@ -161,6 +191,7 @@ export async function callLLM(
                     messages: apiMessages,
                     temperature,
                     max_tokens: maxTokens,
+                    ...deepSeekThinkingParams,
                     ...additionalParams
                 };
 
@@ -185,8 +216,20 @@ export async function callLLM(
                     baseURL: provider,
                 });
 
-                // Use Responses API when reasoning is requested, Chat Completions otherwise
-                if (reasoningConfig && reasoningConfig.effort) {
+                // DeepSeek V4 uses native Chat Completions thinking controls.
+                // Other compatible endpoints keep the existing Responses API path.
+                if (deepSeekV4) {
+                    const requestOptions = {
+                        model,
+                        messages: apiMessages,
+                        temperature,
+                        max_tokens: maxTokens,
+                        ...deepSeekThinkingParams,
+                        ...additionalParams
+                    };
+                    const response = await client.chat.completions.create(requestOptions, { signal });
+                    return response.choices[0].message.content;
+                } else if (reasoningConfig && reasoningConfig.effort) {
                     // Responses API for reasoning models
                     const requestOptions = {
                         model,
@@ -428,17 +471,20 @@ export async function testApiKey(provider, apiKey, customBaseUrl = null, customM
             providerUrl = provider;
         }
 
-        // Send a minimal test request
+        const deepSeekV4 = isDeepSeekV4(providerUrl, model);
+
+        // Send a minimal test request. DeepSeek keeps thinking enabled, but
+        // uses low effort and a slightly larger budget for this cheap probe.
         await callLLM(
             "say 'a'",      // Simple prompt
             providerUrl,    // Provider or custom URL
             model,          // Model from settings or custom
             apiKey,         // API key to test
             0.0,            // Temperature (deterministic)
-            10,             // Minimal max tokens
+            deepSeekV4 ? 128 : 10,
             null,           // No system prompt
             null,           // No additional params
-            null            // No reasoning config
+            deepSeekV4 ? { effort: 'low' } : null
         );
 
         return { success: true };

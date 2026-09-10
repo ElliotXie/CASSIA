@@ -20,6 +20,8 @@ Author: CASSIA Development Team
 import os
 import shutil
 import filecmp
+import subprocess
+import sys
 from pathlib import Path
 from datetime import datetime
 
@@ -80,6 +82,8 @@ def sync_python_files():
     # Patterns to exclude during copy
     def should_ignore(filename):
         """Check if a file/folder should be ignored."""
+        if filename == ".env":
+            return True
         if filename == "__pycache__":
             return True
         if filename == "ready_to_delete":
@@ -264,7 +268,7 @@ def main():
                 script_dir = os.path.dirname(os.path.abspath(__file__))
                 sync_model_script = os.path.join(script_dir, "sync_model_config.py")
                 if os.path.exists(sync_model_script):
-                    os.system(f'python "{sync_model_script}"')
+                    subprocess.run([sys.executable, sync_model_script], check=True)
                 else:
                     print(f"  Skipped: {sync_model_script} not found")
             except Exception as e:

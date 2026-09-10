@@ -1,0 +1,2 @@
+cases,ordinal_improved,ordinal_regressed,ordinal_tied,correct_treatment_only,correct_control_only,correct_mcnemar_exact_p,strict_treatment_only,strict_control_only,strict_mcnemar_exact_p,mean_normalized_delta_no_legacy_minus_control,primary_conclusion
+392,25,22,345,19,19,1.0,40,34,0.5613807442989819,0.0019132806122448972,No measurable accuracy benefit from the verbatim legacy CoT block

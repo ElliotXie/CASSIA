@@ -68,6 +68,10 @@ class Agent:
         # Determine the provider string for call_llm
         # For custom endpoints, use the base_url as provider
         effective_provider = self.base_url if self.base_url else self.provider
+        # DeepSeek V4 can spend several thousand tokens in its default thinking
+        # pass before emitting the final answer. The old 4K default was sized
+        # for non-thinking models and could yield an empty final content field.
+        output_budget = 16384 if self.model and "deepseek-v4" in self.model.lower() else 4096
 
         # Call LLM using call_llm with conversation history
         result = call_llm(
@@ -78,6 +82,7 @@ class Agent:
             system_prompt=self.system,
             reasoning=self.reasoning,
             api_key=self.api_key,
+            max_tokens=output_budget,
             additional_params={"messages": self.chat_histories[other_agent_id]}
         )
 

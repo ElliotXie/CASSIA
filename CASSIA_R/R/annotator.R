@@ -374,6 +374,12 @@ py_cassia <- NULL
 
 # Helper function to check if running during R CMD check
 .is_cran_check <- function() {
+  # R CMD INSTALL exposes these variables while testing whether an installed
+  # package can be loaded. Never bootstrap Python during installation; normal
+  # user sessions do not retain R_PACKAGE_DIR.
+  if (identical(Sys.getenv("R_PACKAGE_NAME"), "CASSIA") &&
+      nzchar(Sys.getenv("R_PACKAGE_DIR"))) return(TRUE)
+
   # Multiple ways to detect R CMD check environment
   if (!identical(Sys.getenv("NOT_CRAN"), "true")) {
     # Check for common R CMD check indicators

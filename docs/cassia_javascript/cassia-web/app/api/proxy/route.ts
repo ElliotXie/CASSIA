@@ -16,10 +16,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Construct the full URL for chat completions
-        const url = baseUrl.endsWith('/v1')
-            ? `${baseUrl}/chat/completions`
-            : `${baseUrl}/v1/chat/completions`;
+        // Construct the full URL for chat completions. DeepSeek's documented
+        // OpenAI-compatible base URL is the API root (without /v1), whereas
+        // most other custom providers expose an explicit /v1 prefix.
+        const normalizedBaseUrl = String(baseUrl).replace(/\/+$/, '');
+        const isDeepSeek = new URL(normalizedBaseUrl).hostname === 'api.deepseek.com';
+        const url = normalizedBaseUrl.endsWith('/v1') || isDeepSeek
+            ? `${normalizedBaseUrl}/chat/completions`
+            : `${normalizedBaseUrl}/v1/chat/completions`;
 
         console.log(`[Proxy] Forwarding request to: ${url}`);
 

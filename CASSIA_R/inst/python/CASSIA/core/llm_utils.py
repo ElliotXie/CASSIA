@@ -3,6 +3,7 @@ import json
 import requests
 import time
 from typing import Dict, Any, Optional
+from urllib.parse import urlparse
 
 # Import CASSIA logger for actionable error messages
 try:
@@ -13,6 +14,56 @@ except ImportError:
 logger = get_logger(__name__)
 
 _LLM_USAGE_LOG = []
+
+
+def _is_deepseek_endpoint(provider: str) -> bool:
+    """Return whether *provider* is DeepSeek's official API endpoint."""
+    try:
+        return urlparse(provider).hostname == "api.deepseek.com"
+    except (TypeError, ValueError):
+        return False
+
+
+def _get_custom_api_key(provider: str) -> Optional[str]:
+    """Resolve a custom-endpoint key, including DeepSeek's standard env var."""
+    if _is_deepseek_endpoint(provider):
+        deepseek_key = os.environ.get("DEEPSEEK_API_KEY")
+        if deepseek_key:
+            return deepseek_key
+    return os.environ.get("CUSTOMIZED_API_KEY")
+
+
+def _add_deepseek_thinking_params(
+    params: Dict[str, Any],
+    reasoning: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Route DeepSeek V4 thinking controls through OpenAI ``extra_body``."""
+    request_params = params.copy()
+    extra_body = dict(request_params.pop("extra_body", {}) or {})
+
+    # Accept DeepSeek-native fields in additional_params while using the
+    # OpenAI SDK's extension mechanism for fields outside its typed surface.
+    if "thinking" in request_params:
+        extra_body.setdefault("thinking", request_params.pop("thinking"))
+    if "reasoning_effort" in request_params:
+        extra_body.setdefault("reasoning_effort", request_params.pop("reasoning_effort"))
+
+    effort = reasoning.get("effort") if reasoning else None
+    if effort == "none":
+        extra_body.setdefault("thinking", {"type": "disabled"})
+    elif effort:
+        extra_body.setdefault("thinking", {"type": "enabled"})
+        normalized_effort = {
+            "minimal": "low",
+            "medium": "high",
+            "xhigh": "high",
+        }.get(effort, effort)
+        if normalized_effort in {"low", "high", "max"}:
+            extra_body.setdefault("reasoning_effort", normalized_effort)
+
+    if extra_body:
+        request_params["extra_body"] = extra_body
+    return request_params
 
 
 def reset_llm_usage_log() -> None:
@@ -320,9 +371,10 @@ def call_llm(
     # Get API key from environment if not provided
     if not api_key:
         # Custom OpenAI-compatible endpoint (provider is a base URL):
-        # read CUSTOMIZED_API_KEY set via CASSIA.set_api_key(key, provider=url)
+        # read CUSTOMIZED_API_KEY set via CASSIA.set_api_key(key, provider=url).
+        # DeepSeek also supports its standard DEEPSEEK_API_KEY variable.
         if provider.startswith("http"):
-            api_key = os.environ.get("CUSTOMIZED_API_KEY")
+            api_key = _get_custom_api_key(provider)
 
     if not api_key and not provider.startswith("http"):
         env_var_names = {
@@ -470,7 +522,7 @@ def call_llm(
             import openai
         except ImportError:
             raise ImportError("Please install openai package: pip install openai")
-        custom_api_key = api_key or os.environ.get("CUSTOMIZED_API_KEY")
+        custom_api_key = api_key or _get_custom_api_key(provider)
 
         # For localhost URLs, API key is optional (local LLMs like Ollama don't need auth)
         is_localhost = any(x in provider.lower() for x in ["localhost", "127.0.0.1"])
@@ -478,22 +530,31 @@ def call_llm(
             if is_localhost:
                 custom_api_key = "ollama"  # Placeholder for local LLMs
             else:
-                raise ValueError("API key not provided and CUSTOMIZED_API_KEY not found in environment")
+                env_hint = (
+                    "DEEPSEEK_API_KEY or CUSTOMIZED_API_KEY"
+                    if _is_deepseek_endpoint(provider)
+                    else "CUSTOMIZED_API_KEY"
+                )
+                raise ValueError(f"API key not provided and {env_hint} not found in environment")
 
         client = openai.OpenAI(api_key=custom_api_key, base_url=provider)
 
         # Handle message history properly
         api_messages = messages.copy()
+        request_params = additional_params.copy() if additional_params else {}
 
         # If additional_params contains message history, merge it properly
-        if 'messages' in additional_params:
+        if 'messages' in request_params:
             # Use the full conversation history from additional_params instead
-            history_messages = additional_params.pop('messages')
+            history_messages = request_params.pop('messages')
             api_messages = history_messages
 
             # Only add system prompt if it's not already in the history
             if system_prompt and not any(msg.get('role') == 'system' for msg in api_messages):
                 api_messages.insert(0, {"role": "system", "content": system_prompt})
+
+        if _is_deepseek_endpoint(provider) and "deepseek-v4" in model.lower():
+            request_params = _add_deepseek_thinking_params(request_params, reasoning)
 
         # Call the API with the proper message history
         try:
@@ -502,7 +563,7 @@ def call_llm(
                 messages=api_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **additional_params
+                **request_params
             )
             _record_llm_usage(
                 provider="custom",
@@ -667,12 +728,15 @@ def call_llm(
         # Add reasoning configuration only for models that support it.
         # OpenRouter's Anthropic Claude models do not accept the reasoning parameter.
         if reasoning:
-            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "gpt-6", "gpt6", "o1", "o3", "o4", "kimi-k2.6"])
+            supports_reasoning = any(m in model_lower for m in ["gpt-5", "gpt5", "gpt-6", "gpt6", "o1", "o3", "o4", "kimi-k2.6", "deepseek/deepseek-v4"])
             if supports_reasoning:
                 data["reasoning"] = reasoning
 
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(data), timeout=180)
+            # DeepSeek V4's full thinking pass can legitimately exceed the
+            # legacy three-minute read timeout on CASSIA's long prompts.
+            request_timeout = 600 if "deepseek/deepseek-v4" in model_lower else 180
+            response = requests.post(url, headers=headers, data=json.dumps(data), timeout=request_timeout)
             response.raise_for_status()
             response_json = response.json()
             _record_llm_usage(

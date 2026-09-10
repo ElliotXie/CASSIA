@@ -23,15 +23,18 @@ async function testConnection(baseUrl) {
         });
 
         const response = await client.chat.completions.create({
-            model: 'deepseek-chat',
+            model: 'deepseek-v4-flash',
             messages: [
                 { role: 'user', content: 'Say hello in one word.' }
             ],
-            max_tokens: 10,
+            thinking: { type: 'enabled' },
+            reasoning_effort: 'low',
+            max_tokens: 128,
         });
 
         console.log(`✅ SUCCESS with ${baseUrl}`);
         console.log(`   Response: ${response.choices[0].message.content}`);
+        console.log(`   Thinking: ${response.choices[0].message.reasoning_content ? 'enabled' : 'missing'}`);
         return true;
     } catch (error) {
         console.log(`❌ FAILED with ${baseUrl}`);

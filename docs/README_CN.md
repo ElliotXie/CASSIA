@@ -42,7 +42,7 @@
 > **2025-05-05**
 > 📊 **CASSIA注释基准测试平台现已上线！**
 > 本次更新推出了一个全新的基准测试平台，用于评估不同大型语言模型在单细胞注释任务中的表现与成本。
-> **LLaMA4 Maverick、Gemini 2.5 Flash 和 DeepSeekV3 是目前性能与成本最均衡的模型，且几乎免费使用！**
+> **LLaMA4 Maverick、Gemini Flash 和 DeepSeek V4 Flash 是目前性价比较高的模型选择。**
 > 🔧 新增"自动合并功能"，可统一输出不同层级的细胞类型标签，大幅简化子聚类分析流程。
 > 🐛 修复了注释增强代理中的一个错误，提高了低质量注释的优化效果。
 
@@ -60,6 +60,29 @@
 
 
 ## 🏗️ 安装
+
+### Python 与命令行工具
+
+```bash
+pip install --upgrade cassia
+cassia doctor
+cassia examples --out cassia_example
+```
+
+安装后的 CLI 同时支持 API 后端，以及本地 Codex、Claude Code、Cursor、
+OpenCode 或自定义 shell agent。运行 `cassia help` 可查看 one-shot、validated、
+Fused Boost、subcluster、consensus、稳定 Judge 和可选 Seurat agent 工作流。
+详见 [Python CLI 指南](../CASSIA_python/README.md#cli-quick-start) 与
+[发布 benchmark 快照](../Benchmark/cli_release/README.md)。
+
+`cassia agent auto` 可直接完成 Seurat 的聚类修正与注释整合。默认架构采用
+短生命周期、带版本的 R 事务，不需要 daemon；支持 `fixed`、`conservative`
+和 `adaptive` 三种拓扑策略。例如：`cassia agent auto object.rds --out
+runs/conservative --strategy conservative --backend codex-cli --model
+gpt-6-astra --reasoning-effort high`。使用 `cassia agent compare RUN...` 可在
+不再次调用 LLM 的情况下比较已审计的编辑次数、碎片化、QA 和细胞注释覆盖率。
+
+### R
 
 ```R
 # 安装依赖

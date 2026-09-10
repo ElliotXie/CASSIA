@@ -65,10 +65,12 @@ export default function BatchClient() {
   const {
     uploadedFile,
     fileData,
+    fileMetadata,
     isRunning,
     results,
     startAnalysis,
     stopAnalysis,
+    failAnalysis,
     updateProgress,
     addLog,
     setResults
@@ -145,7 +147,7 @@ export default function BatchClient() {
       }
       
       updateProgress(20, 'Starting batch analysis...')
-      addLog(`📊 Processing ${fileData.length} clusters`)
+      addLog(`📊 Processing ${fileData.length} marker rows`)
       
       const config = {
         marker: fileData,
@@ -212,7 +214,7 @@ export default function BatchClient() {
       } else {
         console.error('Batch analysis error:', error)
         addLog(`❌ Error: ${(error as any).message}`)
-        updateProgress(0, 'Analysis failed')
+        failAnalysis('Analysis failed')
       }
     }
   }
@@ -814,20 +816,20 @@ export default function BatchClient() {
                       <>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Rows:</span>
-                          <span className="font-medium">{(fileData as any).rowCount?.toLocaleString() || 0}</span>
+                          <span className="font-medium">{fileMetadata?.rowCount?.toLocaleString() || fileData.length.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Clusters:</span>
-                          <span className="font-medium">{(fileData as any).clusterCount || 0}</span>
+                          <span className="font-medium">{fileMetadata?.clusterCount || 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Genes:</span>
-                          <span className="font-medium">{(fileData as any).geneCount || 0}</span>
+                          <span className="font-medium">{fileMetadata?.geneCount || 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Est. Time:</span>
                           <span className="font-medium">
-                            {Math.ceil(((fileData as any).clusterCount || 0) / maxWorkers * 2)} min
+                            {Math.ceil((fileMetadata?.clusterCount || 0) / maxWorkers * 2)} min
                           </span>
                         </div>
                       </>

@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: CASSIA
-Version: 1.3.9
+Version: 1.4.0
 Summary: CASSIA (Cell type Annotation using Specialized System with Integrated AI) is a Python package for automated cell type annotation in single-cell RNA sequencing data using large language models.
 Home-page: https://github.com/elliotxe/CASSIA
 Author: Elliot Yixuan Xie
@@ -87,6 +87,10 @@ CASSIA.set_api_key("your_anthropic_api_key", provider="anthropic")
 CASSIA.set_api_key("your_deepseek_api_key", provider="https://api.deepseek.com")
 ```
 
+For CLI use with the official DeepSeek endpoint, you can instead export
+`DEEPSEEK_API_KEY`. DeepSeek V4 thinking remains enabled by default; use the
+optional `reasoning` setting to select its effort level.
+
 ## Quick Start
 
 ```python
@@ -114,8 +118,8 @@ CASSIA.runCASSIA_pipeline(
 ## CLI Quick Start
 
 The Python package installs a `cassia` command. In addition to API providers, it
-can call local agent CLIs such as Claude Code, Codex CLI, Cursor Agent, or any
-custom shell command.
+can call local agent CLIs such as Claude Code, Codex CLI, Cursor Agent,
+OpenCode, or any custom shell command.
 
 ```bash
 cassia doctor
@@ -126,9 +130,23 @@ cassia validate markers.csv
 cassia annotate \
   --input markers.csv \
   --backend codex-cli \
+  --mode one-shot \
   --tissue brain \
   --species human \
   --out runs/brain_codex
+
+cassia annotate \
+  --input markers.csv \
+  --backend codex-cli \
+  --mode validated \
+  --out runs/brain_validated
+
+cassia annotate \
+  --input raw_findallmarkers.csv \
+  --cluster 3 \
+  --backend codex-cli \
+  --mode fused-boost \
+  --out runs/brain_fused
 
 cassia boost query \
   --markers raw_findallmarkers.csv \
@@ -156,19 +174,61 @@ cassia subcluster run \
 cassia consensus \
   --inputs runs/brain_codex/summary.csv runs/brain_claude/summary.csv \
   --out runs/brain_consensus.csv
+
+cassia judge \
+  --truth truth.csv \
+  --prediction baseline:runs/baseline/summary.csv \
+  --prediction candidate:runs/candidate/summary.csv \
+  --backend codex-cli \
+  --judge-model gpt-5.6-luna \
+  --judge-reasoning-effort high \
+  --out runs/judge
 ```
 
 Agent CLI backends reuse the local tool's own authentication, so they do not
-require CASSIA API keys. `cassia examples` creates a runnable mini project with
-marker tables, consensus inputs, shell scripts, and an offline toy agent.
-`cassia validate` checks marker CSV structure, inferred columns, ranking columns,
-and prepared marker counts before running annotation. `cassia boost auto`
-automatically prioritizes low-confidence, mixed, or ambiguous clusters and writes
-aggregate CSV/HTML reports under `RUN/boost/_auto`. `cassia subcluster run`
-annotates subclusters inside one parent cluster from a subcluster marker table
-and writes CSV/HTML reports in the requested output directory. `cassia consensus`
-deterministically votes across multiple CASSIA summary/subcluster CSVs and writes
-CSV/HTML consensus reports without calling an LLM.
+require CASSIA API keys. `one-shot` is the fast baseline; `validated` adds the
+CASSIA validator/revision loop; `fused-boost` performs primary annotation with
+active queries against a full target-vs-rest marker table. The Fused Boost
+default is `v2-compact`, selected by a paired 392-case benchmark; use
+`--fused-prompt-version v2` to reproduce the legacy prompt.
+
+`cassia examples` creates a runnable mini project with marker tables, consensus
+inputs, shell scripts, and an offline toy agent. `cassia validate` checks marker
+CSV structure and ranking columns before annotation. `cassia guide` prints a
+packaged operating guide for coding agents. `cassia boost auto` prioritizes
+low-confidence, mixed, or ambiguous clusters. `cassia subcluster run` annotates
+subclusters inside one parent population. `cassia consensus` combines multiple
+saved runs deterministically, and `cassia judge` provides a blinded,
+top-1-first stable evaluation protocol.
+
+For integrated Seurat clustering and annotation, `cassia agent` uses
+short-lived, transactional R commands by default. The coding agent queries
+markers, makes bounded local merge/subcluster decisions, assigns evidence-backed
+labels, runs rule-based QA, and writes an annotated RDS plus exact cell-membership
+provenance. No persistent R or Python session is required:
+
+```bash
+cassia agent auto object.rds \
+  --out runs/object_conservative \
+  --strategy conservative \
+  --backend codex-cli \
+  --model gpt-6-astra \
+  --reasoning-effort high
+
+cassia agent compare runs/fixed runs/object_conservative runs/adaptive
+```
+
+`fixed` preserves the supplied partition, `conservative` permits at most two
+strongly evidenced topology edits, and `adaptive` uses a configurable bounded
+budget. Automatic subcluster resolution search rejects no-op, undersized, or
+over-fragmented splits before commit. Immutable checkpoints and audit records
+make interrupted runs resumable. `cassia agent init object.rds --daemon` remains
+an explicit optional accelerator for very large objects, not the default.
+
+Run `cassia help`, `cassia help annotate`, or `cassia COMMAND --help` for the
+complete command reference. Release benchmark manifests and compact result
+records are checked in under
+[`Benchmark/cli_release`](https://github.com/ElliotXie/CASSIA/tree/main/Benchmark/cli_release).
 
 ## Supported Models
 

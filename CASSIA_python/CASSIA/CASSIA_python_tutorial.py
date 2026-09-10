@@ -75,7 +75,7 @@ species = "human"
 # provider = "https://api.deepseek.com"
 # tissue = "large intestine"
 # species = "human"
-# api_key = "sk-afb39114f1334ba486505d9425937d16"
+# api_key = "your-api-key"
 
 # Load marker data (using relative file paths instead of the builtin loadmarker function)
 def load_marker_data():
@@ -2251,25 +2251,25 @@ if __name__ == "__main__":
 # Copy-paste ready commands with explicit DeepSeek API key:
 
 # Basic analysis with DeepSeek:
-# python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-# python CASSIA_python_tutorial.py --step merge --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-# python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# python CASSIA_python_tutorial.py --step all --provider https://api.deepseek.com --api_key your-api-key
+# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key your-api-key
+# python CASSIA_python_tutorial.py --step merge --provider https://api.deepseek.com --api_key your-api-key
+# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key your-api-key
+# python CASSIA_python_tutorial.py --step uncertainty --provider https://api.deepseek.com --api_key your-api-key
 
 # Annotation boost with DeepSeek:
-# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster monocyte
-# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster "cd8-positive, alpha-beta t cell"
-# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --task "check if this is a cancer cell"
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key your-api-key --cluster monocyte
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key your-api-key --cluster "cd8-positive, alpha-beta t cell"
+# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key your-api-key --task "check if this is a cancer cell"
 
 # Advanced DeepSeek combinations:
-# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --search_strategy depth --report_style total_summary
-# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --search_strategy breadth --report_style per_iteration --task "determine activation state"
-# python CASSIA_python_tutorial.py --step compare_strategies --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --cluster monocyte
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key your-api-key --search_strategy depth --report_style total_summary
+# python CASSIA_python_tutorial.py --step boost_task --provider https://api.deepseek.com --api_key your-api-key --search_strategy breadth --report_style per_iteration --task "determine activation state"
+# python CASSIA_python_tutorial.py --step compare_strategies --provider https://api.deepseek.com --api_key your-api-key --cluster monocyte
 
 # Subclustering with DeepSeek:
-# python CASSIA_python_tutorial.py --step subcluster --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --major_cluster "cd8 t cell"
-# python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --major_cluster "T cell"
+# python CASSIA_python_tutorial.py --step subcluster --provider https://api.deepseek.com --api_key your-api-key --major_cluster "cd8 t cell"
+# python CASSIA_python_tutorial.py --step single_subcluster --provider https://api.deepseek.com --api_key your-api-key --major_cluster "T cell"
 
 # --------------------- OPENAI API EXAMPLES ---------------------
 # Using OpenAI with explicit models:
@@ -2309,9 +2309,9 @@ if __name__ == "__main__":
 # python CASSIA_python_tutorial.py --step boost --input_csv ./test_results/normal_api/batch_analysis/CASSIA_large_intestine_human_full.csv --cluster monocyte
 
 # Custom API workflow (DeepSeek):
-# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
-# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv
-# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16 --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv --cluster monocyte
+# python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key your-api-key
+# python CASSIA_python_tutorial.py --step score --provider https://api.deepseek.com --api_key your-api-key --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv
+# python CASSIA_python_tutorial.py --step boost --provider https://api.deepseek.com --api_key your-api-key --input_csv ./test_results/custom_api/batch_analysis/CASSIA_large_intestine_human_full.csv --cluster monocyte
 
 # Testing and comparison workflow:
 # python CASSIA_python_tutorial.py --step test_pipeline
@@ -2323,7 +2323,7 @@ if __name__ == "__main__":
 # =====================================================================================
 # 1. Run complete pipeline: python CASSIA_python_tutorial.py --step all
 # 2. Quick batch analysis: python CASSIA_python_tutorial.py --step batch
-# 3. Test with DeepSeek: python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key sk-afb39114f1334ba486505d9425937d16
+# 3. Test with DeepSeek: python CASSIA_python_tutorial.py --step batch --provider https://api.deepseek.com --api_key your-api-key
 # 4. Boost analysis: python CASSIA_python_tutorial.py --step boost --cluster monocyte
 # 5. Compare providers: python CASSIA_python_tutorial.py --step test_boost
 # 6. Test image processing: python CASSIA_python_tutorial.py --step test_image

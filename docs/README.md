@@ -43,7 +43,7 @@
 > **2025-05-05**
 > 📊 **CASSIA annotation benchmark is now online!**
 > The latest update introduces a new benchmarking platform that evaluates how different LLMs perform on single-cell annotation tasks, including accuracy and cost.
-> **LLaMA4 Maverick, Gemini 2.5 Flash, and DeepSeekV3** are the top three most balanced options—nearly free!
+> **LLaMA4 Maverick, Gemini Flash, and DeepSeek V4 Flash** are highly cost-effective options.
 > 🔧 A new **auto-merge** function unifies CASSIA output across different levels, making subclustering much easier.
 > 🐛 Fixed a bug in the annotation boost agent to improve downstream refinement.
 
@@ -61,6 +61,30 @@
 
 
 ## 🏗️ Installation
+
+### Python and CLI
+
+```bash
+pip install --upgrade cassia
+cassia doctor
+cassia examples --out cassia_example
+```
+
+The installed CLI supports API backends and local Codex, Claude Code, Cursor,
+OpenCode, or custom-shell agents. Run `cassia help` to see one-shot, validated, Fused
+Boost, subcluster, consensus, stable Judge, and optional Seurat agent workflows.
+See the [Python CLI guide](../CASSIA_python/README.md#cli-quick-start) and the
+[release benchmark snapshot](../Benchmark/cli_release/README.md).
+
+Integrated Seurat clustering and annotation is available through `cassia agent
+auto`. It runs short-lived, versioned R transactions by default—no daemon is
+required—and supports `fixed`, `conservative`, and `adaptive` topology policies.
+For example: `cassia agent auto object.rds --out runs/conservative --strategy
+conservative --backend codex-cli --model gpt-6-astra --reasoning-effort high`.
+Use `cassia agent compare RUN...` to compare audited edit, fragmentation, QA,
+and labeled-cell coverage metrics without another LLM call.
+
+### R
 
 ```R
 # Install dependencies

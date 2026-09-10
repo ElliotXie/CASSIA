@@ -38,7 +38,7 @@ from test_utils import setup_cassia_imports  # noqa: E402
 setup_cassia_imports()
 
 
-MODEL = "moonshotai/kimi-k2.6"
+MODEL = "moonshotai/kimi-k3"
 PROVIDER = "openrouter"
 
 CASES: List[Dict[str, Any]] = [

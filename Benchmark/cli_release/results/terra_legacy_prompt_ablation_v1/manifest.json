@@ -1,0 +1,103 @@
+{
+  "record_version": "terra-legacy-prompt-ablation-full392-v1",
+  "archived_at": "2026-07-25T00:32:26.529545+00:00",
+  "status": "complete",
+  "published": true,
+  "dataset": {
+    "cases": 392,
+    "published_selection": "Benchmark/cli_release/cases/full_392.csv",
+    "published_selection_sha256": "69ed284887cb5575c48af26cc7374e79f35c27566fc8fd9c4bac7158cb02caa3",
+    "source_selection": "full392/selection.csv",
+    "source_selection_sha256": "46c508e06c2048066174c756be7a6e32cf62b4ae4f06cc11d74dd7b61f9a85ed",
+    "subsets_reused": {
+      "boost100": 100,
+      "new_remaining_cases": 292
+    }
+  },
+  "experiment": {
+    "control": "Fused Boost v2",
+    "treatment": "Fused Boost v2 with only the verbatim 1,602-character legacy CASSIA step-by-step prefix removed",
+    "unchanged": [
+      "active-evidence workflow",
+      "breadth search",
+      "no gene cap",
+      "five-round limit",
+      "isolated agent workspace",
+      "worker model and effort"
+    ],
+    "control_annotation_rerun": false,
+    "prompt_frozen_across_subsets": true
+  },
+  "worker": {
+    "backend": "codex-cli",
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "high",
+    "parallelism": 4
+  },
+  "judge": {
+    "protocol": "stable-judge-v1.1",
+    "backend": "codex-cli",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "top2_top3_affect_core_score": false
+  },
+  "scoring": {
+    "primary": "main cell type plus top-1 subtype",
+    "top2_top3_affect_core_score": false,
+    "paired_unit": "case_id"
+  },
+  "result": {
+    "control_correct": 296,
+    "treatment_correct": 296,
+    "correct_mcnemar_exact_p": 1.0,
+    "mean_normalized_delta": 0.0019132806122448972,
+    "conclusion": "The legacy CoT block provides no measurable accuracy gain on Full392."
+  },
+  "pricing": {
+    "basis": "Codex standard-mode credit-equivalent estimate",
+    "as_of": "2026-07-21",
+    "judge_cost_included": false,
+    "actual_subscription_charge": "not inferred"
+  },
+  "canonical_outputs": [
+    "README.md",
+    "metrics.csv",
+    "paired_summary.csv",
+    "manifest.json"
+  ],
+  "raw_source_files": {
+    "results/terra_legacy_cot_ablation_full392/analysis_summary.json": {
+      "sha256": "9c6e04797cb810337698d6314b20a9db3a8eab6a16cf8ce53c5f91f2277eb76b",
+      "bytes": 1541
+    },
+    "results/terra_legacy_cot_ablation_full392/judge_summary.csv": {
+      "sha256": "7d4db8973880f6d32c3e3e17e2bcf912cf45417de9d943881517961d6f252c26",
+      "bytes": 522
+    },
+    "results/terra_legacy_cot_ablation_full392/resource_metrics.csv": {
+      "sha256": "bf9cab585c0f08b745f3f90efda86945d899a22710872a914c0f96521008d11d",
+      "bytes": 354
+    },
+    "results/terra_legacy_cot_ablation_full392/paired_analysis.csv": {
+      "sha256": "0c4850be6055051654f5e5eecdd8dd421fefb1a700af832b6a1b2f162ef229c2",
+      "bytes": 93793
+    },
+    "results/terra_legacy_cot_ablation_full392/judge_scores.csv": {
+      "sha256": "4f854300f5e6faa9f70d49d5d0ac5a1f5a1570b7ba84f2b772ee4c89b2ac7e22",
+      "bytes": 770806
+    },
+    "results/terra_legacy_cot_ablation_full392/boost_results.csv": {
+      "sha256": "02aceda9848bb77ad98a1b05bd2838b20eaeca19091b201f3da95f06d86ef002",
+      "bytes": 386605
+    },
+    "results/terra_legacy_cot_ablation_full392/manifest.json": {
+      "sha256": "cb72e35b6fb9e2abbc8ba8039d2dc23675f26ee2ffa812476ff775ab923daf4d",
+      "bytes": 1015
+    },
+    "results/terra_legacy_cot_ablation_full392/REPORT.md": {
+      "sha256": "30b9f67b933a6a7eb4e95a6cf4bdd0cc7160157f289699762e6de95f1407c743",
+      "bytes": 1450
+    }
+  },
+  "rebuild_command": "python scripts/archive_terra_legacy_prompt_ablation.py"
+}

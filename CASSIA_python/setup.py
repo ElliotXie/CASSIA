@@ -2,10 +2,17 @@ from setuptools import setup, find_packages
 
 setup(
     name="CASSIA",
-    version="1.3.9",
+    version="1.4.0",
     packages=find_packages(),
     package_data={
-        'CASSIA': ['data/*.csv', 'data/*.json', 'data/*.md'],
+        'CASSIA': [
+            'data/*.csv',
+            'data/*.json',
+            'data/*.md',
+            'cli/*.md',
+            'cli/agent/*.md',
+            'cli/agent/*.R',
+        ],
     },
     include_package_data=True,  # This tells setuptools to include package_data
     install_requires=[

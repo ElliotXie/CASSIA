@@ -11,29 +11,77 @@ from typing import Dict, Iterable, Optional
 
 from CASSIA import __version__
 
+from .agent.client import DaemonError
+from .agent.commands import add_agent_subparser
 from .backends import is_agent_backend, is_api_backend, list_backends
-from .boost import parse_gene_args, query_marker_genes, run_boost, run_boost_auto, write_query_output
+from .boost import (
+    parse_gene_args,
+    query_marker_genes,
+    regenerate_boost_reports,
+    run_boost,
+    run_boost_auto,
+    write_query_output,
+)
 from .consensus import run_consensus
 from .examples import run_examples
-from .runner import dispatch_annotation, generate_markdown_report, resume_run
+from .judge import JUDGE_PROTOCOL_VERSION, add_judge_arguments, run_judge
+from .runner import (
+    default_run_dir,
+    dispatch_annotation,
+    generate_html_report,
+    generate_markdown_report,
+    resume_run,
+)
 from .subcluster import run_subcluster
 from .validate import run_validate
 
 
 HELP_FORMATTER = argparse.RawDescriptionHelpFormatter
 
-TOP_LEVEL_EPILOG = """Common workflows:
+TOP_LEVEL_EPILOG = """Start an annotation:
+  1. cassia doctor
+  2. cassia validate markers.csv
+  3. cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
+
+Annotation modes:
+  one-shot     One annotation call per cluster; the default baseline.
+  validated    The same annotation followed by validator/revision rounds.
+  fused-boost  Primary annotation with active marker queries; requires --cluster.
+
+Give the operating guide to a coding agent:
+  cassia guide --out CASSIA_AGENT_GUIDE.md
+
+Other common workflows:
   cassia doctor
+  cassia guide
   cassia backends list
   cassia validate markers.csv
   cassia examples --out cassia_example
 
   cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
+
+  cassia annotate -i markers.csv --backend cursor-agent --model composer-2.5 \\
+    --mode validated --prompt-version v1 --tissue brain --out runs/brain_validated
+  cassia annotate -i raw_markers.csv --cluster 3 --backend cursor-agent \\
+    --model composer-2.5 --mode fused-boost --tissue brain --out runs/brain_fused
   cassia boost auto --run runs/brain_codex --markers raw_markers.csv --backend codex-cli
   cassia subcluster run --markers cd8_markers.csv --major-cluster-info "CD8 T cell in tumor" --backend codex-cli
   cassia consensus --inputs runs/codex/summary.csv runs/claude/summary.csv --out runs/consensus.csv
+  cassia judge --truth truth.csv --prediction baseline:predictions.csv --backend codex-cli \\
+    --judge-model gpt-5.6-luna --judge-reasoning-effort high --out runs/judge
 
-Run "cassia COMMAND --help" for command-specific options and examples.
+Help:
+  cassia help
+  cassia help annotate
+  cassia help boost run
+  cassia COMMAND --help
+"""
+
+HELP_EPILOG = """Examples:
+  cassia help
+  cassia help annotate
+  cassia help boost run
+  cassia help subcluster run
 """
 
 VALIDATE_EPILOG = """Examples:
@@ -48,8 +96,38 @@ EXAMPLES_EPILOG = """Examples:
   cassia examples --out cassia_example --force
 """
 
-ANNOTATE_EPILOG = """Examples:
+ANNOTATE_EPILOG = """Modes:
+  one-shot
+    One annotation call per cluster. Use --prompt-version v1 for the original
+    CASSIA-based prompt or v2 for the concise CLI prompt.
+
+  validated
+    Starts with the selected annotation prompt, then runs the validator and
+    revision loop. Select the validator with --validator-involvement.
+
+  fused-boost
+    Performs primary annotation with active queries against a raw differential-
+    expression table. Requires one --cluster per command. Gene queries are
+    unlimited unless --max-genes-per-round is explicitly set.
+
+Agent subscription backends:
+  codex-cli, claude-cli, cursor-agent, and opencode reuse the corresponding
+  locally authenticated tool. They do not require a separate CASSIA API key.
+
+Outputs:
+  one-shot/validated: results.json, summary.csv, report.md, report.html,
+                      run_manifest.json
+  fused-boost:        final.json, boost_manifest.json, report.md, summary.html,
+                      transcript.md, and queries/
+
+Examples:
   cassia annotate -i markers.csv --backend codex-cli --tissue brain --species human --out runs/brain_codex
+
+  cassia annotate -i markers.csv --backend cursor-agent --model composer-2.5 \\
+    --mode validated --prompt-version v1 --tissue brain --out runs/brain_validated
+
+  cassia annotate -i raw_findallmarkers.csv --cluster 3 --backend cursor-agent \\
+    --model composer-2.5 --mode fused-boost --tissue brain --out runs/brain_fused
 
   cassia annotate -i findallmarkers.csv --celltype-column cluster --gene-column gene \\
     --ranking-method avg_log2FC --n-genes 50 --backend claude-cli --out runs/claude
@@ -61,6 +139,7 @@ ANNOTATE_EPILOG = """Examples:
 BOOST_EPILOG = """Examples:
   cassia boost query --markers raw_findallmarkers.csv --cluster 3 --genes CD3D,CD3E,TRAC
   cassia boost run --run runs/brain_codex --markers raw_findallmarkers.csv --cluster 3 --backend codex-cli
+  cassia boost run --run runs/brain_fused --markers raw_findallmarkers.csv --cluster 3 --mode fused --backend cursor-agent --model composer-2.5
   cassia boost auto --run runs/brain_codex --markers raw_findallmarkers.csv --backend codex-cli --max-clusters 5
 """
 
@@ -72,6 +151,9 @@ BOOST_QUERY_EPILOG = """Examples:
 BOOST_RUN_EPILOG = """Example:
   cassia boost run --run runs/brain_codex --markers raw_findallmarkers.csv \\
     --cluster 3 --backend codex-cli --iterations 5
+
+  cassia boost run --run runs/brain_fused --markers raw_findallmarkers.csv \\
+    --cluster 3 --mode fused --backend cursor-agent --model composer-2.5
 """
 
 BOOST_AUTO_EPILOG = """Examples:
@@ -90,6 +172,20 @@ CONSENSUS_EPILOG = """Examples:
   cassia consensus --glob 'runs/*/summary.csv' --threshold 0.75 --out runs/consensus.csv
 """
 
+JUDGE_EPILOG = f"""Protocol: {JUDGE_PROTOCOL_VERSION}
+
+The main cell type is scored for lineage. Only top-1 subtype affects the verdict
+and four-axis score; top-2/top-3 are diagnostic and never earn core credit.
+
+Examples:
+  cassia judge --truth truth.csv --prediction baseline:predictions.csv \\
+    --truth-marker-column marker_list --backend cursor-agent \\
+    --judge-model composer-2.5 --out runs/judge_composer
+
+  cassia judge --truth truth.csv --prediction baseline:predictions.csv \\
+    --backend codex-cli --judge-model gpt-5.6-luna \\
+    --judge-reasoning-effort high --max-workers 4 --out runs/judge_luna_high
+"""
 
 def _print_backend_table(backends: Dict[str, Dict[str, object]]) -> None:
     print("Backend        Kind       Available  Details")
@@ -184,18 +280,100 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 
 def cmd_annotate(args: argparse.Namespace) -> int:
+    requested_mode = getattr(args, "mode", None)
+    legacy_workflow = getattr(args, "workflow", None)
+    if requested_mode and legacy_workflow and requested_mode != legacy_workflow:
+        raise SystemExit("--mode and the legacy --workflow option must select the same workflow")
+    mode = requested_mode or legacy_workflow or "one-shot"
+
     if not is_api_backend(args.backend) and not is_agent_backend(args.backend):
         raise SystemExit(
             f"Unknown backend '{args.backend}'. Run 'cassia backends list' to see supported backends."
         )
-    if args.backend == "shell" and not args.command_template:
+    if args.backend == "shell" and not args.command_template and not args.dry_run:
         raise SystemExit("--command-template is required when --backend shell is used")
+
+    if mode == "fused-boost":
+        if not is_agent_backend(args.backend):
+            raise SystemExit(
+                "--mode fused-boost requires an agent CLI backend: "
+                "codex-cli, claude-cli, cursor-agent, opencode, or shell"
+            )
+        if not args.cluster:
+            raise SystemExit("--cluster is required when --mode fused-boost is used")
+        output_dir = Path(args.out) if args.out else default_run_dir()
+        args.out = str(output_dir)
+        args.run = str(output_dir)
+        args.markers = args.input
+        args.cluster_column = args.celltype_column
+        args.mode = "fused"
+        args.major_cluster_info = args.major_cluster_info or (
+            f"{args.species} {args.tissue} single-cell RNA-seq dataset"
+            + (f". {args.additional_info}" if args.additional_info else "")
+        )
+        return run_boost(args)
+
+    args.mode = mode
+    args.workflow = mode
     return dispatch_annotation(args)
 
 
+def cmd_guide(args: argparse.Namespace) -> int:
+    """Print or save the packaged CASSIA CLI guide for coding agents."""
+    guide_path = Path(__file__).with_name("AGENT_GUIDE.md")
+    if not guide_path.exists():
+        raise FileNotFoundError(f"Packaged agent guide is missing: {guide_path}")
+    content = guide_path.read_text(encoding="utf-8")
+    if args.out:
+        output_path = Path(args.out)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(content, encoding="utf-8")
+        print(f"Wrote {output_path}")
+    else:
+        print(content, end="" if content.endswith("\n") else "\n")
+    return 0
+
+
+def cmd_help(args: argparse.Namespace) -> int:
+    """Print top-level or nested command help."""
+    target = build_parser()
+    traversed = []
+    for topic in args.topic:
+        subparser_action = next(
+            (
+                action
+                for action in target._actions
+                if isinstance(action, argparse._SubParsersAction)
+            ),
+            None,
+        )
+        choices = subparser_action.choices if subparser_action is not None else {}
+        if topic not in choices:
+            location = " ".join(traversed) or "cassia"
+            available = ", ".join(sorted(choices)) or "none"
+            print(f"error: no help topic '{topic}' under {location}", file=sys.stderr)
+            print(f"available topics: {available}", file=sys.stderr)
+            return 2
+        target = choices[topic]
+        traversed.append(topic)
+
+    target.print_help()
+    return 0
+
+
 def cmd_report(args: argparse.Namespace) -> int:
-    report_path = generate_markdown_report(Path(args.run_dir))
-    print(f"Wrote {report_path}")
+    run_dir = Path(args.run_dir)
+    if (run_dir / "boost_manifest.json").exists():
+        reports = regenerate_boost_reports(run_dir)
+        print(f"Wrote {reports['markdown']}")
+        print(f"Wrote {reports['html']}")
+        return 0
+
+    markdown_path = generate_markdown_report(run_dir)
+    print(f"Wrote {markdown_path}")
+    if (run_dir / "results.json").exists():
+        html_path = generate_html_report(run_dir)
+        print(f"Wrote {html_path}")
     return 0
 
 
@@ -225,15 +403,21 @@ def cmd_boost_query(args: argparse.Namespace) -> int:
 
 def cmd_boost_run(args: argparse.Namespace) -> int:
     if not is_agent_backend(args.backend):
-        raise SystemExit("cassia boost run requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, or shell")
-    if args.backend == "shell" and not args.command_template:
+        raise SystemExit("cassia boost run requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, opencode, or shell")
+    if args.backend == "shell" and not args.command_template and not args.dry_run:
         raise SystemExit("--command-template is required when --backend shell is used")
+    if not args.run:
+        if args.mode != "fused":
+            raise SystemExit("--run is required for boost review mode")
+        output_dir = Path(args.out) if args.out else default_run_dir()
+        args.run = str(output_dir)
+        args.out = str(output_dir)
     return run_boost(args)
 
 
 def cmd_boost_auto(args: argparse.Namespace) -> int:
     if not is_agent_backend(args.backend):
-        raise SystemExit("cassia boost auto requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, or shell")
+        raise SystemExit("cassia boost auto requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, opencode, or shell")
     if args.backend == "shell" and not args.command_template and not (args.plan_only or args.dry_run):
         raise SystemExit("--command-template is required when --backend shell is used")
     return run_boost_auto(args)
@@ -241,7 +425,7 @@ def cmd_boost_auto(args: argparse.Namespace) -> int:
 
 def cmd_subcluster_run(args: argparse.Namespace) -> int:
     if not is_agent_backend(args.backend):
-        raise SystemExit("cassia subcluster run requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, or shell")
+        raise SystemExit("cassia subcluster run requires an agent CLI backend: claude-cli, codex-cli, cursor-agent, opencode, or shell")
     if args.backend == "shell" and not args.command_template and not args.dry_run:
         raise SystemExit("--command-template is required when --backend shell is used")
     return run_subcluster(args)
@@ -267,10 +451,10 @@ def add_common_annotation_args(parser: argparse.ArgumentParser) -> None:
         default="openrouter",
         help=(
             "Backend/provider to use: openrouter, openai, anthropic, claude-cli, "
-            "codex-cli, cursor-agent, shell, or an OpenAI-compatible base URL."
+            "codex-cli, cursor-agent, opencode, shell, or an OpenAI-compatible base URL."
         ),
     )
-    parser.add_argument("--model", help="Model name for API-backed CASSIA runs.")
+    parser.add_argument("--model", help="Model name for API or agent-CLI CASSIA runs.")
     parser.add_argument("--temperature", type=float, help="Temperature for API-backed CASSIA runs.")
     parser.add_argument("--tissue", default="lung", help="Tissue context.")
     parser.add_argument("--species", default="human", help="Species context.")
@@ -290,8 +474,78 @@ def add_common_annotation_args(parser: argparse.ArgumentParser) -> None:
     sort_group.add_argument("--ascending", action="store_true", dest="ascending")
     sort_group.add_argument("--descending", action="store_false", dest="ascending")
     parser.set_defaults(ascending=None)
-    parser.add_argument("--validator-involvement", default="v1", help="CASSIA validator mode for API backend.")
+    parser.add_argument(
+        "--mode",
+        choices=["one-shot", "validated", "fused-boost"],
+        help=(
+            "Annotation mode: one agent call, annotation plus validation/revision, "
+            "or direct Fused Boost with active marker queries. Default: one-shot."
+        ),
+    )
+    parser.add_argument(
+        "--workflow",
+        choices=["one-shot", "validated", "fused-boost"],
+        help="Deprecated alias for --mode; retained for backward compatibility.",
+    )
+    parser.add_argument(
+        "--prompt-version",
+        default="v1",
+        choices=["v1", "v2"],
+        help="Agent-CLI annotation prompt: original CASSIA-based v1 or concise CLI v2.",
+    )
+    parser.add_argument(
+        "--validator-involvement",
+        default="v1",
+        choices=["v0", "v1", "self-reflect-v2"],
+        help=(
+            "Validator mode: original CASSIA v0/v1, or adversarial self-reflect-v2 "
+            "for validated agent-CLI runs."
+        ),
+    )
+    parser.add_argument(
+        "--validation-max-attempts",
+        type=int,
+        default=3,
+        help="Maximum annotation/validation attempts for --mode validated.",
+    )
     parser.add_argument("--reasoning", help="Reasoning effort for API models that support it.")
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=["minimal", "low", "medium", "high", "xhigh", "max"],
+        help="Reasoning effort forwarded to supported agent CLIs (Codex or Claude).",
+    )
+    parser.add_argument("--cluster", help="Target cluster ID; required for --mode fused-boost.")
+    parser.add_argument(
+        "--major-cluster-info",
+        help="Dataset/major-cluster context for Fused Boost. Defaults to species and tissue.",
+    )
+    parser.add_argument(
+        "--strategy",
+        choices=["breadth", "depth"],
+        default="breadth",
+        help="Fused Boost marker-query strategy.",
+    )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=5,
+        help="Maximum Fused Boost agent rounds before finalization.",
+    )
+    parser.add_argument(
+        "--max-genes-per-round",
+        type=int,
+        help="Optional Fused Boost gene cap per marker query. Default: unlimited.",
+    )
+    parser.add_argument(
+        "--fused-prompt-version",
+        choices=["v2-compact", "v2", "v3"],
+        default="v2-compact",
+        help=(
+            "Fused Boost prompt version. v2-compact is the benchmark-backed "
+            "release default; v2 preserves the legacy prompt for reproduction."
+        ),
+    )
+    parser.add_argument("--additional-task", help="Optional additional Fused Boost question.")
     parser.add_argument("--use-reference", action="store_true", help="Use CASSIA reference retrieval in API backend.")
     parser.add_argument("--reference-model", help="Model used by reference retrieval.")
     parser.add_argument("--reference-cell-type-hint", help="Parent lineage hint for reference retrieval.")
@@ -325,6 +579,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", action="version", version=f"CASSIA {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    help_parser = subparsers.add_parser(
+        "help",
+        help="Show top-level or command-specific help.",
+        description="Show help for CASSIA or a nested command without remembering where to place --help.",
+        formatter_class=HELP_FORMATTER,
+        epilog=HELP_EPILOG,
+    )
+    help_parser.add_argument(
+        "topic",
+        nargs="*",
+        metavar="COMMAND",
+        help="Optional command path, for example: annotate or boost run.",
+    )
+    help_parser.set_defaults(func=cmd_help)
 
     init_parser = subparsers.add_parser("init", help="Create a local .cassia config file.")
     init_parser.add_argument("--directory", default=".", help="Directory where .cassia/config.json is created.")
@@ -375,6 +644,14 @@ def build_parser() -> argparse.ArgumentParser:
     examples_parser.add_argument("--force", action="store_true", help="Write into an existing non-empty output directory.")
     examples_parser.set_defaults(func=cmd_examples)
 
+    guide_parser = subparsers.add_parser(
+        "guide",
+        help="Print the packaged CASSIA CLI operating guide for coding agents.",
+        description="Print or save the packaged CASSIA CLI operating guide for coding agents.",
+    )
+    guide_parser.add_argument("-o", "--out", help="Optional path to save the guide.")
+    guide_parser.set_defaults(func=cmd_guide)
+
     annotate_parser = subparsers.add_parser(
         "annotate",
         help="Run CASSIA annotation from marker CSV data.",
@@ -397,8 +674,14 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser.add_argument("--strict", action="store_true", help="Exit non-zero if no backend is available.")
     doctor_parser.set_defaults(func=cmd_doctor)
 
-    report_parser = subparsers.add_parser("report", help="Generate a Markdown report for a run folder.")
-    report_parser.add_argument("run_dir", help="Run directory containing results.json.")
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Rebuild deterministic Markdown and HTML reports for a run folder.",
+    )
+    report_parser.add_argument(
+        "run_dir",
+        help="Standard annotation or Fused Boost run directory.",
+    )
     report_parser.set_defaults(func=cmd_report)
 
     resume_parser = subparsers.add_parser("resume", help="Resume an agent CLI run folder.")
@@ -437,11 +720,15 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=HELP_FORMATTER,
         epilog=BOOST_RUN_EPILOG,
     )
-    run_parser.add_argument("--run", required=True, help="Existing CASSIA run directory.")
+    run_parser.add_argument(
+        "--run",
+        help="Existing CASSIA run for review mode; output parent directory for fused mode.",
+    )
     run_parser.add_argument("-m", "--markers", required=True, help="Raw marker table CSV.")
     run_parser.add_argument("--cluster", required=True, help="Cluster ID/name to boost.")
     run_parser.add_argument("--major-cluster-info", default="single-cell RNA-seq dataset", help="Dataset context for the boost prompt.")
-    run_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, or shell.")
+    run_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, opencode, or shell.")
+    run_parser.add_argument("--model", help="Optional model ID passed to the selected agent CLI.")
     run_parser.add_argument(
         "--command-template",
         "--shell-command",
@@ -449,9 +736,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shell command template for --backend shell. Placeholders: {prompt}, {prompt_file}, {input}, {out}, {cluster}.",
     )
     run_parser.add_argument("--strategy", choices=["breadth", "depth"], default="breadth", help="Boost search strategy.")
+    run_parser.add_argument(
+        "--mode",
+        choices=["review", "fused"],
+        default="review",
+        help="review re-checks an existing annotation; fused performs primary annotation with active marker queries.",
+    )
+    run_parser.add_argument(
+        "--fused-prompt-version",
+        choices=["v2-compact", "v2", "v3"],
+        default="v2-compact",
+        help=(
+            "Versioned fused prompt. v2-compact is the benchmark-backed release "
+            "default; v2 preserves the legacy prompt for reproduction."
+        ),
+    )
     run_parser.add_argument("--iterations", type=int, default=5, help="Maximum agent rounds before finalization.")
     run_parser.add_argument("--n-genes", type=int, default=50, help="Top raw markers to include in the initial prompt.")
-    run_parser.add_argument("--max-genes-per-round", type=int, default=20, help="Maximum genes accepted from each <check_genes> request.")
+    run_parser.add_argument(
+        "--max-genes-per-round",
+        type=int,
+        help="Optional explicit gene cap per <check_genes> request. Default: unlimited.",
+    )
     run_parser.add_argument("--gene-column", help="Gene column name. Defaults to auto-detection.")
     run_parser.add_argument("--cluster-column", help="Cluster column name. Defaults to auto-detection.")
     run_parser.add_argument(
@@ -480,7 +786,8 @@ def build_parser() -> argparse.ArgumentParser:
     auto_parser.add_argument("--run", required=True, help="Existing CASSIA run directory.")
     auto_parser.add_argument("-m", "--markers", required=True, help="Raw marker table CSV.")
     auto_parser.add_argument("--major-cluster-info", default="single-cell RNA-seq dataset", help="Dataset context for the boost prompt.")
-    auto_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, or shell.")
+    auto_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, opencode, or shell.")
+    auto_parser.add_argument("--model", help="Optional model ID passed to the selected agent CLI.")
     auto_parser.add_argument(
         "--command-template",
         "--shell-command",
@@ -490,7 +797,11 @@ def build_parser() -> argparse.ArgumentParser:
     auto_parser.add_argument("--strategy", choices=["breadth", "depth"], default="breadth", help="Boost search strategy.")
     auto_parser.add_argument("--iterations", type=int, default=5, help="Maximum agent rounds before finalization.")
     auto_parser.add_argument("--n-genes", type=int, default=50, help="Top raw markers to include in each boost prompt.")
-    auto_parser.add_argument("--max-genes-per-round", type=int, default=20, help="Maximum genes accepted from each <check_genes> request.")
+    auto_parser.add_argument(
+        "--max-genes-per-round",
+        type=int,
+        help="Optional explicit gene cap per <check_genes> request. Default: unlimited.",
+    )
     auto_parser.add_argument("--gene-column", help="Gene column name. Defaults to auto-detection.")
     auto_parser.add_argument("--cluster-column", help="Cluster column name. Defaults to auto-detection.")
     auto_parser.add_argument(
@@ -543,7 +854,21 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Parent cluster context, e.g. 'CD8 T cell in human tumor'.",
     )
-    subcluster_run_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, or shell.")
+    subcluster_run_parser.add_argument("--backend", default="codex-cli", help="Agent backend: codex-cli, claude-cli, cursor-agent, opencode, or shell.")
+    subcluster_run_parser.add_argument(
+        "--model",
+        help=(
+            "Optional model id forwarded as '--model <id>' to the agent CLI "
+            "(cursor-agent, codex-cli, claude-cli). Example for cursor-agent: "
+            "'composer-2-fast'. Ignored for --backend shell and for HTTP API "
+            "backends."
+        ),
+    )
+    subcluster_run_parser.add_argument(
+        "--reasoning-effort",
+        choices=["minimal", "low", "medium", "high", "xhigh", "max"],
+        help="Reasoning effort forwarded to supported agent CLIs (Codex or Claude).",
+    )
     subcluster_run_parser.add_argument(
         "--command-template",
         "--shell-command",
@@ -571,12 +896,23 @@ def build_parser() -> argparse.ArgumentParser:
     subcluster_run_parser.add_argument("--timeout", type=int, default=900, help="Agent CLI timeout in seconds.")
     subcluster_run_parser.add_argument("--dry-run", action="store_true", help="Write prompt and manifest without calling an agent.")
     subcluster_run_parser.add_argument("--use-reference", action="store_true", help="Retrieve CASSIA subtype references before prompting.")
-    subcluster_run_parser.add_argument("--reference-provider", help="Provider for reference retrieval. Defaults to openrouter.")
+    subcluster_run_parser.add_argument("--reference-provider", help="Provider for reference retrieval (HTTP API path only). Defaults to openrouter. Ignored when --backend is an agent CLI — in that case reference + annotation collapse into one agent call.")
     subcluster_run_parser.add_argument("--reference-model", help="Model used by reference retrieval.")
     subcluster_run_parser.add_argument("--reference-cell-type-hint", help="Optional parent-lineage hint for reference retrieval.")
     subcluster_run_parser.add_argument("--reference-depth", choices=["summary", "detailed"], default="detailed", help="Reference extraction depth.")
     subcluster_run_parser.add_argument("--reference-max-content-length", type=int, default=5000, help="Maximum characters per reference result.")
     subcluster_run_parser.add_argument("--reference-max-context-length", type=int, default=12000, help="Maximum total reference context characters.")
+    subcluster_run_parser.add_argument(
+        "--full-markers",
+        help=(
+            "Optional path to a full positive-DE marker table (cluster, gene, "
+            "avg_log2FC, pct.1, pct.2, p_val_adj) keyed by the same subcluster "
+            "IDs as --markers. When an agent-CLI backend is in use, the prompt "
+            "gets a 'boost query' block telling the agent how to reverse-look-up "
+            "any gene beyond the top-N list via ``cassia boost query``. Ignored "
+            "for HTTP API backends."
+        ),
+    )
     subcluster_run_parser.set_defaults(func=cmd_subcluster_run)
 
     consensus_parser = subparsers.add_parser(
@@ -617,13 +953,36 @@ def build_parser() -> argparse.ArgumentParser:
     consensus_parser.add_argument("--sub-column", help="Subtype/detail annotation column override.")
     consensus_parser.set_defaults(func=cmd_consensus)
 
+    judge_parser = subparsers.add_parser(
+        "judge",
+        help="Blindly evaluate annotation CSVs with the stable CASSIA Judge protocol.",
+        description=(
+            "Compare one or more annotation modes using the stable, blinded, "
+            "top-1-first four-axis CASSIA Judge protocol."
+        ),
+        formatter_class=HELP_FORMATTER,
+        epilog=JUDGE_EPILOG,
+    )
+    add_judge_arguments(judge_parser)
+    judge_parser.set_defaults(func=run_judge)
+
+    add_agent_subparser(subparsers)
+
     return parser
 
 
 def main(argv: Optional[Iterable[str]] = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(list(argv) if argv is not None else None)
-    return int(args.func(args))
+    argv_list = list(argv) if argv is not None else sys.argv[1:]
+    if not argv_list:
+        parser.print_help()
+        return 0
+    args = parser.parse_args(argv_list)
+    try:
+        return int(args.func(args))
+    except DaemonError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

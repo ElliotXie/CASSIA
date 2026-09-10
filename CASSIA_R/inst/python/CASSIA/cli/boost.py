@@ -6,13 +6,18 @@ import html
 import json
 import os
 import re
+import tempfile
+import time
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import pandas as pd
 
+from CASSIA.engine.main_function_code import final_annotation_system_v1
+
 from .backends import AgentCLIBackend
+from .result_schema import ANNOTATION_SCHEMA_VERSION, normalize_fused_boost_payload
 from .runner import extract_json_object, slugify, utc_now
 
 try:
@@ -64,9 +69,9 @@ def parse_gene_args(gene_values: Sequence[str]) -> List[str]:
     return genes
 
 
-def load_marker_table(path: Path) -> pd.DataFrame:
-    """Load and lightly normalize a raw marker table."""
-    df = pd.read_csv(path)
+def load_marker_table(path: Any) -> pd.DataFrame:
+    """Load and lightly normalize a raw marker table or DataFrame."""
+    df = path.copy() if isinstance(path, pd.DataFrame) else pd.read_csv(path)
     unnamed_cols = [col for col in df.columns if str(col).startswith("Unnamed:")]
     if unnamed_cols:
         df = df.drop(columns=unnamed_cols)
@@ -171,6 +176,26 @@ def _read_json(path: Path, default: Any) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _record_agent_run_metadata(manifest: Dict[str, Any], backend: AgentCLIBackend) -> None:
+    """Accumulate structured CLI usage without changing model-visible content."""
+    metadata = backend.last_run_metadata or {}
+    manifest["llm_calls"] = int(manifest.get("llm_calls", 0) or 0) + 1
+    usage = metadata.get("usage") or {}
+    if not usage:
+        return
+    totals = manifest.setdefault("usage", {})
+    for key in (
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_output_tokens",
+    ):
+        totals[key] = int(totals.get(key, 0) or 0) + int(usage.get(key, 0) or 0)
+    totals["total_tokens"] = int(totals.get("input_tokens", 0)) + int(
+        totals.get("output_tokens", 0)
+    )
+
+
 def _sort_direction(ranking_method: str, ascending: Optional[bool]) -> bool:
     if ascending is not None:
         return ascending
@@ -269,7 +294,7 @@ def _safe_text(value: Any) -> str:
     if value is None:
         return ""
     try:
-        if pd.isna(value):
+        if pd.api.types.is_scalar(value) and pd.isna(value):
             return ""
     except (TypeError, ValueError):
         pass
@@ -280,7 +305,7 @@ def _as_list(value: Any) -> List[str]:
     if value is None:
         return []
     try:
-        if pd.isna(value):
+        if pd.api.types.is_scalar(value) and pd.isna(value):
             return []
     except (TypeError, ValueError):
         pass
@@ -481,25 +506,669 @@ def format_annotation_context(context: Dict[str, Any]) -> str:
     return str(annotation)
 
 
-def extract_check_genes(text: str, max_genes: int = 20) -> List[str]:
+def extract_check_genes(text: str, max_genes: Optional[int] = None) -> List[str]:
     """Extract requested genes from <check_genes> tags."""
-    blocks = re.findall(r"<check_genes>\s*(.*?)\s*</check_genes>", text, flags=re.DOTALL | re.IGNORECASE)
+    # Disallow nested angle brackets inside a request. This prevents an explanatory
+    # mention such as ``the previous `<check_genes>` panel`` from swallowing all
+    # prose up to a later, real closing tag.
+    blocks = re.findall(
+        r"<check_genes>\s*([^<>]*?)\s*</check_genes>",
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
     genes: List[str] = []
     for block in blocks:
-        genes.extend(parse_gene_args([block]))
-    return genes[:max_genes]
+        genes.extend(
+            gene
+            for gene in parse_gene_args([block])
+            if re.fullmatch(r"[A-Za-z][A-Za-z0-9._-]*", gene)
+        )
+    if max_genes is not None and max_genes > 0:
+        return genes[:max_genes]
+    return genes
+
+
+def extract_candidate_set(text: str) -> List[Dict[str, Any]]:
+    """Extract the auditable hypothesis slate emitted by Candidate Boost."""
+    match = re.search(
+        r"<candidate_set>\s*([\s\S]*?)\s*</candidate_set>",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return []
+    try:
+        payload = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return []
+    candidates = payload.get("candidates") if isinstance(payload, dict) else payload
+    if not isinstance(candidates, list):
+        return []
+    normalized: List[Dict[str, Any]] = []
+    for index, candidate in enumerate(candidates, start=1):
+        if isinstance(candidate, str):
+            candidate = {"label": candidate}
+        if not isinstance(candidate, dict):
+            continue
+        label = _safe_text(candidate.get("label") or candidate.get("cell_type"))
+        if not label:
+            continue
+        normalized.append({
+            "rank": index,
+            "label": label,
+            "broad_lineage": _safe_text(candidate.get("broad_lineage")),
+            "why_plausible": _safe_text(candidate.get("why_plausible")),
+            "positive_markers": _as_list(candidate.get("positive_markers")),
+            "exclusion_markers": _as_list(candidate.get("exclusion_markers")),
+        })
+    return normalized
+
+
+def build_candidate_boost_prompt(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    candidate_count: int = 5,
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+) -> str:
+    """Build the minimal-candidate-first active-evidence experiment prompt."""
+    if candidate_count not in {3, 5}:
+        raise ValueError("Candidate Boost requires candidate_count to be 3 or 5")
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap. Query every marker needed for a decisive comparison, "
+        "but keep the panel tied to the candidate slate."
+    )
+    return f"""You are CASSIA Candidate Boost, an active-evidence single-cell annotator.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked positive markers from the target-vs-rest differential-expression table:
+{", ".join(top_markers)}
+{task_text}
+This is a candidate-first experiment. Do not start from a long narrative annotation and do
+not assume any candidate is correct.
+
+Phase 1 — minimal candidate slate:
+1. From only the context and ranked markers above, propose exactly {candidate_count} genuinely
+   distinct, conventional cell identities ranked by prior plausibility. Cover the leading
+   near-neighbor alternatives; do not fill the slate with cosmetic state variants.
+2. For every candidate, name a coherent positive identity program and reciprocal markers that
+   would weaken or exclude it. Shared activation, interferon, stress, cell-cycle, ribosomal, and
+   mitochondrial programs are not sufficient identity evidence by themselves.
+3. Emit the slate in this machine-readable block:
+<candidate_set>{{"candidates":[{{"label":"...","broad_lineage":"...","why_plausible":"...","positive_markers":["..."],"exclusion_markers":["..."]}}]}}</candidate_set>
+4. Immediately request one discriminating panel using exactly:
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+5. {gene_rule} Include evidence for the strongest alternatives, not only the current favorite.
+6. Evidence boundary: never inspect files/workspaces or run tools. Only use markers in this
+   prompt and statistics explicitly returned by CASSIA. Stop after the gene request and wait.
+
+Phase 2 — evidence tournament:
+- Compare every candidate against returned enrichment, target prevalence, reference prevalence,
+  and coherent multi-gene programs. Absence under dropout is weak unless a program is jointly
+  absent/depleted. Expression without enrichment may be shared or ambient.
+- You may query another discriminating panel if the top candidates remain unresolved.
+- Before finalizing, mark every original candidate supported, weakened, refuted, or unresolved.
+  A new candidate may replace the slate only if returned evidence exposes a missed coherent
+  identity program; record why.
+- The final primary label is not required to equal the initial rank 1.
+
+Final output: return only one JSON object, with no markdown:
+{{
+  "final_cell_type": "conventional broad identity",
+  "final_sub_cell_type": "most likely specific subtype or state",
+  "ranked_sub_cell_types": ["most likely", "second", "third"],
+  "possible_mixed_cell_types": [],
+  "confidence": "low|medium|high",
+  "changed_from_original": null,
+  "checked_genes": ["GENE1", "GENE2"],
+  "supporting_markers": ["GENE1", "GENE2"],
+  "refuting_markers": ["GENE3"],
+  "alternatives": ["strongest viable alternative"],
+  "candidate_audit": [{{"label":"...","status":"supported|weakened|refuted|unresolved","decisive_evidence":"..."}}],
+  "evidence": "concise evidence explaining why the winner beat the candidate slate",
+  "recommended_next_steps": "optional validation step"
+}}
+
+Begin Phase 1 now. Do not output final JSON before CASSIA returns marker-query results.
+"""
+
+
+def build_branch_search_fused_prompt(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+) -> str:
+    """Build the iterative breadth-then-depth hypothesis-branch experiment."""
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap. Use the smallest panel that gives every active "
+        "branch a fair positive and reciprocal test; do not query an unfocused marker catalog."
+    )
+    faithful_annotation_prompt = "\n".join(
+        line.rstrip() for line in final_annotation_system_v1.splitlines()
+    ).strip()
+    return f"""{faithful_annotation_prompt}
+
+CASSIA ACTIVE-EVIDENCE EXTENSION — ITERATIVE BRANCH SEARCH
+
+You are the primary annotator in a fused Annotation Boost session. No prior annotation is
+available or trusted. Preserve the original CASSIA functional-marker, cell-type-marker,
+general-type, and ranked-subtype reasoning, but organize active evidence as a mutable
+breadth-then-depth hypothesis search. The hypotheses are search branches, not answers.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked positive markers from the target-vs-rest differential-expression table:
+{", ".join(top_markers)}
+{task_text}
+Search protocol:
+1. Start with exactly three genuinely distinct conventional identity hypotheses. Prefer
+   meaningful lineage or sibling-subtype competitors; do not fill the slate with cosmetic
+   activation/state variants.
+2. For each branch, specify:
+   - the coherent positive identity program that would support it,
+   - reciprocal or sibling markers that would weaken it,
+   - which visible ranked markers motivated the branch.
+3. BREADTH ROUND: request one combined panel that fairly tests all three branches. Every branch
+   must contribute positive markers and at least one useful reciprocal discriminator. Emit:
+<branch_ledger>{{"branches":[{{"label":"...","visible_basis":["..."],"positive_markers":["..."],"reciprocal_markers":["..."]}}]}}</branch_ledger>
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+4. {gene_rule} Use official gene symbols. Stop after the request and wait for CASSIA results.
+5. After every returned panel, update every branch as supported, weakened, refuted, or unresolved.
+   Do not equate one absent marker with refutation under dropout; judge coherent programs using
+   enrichment, target prevalence, reference prevalence, and reciprocal evidence.
+6. OPEN BRANCH RULE: inspect the ranked and returned evidence for a coherent program unexplained
+   by all current branches. A new branch may enter only from such positive unexplained evidence;
+   record which old branch it replaces and why. This prevents the initial three from becoming a
+   closed world without encouraging generic marker fishing.
+7. DEPTH ROUND: after broad comparison, select the leading branch and its strongest surviving
+   rival. Request a second focused panel that tests stable subtype/lineage discriminators between
+   them and attempts to falsify the leader. Separate identity from activation, interferon, stress,
+   cell cycle, maturation, and anatomical state.
+8. Complete both the breadth and depth evidence rounds before finalizing. Additional rounds are
+   allowed only when a specific unresolved branch or newly exposed coherent program justifies them.
+9. Final head-to-head gate: choose the conventional broad identity and rank-1 subtype that best
+   explain all evidence. Unsupported precision loses to a broader supported label. Mixed/doublet
+   calls require two coherent incompatible identity programs.
+10. Evidence boundary: never inspect files/workspaces or run tools yourself. Only use ranked
+   markers above and statistics explicitly returned by CASSIA.
+
+Final output: return only one JSON object, with no markdown:
+{{
+  "final_cell_type": "conventional broad identity",
+  "final_sub_cell_type": "most likely specific subtype or state",
+  "ranked_sub_cell_types": ["most likely", "second", "third"],
+  "possible_mixed_cell_types": [],
+  "confidence": "low|medium|high",
+  "changed_from_original": null,
+  "checked_genes": ["GENE1", "GENE2"],
+  "supporting_markers": ["GENE1", "GENE2"],
+  "refuting_markers": ["GENE3"],
+  "alternatives": ["strongest surviving alternative"],
+  "branch_audit": [{{"label":"...","status":"supported|weakened|refuted|unresolved","decisive_evidence":"..."}}],
+  "evidence": "concise breadth-then-depth evidence explaining the winner",
+  "recommended_next_steps": "optional validation step"
+}}
+
+Begin with the three-branch ledger and breadth-round gene request. Do not output final JSON yet.
+"""
+
+
+def _experimental_fused_output_schema() -> str:
+    """Return the shared parseable schema for answer-agnostic fused experiments."""
+    return """{
+  "final_cell_type": "conventional broad identity",
+  "final_sub_cell_type": "most likely specific subtype or state",
+  "ranked_sub_cell_types": ["most likely", "second", "third"],
+  "possible_mixed_cell_types": [],
+  "confidence": "low|medium|high",
+  "changed_from_original": null,
+  "checked_genes": ["GENE1", "GENE2"],
+  "supporting_markers": ["GENE1", "GENE2"],
+  "refuting_markers": ["GENE3"],
+  "alternatives": ["strongest viable alternative"],
+  "evidence": "concise evidence from ranked and queried marker statistics",
+  "recommended_next_steps": "optional validation step"
+}"""
+
+
+def build_open_world_falsification_prompt(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+) -> str:
+    """Build an anti-anchoring, open-world counterfactual fused experiment."""
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap; use a compact hypothesis-driven panel."
+    )
+    return f"""You are CASSIA Open-World Falsification, an active-evidence single-cell annotator.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked positive markers from the target-vs-rest differential-expression table:
+{", ".join(top_markers)}
+{task_text}
+Objective: identify the conventional broad lineage and rank-1 subtype while preventing the
+initial shortlist from anchoring the final answer. No prior annotation exists.
+
+First response:
+1. Form up to three provisional, genuinely distinct identity hypotheses. They are search handles,
+   not a closed candidate list and not a ranking commitment.
+2. For each, identify a coherent positive program and reciprocal evidence that would refute it.
+3. Add an explicit OPEN-WORLD probe: genes capable of revealing a coherent identity outside all
+   provisional hypotheses. This probe must be biologically motivated by unexplained ranked markers,
+   tissue context, or a plausible competing lineage; do not query a generic catalog.
+4. Request one combined discriminating panel using exactly:
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+5. {gene_rule} Include positive and reciprocal markers. Never inspect files or use tools yourself.
+   Stop after the gene request and wait for statistics returned by CASSIA.
+
+After each result:
+- Treat enrichment, target prevalence, reference prevalence, and multi-gene coherence as evidence.
+  A missing single marker under dropout is weak; expression without enrichment may be shared/ambient.
+- Run a mandatory null-slate reconstruction: temporarily ignore the original hypothesis ranking and
+  ask which identity best explains all ranked plus queried evidence. A final identity outside the
+  provisional set has exactly the same burden of proof as one inside it.
+- Explicitly seek the strongest counterexample to the current leader. Query another focused panel
+  when the winner is supported only by shared state markers or a viable alternative remains.
+- Separate stable identity from activation, interferon, stress, cell cycle, location, and maturation.
+  Prefer a conventional broader subtype over unsupported precision.
+
+When evidence is sufficient, return only this JSON shape with no markdown:
+{_experimental_fused_output_schema()}
+
+Begin with the provisional hypotheses, the open-world probe rationale, and the first gene request.
+Do not output final JSON before CASSIA returns marker-query results.
+"""
+
+
+def build_program_first_fused_prompt(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+) -> str:
+    """Build a program-first experiment that delays cell-type naming until evidence returns."""
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap; query every gene needed to complete or reject the programs."
+    )
+    return f"""You are CASSIA Program-First Inference, an active-evidence single-cell annotator.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked positive markers from the target-vs-rest differential-expression table:
+{", ".join(top_markers)}
+{task_text}
+The first round is phenotype-blind: do not emit or rank any cell-type, lineage, or subtype names
+before CASSIA returns the first marker-query statistics. This prevents label-first confirmation.
+
+First response:
+1. Partition the observed markers into molecular programs without naming a phenotype: stable
+   identity/structure, effector/function, signaling/state, proliferation/stress, housekeeping,
+   possible ambient signal, and any mutually incompatible program.
+2. Identify which stable program is incomplete or ambiguous. Select completion genes expected to
+   co-enrich if it is real, plus reciprocal exclusion genes for the most plausible competing program.
+   Famous single markers are insufficient; test coherent modules.
+3. Emit a short machine-readable plan without phenotype labels:
+<program_plan>{{"observed_programs":["..."],"unexplained_markers":["..."],"decision_tests":["..."]}}</program_plan>
+4. Request the completion/exclusion panel using exactly:
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+5. {gene_rule} Never inspect files or use tools yourself. Stop and wait for CASSIA.
+
+After the first result:
+- Only now map coherent stable programs to broad lineage hypotheses, then subtype siblings. Keep
+  transient state separate from identity.
+- Weight multi-gene enrichment and target prevalence; down-weight isolated expression, ambient
+  genes, shared activation, and absence of a single dropout-prone marker.
+- Attempt to falsify the leading mapping with reciprocal markers. If subtype siblings remain
+  unresolved, request one second focused panel rather than manufacturing a precise label.
+- Mixed/doublet calls require two coherent incompatible identity programs.
+
+When evidence is sufficient, return only this JSON shape with no markdown:
+{_experimental_fused_output_schema()}
+
+Begin with the phenotype-blind program plan and first gene request. Do not name a cell type and do
+not output final JSON before CASSIA returns marker-query results.
+"""
+
+
+def build_fused_boost_prompt(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    strategy: str = "breadth",
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+    prompt_variant: str = "v2-compact",
+    candidate_count: int = 5,
+) -> str:
+    """Fuse the faithful annotation prompt with active full-marker querying."""
+    if prompt_variant == "v2-compact":
+        prompt = build_fused_boost_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            strategy=strategy,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+            prompt_variant="v2",
+            candidate_count=candidate_count,
+        )
+        extension = "CASSIA ACTIVE-EVIDENCE EXTENSION\n"
+        _, separator, suffix = prompt.partition(extension)
+        if not separator:
+            raise ValueError("Could not isolate the Fused v2 active-evidence extension")
+        return (
+            (extension + suffix)
+            .replace(
+                "Perform the original CASSIA annotation reasoning above, while actively querying",
+                "Perform a preliminary annotation from the supplied markers, while actively querying",
+                1,
+            )
+            .replace(
+                "Perform the original CASSIA functional-marker, cell-type-marker, general-type, and top-three-subtype analysis.",
+                "Analyze functional markers, cell-type markers, general type, and top-three subtypes.",
+                1,
+            )
+        )
+    if prompt_variant in {"gsea_tool", "ucell_tool"}:
+        base = build_fused_boost_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            strategy=strategy,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+            prompt_variant="v2",
+            candidate_count=candidate_count,
+        )
+        if prompt_variant == "gsea_tool":
+            tool_name = "weighted preranked GSEA"
+            request_tag = "gsea_request"
+            evidence_description = (
+                "CASSIA will score each requested signature against the complete signed "
+                "target-vs-rest log-fold-change ranking and return ES, NES, a deterministic "
+                "gene-set-permutation p value, and leading-edge genes."
+            )
+        else:
+            tool_name = "UCell"
+            request_tag = "ucell_request"
+            evidence_description = (
+                "CASSIA will calculate the published per-cell Mann-Whitney rank score "
+                "(maxRank=1500) in anonymously sampled target and reference cells and return "
+                "score distributions plus probability of superiority."
+            )
+        return base + f"""
+
+CASSIA SIGNATURE-EVIDENCE TOOL — {tool_name.upper()}
+
+This experiment keeps the Fused v2 annotation task and output schema unchanged, but gives you
+one deterministic signature-level evidence tool. For the first evidence request, use this tool
+instead of <check_genes>. Propose 2-4 genuinely competing, answer-agnostic signatures with 3-50
+official gene symbols each. Include coherent programs for the leading identity and its strongest
+sibling/lineage alternative; do not create a signature from only the visible top markers.
+
+Request exactly one JSON block:
+<{request_tag}>{{"signatures":[{{"name":"short hypothesis name","genes":["GENE1","GENE2","GENE3"]}}]}}</{request_tag}>
+
+{evidence_description}
+
+After receiving results, use signature evidence as an aid rather than an automatic label:
+- Coherent multi-gene separation matters more than one famous marker.
+- State programs must not replace stable identity programs.
+- A non-enriched signature may be incomplete or dropout-sensitive; compare alternatives.
+- You may then request a focused <check_genes> panel or one more signature-tool round if needed.
+- Never infer the hidden target label; the tool does not disclose it.
+
+Override the earlier startup sentence for this experiment: begin with the mandatory
+<{request_tag}> request, stop, and wait. Do not output final JSON in the first response.
+"""
+    if prompt_variant == "candidate":
+        return build_candidate_boost_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            candidate_count=candidate_count,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+        )
+    if prompt_variant == "branch_search":
+        return build_branch_search_fused_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+        )
+    if prompt_variant == "open_world":
+        return build_open_world_falsification_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+        )
+    if prompt_variant == "program_first":
+        return build_program_first_fused_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+        )
+    if prompt_variant == "v3":
+        return build_fused_boost_prompt_v3(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            strategy=strategy,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+        )
+    if prompt_variant not in {"v2", "v14"}:
+        raise ValueError(f"Unknown fused Boost prompt variant: {prompt_variant}")
+    strategy_text = (
+        "Use a depth-first strategy: investigate one leading hypothesis at a time, "
+        "then go deeper into subtype/state if it is supported."
+        if strategy == "depth"
+        else "Use a breadth-first strategy: maintain up to three plausible cell-type or state "
+        "hypotheses, then choose decisive positive and negative markers that separate them."
+    )
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap. Request every gene needed for a decisive comparison, "
+        "while keeping each panel hypothesis-driven rather than exhaustive."
+    )
+    faithful_annotation_prompt = "\n".join(
+        line.rstrip() for line in final_annotation_system_v1.splitlines()
+    ).strip()
+    return f"""{faithful_annotation_prompt}
+
+CASSIA ACTIVE-EVIDENCE EXTENSION
+
+You are the primary annotator in a fused Annotation Boost session. No prior annotation is available or trusted.
+Perform the original CASSIA annotation reasoning above, while actively querying the full
+target-vs-rest marker table whenever the supplied top-ranked markers do not decisively distinguish
+the leading hypotheses.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked markers from the raw differential expression table:
+{", ".join(top_markers)}
+{task_text}
+Active-evidence workflow:
+1. Perform the original CASSIA functional-marker, cell-type-marker, general-type, and top-three-subtype analysis.
+2. {strategy_text}
+3. Consider mixed populations, doublets, transitional states, and ambient RNA only when supported by coherent evidence.
+4. Request local marker statistics using exactly:
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+5. {gene_rule} Use official gene symbols and include both confirming and refuting markers where useful.
+6. Evidence boundary: do not inspect the filesystem or workspace, run shell/browser tools, or invent query results. The only valid evidence is the ranked markers in this prompt and statistics explicitly returned by CASSIA after a <check_genes> request. After requesting genes, stop and wait; never simulate the results in the same response.
+7. Always complete at least one marker-query round before finalizing. After each result, refine, retain, or pivot; do not repeat genes unnecessarily.
+8. When the evidence is sufficient, return only one valid JSON object with this exact schema:
+{{
+  "final_cell_type": "general cell type",
+  "final_sub_cell_type": "most likely specific subtype or state",
+  "ranked_sub_cell_types": ["most likely", "second", "third"],
+  "possible_mixed_cell_types": [],
+  "confidence": "low|medium|high",
+  "changed_from_original": null,
+  "checked_genes": ["GENE1", "GENE2"],
+  "supporting_markers": ["GENE1", "GENE2"],
+  "refuting_markers": ["GENE3"],
+  "alternatives": ["alternative if confidence is not high"],
+  "evidence": "concise evidence based on ranked and queried marker statistics",
+  "recommended_next_steps": "optional next validation step"
+}}
+
+Start with the original CASSIA preliminary analysis and the first targeted <check_genes> request.
+Do not output final JSON before receiving marker-query results.
+"""
+
+
+def build_fused_boost_prompt_v3(
+    cluster: str,
+    major_cluster_info: str,
+    top_markers: Sequence[str],
+    strategy: str = "breadth",
+    additional_task: Optional[str] = None,
+    max_genes_per_round: Optional[int] = None,
+) -> str:
+    """Build the hierarchy-first, evidence-calibrated fused Boost prompt."""
+    strategy_text = (
+        "Use depth-first search after the broad lineage is secure: test the leading lineage, "
+        "then resolve subtype or state within it."
+        if strategy == "depth"
+        else "Maintain up to three genuinely distinct hypotheses until a targeted panel "
+        "separates them; do not create cosmetic variants of the same hypothesis."
+    )
+    task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap. Keep panels hypothesis-driven and request every "
+        "gene needed for the decision, but do not query broad unfocused gene catalogs."
+    )
+    faithful_annotation_prompt = "\n".join(
+        line.rstrip() for line in final_annotation_system_v1.splitlines()
+    ).strip()
+    return f"""{faithful_annotation_prompt}
+
+CASSIA ACTIVE-EVIDENCE EXTENSION — HIERARCHICAL CALIBRATION
+
+You are the primary annotator in a fused Annotation Boost session. No prior annotation is
+available or trusted. Solve this cluster independently from its molecular evidence; do not
+infer a desired answer from benchmark conventions or optimize for any named evaluation set.
+
+Cluster: {cluster}
+Dataset context: {major_cluster_info}
+Top ranked positive markers from the target-vs-rest differential-expression table:
+{", ".join(top_markers)}
+{task_text}
+Decision protocol:
+1. Separate three levels that must not be conflated:
+   A. broad lineage/general cell type,
+   B. stable subtype identity,
+   C. transient state, activation, stress, cell cycle, or location.
+   Shared effector, interferon, stress, ribosomal, mitochondrial, and cell-cycle programs are
+   state evidence unless accompanied by a coherent identity program.
+2. {strategy_text}
+3. First establish or challenge the broad lineage. Query coherent positive programs for the
+   leading hypotheses plus reciprocal exclusion markers. Only then spend evidence on fine
+   subtype/state resolution. A single famous marker is not a program.
+4. Request local marker statistics using exactly:
+<check_genes>GENE1,GENE2,GENE3</check_genes>
+5. {gene_rule} Use official gene symbols. Include decisive markers for the strongest alternative,
+   not only confirmatory markers for the current favorite.
+6. Interpret returned statistics carefully:
+   - Strong positive identity evidence combines enrichment, meaningful target prevalence, and
+     multiple biologically coherent markers.
+   - A marker's absence is weak under dropout. Treat negative evidence as decisive only when
+     several expected program members are absent/depleted or the marker is detectably expressed
+     in the reference population.
+   - Expression without target enrichment may reflect a shared program or ambient RNA.
+   - Mixed/doublet calls require two coherent, incompatible identity programs; one stray marker
+     is insufficient.
+7. Evidence boundary: never inspect files/workspaces or run tools yourself. Only use the ranked
+   markers above and statistics explicitly returned by CASSIA. After a gene request, stop and wait.
+8. Complete at least one marker-query round. If the strongest alternative remains viable after
+   the first result, query a second discriminating panel instead of forcing certainty.
+9. Before finalizing, run this counterfactual decision gate internally:
+   - What is the strongest alternative?
+   - Which returned evidence distinguishes the primary call from it?
+   - Is the proposed subtype supported by identity markers, or only by a shared state program?
+   If exact subtype evidence is not discriminative, keep the correct broad identity and use a
+   conventional broader subtype with medium/low confidence. Do not invent a composite subtype
+   from unrelated adjectives merely to sound precise.
+10. Return only one JSON object:
+{{
+  "final_cell_type": "conventional broad identity supported by a coherent program",
+  "final_sub_cell_type": "specific identity only when discriminative evidence supports it",
+  "ranked_sub_cell_types": ["most likely", "second", "third"],
+  "possible_mixed_cell_types": [],
+  "confidence": "low|medium|high",
+  "changed_from_original": null,
+  "checked_genes": ["GENE1", "GENE2"],
+  "supporting_markers": ["GENE1", "GENE2"],
+  "refuting_markers": ["GENE3"],
+  "alternatives": ["strongest viable alternative"],
+  "evidence": "concise lineage-then-subtype evidence using ranked and queried statistics",
+  "recommended_next_steps": "optional next validation step"
+}}
+
+Start with the lineage-level hypotheses and the first discriminating <check_genes> request.
+Do not output final JSON before receiving marker-query results.
+"""
 
 
 def build_boost_prompt(
     cluster: str,
     major_cluster_info: str,
     top_markers: Sequence[str],
-    annotation_context: str,
+    annotation_context: Optional[str] = None,
     strategy: str = "breadth",
     additional_task: Optional[str] = None,
-    max_genes_per_round: int = 20,
+    max_genes_per_round: Optional[int] = None,
+    mode: str = "review",
+    prompt_variant: str = "v2-compact",
+    candidate_count: int = 5,
 ) -> str:
     """Build the initial annotation boost prompt for an agent CLI backend."""
+    if mode == "fused":
+        return build_fused_boost_prompt(
+            cluster=cluster,
+            major_cluster_info=major_cluster_info,
+            top_markers=top_markers,
+            strategy=strategy,
+            additional_task=additional_task,
+            max_genes_per_round=max_genes_per_round,
+            prompt_variant=prompt_variant,
+            candidate_count=candidate_count,
+        )
+    if mode != "review":
+        raise ValueError(f"Unknown Annotation Boost mode: {mode}")
+    if not annotation_context:
+        raise ValueError("Review mode requires an original annotation context")
     strategy_text = (
         "Use a depth-first strategy: investigate one leading hypothesis at a time, "
         "then go deeper into subtype/state if it is supported."
@@ -508,6 +1177,12 @@ def build_boost_prompt(
         "then choose decisive positive and negative markers to separate them."
     )
     task_text = f"\nAdditional task: {additional_task}\n" if additional_task else ""
+    gene_rule = (
+        f"Request no more than {max_genes_per_round} genes per round."
+        if max_genes_per_round is not None and max_genes_per_round > 0
+        else "There is no numerical gene cap. Request every gene needed for a decisive comparison, "
+        "while keeping each panel hypothesis-driven rather than exhaustive."
+    )
     return f"""You are CASSIA annotation boost, a careful senior computational biologist called in to stress-test a single-cell annotation.
 
 Cluster: {cluster}
@@ -523,9 +1198,10 @@ Workflow:
 2. {strategy_text}
 3. If more evidence is needed, request marker checks using this exact tag format:
 <check_genes>GENE1,GENE2,GENE3</check_genes>
-4. Request no more than {max_genes_per_round} genes per round. Use official gene symbols only.
-5. After CASSIA returns marker statistics, refine or pivot. Do not repeat already checked genes unless necessary.
-6. When ready, return only one valid JSON object with this exact schema:
+4. {gene_rule} Use official gene symbols only.
+5. Evidence boundary: do not inspect the filesystem or workspace, run shell/browser tools, or invent query results. Only use evidence in this prompt and marker statistics explicitly returned by CASSIA. After requesting genes, stop and wait for the results.
+6. After CASSIA returns marker statistics, refine or pivot. Do not repeat already checked genes unless necessary.
+7. When ready, return only one valid JSON object with this exact schema:
 {{
   "final_cell_type": "general cell type",
   "final_sub_cell_type": "specific subtype or state if applicable",
@@ -543,7 +1219,12 @@ Start with your assessment and the first <check_genes> request unless the origin
 """
 
 
-def build_boost_followup_prompt(transcript: str, query_text: Optional[str], is_final_round: bool) -> str:
+def build_boost_followup_prompt(
+    transcript: str,
+    query_text: Optional[str],
+    is_final_round: bool,
+    prompt_variant: str = "v2-compact",
+) -> str:
     """Build a stateless follow-up prompt containing the transcript so far."""
     final_instruction = (
         "You are at the final round. Return only the final JSON object now."
@@ -551,6 +1232,62 @@ def build_boost_followup_prompt(transcript: str, query_text: Optional[str], is_f
         else "Continue the boost analysis. Either request another <check_genes> list or return the final JSON object."
     )
     query_section = f"\nLatest CASSIA marker query results:\n{query_text}\n" if query_text else ""
+    calibration = (
+        "- Re-apply the hierarchy: broad lineage first, stable subtype second, transient state third.\n"
+        "- Before finalizing, identify the strongest alternative and the returned evidence that distinguishes it.\n"
+        "- Prefer a conventional broader subtype over an unsupported precise or composite label.\n"
+        if prompt_variant == "v3"
+        else (
+            "- Interpret GSEA at the program level: prioritize coherent positive NES and leading-edge genes, not the name you gave the signature.\n"
+            "- You may request another <gsea_request> JSON block or a focused <check_genes> panel if alternatives remain unresolved.\n"
+            "- Do not let a shared pathway or state signature replace stable identity evidence.\n"
+            if prompt_variant == "gsea_tool"
+            else (
+                "- Interpret UCell distributions and target-vs-reference separation; do not treat a score as an automatic cell-type label.\n"
+                "- You may request another <ucell_request> JSON block or a focused <check_genes> panel if alternatives remain unresolved.\n"
+                "- Prefer coherent stable-identity signatures over shared activation/state programs.\n"
+                if prompt_variant == "ucell_tool"
+                else (
+            "- Reconstruct the answer from all evidence without privileging the initial shortlist.\n"
+            "- Give an identity outside the shortlist the same evidentiary burden as one inside it.\n"
+            "- Seek the strongest counterexample; do not let shared state markers decide identity.\n"
+            if prompt_variant == "open_world"
+            else (
+                "- The first returned statistics now permit phenotype naming: map coherent stable programs to lineage first, then subtype.\n"
+                "- Falsify the leading mapping with reciprocal markers and keep state separate from identity.\n"
+                "- If subtype siblings remain unresolved, query a focused second panel or use a conventional broader label.\n"
+                if prompt_variant == "program_first"
+                else (
+            "- Preserve the original candidate slate as an explicit tournament. Compare every candidate "
+            "with the returned statistics and do not simply defend the initial rank 1.\n"
+            "- Before finalizing, include candidate_audit entries for the original slate and explain the "
+            "decisive evidence that selected the winner.\n"
+            "- A candidate outside the slate is allowed only when returned evidence reveals a coherent "
+            "missed identity program.\n"
+            if prompt_variant == "candidate"
+            else (
+            "- Maintain a mutable branch ledger: update every branch as supported, weakened, refuted, or unresolved.\n"
+            "- After the breadth panel, run a distinct depth panel on the leader versus its strongest surviving rival.\n"
+            "- Admit a new branch only when a coherent positive program is unexplained by the current branches.\n"
+            "- Do not finalize until both breadth and depth marker-query rounds are complete.\n"
+            if prompt_variant == "branch_search"
+            else (
+            "- Final sufficiency gate: preserve the stable identity supported by the direct ranked-marker program; "
+            "pivot only when returned queries provide a coherent reciprocal program, not an isolated post-hoc marker.\n"
+            "- A precise segment, maturation/state, or anatomical qualifier needs discriminative evidence against "
+            "its strongest sibling. Do not introduce an anatomical region outside the supplied dataset context.\n"
+            "- If identity evidence is mixed, use a conventional supported identity as the primary label and put "
+            "uncertain state or location wording in evidence/alternatives.\n"
+            if prompt_variant == "v14"
+            else ""
+            )
+            )
+                )
+            )
+                )
+            )
+        )
+    )
     return f"""Continue this CASSIA annotation boost session.
 
 Transcript so far:
@@ -560,7 +1297,9 @@ Transcript so far:
 
 Remember:
 - Use <check_genes>GENE1,GENE2</check_genes> for more local marker checks.
-- Final output must be one valid JSON object only, with no markdown fences or commentary.
+- Do not inspect files or use tools yourself; only use marker statistics explicitly returned in this prompt.
+- If requesting genes, stop after the <check_genes> request and wait for CASSIA results.
+{calibration}- Final output must be one valid JSON object only, with no markdown fences or commentary.
 """
 
 
@@ -572,26 +1311,8 @@ def _append_transcript(messages: List[Dict[str, str]]) -> str:
 
 
 def normalize_boost_result(result: Dict[str, Any]) -> Dict[str, Any]:
-    """Normalize final boost JSON and accept common fallback field names."""
-    normalized = dict(result)
-    if "final_cell_type" not in normalized and "main_cell_type" in normalized:
-        normalized["final_cell_type"] = normalized["main_cell_type"]
-    if not normalized.get("final_cell_type"):
-        raise ValueError("Final boost JSON is missing required field 'final_cell_type'")
-    normalized.setdefault("final_sub_cell_type", "")
-    normalized.setdefault("confidence", "")
-    normalized.setdefault("changed_from_original", None)
-    for key in ("checked_genes", "supporting_markers", "refuting_markers", "alternatives"):
-        value = normalized.get(key)
-        if value is None:
-            normalized[key] = []
-        elif isinstance(value, str):
-            normalized[key] = [item.strip() for item in value.split(",") if item.strip()]
-        elif not isinstance(value, list):
-            normalized[key] = [str(value)]
-    normalized.setdefault("evidence", "")
-    normalized.setdefault("recommended_next_steps", "")
-    return normalized
+    """Normalize final boost JSON into both boost and canonical CASSIA fields."""
+    return normalize_fused_boost_payload(result)
 
 
 def write_boost_report(boost_dir: Path, manifest: Dict[str, Any], result: Optional[Dict[str, Any]], errors: List[str]) -> Path:
@@ -820,7 +1541,7 @@ def write_boost_html_report(
     top_marker_rows: pd.DataFrame,
     strategy: str,
 ) -> Path:
-    """Write the original annotation boost HTML report from CLI boost artifacts."""
+    """Write the mode-appropriate deterministic HTML report from boost artifacts."""
     summary_text = build_boost_summary_tags(
         manifest=manifest,
         messages=messages,
@@ -834,6 +1555,20 @@ def write_boost_html_report(
     tags_path.write_text(summary_text + "\n", encoding="utf-8")
 
     html_path = boost_dir / "summary.html"
+    if manifest.get("mode") == "fused":
+        from CASSIA.reports.fused_boost_report import write_fused_boost_html_report
+
+        return write_fused_boost_html_report(
+            output_path=html_path,
+            manifest=manifest,
+            messages=messages,
+            result=result,
+            errors=errors,
+            query_frames=query_frames,
+            top_marker_rows=top_marker_rows,
+            quality_assessment=manifest.get("quality_assessment"),
+        )
+
     gene_stats = _query_frames_gene_stats(query_frames)
     if _format_annotation_boost_summary_to_html is not None:
         returned_path = _format_annotation_boost_summary_to_html(
@@ -851,6 +1586,97 @@ def write_boost_html_report(
         encoding="utf-8",
     )
     return html_path
+
+
+def regenerate_boost_reports(boost_dir: Path) -> Dict[str, str]:
+    """Rebuild Markdown and HTML reports from saved boost artifacts only."""
+    boost_dir = Path(boost_dir)
+    manifest_path = boost_dir / "boost_manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"No boost_manifest.json found in {boost_dir}")
+
+    manifest = _read_json(manifest_path, {})
+    final_result = _read_final_result(boost_dir)
+    if final_result:
+        final_result = normalize_boost_result(final_result)
+    errors = [str(item) for item in manifest.get("errors", [])]
+
+    messages: List[Dict[str, str]] = []
+    prompt_files = sorted((boost_dir / "prompts").glob("round_*.md"))
+    for prompt_path in prompt_files:
+        messages.append({
+            "role": "user",
+            "content": prompt_path.read_text(encoding="utf-8"),
+        })
+        raw_path = boost_dir / "raw" / f"{prompt_path.stem}.txt"
+        if raw_path.exists():
+            messages.append({
+                "role": "assistant",
+                "content": raw_path.read_text(encoding="utf-8"),
+            })
+    final_prompt = boost_dir / "prompts" / "final.md"
+    if final_prompt.exists():
+        messages.append({"role": "user", "content": final_prompt.read_text(encoding="utf-8")})
+        final_raw = boost_dir / "raw" / "final.txt"
+        if final_raw.exists():
+            messages.append({"role": "assistant", "content": final_raw.read_text(encoding="utf-8")})
+
+    query_frames = [
+        pd.read_csv(path)
+        for path in sorted((boost_dir / "queries").glob("round_*.csv"))
+    ]
+    top_markers_path = boost_dir / "top_markers.csv"
+    top_marker_rows = (
+        pd.read_csv(top_markers_path)
+        if top_markers_path.exists()
+        else pd.DataFrame(columns=["gene"])
+    )
+
+    cluster = str(manifest.get("cluster", ""))
+    if manifest.get("mode") == "fused":
+        annotation_context = {
+            "source": None,
+            "cluster_id": cluster,
+            "annotation": {"mode": "fused_primary_annotation", "prior_annotation": None},
+        }
+    else:
+        try:
+            annotation_context = load_annotation_context(
+                Path(manifest.get("run_dir", boost_dir)),
+                cluster,
+            )
+        except Exception:
+            annotation_context = {
+                "source": manifest.get("annotation_source"),
+                "cluster_id": cluster,
+                "annotation": "Original annotation artifact is unavailable.",
+            }
+
+    report_path = write_boost_report(boost_dir, manifest, final_result, errors)
+    html_path = write_boost_html_report(
+        boost_dir=boost_dir,
+        manifest=manifest,
+        messages=messages,
+        result=final_result,
+        errors=errors,
+        annotation_context=annotation_context,
+        query_frames=query_frames,
+        top_marker_rows=top_marker_rows,
+        strategy=manifest.get("parameters", {}).get("strategy", "breadth"),
+    )
+    manifest["markdown_report"] = str(report_path)
+    manifest["html_report"] = str(html_path)
+    manifest["summary_tags"] = str(boost_dir / "summary_tags.txt")
+    manifest["outputs"] = {
+        "final_json": str(boost_dir / "final.json") if final_result else None,
+        "markdown_report": str(report_path),
+        "html_report": str(html_path),
+        "summary_tags": str(boost_dir / "summary_tags.txt"),
+        "transcript": str(boost_dir / "transcript.md"),
+    }
+    manifest["updated_at"] = utc_now()
+    _write_json(manifest_path, manifest)
+    return {"markdown": str(report_path), "html": str(html_path)}
 
 
 def _auto_result_row(result: Dict[str, Any]) -> Dict[str, Any]:
@@ -1121,7 +1947,15 @@ def run_boost_auto(args: Any) -> int:
 
 def run_boost(args: Any) -> int:
     """Run the CLI annotation boost agent loop for one cluster."""
+    started_monotonic = time.monotonic()
+    if args.iterations < 1:
+        raise ValueError("--iterations must be at least 1")
+    if args.n_genes < 1:
+        raise ValueError("--n-genes must be at least 1")
+    if args.max_genes_per_round is not None and args.max_genes_per_round < 1:
+        raise ValueError("--max-genes-per-round must be at least 1 when provided")
     run_dir = Path(args.run)
+    mode = getattr(args, "mode", "review")
     cluster_slug = slugify(args.cluster)
     boost_dir = Path(args.out) if args.out else run_dir / "boost" / cluster_slug
     prompts_dir = boost_dir / "prompts"
@@ -1130,7 +1964,17 @@ def run_boost(args: Any) -> int:
     for directory in (prompts_dir, raw_dir, queries_dir):
         directory.mkdir(parents=True, exist_ok=True)
 
-    annotation_context = load_annotation_context(run_dir, args.cluster)
+    if mode == "fused":
+        annotation_context = {
+            "source": None,
+            "cluster_id": args.cluster,
+            "annotation": {
+                "mode": "fused_primary_annotation",
+                "prior_annotation": None,
+            },
+        }
+    else:
+        annotation_context = load_annotation_context(run_dir, args.cluster)
     top_markers, top_marker_rows = get_cluster_top_markers(
         marker_path=Path(args.markers),
         cluster=args.cluster,
@@ -1148,6 +1992,8 @@ def run_boost(args: Any) -> int:
         "status": "running",
         "cluster": args.cluster,
         "backend": args.backend,
+        "mode": mode,
+        "result_schema_version": ANNOTATION_SCHEMA_VERSION,
         "run_dir": str(run_dir.resolve()),
         "boost_dir": str(boost_dir.resolve()),
         "marker_table": str(Path(args.markers).resolve()),
@@ -1165,6 +2011,9 @@ def run_boost(args: Any) -> int:
         strategy=args.strategy,
         additional_task=args.additional_task,
         max_genes_per_round=args.max_genes_per_round,
+        mode=mode,
+        prompt_variant=getattr(args, "fused_prompt_version", "v2-compact"),
+        candidate_count=getattr(args, "candidate_count", 5),
     )
 
     if args.dry_run:
@@ -1174,13 +2023,24 @@ def run_boost(args: Any) -> int:
         _write_json(boost_dir / "boost_manifest.json", manifest)
         return 0
 
-    backend = AgentCLIBackend(args.backend, command_template=args.command_template, timeout_seconds=args.timeout)
+    backend = AgentCLIBackend(
+        args.backend,
+        command_template=args.command_template,
+        timeout_seconds=args.timeout,
+        model=getattr(args, "model", None),
+        agent_mode="ask" if args.backend == "cursor-agent" else None,
+    )
+    backend_cwd = boost_dir
+    if args.backend != "shell":
+        backend_cwd = Path(tempfile.gettempdir()) / f"cassia_boost_cli_{cluster_slug}"
+        backend_cwd.mkdir(parents=True, exist_ok=True)
     messages: List[Dict[str, str]] = []
     errors: List[str] = []
     final_result: Optional[Dict[str, Any]] = None
     latest_query_text: Optional[str] = None
     query_frames: List[pd.DataFrame] = []
     checked_seen = set()
+    initial_candidates: List[Dict[str, Any]] = []
 
     for round_idx in range(1, args.iterations + 1):
         if round_idx > 1:
@@ -1188,6 +2048,7 @@ def run_boost(args: Any) -> int:
                 transcript=_append_transcript(messages),
                 query_text=latest_query_text,
                 is_final_round=round_idx == args.iterations,
+                prompt_variant=getattr(args, "fused_prompt_version", "v2-compact"),
             )
 
         prompt_path = prompts_dir / f"round_{round_idx:03d}.md"
@@ -1199,7 +2060,7 @@ def run_boost(args: Any) -> int:
             raw = backend.run(
                 prompt,
                 prompt_path,
-                boost_dir,
+                backend_cwd,
                 {
                     "input": str(Path(args.markers).resolve()),
                     "out": str(boost_dir.resolve()),
@@ -1207,41 +2068,61 @@ def run_boost(args: Any) -> int:
                     "agent_output_file": str(raw_path),
                 },
             )
+            _record_agent_run_metadata(manifest, backend)
             raw_path.write_text(raw, encoding="utf-8")
             messages.append({"role": "assistant", "content": raw})
 
-            try:
-                parsed = extract_json_object(raw)
-                final_result = normalize_boost_result(parsed)
-                break
-            except Exception:
-                final_result = None
+            if (
+                getattr(args, "fused_prompt_version", "v2-compact") == "candidate"
+                and not initial_candidates
+            ):
+                initial_candidates = extract_candidate_set(raw)
+                if initial_candidates:
+                    _write_json(
+                        boost_dir / "candidate_set.json",
+                        {"candidates": initial_candidates},
+                    )
+                    manifest["initial_candidates"] = initial_candidates
 
             genes = extract_check_genes(raw, max_genes=args.max_genes_per_round)
             genes = [gene for gene in genes if gene.upper() not in checked_seen]
-            if not genes:
-                latest_query_text = "No new <check_genes> request was found. Please return final JSON or request new genes."
+            if genes:
+                for gene in genes:
+                    checked_seen.add(gene.upper())
+                query_df = query_marker_genes(
+                    marker_path=Path(args.markers),
+                    genes=genes,
+                    cluster=args.cluster,
+                    gene_column=args.gene_column,
+                    cluster_column=args.cluster_column,
+                )
+                query_frames.append(query_df.copy())
+                query_df.to_csv(queries_dir / f"round_{round_idx:03d}.csv", index=False)
+                (queries_dir / f"round_{round_idx:03d}.json").write_text(
+                    json.dumps(query_df.to_dict(orient="records"), indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+                latest_query_text = query_df.to_string(index=False)
+                manifest["checked_genes"] = list(checked_seen)
+                manifest["updated_at"] = utc_now()
+                _write_json(boost_dir / "boost_manifest.json", manifest)
                 continue
 
-            for gene in genes:
-                checked_seen.add(gene.upper())
-            query_df = query_marker_genes(
-                marker_path=Path(args.markers),
-                genes=genes,
-                cluster=args.cluster,
-                gene_column=args.gene_column,
-                cluster_column=args.cluster_column,
-            )
-            query_frames.append(query_df.copy())
-            query_df.to_csv(queries_dir / f"round_{round_idx:03d}.csv", index=False)
-            (queries_dir / f"round_{round_idx:03d}.json").write_text(
-                json.dumps(query_df.to_dict(orient="records"), indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
-            latest_query_text = query_df.to_string(index=False)
-            manifest["checked_genes"] = list(checked_seen)
-            manifest["updated_at"] = utc_now()
-            _write_json(boost_dir / "boost_manifest.json", manifest)
+            try:
+                parsed = extract_json_object(raw)
+                candidate_result = normalize_boost_result(parsed)
+                if mode == "fused" and not query_frames:
+                    final_result = None
+                    latest_query_text = (
+                        "Fused mode requires at least one marker-query round before finalization. "
+                        "Request a targeted <check_genes> panel now."
+                    )
+                    continue
+                final_result = candidate_result
+                break
+            except Exception:
+                final_result = None
+                latest_query_text = "No new <check_genes> request was found. Please return final JSON or request new genes."
         except Exception as exc:
             errors.append(str(exc))
             break
@@ -1251,6 +2132,7 @@ def run_boost(args: Any) -> int:
             transcript=_append_transcript(messages),
             query_text=latest_query_text,
             is_final_round=True,
+            prompt_variant=getattr(args, "fused_prompt_version", "v2-compact"),
         )
         prompt_path = prompts_dir / "final.md"
         raw_path = raw_dir / "final.txt"
@@ -1260,7 +2142,7 @@ def run_boost(args: Any) -> int:
             raw = backend.run(
                 final_prompt,
                 prompt_path,
-                boost_dir,
+                backend_cwd,
                 {
                     "input": str(Path(args.markers).resolve()),
                     "out": str(boost_dir.resolve()),
@@ -1268,22 +2150,35 @@ def run_boost(args: Any) -> int:
                     "agent_output_file": str(raw_path),
                 },
             )
+            _record_agent_run_metadata(manifest, backend)
             raw_path.write_text(raw, encoding="utf-8")
             messages.append({"role": "assistant", "content": raw})
-            final_result = normalize_boost_result(extract_json_object(raw))
+            if extract_check_genes(raw, max_genes=args.max_genes_per_round):
+                raise ValueError("Agent requested additional genes after the final query round")
+            candidate_result = normalize_boost_result(extract_json_object(raw))
+            if mode == "fused" and not query_frames:
+                raise ValueError("Fused mode cannot finalize without at least one marker-query round")
+            final_result = candidate_result
         except Exception as exc:
             errors.append(str(exc))
 
     transcript = _append_transcript(messages)
     (boost_dir / "transcript.md").write_text(transcript + "\n", encoding="utf-8")
     if final_result:
+        final_result["cluster_id"] = str(args.cluster)
+        final_result["checked_genes"] = list(dict.fromkeys([
+            *manifest.get("checked_genes", []),
+            *final_result.get("checked_genes", []),
+        ]))
         _write_json(boost_dir / "final.json", final_result)
 
     manifest["status"] = "completed" if final_result and not errors else "failed"
     manifest["updated_at"] = utc_now()
     manifest["checked_genes"] = list(checked_seen)
+    manifest["initial_candidates"] = initial_candidates
     manifest["final_json"] = str(boost_dir / "final.json") if final_result else None
     manifest["errors"] = errors
+    manifest["execution_time"] = round(time.monotonic() - started_monotonic, 3)
     report_path = write_boost_report(boost_dir, manifest, final_result, errors)
     html_path = write_boost_html_report(
         boost_dir=boost_dir,
@@ -1299,6 +2194,13 @@ def run_boost(args: Any) -> int:
     manifest["markdown_report"] = str(report_path)
     manifest["html_report"] = str(html_path)
     manifest["summary_tags"] = str(boost_dir / "summary_tags.txt")
+    manifest["outputs"] = {
+        "final_json": str(boost_dir / "final.json") if final_result else None,
+        "markdown_report": str(report_path),
+        "html_report": str(html_path),
+        "summary_tags": str(boost_dir / "summary_tags.txt"),
+        "transcript": str(boost_dir / "transcript.md"),
+    }
     _write_json(boost_dir / "boost_manifest.json", manifest)
     print(f"Wrote {boost_dir / 'boost_manifest.json'}")
     print(f"Wrote {boost_dir / 'transcript.md'}")

@@ -40,7 +40,7 @@ macrophage subtype marker panel:
 
 1. `cassia_baseline`: `runCASSIA_subclusters(..., use_reference=False)`
 2. `cassia_reference`: `runCASSIA_subclusters(..., use_reference=True)`
-3. `direct_kimi`: one-shot `moonshotai/kimi-k2.6` call with no CASSIA pipeline
+3. `direct_kimi`: one-shot `moonshotai/kimi-k3` call with no CASSIA pipeline
    and no reference agent
 
 Generate literature-derived case CSVs:

@@ -126,10 +126,15 @@ function processSeurat(df, nGenes, rankingMethod, ascending) {
         const logFC = parseFloat(row.avg_log2FC);
         const pct1 = parseFloat(row['pct.1']);
         const pct2 = parseFloat(row['pct.2']);
+        const hasPctColumns = Object.prototype.hasOwnProperty.call(row, 'pct.1') ||
+            Object.prototype.hasOwnProperty.call(row, 'pct.2');
+        const passesPctFilter = !hasPctColumns ||
+            (!isNaN(pct1) && pct1 >= 0.1) ||
+            (!isNaN(pct2) && pct2 >= 0.1);
         
         return !isNaN(pVal) && pVal < 0.05 && 
                !isNaN(logFC) && logFC > 0.25 && 
-               (!isNaN(pct1) && pct1 >= 0.1 || !isNaN(pct2) && pct2 >= 0.1);
+               passesPctFilter;
     });
     
     // Group by cluster
@@ -328,7 +333,7 @@ export async function runCASSIABatch({
     }
     
     // Now that we have df, we can show the full configuration
-    const configMessage = `📋 Configuration: ${maxWorkers} workers, ${df.length} clusters`;
+    const configMessage = `📋 Configuration: ${maxWorkers} workers, ${df.length} input rows`;
     const presetMessage = preset ? `🎛️ Using preset: ${MODEL_PRESETS[preset].name} (${MODEL_PRESETS[preset].description})` : '🔧 Manual configuration';
     const targetMessage = `🎯 Target: ${tissue} ${species} using ${finalProvider}/${finalModel}`;
     const settingsMessage = `⚙️ Settings: ${nGenes} genes, ${validatorInvolvement} validator`;
