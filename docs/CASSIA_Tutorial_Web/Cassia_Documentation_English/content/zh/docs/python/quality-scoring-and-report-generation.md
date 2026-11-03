@@ -30,6 +30,8 @@ CASSIA.runCASSIA_score_batch(
 
 **自动检测：** 当您提供摘要 CSV 作为输入时，CASSIA 会自动在同一目录中查找对应的对话 JSON 文件。无需手动指定两个文件。
 
+请将 JSON 与摘要 CSV 放在同一目录，并保持文件名前缀一致（例如 `my_annotation_summary.csv` 和 `my_annotation_conversations.json`），也可以显式传入 `conversations_json_path`。评分后的 HTML 报告会从 JSON 中读取各聚类的注释、验证和格式化分析，并显示新的评分理由。摘要 CSV 本身不包含这些分析记录。
+
 ---
 
 ## 参数
@@ -67,7 +69,7 @@ CASSIA.runCASSIA_score_batch(
 | 文件 | 描述 |
 |------|------|
 | `{output_file}` | 包含质量分数和推理的评分结果 CSV |
-| `{output_file}_report.html` | 包含所有 CASSIA 输出的交互式 HTML 报告（如果 `generate_report=True`） |
+| `my_annotation_scored_report.html` | 包含注释过程和评分理由的交互式 HTML 报告（如果 `generate_report=True`） |
 
 ### 输出内容
 

@@ -311,6 +311,47 @@ def process_single_row(row_data, model="anthropic/claude-sonnet-5", provider="op
         return (idx, None, f"Error: {str(e)}")
 
 
+def _generate_scored_report(results, output_file, conversations_data):
+    """Restore annotation history from the companion JSON for the scored HTML."""
+    try:
+        try:
+            from CASSIA.reports.generate_batch_report import (
+                generate_batch_html_report_from_data,
+                parse_conversation_history,
+            )
+        except ImportError:
+            from ..reports.generate_batch_report import (
+                generate_batch_html_report_from_data,
+                parse_conversation_history,
+            )
+
+        rows_data = results.to_dict('records')
+        for row in rows_data:
+            cluster_id = next(
+                (str(row[column]) for column in CLUSTER_ID_COLUMN_OPTIONS if column in row),
+                None,
+            )
+            history = (conversations_data or {}).get(cluster_id) if cluster_id else None
+            if history is None:
+                history = row.get('Conversation History', '')
+            sections = parse_conversation_history(history)
+
+            scoring_reason = row.get('Scoring_Reasoning')
+            if isinstance(scoring_reason, str) and scoring_reason.strip():
+                sections['scoring'] = scoring_reason
+            row['Conversation History'] = sections
+
+        report_output_path = os.path.splitext(output_file)[0] + '_report.html'
+        generate_batch_html_report_from_data(
+            rows=rows_data,
+            output_path=report_output_path,
+            report_title="CASSIA Scored Analysis Report",
+        )
+        print(f"HTML report generated: {report_output_path}")
+    except Exception as e:
+        print(f"Warning: Could not generate HTML report: {e}")
+
+
 def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model=None, temperature=None, provider="openrouter", max_retries=1, generate_report=True, conversations_json_path=None, reasoning=None):
     """
     Run scoring on a batch of cell type annotations with progress tracking.
@@ -408,6 +449,8 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model=Non
             print("All rows already scored!")
             # Save the results to output file before returning
             results.to_csv(actual_output_file, index=False)
+            if generate_report:
+                _generate_scored_report(results, actual_output_file, conversations_data)
             return results
 
         # Initialize progress tracker
@@ -503,28 +546,7 @@ def runCASSIA_score_batch(input_file, output_file=None, max_workers=4, model=Non
 
         # Generate HTML report with scores (unless called from pipeline which handles its own)
         if generate_report:
-            try:
-                try:
-                    from CASSIA.reports.generate_batch_report import generate_batch_html_report_from_data
-                except ImportError:
-                    try:
-                        from ..reports.generate_batch_report import generate_batch_html_report_from_data
-                    except ImportError:
-                        from generate_batch_report import generate_batch_html_report_from_data
-
-                # Convert DataFrame to list of dicts for report generation
-                rows_data = results.to_dict('records')
-
-                # Generate report path based on output file
-                report_output_path = actual_output_file.replace('.csv', '_report.html')
-                generate_batch_html_report_from_data(
-                    rows=rows_data,
-                    output_path=report_output_path,
-                    report_title="CASSIA Scored Analysis Report"
-                )
-                print(f"HTML report generated: {report_output_path}")
-            except Exception as e:
-                print(f"Warning: Could not generate HTML report: {e}")
+            _generate_scored_report(results, actual_output_file, conversations_data)
 
         return results
 

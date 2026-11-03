@@ -1,7 +1,7 @@
 # CASSIA - Cell Annotation with Semantic Similarity for Intelligent Analysis
 # Root module with backward-compatible exports from reorganized submodules
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 # =============================================================================
 # BACKWARD COMPATIBILITY LAYER

@@ -10,6 +10,7 @@ from .generate_reports import (
 )
 from .generate_hypothesis_report import create_html_report
 from .generate_report_uncertainty import generate_uq_html_report
+from .fused_boost_report import write_fused_boost_html_report
 
 # Alias for backward compatibility
 generate_hypothesis_report = create_html_report
@@ -23,4 +24,5 @@ __all__ = [
     'create_html_report',
     'generate_hypothesis_report',
     'generate_uq_html_report',
+    'write_fused_boost_html_report',
 ]

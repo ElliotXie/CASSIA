@@ -52,7 +52,8 @@ def parse_conversation_history(history_data) -> Dict[str, Any]:
     # If already a dict (new format from tools_function.py), use directly
     if isinstance(history_data, dict):
         result['annotations'] = history_data.get('annotations', [])
-        result['validators'] = history_data.get('validations', [])
+        # Accept both the JSON schema and this parser's own normalized schema.
+        result['validators'] = history_data.get('validations', history_data.get('validators', []))
         result['formatting'] = history_data.get('formatting', '')
         result['scoring'] = history_data.get('scoring', '')
         return result
